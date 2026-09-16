@@ -1,5 +1,7 @@
 # Reading list
 
+**Updated research:** The [source register](research/sources.md) records the latest review depths and adds HarnessDev, EvoHarnessBench, Library Drift, and ScienceBuddy. Detailed notes now cover WikiSkill's appendix, Hyperagents' transfer experiments, MetaRSI v2 (September 9), and the harness-evaluation paper v2 (August 27). The initial screening records below remain available for background sources.
+
 For original work outside paper venues, see [practitioner research, blogs, code, and social posts](practitioner-sources.md). These are part of the session's core research coverage.
 
 Search conducted September 16, 2026. This is a curated starting map, not an exhaustive systematic review. Dates below refer to initial arXiv submissions unless a revision is explicitly identified. Recent entries are treated as preprints; peer review is not assumed.

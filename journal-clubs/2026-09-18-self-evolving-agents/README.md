@@ -8,6 +8,9 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 ## Materials
 
+- [Updated research landscape](research/landscape.md): current starting point, with September additions, competing evidence, and discussion questions.
+- [Source register and detailed reading notes](research/sources.md): twelve source notes, publication/version dates, experimental details, and access limits.
+- [Search log](research/search-log.md) and [research handoff](workflow.md): coverage, verification, and remaining questions.
 - [Research notes](research-notes.md): conceptual map, recent evidence, limitations, and discussion questions.
 - [Reading list](reading-list.md): recent primary sources, dates, review status, and historical background.
 - [Practitioner sources](practitioner-sources.md): original blogs, project documentation, code releases, and X/Twitter leads, with evidence and access notes.
@@ -26,8 +29,10 @@ Working assumption: 45 minutes including discussion; audience familiar with LLM 
 
 ## Selected supporting literature
 
-Prioritize the 2026 work: **WikiSkill**, **AgentStream**, **Rethinking the Evaluation of Harness Evolution for Agents**, **Hyperagents**, and the September **MetaRSI** and **The Last AI Built by Humans** preprints. The reading list also includes memory, longitudinal evaluation, and broad surveys.
+Prioritize **WikiSkill** for retained knowledge, **AgentStream** for task streams, **Rethinking the Evaluation of Harness Evolution for Agents** and **HarnessDev** for evaluation, and **Hyperagents** for improving the improvement process. Pair these with **Library Drift** and **EvoHarnessBench** for regressions and changing interfaces. September frontier coverage includes **MetaRSI** and the September 15 **ScienceBuddy** preprint; their stronger claims retain explicit qualifications. The reading list also includes memory, longitudinal evaluation, and broad surveys.
 
 DGM, SICA, and earlier systems provide historical context. The session does not have a single main paper. These are initial research materials; slides have not yet been created.
 
-Weave practitioner examples into the same themes: autoresearch for experiment loops, Hermes and LangChain for procedural learning, and NVIDIA's September memory-agent writeup for measured benefits and regressions. Research coverage includes work published outside paper venues.
+Weave practitioner examples into the same themes: autoresearch for experiment loops, Hermes and LangChain for procedural learning, and NVIDIA's September memory-agent writeup for measured benefits and regressions. The update adds **Reef** for continual-learning infrastructure and **SoL-Pi** for reusable harness-efficiency mechanisms. Code releases and demos are distinguished from controlled measurements.
+
+Research was updated September 16 using the journal-club-research skill. Primary methods/results sections and selected appendices were reviewed; no experiments were reproduced. See the source notes for review depth and unresolved statistical details.

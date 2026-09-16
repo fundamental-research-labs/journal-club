@@ -1,5 +1,7 @@
 # Practitioner research, blogs, and social posts
 
+**September 16 update:** Added [Reef](research/notes/reef.md), announced September 15, and [SoL-Pi](research/notes/sol-pi.md), whose inspected commit is September 15. These notes distinguish implementation evidence from unreviewed performance claims. [autoresearch](research/notes/autoresearch.md) now has a pinned repository snapshot and renewed social-access check. [ScienceBuddy](research/notes/sciencebuddy.md) combines a September 15 paper, code, and product demonstration within one evidence family.
+
 Searched September 16, 2026. These sources contribute to the main topic alongside papers. Publication format does not determine evidence quality: examine the method, artifacts, comparison, and reproducibility. No software was installed or experiments reproduced for this pass.
 
 ## Sources to weave into the talk
