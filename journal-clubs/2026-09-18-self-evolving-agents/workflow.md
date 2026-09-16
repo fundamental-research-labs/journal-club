@@ -25,6 +25,8 @@ Remaining gaps below narrow the argument rather than block it. No training exper
 
 ## What changed
 
+September 16 filename cleanup: standardized all 43 reading-note filenames to `YYYY-short-title.md` (12 renamed), updated note references, and documented the year convention in the README. SoL-Pi uses the reviewed snapshot year; its first-publication date remains unverified. Source keys, original copies, and research conclusions are unchanged.
+
 The initial twelve detailed notes were expanded to 43 substantive notes, covering prompt/context search, weights, self-play, improver code, environment/curriculum generation, evaluator integrity, and first-party production systems. The current register includes 132 resource/candidate records; watchlist and excluded entries are not represented as fully reviewed studies.
 
 The selected ten deliberately include controlled positive examples, budget/reset controls, task-stream regressions, late self-play deterioration, and a production account. R-Zero displaced the provisional Dream-RSI slot to avoid underrepresenting autonomous curricula; Dream-RSI remains the first meta-improvement alternative. Follow-up reading of Agent-World and World Knowledge Exploration added mechanism coverage without changing the selected ten.
@@ -75,3 +77,5 @@ Requested research and skill update completed. Inputs: seven recent seed version
 The skill now explicitly requires recent-paper citation mining with cheap parallel workers, provenance, deduplication, primary verification, and bounded expansion. Its validator passed using an isolated uv dependency environment. The research pass stopped at its stated budget; remaining citation leads are not described as saturated or fully reviewed.
 
 Final refinement checks passed: 151 unique source records, 48 notes, ten unchanged shortlist records, 559 authored relative links, five new note section layouts, and title/version/size/SHA-256/readability checks for three new PDFs. Skill validation and `git diff --check` passed. No rendered artifact was generated in this research-only update.
+
+September 16 originals filename cleanup: renamed nine source folders and 14 retained files to match the year-prefixed reading notes; updated references and acquisition records. Original bytes and source keys are preserved.

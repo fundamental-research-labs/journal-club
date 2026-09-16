@@ -4,7 +4,7 @@
 
 **Source key:** `evoharnessbench`.
 
-**Originals and source links:** [register](../sources.md#evoharnessbench); [canonical source](https://arxiv.org/abs/2609.04280v2). Retained unmodified: [evoharnessbench-paper-v2.pdf](../originals/evoharnessbench/evoharnessbench-paper-v2.pdf). Paper license: http://creativecommons.org/licenses/by-sa/4.0/. [Manifest](../originals/manifest.json).
+**Originals and source links:** [register](../sources.md#evoharnessbench); [canonical source](https://arxiv.org/abs/2609.04280v2). Retained unmodified: [2026-evoharnessbench-paper-v2.pdf](../originals/2026-evoharnessbench/2026-evoharnessbench-paper-v2.pdf). Paper license: http://creativecommons.org/licenses/by-sa/4.0/. [Manifest](../originals/manifest.json).
 
 [Paper v2](https://arxiv.org/html/2609.04280v2). Zixuan Ke et al.; September 3, revised September 10, 2026; preprint. Accessed September 16; §§3–4.1 and Table 2 inspected. Family: EvoHarnessBench.
 

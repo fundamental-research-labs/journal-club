@@ -4,7 +4,7 @@
 
 **Source key:** `harness-evolution-evaluation`.
 
-**Originals and source links:** [register](../sources.md#harness-evolution-evaluation); [canonical source](https://arxiv.org/abs/2607.12227v2). Retained unmodified: [harness-evolution-evaluation-paper-v2.pdf](../originals/harness-evolution-evaluation/harness-evolution-evaluation-paper-v2.pdf). Paper license: http://creativecommons.org/licenses/by/4.0/. [Manifest](../originals/manifest.json).
+**Originals and source links:** [register](../sources.md#harness-evolution-evaluation); [canonical source](https://arxiv.org/abs/2607.12227v2). Retained unmodified: [2026-harness-evolution-evaluation-paper-v2.pdf](../originals/2026-harness-evolution-evaluation/2026-harness-evolution-evaluation-paper-v2.pdf). Paper license: http://creativecommons.org/licenses/by/4.0/. [Manifest](../originals/manifest.json).
 
 [Paper v2](https://arxiv.org/html/2607.12227v2). Yike Wang et al.; submitted July 14, revised August 27, 2026; preprint. Accessed September 16; §§3–5 and Tables 1–3 checked. Family: Rethinking harness evolution.
 

@@ -4,7 +4,7 @@
 
 **Source key:** `wikiskill`.
 
-**Originals and source links:** [register](../sources.md#wikiskill); [canonical source](https://arxiv.org/abs/2608.27454v1). Retained unmodified: [wikiskill-paper-v1.pdf](../originals/wikiskill/wikiskill-paper-v1.pdf). Paper license: http://creativecommons.org/licenses/by/4.0/. [Manifest](../originals/manifest.json).
+**Originals and source links:** [register](../sources.md#wikiskill); [canonical source](https://arxiv.org/abs/2608.27454v1). Retained unmodified: [2026-wikiskill-paper-v1.pdf](../originals/2026-wikiskill/2026-wikiskill-paper-v1.pdf). Paper license: http://creativecommons.org/licenses/by/4.0/. [Manifest](../originals/manifest.json).
 
 [Paper v1](https://arxiv.org/html/2608.27454v1). Liyan Tang et al.; August 27, 2026 preprint. Accessed September 16; methods, results, and relevant appendices read, not every prompt. Family: WikiSkill.
 

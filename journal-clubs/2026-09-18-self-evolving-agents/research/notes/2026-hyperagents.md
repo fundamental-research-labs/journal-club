@@ -4,7 +4,7 @@
 
 **Source key:** `hyperagents`.
 
-**Originals and source links:** [register](../sources.md#hyperagents); [canonical source](https://arxiv.org/abs/2603.19461v1). Retained unmodified: [hyperagents-paper-v1.pdf](../originals/hyperagents/hyperagents-paper-v1.pdf). Paper license: http://creativecommons.org/licenses/by/4.0/. [Manifest](../originals/manifest.json).
+**Originals and source links:** [register](../sources.md#hyperagents); [canonical source](https://arxiv.org/abs/2603.19461v1). Retained unmodified: [2026-hyperagents-paper-v1.pdf](../originals/2026-hyperagents/2026-hyperagents-paper-v1.pdf). Paper license: http://creativecommons.org/licenses/by/4.0/. [Manifest](../originals/manifest.json).
 
 [Paper v1](https://arxiv.org/html/2603.19461v1). Jenny Zhang et al.; first submitted March 19, 2026; preprint. arXiv lists one version despite an August manuscript date in the initial session notes. Accessed September 16; §§3–5 read selectively. Family: DGM/Hyperagents; related systems are not independent replications.
 

@@ -28,8 +28,8 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 - **Key / type / family:** `wikiskill`; preprint; `wikiskill`. **Authors:** Tang, Liyan, Rashtchian, Cyrus, Ferng, Chun-Sung et al..
 - **Dates / version:** first 2026-08-27; latest metadata 2026-08-27; read/inspected v1. **Access:** 2026-09-16; primary methods/results inspected.
-- **Selection:** shortlist; rubric H / M / H / H / H. Controlled persistent-knowledge positive result; regressions, retrieval bypass, and small validation sets qualify it. **Notes:** [reading record](notes/wikiskill.md).
-- **Originals:** [wikiskill-paper-v1.pdf](originals/wikiskill/wikiskill-paper-v1.pdf). License/permission: CC BY 4.0. Retrieved September 16; exact artifact versions and hashes in manifest.
+- **Selection:** shortlist; rubric H / M / H / H / H. Controlled persistent-knowledge positive result; regressions, retrieval bypass, and small validation sets qualify it. **Notes:** [reading record](notes/2026-wikiskill.md).
+- **Originals:** [2026-wikiskill-paper-v1.pdf](originals/2026-wikiskill/2026-wikiskill-paper-v1.pdf). License/permission: CC BY 4.0. Retrieved September 16; exact artifact versions and hashes in manifest.
 
 <a id="harness-evolution-evaluation"></a>
 
@@ -37,8 +37,8 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 - **Key / type / family:** `harness-evolution-evaluation`; preprint; `harness-evolution-evaluation`. **Authors:** Wang, Yike, Zhu, Huaisheng, Hu, Zhengyu et al..
 - **Dates / version:** first 2026-07-14; latest metadata 2026-08-27; read/inspected v2. **Access:** 2026-09-16; primary methods/results inspected.
-- **Selection:** shortlist; rubric H / M / H / H / H. Direct alternative-budget and held-out controls; narrow implementation and rollout-only budget matching. **Notes:** [reading record](notes/harness-evolution-evaluation.md).
-- **Originals:** [harness-evolution-evaluation-paper-v2.pdf](originals/harness-evolution-evaluation/harness-evolution-evaluation-paper-v2.pdf). License/permission: CC BY 4.0. Retrieved September 16; exact artifact versions and hashes in manifest.
+- **Selection:** shortlist; rubric H / M / H / H / H. Direct alternative-budget and held-out controls; narrow implementation and rollout-only budget matching. **Notes:** [reading record](notes/2026-harness-evolution-evaluation.md).
+- **Originals:** [2026-harness-evolution-evaluation-paper-v2.pdf](originals/2026-harness-evolution-evaluation/2026-harness-evolution-evaluation-paper-v2.pdf). License/permission: CC BY 4.0. Retrieved September 16; exact artifact versions and hashes in manifest.
 
 <a id="2025-gepa"></a>
 
@@ -64,8 +64,8 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 - **Key / type / family:** `hyperagents`; preprint; `hyperagents`. **Authors:** Zhang, Jenny, Zhao, Bingchen, Yang, Wannan et al..
 - **Dates / version:** first 2026-03-19; latest metadata 2026-03-19; read/inspected v1. **Access:** 2026-09-16; primary methods/results inspected.
-- **Selection:** shortlist; rubric H / M / H / H / H. Improves task and meta agents; five-run bootstrap and one-sided tests audited; compounding endpoint nonsignificant. **Notes:** [reading record](notes/hyperagents.md).
-- **Originals:** [hyperagents-paper-v1.pdf](originals/hyperagents/hyperagents-paper-v1.pdf). License/permission: CC BY 4.0. Retrieved September 16; exact artifact versions and hashes in manifest.
+- **Selection:** shortlist; rubric H / M / H / H / H. Improves task and meta agents; five-run bootstrap and one-sided tests audited; compounding endpoint nonsignificant. **Notes:** [reading record](notes/2026-hyperagents.md).
+- **Originals:** [2026-hyperagents-paper-v1.pdf](originals/2026-hyperagents/2026-hyperagents-paper-v1.pdf). License/permission: CC BY 4.0. Retrieved September 16; exact artifact versions and hashes in manifest.
 - **Relationship:** DGM/SICA/HGM/Hyperagents: related methods; distinct experiments, not independent replications.
 
 <a id="agentstream"></a>
@@ -74,7 +74,7 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 - **Key / type / family:** `agentstream`; preprint; `agentstream`. **Authors:** Yan, Dong, Liang, Jian, Hu, Dapeng et al..
 - **Dates / version:** first 2026-07-31; latest metadata 2026-07-31; read/inspected v1. **Access:** 2026-09-16; primary methods/results inspected.
-- **Selection:** shortlist; rubric H / M / H / H / H. Cross-method stream evaluation; Table 2 reconstructed from per-seed tables; 45 cells are not independent datasets. **Notes:** [reading record](notes/agentstream.md).
+- **Selection:** shortlist; rubric H / M / H / H / H. Cross-method stream evaluation; Table 2 reconstructed from per-seed tables; 45 cells are not independent datasets. **Notes:** [reading record](notes/2026-agentstream.md).
 - **Original:** retention-restricted. License/permission: http://arxiv.org/licenses/nonexclusive-distrib/1.0/. [Download/source location](https://arxiv.org/pdf/2608.00155v1).
 
 <a id="2025-r-zero"></a>
@@ -93,8 +93,8 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 - **Key / type / family:** `harnessdev`; preprint; `harnessdev`. **Authors:** Wu, Yuhao, Zhang, Jingyuan, Shi, Jiajun et al..
 - **Dates / version:** first 2026-09-01; latest metadata 2026-09-01; read/inspected v1. **Access:** 2026-09-16; primary methods/results inspected.
-- **Selection:** shortlist; rubric H / M / H / H / H. Distinguishes visible feedback, declared versions, and held-out tests; one trajectory per lineage. **Notes:** [reading record](notes/harnessdev.md).
-- **Originals:** [harnessdev-paper-v1.pdf](originals/harnessdev/harnessdev-paper-v1.pdf). License/permission: https://creativecommons.org/licenses/by-nc-nd/4.0/. Retrieved September 16; exact artifact versions and hashes in manifest.
+- **Selection:** shortlist; rubric H / M / H / H / H. Distinguishes visible feedback, declared versions, and held-out tests; one trajectory per lineage. **Notes:** [reading record](notes/2026-harnessdev.md).
+- **Originals:** [2026-harnessdev-paper-v1.pdf](originals/2026-harnessdev/2026-harnessdev-paper-v1.pdf). License/permission: https://creativecommons.org/licenses/by-nc-nd/4.0/. Retrieved September 16; exact artifact versions and hashes in manifest.
 
 <a id="2026-finevo-bench"></a>
 
@@ -214,8 +214,8 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 - **Key / type / family:** `evoharnessbench`; preprint; `evoharnessbench`. **Authors:** Ke, Zixuan, Patil, Vaidehi, Shi, Haizhou et al..
 - **Dates / version:** first 2026-09-03; latest metadata 2026-09-10; read/inspected v2. **Access:** 2026-09-16; primary methods/results inspected.
-- **Selection:** reviewed-reserve; rubric H / M / H / H / H. External catalog growth complements task-stream changes; three-run population SD verified. **Notes:** [reading record](notes/evoharnessbench.md).
-- **Originals:** [evoharnessbench-paper-v2.pdf](originals/evoharnessbench/evoharnessbench-paper-v2.pdf). License/permission: CC BY-SA 4.0. Retrieved September 16; exact artifact versions and hashes in manifest.
+- **Selection:** reviewed-reserve; rubric H / M / H / H / H. External catalog growth complements task-stream changes; three-run population SD verified. **Notes:** [reading record](notes/2026-evoharnessbench.md).
+- **Originals:** [2026-evoharnessbench-paper-v2.pdf](originals/2026-evoharnessbench/2026-evoharnessbench-paper-v2.pdf). License/permission: CC BY-SA 4.0. Retrieved September 16; exact artifact versions and hashes in manifest.
 
 <a id="2026-ground-truth-first"></a>
 
@@ -242,8 +242,8 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 - **Key / type / family:** `library-drift`; preprint; `library-drift`. **Authors:** Zhang, Xing, Cui, Yanwei, Wang, Guanghui et al..
 - **Dates / version:** first 2026-05-19; latest metadata 2026-07-29; read/inspected v3. **Access:** 2026-09-16; primary methods/results inspected.
-- **Selection:** reviewed-reserve; rubric H / M / H / H / H. Narrow three-seed lifecycle ablations expose harmful retirement; unmatched costs and selected tasks. **Notes:** [reading record](notes/library-drift.md).
-- **Originals:** [library-drift-paper-v3.pdf](originals/library-drift/library-drift-paper-v3.pdf). License/permission: https://creativecommons.org/licenses/by-nc-sa/4.0/. Retrieved September 16; exact artifact versions and hashes in manifest.
+- **Selection:** reviewed-reserve; rubric H / M / H / H / H. Narrow three-seed lifecycle ablations expose harmful retirement; unmatched costs and selected tasks. **Notes:** [reading record](notes/2026-library-drift.md).
+- **Originals:** [2026-library-drift-paper-v3.pdf](originals/2026-library-drift/2026-library-drift-paper-v3.pdf). License/permission: https://creativecommons.org/licenses/by-nc-sa/4.0/. Retrieved September 16; exact artifact versions and hashes in manifest.
 
 <a id="2026-memrl"></a>
 
@@ -260,8 +260,8 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 - **Key / type / family:** `metarsi`; preprint; `metarsi`. **Authors:** Tan, Zihan, Sun, Leixin, Shi, Zitong et al..
 - **Dates / version:** first 2026-09-06; latest metadata 2026-09-09; read/inspected v2. **Access:** 2026-09-16; primary methods/results inspected.
-- **Selection:** reviewed-reserve; rubric H / L / H / H / H. Provisional composition results; accounting conventions found but empirical split/budget ledgers not verified. **Notes:** [reading record](notes/metarsi.md).
-- **Originals:** [metarsi-paper-v2.pdf](originals/metarsi/metarsi-paper-v2.pdf). License/permission: CC BY 4.0. Retrieved September 16; exact artifact versions and hashes in manifest.
+- **Selection:** reviewed-reserve; rubric H / L / H / H / H. Provisional composition results; accounting conventions found but empirical split/budget ledgers not verified. **Notes:** [reading record](notes/2026-metarsi.md).
+- **Originals:** [2026-metarsi-paper-v2.pdf](originals/2026-metarsi/2026-metarsi-paper-v2.pdf). License/permission: CC BY 4.0. Retrieved September 16; exact artifact versions and hashes in manifest.
 
 <a id="reef"></a>
 
@@ -269,8 +269,8 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 - **Key / type / family:** `reef`; first-party technical article and open-source code; `reef`. **Authors:** Ao Qu and collaborators; Human-Agent-Society.
 - **Dates / version:** first 2026-09-15; latest metadata 2026-09-16; read/inspected commit 401db3670d34b1b5a77989234272e0bee4b90ce8. **Access:** 2026-09-16; article, README, repository tree, and meta-harness results inspected; not executed.
-- **Selection:** reviewed-reserve; rubric H / M / H / H / H. Strong infrastructure and audit artifact for feedback attribution and versioned learning, with bounded same-task meta-harness evidence. **Notes:** [reading record](notes/reef.md).
-- **Originals:** [reef-code-license-commit-401db36.txt](originals/reef/reef-code-license-commit-401db36.txt); [reef-meta-harness-results-commit-401db36.md](originals/reef/reef-meta-harness-results-commit-401db36.md); [reef-meta-harness-eval-readme-commit-401db36.md](originals/reef/reef-meta-harness-eval-readme-commit-401db36.md). License/permission: Apache-2.0; Apache-2.0 (repository LICENSE). Retrieved September 16; exact artifact versions and hashes in manifest.
+- **Selection:** reviewed-reserve; rubric H / M / H / H / H. Strong infrastructure and audit artifact for feedback attribution and versioned learning, with bounded same-task meta-harness evidence. **Notes:** [reading record](notes/2026-reef.md).
+- **Originals:** [2026-reef-code-license-commit-401db36.txt](originals/2026-reef/2026-reef-code-license-commit-401db36.txt); [2026-reef-meta-harness-results-commit-401db36.md](originals/2026-reef/2026-reef-meta-harness-results-commit-401db36.md); [2026-reef-meta-harness-eval-readme-commit-401db36.md](originals/2026-reef/2026-reef-meta-harness-eval-readme-commit-401db36.md). License/permission: Apache-2.0; Apache-2.0 (repository LICENSE). Retrieved September 16; exact artifact versions and hashes in manifest.
 
 <a id="2026-reflection-in-the-dark"></a>
 
@@ -332,8 +332,8 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 - **Key / type / family:** `sciencebuddy`; preprint; `sciencebuddy`. **Authors:** Xue, Shuhan, Zhong, Jianyuan, Nan, Ziyuan et al..
 - **Dates / version:** first 2026-09-15; latest metadata 2026-09-15; read/inspected v1; code454d11c. **Access:** 2026-09-16; primary methods/results inspected.
-- **Selection:** reviewed-reserve; rubric H / L / H / H / H. Recipe discloses material overlap and differs from paper schedule; historical evaluation denominators unresolved. **Notes:** [reading record](notes/sciencebuddy.md).
-- **Originals:** [sciencebuddy-experiment-config-commit-454d11c.toml](originals/sciencebuddy/sciencebuddy-experiment-config-commit-454d11c.toml); [sciencebuddy-code-license-commit-454d11c.txt](originals/sciencebuddy/sciencebuddy-code-license-commit-454d11c.txt); [sciencebuddy-experiment-guide-commit-454d11c.md](originals/sciencebuddy/sciencebuddy-experiment-guide-commit-454d11c.md); [sciencebuddy-algorithm-guide-commit-454d11c.md](originals/sciencebuddy/sciencebuddy-algorithm-guide-commit-454d11c.md). License/permission: MIT (repository artifacts only). Retrieved September 16; exact artifact versions and hashes in manifest.
+- **Selection:** reviewed-reserve; rubric H / L / H / H / H. Recipe discloses material overlap and differs from paper schedule; historical evaluation denominators unresolved. **Notes:** [reading record](notes/2026-sciencebuddy.md).
+- **Originals:** [2026-sciencebuddy-experiment-config-commit-454d11c.toml](originals/2026-sciencebuddy/2026-sciencebuddy-experiment-config-commit-454d11c.toml); [2026-sciencebuddy-code-license-commit-454d11c.txt](originals/2026-sciencebuddy/2026-sciencebuddy-code-license-commit-454d11c.txt); [2026-sciencebuddy-experiment-guide-commit-454d11c.md](originals/2026-sciencebuddy/2026-sciencebuddy-experiment-guide-commit-454d11c.md); [2026-sciencebuddy-algorithm-guide-commit-454d11c.md](originals/2026-sciencebuddy/2026-sciencebuddy-algorithm-guide-commit-454d11c.md). License/permission: MIT (repository artifacts only). Retrieved September 16; exact artifact versions and hashes in manifest.
 
 <a id="2026-shaper"></a>
 
@@ -368,7 +368,7 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 - **Key / type / family:** `sol-pi`; code release; `sol-pi`. **Authors:** NVIDIA.
 - **Dates / version:** first unknown; inspected September2026 release; latest metadata 2026-09-15 (inspected commit); read/inspected repository snapshot in note. **Access:** 2026-09-16; README inspected.
-- **Selection:** reviewed-reserve; rubric H / M / H / H / H. Implementation of reusable efficiency mechanisms; paper forthcoming and empirical recipe not independently audited. **Notes:** [reading record](notes/sol-pi.md).
+- **Selection:** reviewed-reserve; rubric H / M / H / H / H. Implementation of reusable efficiency mechanisms; paper forthcoming and empirical recipe not independently audited. **Notes:** [reading record](notes/2026-sol-pi.md).
 - **Original:** not retained: public original inspected; no redistribution license verified for page, or only metadata/theoretical background reviewed. License/permission: unknown. Canonical page above is the inspected location.
 
 <a id="2025-test-time-reinforcement-learning"></a>
@@ -422,7 +422,7 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 - **Key / type / family:** `autoresearch`; open-source code; `autoresearch`. **Authors:** Andrej Karpathy.
 - **Dates / version:** first 2026-03-06; latest metadata 2026-03-26; read/inspected commit 228791fb499afffb54b46200aca536f79142f117. **Access:** 2026-09-16; README and tree inspected; not executed.
-- **Selection:** reviewed-reserve; rubric H / L / M / H / H. Essential minimal comparator and teaching artifact, but not itself controlled evidence of general self-improvement. **Notes:** [reading record](notes/autoresearch.md).
+- **Selection:** reviewed-reserve; rubric H / L / M / H / H. Essential minimal comparator and teaching artifact, but not itself controlled evidence of general self-improvement. **Notes:** [reading record](notes/2026-autoresearch.md).
 - **Original:** not retained: public original inspected; no redistribution license verified for page, or only metadata/theoretical background reviewed. License/permission: README declares MIT; no standalone LICENSE present at pin. Canonical page above is the inspected location.
 
 ## Screened reserves

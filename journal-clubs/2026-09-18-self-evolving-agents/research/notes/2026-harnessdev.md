@@ -4,7 +4,7 @@
 
 **Source key:** `harnessdev`.
 
-**Originals and source links:** [register](../sources.md#harnessdev); [canonical source](https://arxiv.org/abs/2609.01437v1). Retained unmodified: [harnessdev-paper-v1.pdf](../originals/harnessdev/harnessdev-paper-v1.pdf). Paper license: http://creativecommons.org/licenses/by-nc-nd/4.0/. [Manifest](../originals/manifest.json).
+**Originals and source links:** [register](../sources.md#harnessdev); [canonical source](https://arxiv.org/abs/2609.01437v1). Retained unmodified: [2026-harnessdev-paper-v1.pdf](../originals/2026-harnessdev/2026-harnessdev-paper-v1.pdf). Paper license: http://creativecommons.org/licenses/by-nc-nd/4.0/. [Manifest](../originals/manifest.json).
 
 [Paper v1](https://arxiv.org/html/2609.01437v1). Yuhao Wu et al.; September 1, 2026 preprint. Accessed September 16; setup, §4.3, Tables 6–7, Appendix B inspected. Family: HarnessDev.
 

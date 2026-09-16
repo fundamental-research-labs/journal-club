@@ -4,7 +4,7 @@
 
 **Source key:** `metarsi`.
 
-**Originals and source links:** [register](../sources.md#metarsi); [canonical source](https://arxiv.org/abs/2609.06396v2). Retained unmodified: [metarsi-paper-v2.pdf](../originals/metarsi/metarsi-paper-v2.pdf). Paper license: http://creativecommons.org/licenses/by/4.0/. [Manifest](../originals/manifest.json).
+**Originals and source links:** [register](../sources.md#metarsi); [canonical source](https://arxiv.org/abs/2609.06396v2). Retained unmodified: [2026-metarsi-paper-v2.pdf](../originals/2026-metarsi/2026-metarsi-paper-v2.pdf). Paper license: http://creativecommons.org/licenses/by/4.0/. [Manifest](../originals/manifest.json).
 
 [Paper v2](https://arxiv.org/html/2609.06396v2). Zihan Tan et al.; September 6, revised September 9, 2026; preprint. Accessed September 16; §§3–5.2, Table 3, and Appendix F inspected; targeted code/artifact audit below, not a complete code review. Family: MetaRSI.
 
