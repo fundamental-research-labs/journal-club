@@ -1,0 +1,201 @@
+
+
+
+
+
+\section{Raw pull request data curation}
+\label{sec:apd:raw-data}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{plots/DevLlama-data.pdf}
+    \caption{\textbf{Overview of \tech's raw pull request data curation process.}
+The collected git clones and \github events are transformed into self-contained PR instances via decontamination, aggregation, relevant files prediction, and filtering.}
+    \label{fig:data}
+\end{figure}
+
+\Cref{fig:data} provides a high-level overview of our process for curating the raw PR dataset for \ours.
+In the following paragraphs, we detail each step of the curation process.
+During data processing, we exclude all the repositories used by \swebench{}~\cite{swebench} to prevent data contamination.
+
+
+\textbf{GitHub events and clones.}
+The goal of this stage is to recover all pull request details that human developers can inspect on \github. To achieve this, we need two sources of information: (1) all events that occur within a PR and (2) the source code of a repo before the changes introduced by the PR are merged.
+We derive all \github~\cite{github} events from \gharchive~\cite{gharchive}, which contains all activity events data from \github. Our collection includes all \github events from Jan 1, 2015 to Aug 31, 2024.
+
+To obtain source code, since pull requests often occur at different commit stages of a repository, we opt to use \texttt{git clone} to retrieve the entire repository with its commit history, rather than relying on the \github API~\cite{ghapi} to download specific code snapshots.
+Eventually, we successfully cloned and processed 4.6M repositories.
+
+\textbf{PR data aggregation.}
+The collected events and git clones are disparate entities that require further processing before they can be used for training.
+At this stage, we focus on each PR individually and aggregate all pertinent information associated with it. This includes mentioned issues, user discussions, review comments, initial code contents, and subsequent commits and code changes.
+
+First, we keep only merged PRs and gather all related conversational events for each PR, sorting them in chronological order. Next, using the \texttt{base\_commit} and \texttt{head\_commit} hashes of a PR, we retrieve the contents of all modified files indicated by its patch at the merge base of the two commits.
+The reason is that many PRs aim to merge back into the main branch, which may have undergone changes since the PR was created. By considering the merge base as the actual starting point for a developer working on the PR, we can more accurately understand the context of the changes.
+We save all intermediate commits and code changes made between the merge base and the head commit. Additionally, we extract the complete patch representing cumulative changes from start to finish.
+Finally, we scan each aggregated PR to identify patterns that resemble issues, and associate the matched issues with the corresponding PR. In the end, we have 24M aggregated PR instances.
+
+\textbf{Relevant files prediction.}
+Currently, each pull request includes only the code files that have been modified. In our earlier experiments, we noticed that this approach let LLMs learn a bias: the model consistently generated edits for every code file presented and was unable to handle noisy files presented in the context. This issue was also mentioned in the finetuning experiment discussed in the \swebench{} paper~\cite{swebench}.
+To mitigate this problem, we prompt \llama-3.1-70B-Instruct~\cite{llama31} to generate a list of relevant but unmodified files given each PR description and the changed files, and include the contents of these files in our final dataset.
+
+\textbf{Data filtering.}
+\github PRs can be quite noisy, so we implemented various filtering strategies to eliminate potentially harmful PRs. In designing these filtering rules, our goal is to maximize the recall of high-quality PRs while permitting a certain level of noise.
+First, we remove the bot-generated PRs whose title, description, or username contains keywords ``[bot]'', ``dependabot'', ``renovate'', ``bump'', or ``automerge''.
+Also, we remove PRs with empty changes or with extremely large number of changes (e.g., in some PRs, the developer uploaded a directory of data files by mistake).
+Additionally, we implemented a more fine-grained set of filters used in \codellama~\cite{codellama} to examine each code change hunk. We then removed any PRs where these filters flagged all code changes. For example, this can exclude PRs with only lock file changes or version updates.
+Finally, this gives us around 11M unique PR instances.
+Before applying reinforcement learning, we select 273k high-quality PRs from these raw PRs, as discussed in \Cref{section:approach}.
+
+\section{\ouragentless}
+\label{sec:apd:agentlessmini}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{plots/DevLlama-agentless.pdf}
+\caption{\textbf{The \ouragentless scaffold.} The design emphasizes easy decomposition, parallelization, and scalability.}
+\label{fig:agentless-mini}
+\end{figure}
+
+In addition to a model proficient in code editing, effectively tackling software engineering tasks, such as those found in \swebench{}~\cite{swebench}, also requires a robust scaffold.
+\agentless~\cite{agentless} is one of the state-of-the-art scaffolds for \swebench{} at the time of writing.
+Building upon \agentless with various simplifications and enhancements, we developed \ouragentless, a framework that prioritizes straightforward component decomposition, parallelization, and scalability.
+With \ouragentless, each step's inference or execution compute can be independently scaled to enhance \swebench performance.
+In \Cref{fig:agentless-mini}, we present a detailed illustration of \ouragentless's working principles. The following paragraphs will elaborate on each step and highlight the differences from \agentless.
+
+\textbf{Localization and repair.}
+For localization, we employ a prompting-based approach that enables the model to predict relevant file paths based on a given issue and the repository's structure.
+Unlike \agentless, which involves two additional detailed steps to identify related elements and files, as well as a separate embedding model, \ouragentless simplifies the process. It generates multiple samples of potentially problematic files from the model and consolidates them into unique sets for repair.
+
+During the repair phase, the LLM is conditioned on the full content of the files to predict search/replace edits. We generate multiple repair samples from different location sets, ensuring a comprehensive exploration of the patch search space.
+
+
+\textbf{Reproduction tests generation and selection.}
+\agentless samples reproduction tests for patch selection. Initially, multiple reproduction tests are generated based on an issue description, and one majority sample is selected after filtering. These tests must have distinct logic to output \texttt{"Issue reproduced"} and \texttt{"Issue resolved"} when the issue is reproduced or resolved, respectively. They are filtered based on whether they correctly output \texttt{"Issue reproduced"} when executed in the original codebase.
+\ouragentless enhances this pipeline with two key improvements. First, instead of relying solely on the issue description, the model retrieves a relevant test file to guide test generation.
+Additionally, rather than selecting just one majority sample, \ouragentless allows for the selection of multiple top test samples based on voting results. In our evaluation, using more test samples has proven beneficial for reranking (\Cref{subsec:scaling}).
+
+\textbf{Regression tests selection.}
+We select regression tests in the same manner as \agentless. Initially, we gather all passing tests for each issue by executing the code before any modifications. This step does not require model inference and needs to be performed only once.
+Subsequently, an additional, optional inference step is conducted to filter out passing tests that are supposed to fail after the issue is fixed.
+The rest of the tests will be marked as regression tests.
+
+\textbf{Reranking.}
+\ouragentless utilizes both regression and reproduction tests for reranking.
+For each issue, every applied patch is executed against the regression tests. The patches that result in the minimum number of existing test failures are selected.
+For each issue, we choose the top-$N$ reproduction tests and run each patch against these tests. If the execution outputs \texttt{"Issue resolved"}, we mark the patch passing this test.
+We then adopt the dual execution agreement objective from \codet~\cite{codet}.
+Specifically, patches $\mathcal P$ that pass the same set of reproduction tests $\mathcal T$ are denoted as a consensus group. Each consensus group is scored using the formula 
+$|\mathcal P|\times|\mathcal T|^2$.
+With this objective, consensus groups with patches passing more tests receive higher scores. Additionally, groups where more patches pass the tests are scored higher, although passing more tests is prioritized over having more patches.
+Finally, we identify the consensus group with the highest score and select the best patch from this group using majority voting.
+
+
+\section{Synthesizing supervised-finetuning data}
+\label{sec:apd:posttraining}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{plots/DevLlama-posttraining.pdf}
+\caption{\textbf{Synthetic data pipeline for constructing SFT data.}
+We start by collecting high-quality seed PRs using heuristics, then generate synthetic localization and code-editing samples, and finally use the ground-truth edited files and patches to filter out incorrect samples.}
+\label{fig:posttraining}
+\end{figure}
+
+\Cref{fig:posttraining} shows our method of generating synthetic supervised-finetuning (SFT) data.
+The data generation pipeline is inspired by \magicoder~\cite{magicoder}, where the \ossinstruct technique generates high-quality code instruction data from open-source seed snippets.
+We apply a similar methodology to generate both fault localization and code editing data using high-quality PR seeds.
+
+\textbf{Collecting high-quality seed PRs.}
+To begin with, we extract high-quality PR seeds from the raw dataset we collected, as detailed in \Cref{sec:apd:raw-data}.
+These seeds are chosen based on specific heuristics. For example, a PR instance should include at least one linked issue, the issue should describe a bug fix request, and the code changes should involve programming files.
+
+\textbf{Localization and editing data synthesis.}
+We adopt \llama-3.3-70B-Instruct~\cite{llama31} for data synthesis.
+For localization data, we prompt the model with the issue description, repository structure, and the paths of edited and relevant files as hints. We then ask the model to identify the relevant files for modification or review by generating a thought process, followed by a prioritized list of file paths.
+During filtering, we ensure that the model's response includes all files that are genuinely edited in the PR, and these files should be prioritized in the ranking.
+
+Similarly, in terms of code editing, we synthesize code edits for a given issue, in search/replace format~\cite{agentless}, by providing the ground-truth PR and patch as guidance to \llama-3.3-70B-Instruct.
+During the filtering process, we ensure that all search/replace blocks adhere to the correct format and that all search paths and blocks can be accurately matched within the input files' context.
+
+\textbf{SFT baseline.}
+As discussed in \Cref{subsec:setup}, we meticulously constructed \oursft[70] as a strong SFT baseline.
+This SFT baseline is trained on a 16k context window for 2B tokens,
+where the training data consists of a mix of the aforementioned synthetic localization and editing data, as well as coding and general SFT datasets from \llama~3~\cite{llama31}. 
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Complete prompt}
+\label{sec:apd:fullprompt}
+
+The following is a complete version of \Cref{fig:prompt}:
+
+{
+\renewcommand*\ttdefault{cmtt}
+\begin{lstlisting}[style=codeblock]
+PROMPT_TEMPLATE = """<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+A user will ask you to solve a task. You should first draft your thinking process (inner monologue). Then, generate the solution.
+
+Your response format must follow the template below:
+<think>
+Your thoughts or/and draft, like working through an exercise on scratch paper. Be as casual and as long as you want until you are confident to generate a correct solution.
+</think>
+<solution>
+Final solution presented to the user.
+</solution><|eot_id|><|start_header_id|>user<|end_header_id|>
+
+We are currently solving the following issue within our repository. Here is the issue text:
+--- BEGIN ISSUE ---
+{problem_statement}
+--- END ISSUE ---
+
+Below are some code segments, each from a relevant file. One or more of these files may contain bugs.
+
+--- BEGIN FILE ---
+```
+{content}
+```
+--- END FILE ---
+
+Please first localize the bug based on the issue statement, and then generate *SEARCH/REPLACE* edits to fix the issue.
+
+Every *SEARCH/REPLACE* edit must use this format:
+1. The file path
+2. The start of search block: <<<<<<< SEARCH
+3. A contiguous chunk of lines to search for in the existing source code
+4. The dividing line: =======
+5. The lines to replace into the source code
+6. The end of the replace block: >>>>>>> REPLACE
+
+Here is an example:
+
+```python
+### mathweb/flask/app.py
+<<<<<<< SEARCH
+from flask import Flask
+=======
+import math
+from flask import Flask
+>>>>>>> REPLACE
+```
+
+Please note that the *SEARCH/REPLACE* edit REQUIRES PROPER INDENTATION. If you would like to add the line '        print(x)', you must fully write that out, with all those spaces before the code!
+Wrap each *SEARCH/REPLACE* edit in a code block as shown in the example above. If you have multiple *SEARCH/REPLACE* edits, use a separate code block for each one.<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+"""
+\end{lstlisting}
+}
+
+
+
+

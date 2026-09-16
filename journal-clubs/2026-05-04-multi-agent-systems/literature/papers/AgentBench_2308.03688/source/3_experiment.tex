@@ -1,0 +1,105 @@
+\section{Evaluation of \model}
+We extensively evaluate \num LLMs, including API-based commercial models and open-sourced LLMs, to form a systematic view of the existing performance of LLM-as-Agent.
+We also design and release a simple plug-and-play evaluation toolkit to facilitate related LLM-as-Agent research.
+
+\input{tables/stats}
+
+\subsection{Evaluation Setup}
+\vpara{Dataset Statistics.}
+We report the statistics of datasets in \model in Table~\ref{tab:dataset_stats}.
+For simplicity, we use the abbreviation of each dataset in the following part.
+All datasets are practical multi-round interacting challenges, and their estimated solving rounds for each individual problem range from 5 to 50.
+We provide two splits for each dataset: Dev and Test.
+All datasets are publicly available.
+
+We also carefully balance the evaluation comprehensiveness and efficiency in \model design, as LLMs' multi-round interaction can be time-consuming.
+We set the size of Dev and Test to 269 and 1,014, respectively, resulting in around 3k and 11k calls for inference, approximately the identical amounts of calls for inference as MMLU~\citep{hendrycksmeasuring} requires.
+
+\vpara{LLMs to Evaluate.}
+As a systematic attempt to benchmark existing LLMs on LLM-as-Agent, we include in total \num models for evaluation, which could be roughly classified into two categories:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt,parsep=0.2em,topsep=0.0em,partopsep=0.0em]
+    \item \textbf{API-based Commercial LLMs:} mainly consist of LLM APIs without disclosed parameter amounts (Cf. Table~\ref{tab:model_details}). Due to more investments, their performances are usually better.
+    \item \textbf{Open-sourced (OSS) LLMs:} mostly come from the academia and some companies (Cf. Table~\ref{tab:model_details}). Due to limited computing resources, we only include OSS LLMs smaller than 70B here. It is noteworthy that this magnitude has already encompassed the majority of open-sourced LLMs (with very few exceptions) that exhibit outstanding performance and have undergone specific fine-tuning for tasks related to chat or instruction. 
+\end{itemize}
+
+\vpara{Toolkit: Streamlining LLM Evaluation with API-Centric Approach and Environment Isolation.}
+As LLM systems continue to advance in complexity and are primarily accessible through APIs, we have developed an evaluation toolkit that aligns with the API-oriented philosophy. This toolkit is meticulously designed to interact with APIs, simplifying the process of adapting and testing different LLMs. Researchers interested in evaluating their LLMs on \model only need to set up a model server accessible via the HTTP protocol.
+
+Moreover, dealing with diverse and intricate interaction environments poses a significant challenge. Uniformly configuring all these environments can be arduous and may lead to conflicts. To address this, we have implemented two key strategies. Firstly, we encapsulate tasks with complex environments into Docker images. Researchers can effortlessly utilize these images by mounting the code path and initiating the evaluation process with ease. Secondly, we have subdivided each task into separate workers, ensuring that the environments of these tasks remain isolated and free from conflicts. (Refer to Appendix~\ref{app:framework} for further details.)
+
+\vpara{Evaluation Prompt Setup.}
+To accommodate most existing dialogue models, our dialogue paradigm is structured around two roles, user (i.e., instruction \& environment feedback) and agent, engaging and alternating with one another. 
+We record interaction trajectories as a conversation history $(u_0, a_0, \cdots, u_k, a_k)$ involving the user and agent, where $u_i$, $a_i$ represents the $i$-th round of the conversation history. 
+When we perform inference, the conversation history should follow the format of $(u_0, a_0, \cdots, u_k)$.
+We select the minimum $r$ such that count of all tokens\footnote{Because the tokenizers of each model is different, we simply calculate tokens like this: a word with length $n$ occupies $\lceil n/6\rceil$ token(s), and a non-blank character takes $1$ token.} in $(u_0, a_r, u_{r+1}, \cdots, u_k)$ is not greater than 3500. And then we append "[NOTICE] $2r$ messages are omitted." into $u_0$. 
+After that, the sequence $(u_0, a_r, u_{r+1}, \cdots, u_k)$ is regarded as the final input in multi-round chat format.
+
+However, in order to consider non-chat models, we append a post-processor. 
+We feed the history into the model for chat models supporting multiple rounds. 
+For models supporting only text completion (e.g., \texttt{text-davinci-003}), we prepend "USER:" or "AGENT:" into each item in the history and finally append the string "AGENT:" to make models generate the agent's content.
+
+For task prompt organization, we adapted the format from~\citep{yao2023react} to include both ``Thought'' (for CoT) and ``Action'' but in one single round.
+Usually, a simple CoT demonstration is provided in the task instruction for a better output format.
+To ensure reproducible results, we set \texttt{temperature=0} (i.e., greedy decoding) in the inference on all tasks following~\citep{wei2022chain}.
+
+\label{sec:overall-score-calc}
+\vpara{Overall Score Calculation.} 
+We have observed that the score distribution for each task varies significantly as tasks differ in difficulty levels.
+As a consequence, a naively averaged score is heavily impacted by tasks that generally yield higher scores (e.g., Web Shopping in our observation), overshadowing those with lower scores and being unsuitable for \model's purpose.
+
+Therefore, we produce the overall score by first resizing each task's average score to $1$ across all the models we evaluate and then averaging the scores across all tasks for each model (Cf. Table~\ref{tab:dataset_stats}).
+To standardize and simplify score calculations for future studies, we utilize the reciprocal average score of all the tested LLMs in each task as a fixed weight for future overall score calculation. 
+The total score is then computed as the average value obtained by multiplying the score of each task by its corresponding weight. 
+This method ensures fairness and consistency in evaluation, enabling easier comparisons and analysis in future research.
+
+
+\input{tables/main_results}
+
+\subsection{Main Results}
+Overall and dataset-specific scores in \model are reported in Table~\ref{tab:main_results}.
+Surprisingly, on this challenging benchmark, we discover that some top LLMs are equipped with solid capabilities for dealing with real-world environmental interaction.
+For example, \texttt{gpt-4} presents the best performance on 6 out of 8 datasets in \model; on House Holding, it achieves a success rate of 78\%, indicating its practical usability in this scenario.
+\texttt{claude-2} and \texttt{claude} follow \texttt{gpt-4} but quite outperform \texttt{gpt-3.5-turbo}.
+Despite other API-based LLMs' relatively poorer performance, regardless of tasks, most of them can solve quite a few percent of problems.
+All API-based LLMs have an \model overall score above 1.00.
+
+OSS LLMs we test, however, commonly fail to solve problems in some challenging tasks, such as Knowledge Graph, Digital Card Game, and House Holding.
+We plot their performance relative to their sizes in Figure~\ref{fig:oss_llm}.
+Generally, most OSS LLMs perform far poorer than API-based LLMs in \model (Avg. 0.51 v.s. 2.32).
+The most capable OSS LLM $\leq$ 70B within the evaluation scope rounds out to be \texttt{codellama-34b}, achieving an overall score of 0.96 but still presents a clear performance gap to \texttt{gpt-3.5-turbo}.
+Our community still needs much effort to produce stronger OSS LLMs.
+
+\input{tables/analysis}
+
+\subsection{Analysis}
+
+\label{sec:analysis}
+
+In the evaluation, we analyze some important factors that impact an LLM agent's performance on \model, including outcome portion analysis, code training, and the difference between API-based commercial LLMs and OSS LLM competitors.
+More insights and case studies into the ability of planning, self-correction, and tool use are provided in Appendix~\ref{app:case_study}.
+
+\vpara{Portion of Different Types of Execution Outcomes.}
+Table~\ref{tab:error_analysis} reports the ratios of execution outcomes (Cf. Section~\ref{sec:preliminary}). The predominant failure cause in \model tasks is \textit{Task Limit Exceeded}, revealing weak reasoning and decision-making abilities in LLMs. This data underpins the existing LLM weaknesses, potentially guiding future development (please refer to our framework).
+
+In Database and Digital Card Game tasks, \textit{Invalid Format} errors frequently occur due to stringent formatting requirements (Cf. Appendix ~\ref{app:instruction_matters}). Conversely, House Holding and Web Browsing tasks often face \textit{Invalid Action} errors due to LLMs generating actions beyond the predefined action spaces. Please refer to Appendix~\ref{app:validation} for more detailed ratios.
+
+\vpara{Ambivalent Impact of Code Training.}
+We find that code tuning might deeply influence a model's way of inferential generation and thinking, even beyond topics just about coding. 
+From the comparison of \texttt{codellama} and \texttt{llama-2} series, tuning with code seems to give models an edge in tasks that follow a relatively static procedure (e.g., Web Shopping). 
+But, this kind of tuning might also affect the model's general thinking ability, as  \texttt{codellama} series does not perform as well in the Digital Card Game as \texttt{llama-2} series, as well as in Operating System where interacting with the Linux system is more important than writing bash codes. 
+This points to a balance between being good at following procedures and being good at general thinking when tuning LLMs.
+
+\vpara{Impact of High-Quality Alignment Data Training.}
+Another helpful comparison would be between \texttt{vicuna-13b} and \texttt{llama-2-13b}.
+While they share the same base LLM, \texttt{vicuna-13b} is aligned by training on ShareGPT's data (generated by \texttt{gpt-4} and \texttt{gpt-3.5-turbo}, shared by users) and \texttt{llama-2-13b} is aligned from scratch.
+As a result, \texttt{vicuna-13b} outperforms \texttt{llama-2-13b} on \model, and even performs comparably to 3 times larger \texttt{codellama-34b}.
+This indicates that high-quality alignment is still a key to develop better LLM agents.
+
+\vpara{Unexpected Similar Performance of \texttt{llama-2-13b} and \texttt{llama-2-70b}.}
+During our experiments, we were surprised to find that \texttt{llama-2-13b} and \texttt{llama-2-70b} perform similarly despite the significant gap between their sizes.
+After carefully checking and re-running experiments, the results are unchanged.
+We think that it indicates \texttt{llama-2-70b}'s insufficient pre-training.
+While both \texttt{llama-2-13b} and \texttt{llama-2-70b} are pre-trained with 2T tokens, a larger LLM should be trained with more tokens according to the scaling law~\citep{hoffmann2022training}.
+
+Another potential reason could be that \texttt{llama-2-70b} is not adequately aligned on instruction following, resulting in its comparatively lagging ability to follow instructions (Cf. Appendix~\ref{sec:influence-of-code-tuning}).

@@ -1,0 +1,49 @@
+\label{sec:emergence_result}
+
+As agents train against each other in hide-and-seek, as many as six distinct strategies emerge, each of which creates a previously non-existing pressure for agents to progress to the next stage. Note that there are no direct incentives for agents to interact with objects or to explore, but rather the emergent strategies are solely a result of the autocurriculum induced by multi-agent competition. Figure~\ref{fig:emergence_big} shows the progression of emergent strategies agents learn in our environment (see Appendix~\ref{fig:emergence_detailed} for trajectory traces of each strategy\footnote{See \href{\videourlclick}{\texttt{\videourl}} for sample videos.}).
+
+Initially, hiders and seekers learn to crudely run away and chase. After approximately 25 million episodes of hide-and-seek, the hiders learn to use the tools at their disposal and intentionally modify their environment.
+They begin to construct secure shelters in which to hide by moving many boxes together or against walls and locking them in place.
+After another 75 million episodes, the seekers also learn rudimentary tool use; they learn to move and use ramps to jump over obstacles, allowing them to enter the hiders' shelter.
+10 million episodes later, the hiders learn to defend against this strategy; the hiders learn to bring the ramps to the edge of the play area and lock them in place, seemingly removing the only tool the seekers have at their disposal.
+
+\begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{assets/emergence_object_movement_seeds_boundaries.pdf}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{assets/emergence_object_locking_seeds_boundaries.pdf}
+\end{subfigure}
+\caption{
+Environment specific statistics used to track stages of emergence in hide-and-seek. We plot the mean across 3 seeds with each individual seed shown in a dotted line, and we overlay the 6 emergent phases of strategy: (1) Running and Chasing, (2) Fort Building, (3) Ramp Use, (4) Ramp Defense, (5) Box Surfing, (6) Surf Defense. We track the maximum movement of any box or ramp during the game as well as during the preparation phase (denoted with ``Prep''). We similarly track how many objects of each type were locked at the end of the episode and preparation phase. As agents train, their interaction with the tools in their environment changes. For instance, as the agents learn to build forts they move boxes and lock boxes much more during the preparation phase.}
+\label{fig:emergence_statistics}
+\end{figure}
+
+We originally believed defending against ramp use would be the last stage of emergence in this environment; however, we were surprised to find that yet two more qualitatively new strategies emerged. After 380 million total episodes of training, the seekers learn to bring a box to the edge of the play area where the hiders have locked the ramps.
+The seekers then use the ramp to move on top of the box and \textit{surf} it to the hiders' shelter. This is possible because the agents' movement action allows them to apply a force on themselves regardless of whether they are on the ground or not; if they do this while grabbing the box under them, the box will move with while they are on top of it.
+In response, the hiders learn to lock all of the boxes in place before building their shelter.\footnote{Note that the discovery of a new skill does not necessarily correlate to the reward of a team changing.
+For example, the hider reward still decreases even after the discovery of surf defense, which is likely because teams with one or two hiders often do not have enough time to lock all of the boxes in play.}
+
+In all stages of strategy agents must learn to coordinate within their team. Similar to \cite{liu2019emergent}, we use team-based rewards such that agents are required to collaborate in order to succeed; however, in our work we require neither population-based training \citep{jaderberg2017population} or evolved dense rewards \citep{Jaderberg859}. Notably, hiders learn efficient division of labor; for instance, when constructing shelter they often separately bring their own box to the construction area. Furthermore, as hiders attempt to defend against box surfing by locking boxes in place during the preparation phase, we find that 2 and 3 hider teams are able to lock 25\% and 36\% more boxes, respectively, than a single hider team, indicating that larger teams are able to divide labor and accomplish an objective a smaller team could not.
+
+Many stages of emergent strategy can be mapped to behavioral shifts in the way agents interact with the tools in their environment, similar to \cite{leibo2017multi, perolat2017}.
+We therefore track basic statistics about the agents' interaction with objects during training, shown in Figure~\ref{fig:emergence_statistics}. For instance, as the hiders learn to build forts, they move and lock boxes much more during the preparation phase. Similarly, as the seekers learn to move and use ramps, the ramp movement in the main phase of the game increases, and as they learn to ``box surf'' there is a slight increase in the box movement during the main phase of the game. Finally, as the hiders learn to defend against this strategy by locking all boxes in place, the number of locked boxes in the preparation phase increases.
+
+\begin{wrapfigure}{R}{0.5\textwidth}
+\centering
+\centering
+\includegraphics[width=\linewidth]{assets/abl_batch_size.pdf}
+\caption{Effect of Scale on Emergent Autocurricula. %\textit{Left:} 
+Number of episodes (blue) and wall clock time (orange) required to achieve stage 4 (ramp defense) of the emergent skill progression presented in Figure~\ref{fig:emergence_big}. Batch size denotes number of chunks, each of which consists of 10 contiguous transitions (the truncation length for backpropagation through time).
+}
+\label{fig:scale_ablations}
+\end{wrapfigure}
+
+We found that scale plays a critical role in enabling progression through the emergent autocurricula in hide-and-seek. The default model, which uses a batch size of 64,000 and 1.6 million parameters, requires 132.3 million episodes (31.7 billion frames) over 34 hours of training to reach stage 4 of the skill progression, i.e. ramp defense. In Figure~\ref{fig:scale_ablations} we show the effect of varying the batch size in our agents ability to reach stage 4. We find that larger batch sizes lead to much quicker training time by virtue of reducing the number of required optimization steps, while only marginally affecting sample efficiency down to a batch size of 32,000; however, we found that experiments with batch sizes of 16,000 and 8,000 never converged.
+
+We find the emergent autocurriculum to be fairly robust as long as we randomize the environment during training. If randomization is reduced, we find that fewer stages of the skill progression emerges, and at times less sophisticated strategies emerge instead (e.g. hiders can learn to run away and use boxes as moveable shields.); see Appendix \ref{appendix:randomization} for more details.
+In addition, we find that design choices such as the minimum number of elongated boxes or giving each agent their own locking mechanism instead of a team based locking mechanism can drastically increase the sample complexity.
+We also experimented with adding additional objects and objectives to our hide-and-seek environment as well as with several game variants instead of hide-and-seek (see Appendix  \ref{appendix:alternative_games}). We find that these alternative environments also lead to emergent tool use, providing further evidence that multi-agent interaction is a promising path towards self-supervised skill acquisition.

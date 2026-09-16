@@ -1,0 +1,162 @@
+
+
+
+\section{Additional Discussions}
+
+
+
+
+
+\subsection{Discussion on Optimization Effectiveness}\label{sec:dis_effect}
+
+
+In general, OMAC’s effectiveness arises from its robust iterative optimization approach explicitly guided by supervised downstream task performance. More concretely, the Semantic Initializer is responsible for broadly exploring the semantic space by generating a diverse set of candidate agents/controllers. Meanwhile, the Contrastive Comparator focuses specifically on exploiting supervised feedback signals to refine the candidates by conducting targeted contrastive analyses iteratively.
+
+
+During the iterative optimization, it is indeed possible for the Contrastive Comparator to occasionally generate candidate agents or controllers that underperform relative to the established positive samples. However, to mitigate this, OMAC incorporates a robust mechanism grounded in rigorous supervised performance evaluation. Each newly generated candidate undergoes thorough downstream task assessment leveraging the whole training set, and any candidate failing to surpass the performance of the existing positive sample is subsequently treated as a negative example. This negative example is then utilized in subsequent iterations for enhanced contrastive reasoning, systematically improving solution quality over successive rounds.
+
+As illustrated in Section~\ref{sec:indi_opt}, both Semantic Initializer and Contrastive Comparator significantly depend on the reasoning capability of the underlying black-box LLM. However, we emphasize that OMAC addresses this limitation through an iterative optimization process explicitly guided by supervised performance feedback. This iterative approach systematically integrates insights from previous successes and failures, allowing the LLM to progressively improve its reasoning beyond single-round capabilities. 
+
+
+Our empirical results demonstrate substantial and consistent performance improvements from this iterative optimization, underscoring its effectiveness beyond the baseline capabilities of the static, single-pass reasoning provided by the LLM.
+Also, the ablation experiments demonstrate substantial and reliable performance gains achieved through this comparator-driven iterative refinement approach. These findings highlight the practical robustness and efficacy of OMAC’s iterative optimization strategy, showcasing significant improvements over baseline methods and the Semantic Initializer alone. Overall, this evidence underscores the critical importance of iterative refinement in maximizing the reasoning potential and solution quality of black-box LLM-based systems.
+
+
+
+
+\subsection{Discussion on Optimization Performance}
+
+
+
+We present the performance improvements achieved by OMAC for single-dimension optimization in Tables 1-3, and for multi-dimension optimization in Figures 4-6. Although the average relative single-dimension optimization gains achieved by OMAC (4.6\%, 2.8\%, and 5.3\% across the three benchmarks per dimension) may appear modest at first glance, these improvements are, in fact, significant and comparable to those reported by recent MAS optimization studies, such as DyLAN~\cite{dylan}, conducted under similar experimental conditions.
+
+More importantly, we emphasize that OMAC's capability to simultaneously optimize multiple dimensions results in \textbf{substantially larger performance gains compared to single-dimension optimization}. For example, as demonstrated in Figures 4, the improvement in arithmetic reasoning tasks increases notably from 2.9\% to 9.6\% when jointly optimizing Fun-1.1 and Fun-1.2. These findings underscore the significant and practical effectiveness of OMAC's systematic multi-dimensional optimization approach in enhancing MAS performance.
+
+
+\subsection{Discussion on Novelty and Contribution}
+
+
+
+The main novelty of our proposed OMAC framework lies in the conceptual framing and integration of the structural and functional optimization components within a unified optimization framework for MAS optimization. 
+
+Specifically, we summarize our contributions as fourfold:
+
+\begin{itemize}
+
+\item  We identify five key optimization dimensions that comprehensively cover both agent functionality and collaboration structure in MAS.
+
+\item  We propose a general optimization framework that utilizes these two actors to optimize each of these five dimensions.
+
+\item  We further introduce an iterative algorithm that enables joint optimization across multiple dimensions.
+
+\item  We empirically validate our framework on multiple standard benchmarks against several MAS baselines, demonstrating consistent performance improvements and practical value.
+
+\end{itemize}
+
+Therefore, while some existing literature on prompt and agent optimization \cite{aflow, shinn2023reflexion} have explored some conceptually similar principles behind our design of  the {Semantic Initializer} and the {Contrastive Comparator},  we believe the conceptual generalization, unified optimization framework, and empirical validation together constitute sufficient novelty and contribution to the field.
+
+
+
+\subsection{Discussion on Centralized MAS}
+
+
+
+The current OMAC framework design primarily targets flat MAS architectures, where agents are typically organized into sequential workflows to collaborate effectively. An alternative MAS architecture, known as centralized MAS~\cite{li2025parallelized, chen2024scalable}, features a master agent coordinating other agents for collaboration and problem-solving.
+
+We contend that the general definitions of OMAC’s optimization dimensions, including both functional and structural ones, can also effectively apply to centralized MAS frameworks. Specifically, optimization dimensions such as enhancing existing agents, developing new agents, globally and locally selecting collaborating agents, and managing agent communication remain broadly applicable. Also, the implementation details for functional dimensions remain consistent across the two frameworks. However, structural dimensions, especially communication control, would require practical adaptations for centralized MAS, as communication typically occurs between the master agent and subordinate agents rather than between arbitrary pairs of agents. Investigating the effectiveness and detailed design adaptations of OMAC within centralized MAS settings represents a promising direction for future research.
+
+
+
+\subsection{Discussion on Bias Issue}
+
+
+As discussed in Section~\ref{sec:dis_effect}, employing LLMs for contrastive reasoning may introduce biases. However, to mitigate this risk, OMAC integrates a robust iterative optimization process supported by rigorous supervised performance evaluations. Each candidate produced by the comparator is thoroughly validated against the entire training dataset, with weaker candidates systematically labeled as negative examples for subsequent iterations. This iterative refinement progressively sharpens the optimization direction.
+
+In other words, even if a candidate from the contrastive reasoning process is biased, its adverse effect is promptly detected by subsequent evaluation and prevented from influencing later optimization stages. Instead, such biased outcomes are repurposed as negative examples in contrastive reasoning, thereby reinforcing the distinction between positive and negative cases and ultimately enhancing the overall optimization design.
+
+However, to further enhance reasoning effectiveness, an alternative strategy could be incorporating contrastive reasoning over two batches of positive and negative samples instead of a single pair, which may enhance the generalizability of contrastive reasoning and reduce biases. But this approach also significantly increases prompt length and computational costs. Exploring the balance between reasoning effectiveness and computational efficiency represents another interesting and valuable direction for future research.
+
+
+
+\subsection{Discussion of Future Work}\label{sec:future}
+
+
+While OMAC is designed as a general framework for optimizing MAS in complex tasks where empirical results validated its effectiveness, we identify several directions that warrant further exploration.
+
+First, OMAC currently employs two LLM-based actors, the Semantic Initializer and the Contrastive Comparator, for MAS optimization. Although the existing literature on gradient-based methods targeting MAS optimization in multi-step collaboration settings remains very limited (as discussed in Section~\ref{sec:related}), exploring this direction is highly promising. Gradient-based optimization may enable more controllable, integrated, and efficient optimization processes. In particular, extending current RL-based methods for agentic optimization, such as Spiral \cite{liu2025spiral} or MHGPO \cite{chen2025heterogeneous}, into the problem setting and methodological framework of OMAC represents a valuable research avenue.
+
+Second, tool usage has shown substantial promise and effectiveness in LLM-powered agent systems. Although our experiments on the HumanEval and GAIA benchmark have already demonstrated OMAC’s potential to optimize agents’ tool-use abilities, explicitly extending OMAC to optimize agent collaboration and utilization across more advanced and diverse tools for solving complex real-world problems would be a significant next step. Emerging benchmarks like SWE-bench \cite{jimenez2023swe} provide suitable environments for evaluating complex tool interactions. Future studies based on these benchmarks, along with comprehensive comparisons against existing MAS approaches, could yield valuable insights.
+
+Third, while OMAC is designed for MAS optimization across the five general dimensions we identified, our current experiments primarily focus on prompt and in-context example optimization. Other components, such as memory management or retrieval mechanisms, may also require optimization under specific task contexts. Nonetheless, these elements still conceptually fall under agent functionality or MAS structure optimization and can therefore be naturally integrated into OMAC. By leveraging LLMs’ contrastive reasoning with positive/negative sample pairs, these additional optimization tasks can be addressed following our single- and multi-dimension algorithms. Exploring OMAC’s effectiveness in optimizing such components would be a valuable direction for future work.
+
+Fourth, OMAC currently adopts an iterative optimization pattern for multi-dimension optimization. As discussed in Section~\ref{sec:multi_dim} and empirically verified in Appendix~\ref{sec:add_multi}, this approach is well motivated by the necessity of maintaining effective contrastive reasoning. Nevertheless, investigating joint multi-dimension optimization remains a promising direction due to its potential for improved integration and efficiency. Methods such as gradient blending, Pareto-efficient optimization, evolutionary algorithms, data mixing, Bayesian optimization, or other multi-objective optimization techniques could be explored in combination with OMAC to enhance joint optimization.
+
+Finally, our five proposed optimization dimensions for MAS are designed to be general and fundamental, derived from conceptualizing the MAS collaboration process as information flow over a graph, where agents correspond to nodes and communication channels to edges (see Appendix~\ref{sec:dim_detail}). This paper primarily focuses on defining these dimensions and proposing the corresponding optimization methodology, rather than conducting a rigorous theoretical analysis. A deeper theoretical study of the optimization landscape, including formal guarantees of optimal configurations, would provide valuable insights and strengthen the conceptual foundation of MAS optimization research.
+
+
+
+
+
+
+
+
+
+
+\endinput
+
+
+
+While OMAC is designed as a general framework for optimizing MAS in complex tasks, and empirical results have validated its effectiveness, we identify several additional directions worthy of exploration. 
+
+
+First, OMAC adopts two LLM-based actors, the Semantic Intializer and the Contrastive Comparator, for MAS optimization. Although the existing literature on gradient-based methods specifically targeting MAS optimization in multi-step collaboration settings remains very limited, as we discussed in Section~\ref{sec:related}, exploration on this direction is highly valuable because gradient-based optimization may bring more controllable, integral, and faster optimization. Especially, extending current RL-based methods for agentic optimization, such like Spiral \cite{liu2025spiral} and MHGPO \cite{chen2025heterogeneous}, into the problem setting and method framework of OMAC is a promising direction.
+
+Second, tool usage has demonstrated substantial promise and effectiveness within LLM-powered agent systems. Although our current experiments on HumanEval benchmarks have already demonstrated OMAC's potential to optimize the agents' tool usage ability, applying OMAC to optimize agent utilization and collaboration in leveraging more advanced and various tools to resolve complex problems represents a valuable direction for both academia and industry. Some recent benchmarks such as GAIA \cite{mialon2023gaia} and SWE-bench \cite{jimenez2023swe} provides corresponding environments to evaluate complex tool usage, and further research based on them and comprehensive comparison of existing MAS approaches can be beneficial.
+
+Third, while OMAC is designed for MAS optimization of the five general dimensions we identified, our current experiments mainly focus on prompt optimization and/or in-context example optimization. There might be some elements that need management and optimization under certain task context, such as memory management or retrieval mechanisms. However, we argue that most of them still conceptually belong to the category of agent functionality or MAS structure optimization. In that case, such optimization tasks can be naturally integrated into our framework by leveraging LLMs’ contrastive reasoning ability with positive/negative sample pairs, following our single- and multi-dimension optimization algorithms. Nevertheless, applying OMAC for optimizing these elements and verifying its effects for MAS are interesting and valuable future research directions to explore.
+
+Furthermore, OMAC employes iterative optimization pattern for multi-dimension optimization. While this method is well-motivated by the necessity of our LLM-based contrastive reasoning components as discussed in Section \ref{sec:multi_dim} and empirically demonstrated in Appendix~\ref{sec:add_multi}, exploring OMAC for join multi-dimension optimization is still a valuable direction due to its integrity and potential efficiency  benefits. Techniques such as gradient blending, data mixing, or other multi-objective optimization methods can be explored to be combined to OMAC.
+
+Last,  our proposed five optimization dimensions for MAS are disgined to be general and fundamental by conceptualizing the collaboration process in MAS as information flow over a graph, where agents correspond to nodes and communication channels to edges, as detailed in Appendix A. However, this paper intentionally focus on defining the optimization dimensions and methodology rather than conducting a rigorous theoretical analysis of the optimization landscape or deriving formal guarantees of optimal configurations. As such, more detailed and rigorous analysis and discussion on relevant topics could be benefical to analyse the MAS optimization problem in a more fomal and theoretical perspective. 
+
+
+
+
+
+
+
+
+\subsection{Extended Discussion of Related Works}\label{sec:dis_related}
+
+
+% In this section, we further extend our discussion of related works in Section~\ref{sec:related} to a broader and more recent literature. Specifically, we elaborate on existing research on both gradient-based methods for agent optimization and non-gradient-based methods such as prompt evolution and several recent supervised approaches for MAS optimization.
+
+% \noindent \textbf{Gradient-based Methods.} As discussed in Section 5, there is some previous research that has explored gradient-based optimization methods for agent systems, like supervised fine-tuning \cite{api_bank} or prompt-tuning techniques \cite{dsp}. However, most such methods are not designed for MAS that require multi-step collaborative interactions among multiple agents. To the best of our knowledge, existing research on Gradient-based methods for MAS optimization in multi-step collaboration settings remains very limited. In scenarios involving multiple interacting agents, gradient-based optimization becomes particularly challenging due to numerous confounding variables and complexities in attributing contributions from specific functional or structural components.  For example, although some existing works have studied exploring applying reinforcement learning-based approaches to optimize agentic systems, they typically employ RL for agent optimization primarily target single-agent settings [1, 2], which differ fundamentally from the multi-agent optimization problem addressed in our study. While a few very recent and unpublished works, such as Spiral [3] and MHGPO [4], have taken preliminary steps toward RL-based MAS optimization, their approaches are generally restricted to single-interaction or shared-policy settings, where all agents follow the same control policy and engage in only one round of communication or problem solving. This is a substantially simpler and more constrained scenario than the one we investigate, which involves multi-step collaboration among role-specialized agents operating under dynamic interaction structures. Therefore, these works are not directly comparable to our OMAC, which provides a general optimization framework for a highly flexible multi-step collaboration process with role-specialized agents.
+
+
+
+
+In this section, we further extend our discussion of related works from Section~\ref{sec:related} to cover a broader and more recent body of literature. Specifically, we elaborate on existing research concerning both gradient-based methods for agent optimization and non-gradient-based approaches, such as prompt evolution and recent supervised methods for MAS optimization.
+
+\noindent \textbf{Gradient-Based Methods.} 
+As discussed in Section 5, prior research has explored several gradient-based optimization methods for agent systems, such as supervised fine-tuning \cite{api_bank} and prompt-tuning techniques \cite{dsp}. However, most of these approaches are designed for single-agent optimization and do not extend naturally to MAS that require multi-step collaborative interactions among multiple agents. To the best of our knowledge, research on gradient-based methods specifically targeting MAS optimization in multi-step collaboration settings remains highly limited.
+
+In scenarios involving multiple interacting agents, gradient-based optimization becomes particularly challenging due to the presence of numerous confounding variables and the difficulty of jointly performance optimization with multiple functional and structural components. For instance, while some works have explored the use of reinforcement learning for optimizing agentic systems, these methods typically focus on single-agent settings (\cite{shao2024deepseekmath, qian2025toolrl}), which differ fundamentally from the multi-agent optimization problem addressed in our study.
+A few very recent and unpublished efforts, such as Spiral \cite{liu2025spiral} and MHGPO \cite{chen2025heterogeneous}, have made initial attempts at applying RL to MAS optimization. However, their formulations are generally constrained to single-interaction and shared-policy scenarios, where all agents share the same control policy and perform only one round of communication or problem-solving. This setup is considerably simpler and less flexible than the setting studied in our work, which involves multi-step collaboration among role-specialized agents operating within dynamic interaction structures. Consequently, these approaches are not directly comparable to OMAC, which provides a general and extensible optimization framework for optimizing multi-step, role-specialized collaborations among agents.
+
+
+
+
+
+
+
+\noindent \textbf{Non-Gradient-based Methods.}
+
+% A very recent work, ADAS (ICLR 2025) [1], takes the initial step to explore utilizing prompt evolution techniques combined with searching tools to optimize the MAS. However, their approach only considers the optimization of the agents' functionality, while leaving the structure of the collaboration process to be predefined and fixed. This is significantly different from OMAC, which builds a general framework that supports comprehensive optimization of both the functionality and structure of the MAS. Besides this work, there are several recent works that further explore the optimization of MAS with none-gradient approaches. For example, AFlow, explores leveraging supervised signals to guide Monte Carlo Tree Search for discovering effective agentic workflows, whereas OMAC employs supervised signals directly for contrastive reasoning-based MAS optimization, representing a distinct optimization paradigm. Some other recent work, like G-designer and MaAS, focuses on searching for a good multi-agent architecture, thus delving into the MAS structural optimization, while our OMAC accommodates both functional and structural optimization. To summarize, although some recent works have been exploring MAS with none-gradient methods in various perspectives, they are either focusing on only single aspectes of MAS optimization (fucntional or structural), or employs the superivsed singals for some evolutation search algorithms like Monte Carlo Tree Search. In contrast, our proposed OMAC comprehensively supports both functional and structural optimization, while directly utilizing supervised singals for contrastive reasoning without relying on any evolution research algorithms.
+
+
+
+
+A very recent work, ADAS \cite{hu2024automated}, takes an initial step toward applying prompt evolution techniques combined with search tools to optimize MAS. However, ADAS focuses exclusively on agent functionality optimization, leaving the collaboration structure predefined and fixed. This contrasts with OMAC, which introduces a general framework capable of comprehensively optimizing both the functional and structural aspects of MAS. Beyond ADAS, a couple of recent studies have explored non-gradient-based optimization for MAS from other perspectives. For example, AFlow \cite{aflow} leverages supervised signals to guide Monte Carlo Tree Search (MCTS) for discovering effective agentic workflows. In contrast, OMAC uses supervised signals directly for contrastive reasoning–based optimization, representing a distinct paradigm that avoids reliance on search-based methods. Similarly, other recent works such as G-Designer \cite{zhang2025g} and MaAS \cite{zhang2025multi} focus on architectural search for identifying effective multi-agent structures, thereby addressing only the structural optimization dimension.
+
+In summary, while these works have advanced non-gradient MAS optimization from various angles, they typically address only a single aspect—either functional or structural—or use supervised signals indirectly within evolutionary search algorithms like MCTS. OMAC, by contrast, provides a unified framework that jointly optimizes both functionality and collaboration structure, employing direct contrastive reasoning with supervised signals rather than relying on evolutionary or search-based methods.

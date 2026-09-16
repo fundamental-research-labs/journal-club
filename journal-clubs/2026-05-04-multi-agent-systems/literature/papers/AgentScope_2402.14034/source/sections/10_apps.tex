@@ -1,0 +1,428 @@
+\section{Signature Applications of \ours}
+\label{sec:app}
+
+% As introduced in the previous sections, \ours is a multi-agent platform optimized for integrating and coordinating large-scale models in a user-friendly and fault-tolerant manner. 
+% Accordingly, \ours is an ideal platform for a vast spectrum of applications. 
+% Such applications span from a simple single-agent vs. user dialog to complicated, rule-based interactive multiplayer games like \textit{werewolf}, extending to distributed conversations that involve parallel operations across multiple machines. 
+% In this section, we will expand upon three primary applications of \ours, with each instance illustrating the framework's distinct capabilities. 
+% All examples referenced herein are accessible in our GitHub repository for community use and contribution.
+As introduced in the previous sections, \ours is a multi-agent platform delicately designed for integrating and coordinating large-scale models in a user-friendly and fault-tolerant manner, and it is an ideal platform for a vast spectrum of applications. 
+\ours can implement applications spanning from a simple single-agent vs. user dialog to complicated interactive multiplayer role-play games like \textit{werewolf}. 
+Moreover, beyond centralized deployments, \ours can extend to distributed conversations that involve parallel operations across multiple machines. In this section, we look into several signature applications of \ours that persuasively illustrate the framework's outstanding and diverse capabilities. All examples referenced herein are accessible in our GitHub repository for community use and contribution.
+
+
+\subsection{Dialog Agents: Basic Conversation}
+
+% The fundamental application of \ours lies in facilitating standalone conversations, where all agents are operating in a main process.
+% This use case serves as an excellent starting point for users new to \ours, allowing them to familiarize themselves with the framework's basic functionalities.
+The simplest yet most fundamental application of \ours is the \textit{basic conversation}, where the user directly interacts with the dialog agent. This application is an excellent starting point for fresh users of \ours to quickly capture the core message-passing mechanism in our framework.
+
+% The initial step in launching an application involves initializing agent objects. 
+% In this example, we utilize two built-in agents within \ours, \texttt{DialogAgent} and \texttt{UserAgent}, to facilitate a dialogue between a user and an AI assistant. 
+% Prior to instantiating these agents, model configurations must be loaded through the \texttt{init} interface of \ours. 
+% Currently, \ours is compatible with a variety of platforms, including the standard OpenAI chat, embedding and DALL-E API, HuggingFace and ModelScope inference APIs, as well as locally hosted models with FastChat, vllm, or Flask. 
+% Additionally, the \texttt{init} interface allows to specify the file storage directories, storage options, logging level, and agent configurations, \etc 
+% After setting the model configurations, developers can instantiate the agents with their respective models, as illustrated in \lstlistingname~\ref{lst:stand_conv_1}.
+The \textit{basic conversation} example demonstrates the usage of two fundamental built-in agents in \ours, the \texttt{UserAgent} and \texttt{DialogAgent}, which facilitate inputs from the user and the responses from LLMs, respectively. Normally, as illustrated in  \lstlistingname~\ref{lst:stand_conv_1}, the first step of all applications is the initialization, which is to load the model configurations (specified in the \texttt{model\_configs.json} file) through the \texttt{init} interface of \ours, which assigns the LLM-empowered agents with selected models. Currently, \ours is compatible with various platforms and APIs, including but not limited to standard OpenAI chat/embedding/DALL-E, HuggingFace, ModelScope, and a collection of locally hosted models with FastChat, vllm, and Flask. Moreover, the \texttt{init} interface also specifies detailed options such as file storage, logging, agent configures, \etc.
+% Subsequently, we construct the conversation by exchanging message between the agents. 
+% Specifically, the dialogue process is designed to be a loop, allowing continuous interaction until the user opts to conclude the conversation. 
+% \lstlistingname~\ref{lst:stand_conv_2} illustrates the basic implementations within \ours. 
+With all the configurations settled, it is ready to construct the conversation flow, i.e. the message-exchanging mechanism between the user/agents, which is an essential building block for all agent-based applications. In this workflow, the AI agent will always respond to the user's input, the conversation could form an endless loop until the user decides to opt-out.
+
+% To cater to more advanced applications, \ours incorporates pipelines to manage the messages exchanges, thereby providing a structured and scalable framework for complex agent interactions. 
+% Here the implementation of this standalone conversation application can be simplified with sequential pipeline and loop pipeline as shown in \lstlistingname~\ref{lst:stand_conv_3}). 
+% Furthermore, \appref{app:conv} presents a conversation history by running the above code.
+To implement more sophisticated applications, \ours facilitates \texttt{pipelines}, which provide a well-structured and scalable framework for complex agent interactions (in terms of messages). As illustrated in \lstlistingname~\ref{lst:stand_conv_3}, we can implement the \textit{basic conversation} example with a sequential pipeline or loop pipeline. Readers may also refer to \appref{app:conv} for conversation history while running the demo codes.
+
+\begin{lstlisting}[language=Python, caption={Code example of the basic conversation example.}, label={lst:stand_conv_1}, float=t]
+import agentscope
+from agentscope.agents import DialogAgent, UserAgent
+
+# read model configs
+agentscope.init(model_configs="./openai_model_configs.json")
+
+# Create a dialog agent and a user agent
+assistant_agent = DialogAgent(
+    name="Assistant",
+    sys_prompt="You are a helpful assistant",
+    model="gpt-4"
+)
+user_agent = UserAgent()
+
+# Basic version
+x = None
+while x is None or x.content != "exit":
+    x = assistant_agent(x)
+    x = user_agent(x)
+\end{lstlisting}
+
+\begin{lstlisting}[language=Python, caption={Pipeline-based implementation of the basic conversation example.}, label={lst:stand_conv_3}, float=h]
+# Advanced version with sequential pipeline
+from agentscope.pipelines.functional import sequentialpipeline
+x = None
+while x is None or x.content != "exit":
+    x = sequentialpipeline([dialog_agent, user_agent], x)
+
+# Advanced version with while loop pipeline
+from agentscope.pipelines.functional import whilelooppipeline
+x = whilelooppipeline(
+    [assistant_agent, user_agent], 
+    condition_func= lambda _, x: x is None or x.content!="exit", 
+    x=None)
+\end{lstlisting}
+
+
+\subsection{Dialog Agents: Group Conversation with Mentions}
+
+Beyond the basic conversation between a user and a single dialog agent, \ours supports group conversations. To improve the interactivity, we introduce the ``mentions'' feature, which allows the user or agent to call a specific agent by simply ``@\texttt{agent\_name}''. The ``mention'' feature is supported by applying the \texttt{filter\_agents} function, which screens the message and identifies if any agent is mentioned in the message content.
+
+In this example, we first initialize the agents involved in the conversation as shown in \lstlistingname~\ref{lst:group_conv_1}. Here, the characteristics of the agents can be customized in the \texttt{agent\_config.json} file, e.g. using \texttt{sys\_prompt} to customize the reaction style or functionality of the agents. Also, we utilize the message hub (\texttt{msghub}) to facilitate message deliveries among a group of agents. The \texttt{msghub} allows the sharing of public information (e.g. an announcement) and permits agents to broadcast messages to all agents. The conversation would end if a timeout limit is reached, or the user types in ``exit''. 
+
+\begin{lstlisting}[language=Python, caption={Code example of the group conversations.}, label={lst:group_conv_1}, float=h]
+import agentscope
+
+# Read model and agent configs, and initialize agents automatically
+npc_agents = agentscope.init(
+        model_configs="./configs/model_configs.json",
+        agent_configs="./configs/agent_configs.json",
+    )
+user = UserAgent()
+agent = list(npc_agents)+[user]
+...
+# We use msghub to coordinate the conversations, ``hint'' is a message notified to all agents
+with msghub(agents, announcement=hint):
+while True:
+    try:
+        x = user(timeout=USER_TIME_TO_SPEAK)
+        if x.content == "exit":
+            break
+    except TimeoutError:
+        x = {"content": ""}
+        logger.info(
+            f"User has not typed text for "
+            f"{USER_TIME_TO_SPEAK} seconds, skip.",
+        )
+    # if user mentions any npc_agent in the message, it will be added to the speak_list
+    speak_list += filter_agents(x.get("content", ""), npc_agents)
+    
+    # if the speak_list is non-empty, the mentioned agents will respond in a sequential manner
+    if len(speak_list) > 0:
+        next_agent = speak_list.pop(0)
+        x = next_agent()
+    # otherwise, all agents will respond one by one.
+    else:
+        next_agent = select_next_one(npc_agents, rnd)
+        x = next_agent()
+    # if the response mentions any agent, it will be added to the speak_list
+    speak_list += filter_agents(x.content, npc_agents)
+\end{lstlisting}
+
+
+\subsection{Dialog Agents: The Werewolf Game}
+
+% Advancing to more complex application, in this subsection we show how to program the workflow of werewolf game in \ours with about one hundred lines of code. 
+% The werewolf game is a social deduction game, where six players are divided into two opposing teams, werewolves and villagers. 
+% The game ends when either all werewolves are eliminated (villager victory) or the number of Werewolves equals or outnumbers the villagers (werewolf victory). 
+Group conversation and the mentioning feature are fundamental building blocks for multi-agent applications. Here we present a more sophisticated application, the \textit{werewolf game}, which is a popular multiplayer interactive role-play game. We aim to implement the game with \ours in only one hundred lines of code. This example involves six players divided into two opposing teams, the werewolves, and the villages. After rounds of conversations and discussions, the game ends when all werewolves are eliminated (i.e. villager victory) or the number of werewolves equals or outnumbers the villagers (i.e. werewolf victory).
+
+% Setting up the game involves roles allocation and agents initialization. 
+% \ours supports quick startup with pre-set agent configurations, which contains the required parameters to instantiate the agent objects. 
+% \lstlistingname~\ref{lst:wolf-init} presents how to load agents from configurations and assign roles. 
+As an LLM-empowered role-play game, we start the game settings with allocation for the roles and initialization for the agents. As shown in \lstlistingname~\ref{lst:wolf-init}, \ours supports a quick setup, which consists of default agent configurations for a user to instantiate the agent objects with corresponding roles in one click, the detailed settings are included in the \texttt{agent\_configs.json} file.
+
+% In werewolf game, one of the most striking features is group conversation, including werewolf discussion in night phase and daytime discussion, which requires to involve multiple different players. 
+% To tackle such requirement, we utilize message hub in \ours to create group conversation easily. 
+% \lstlistingname~\ref{lst:wolf_conv} presents the werewolf discussion implemented in \ours. 
+% In this discussion, the message hub starts with an announcement from moderator. 
+% After that, the werewolves discuss for at most \texttt{MAX\_WEREWOLF\_DISCUSSION\_ROUND} rounds, and conclude once they reach an agreement. 
+% Note in werewolf game, the used agent class is \texttt{DictDialogAgent}, which responds in Python dictionary. 
+% With prompt asking agents to respond with ``agreement'' field, we can directly use this attribute in the response message. 
+% For the complete code and example dialogue history, please refer to \appref{app:wolf}.
+It is worth noting that the \textit{werewolf game} is based on the group conversation capability of \ours, such that the werewolves could chat in the ``night phase'' and all participants could discuss during the ``day phase''. Similar to the \textit{group conversation} example, the \textit{message hub} (\texttt{msghub}) of \ours is used to facilitate the conversations.  As shown in \lstlistingname~\ref{lst:wolf-init}, after the host (moderator) makes an announcement, the werewolves discuss for at most \texttt{MAX\_WEREWOLF\_DISCUSSION\_ROUND} rounds and conclude once an agreement is reached. Here, the agents are required to use an ``agreement'' attribute in the response message, which is enforced in the role-defining prompt. For complete workflow, an example of dialogue history, and more related information, please refer to \appref{app:wolf}.
+
+\begin{lstlisting}[language=Python, caption={Code example of the werewolf game.}, label={lst:wolf-init}, float=t]
+import agentscope
+# Read model and agent configs, and initialize agents automatically
+survivors = agentscope.init(
+    model_configs="./configs/model_configs.json",
+    agent_configs="./configs/agent_configs.json",
+)
+
+# Define the roles within the game.
+roles = ["werewolf", "werewolf", "villager", "villager", "seer", "witch"]
+
+# Based on their roles, assign the initialized agents to variables.
+wolves, villagers, witch, seer = survivors[:2], survivors[2:-2], survivors[-1], survivors[-2]
+...
+# Night phase: werewolves discuss
+hint = HostMsg(content=Prompts.to_wolves.format(n2s(wolves)))
+with msghub(wolves, announcement=hint) as hub:
+    ...
+    for _ in range(MAX_WEREWOLF_DISCUSSION_ROUND):
+        x = sequentialpipeline(wolves)
+        if x.agreement:
+            break
+    ...
+\end{lstlisting}
+
+
+\subsection{Distributed Deployed Agents}
+
+% Allowing distributed agents are one of the most striking features in \ours. 
+% In this subsection, we elaborate how to set up a distributed application in two modes: Single-Machine Multi-Process mode and Multi-Machine Multi-Process mode. 
+We have seen applications regarding conversations involving dialog agents, but those examples are fundamental in the sense that the agents are deployed in a centralized manner, that is, the agents are hosted on a single machine and in a single process. To allow agents to be hosted by separate machines or processes, \ours allows agents to be distributedly deployed in two modes, the single-machine multi-process mode, and the multi-machine multi-process mode. In what follows, we present examples to demonstrate this feature.
+
+% In single-machine multi-process mode, all agents are deployed on a single machine, each running in separate processes. 
+% For comparison, we implement the same example with standalone conversation, but with the assistant agent deployed within its own process. 
+% \lstlistingname~\ref{lst:one_machine} shows the complet code, where the only difference from local deployment is the invocation of the \texttt{to\_dist} function. 
+% Subsequently, the agent is deployed on the local host with an automatically allocated port. 
+% Beyond this, the Single-Machine Multi-Process mode is essentially identical to local deployment, yet it has been optimized for parallel execution.
+\noindent\textbf{Single-Machine Multi-Process Mode}: For this mode, all agents are deployed on a single machine, but running in separate processes. For better comparison, we implement the \textit{basic conversation} example in this mode (see \lstlistingname~\ref{lst:one_machine} for the complete code). Compared with \lstlistingname~\ref{lst:stand_conv_1} and \ref{lst:stand_conv_3}, we use the \texttt{to\_dist} function to convert the current agent instance into a distributed version. Then, the \texttt{assistant\_agent} would be deployed on a local host with an automatically allocated port. Besides the aforementioned differences, the single-machine multi-process mode is identical to local deployment, yet it has been optimized for parallel execution.
+
+% In contrast, the Multi-Machine Multi-Process mode requires developers to initiate the agent service on a remote machine. 
+% \lstlistingname~\ref{lst:remote_launch} demonstrates an example of \texttt{DialogAgent} deployment on a remote machine, and \lstlistingname~\ref{lst:multi_machine} elaborates how to construct the workflow in Multi-Machine Multi-Process mode. 
+% In this case, the developer must connect to the agent server using the specified URL and port, and then construct the workflows. 
+% Similar to Single-Machine Multi-Process mode, the code for workflow is identical to local deployment. 
+\noindent\textbf{Multi-Machine Multi-Process Mode}: To demonstrate this mode, we initiate the agent service (a \texttt{DialogAgent}) on a remote machine (as shown in \lstlistingname~\ref{lst:remote_launch}), and constructs a workflow (as shown \lstlistingname~\ref{lst:multi_machine}). One may note that the only difference comparing to the local deployed mode is that the agent server needs to be connected using specified URLs and ports before establishing the workflow.
+
+
+% In summary, our framework enables distributed deployments to utilize the same workflow construction as local deployments, thereby simplifying the development of distributed applications and facilitating the seamless transition from local to distributed modes.
+Overall, for \ours, we can smoothly convert from the local deployment mode to the distributed mode and vice versa, with only minimal changes to the agent configuration and no modification to the workflow.
+
+\begin{lstlisting}[language=Python, caption={Example that deploys agents in single-machine multi-process mode.}, label={lst:one_machine}, float=t]
+from agentscope.agents import UserAgent, DialogAgent
+import agentscope
+# we use .to_dist() to convert the agent to distributed mode.
+assistant_agent = DialogAgent(
+    name="Assistant",
+    sys_prompt="You are a helpful assistant",
+    model="gpt-4"
+).to_dist()
+user_agent = UserAgent()
+
+x = None
+while x is None or not x.content != "exit:
+	x = sequentialpipeline([assistant_agent, user_agent], x)
+\end{lstlisting}
+
+\begin{lstlisting}[language=Python, float=t, caption={Deploying a remote agent in multi-machine multi-process mode..}, label={lst:remote_launch}]
+from agentscope.agents.rpc_agent import RpcAgentServerLauncher
+from agentscope.agents import DialogAgent
+
+# load model configurations
+agentscope.init(model_configs="configs/model_configs.json")
+# set server for the remote agent
+server_launcher = RpcAgentServerLauncher(
+    agent_class=DialogAgent,
+    agent_kwargs={
+        "name": "Assitant",
+        "sys_prompt": "You are a helpful assistant.",
+        "model": "gpt-4"
+    },
+    host="xxx.xxx.xxx.xxx",
+    port=12010,
+)
+# start the server
+server_launcher.launch()
+server_launcher.wait_until_terminate()
+\end{lstlisting}
+
+\begin{lstlisting}[language=Python, caption={Example of setting sub-processes for agents in multi-machine multi-process mode.}, label={lst:multi_machine}, float=t]
+agentscope.init(model_configs="configs/model_configs.json")
+    
+assistant_agent = DialogAgent(
+    name="Assistant",
+    model="gpt-4"
+).to_dist(
+    host="xxx.xxx.xxx.xxx",     # The target URL of agent server
+    port=12010,                 # The target port of agent server
+    launch_server=False,        # Use the remote agent server
+)
+user_agent = UserAgent()
+
+x = None
+while x is None or not x.content != "exit":
+	x = sequentialpipeline([assistant_agent, user_agent], x)
+\end{lstlisting}
+
+
+\subsection{RAG Agents: \ours Copilot}\label{sec:copilot}
+
+As previously introduced in Section~\ref{sec:rag}, Retrieval-Augmented Generation (RAG) allows developers to fully utilize the language generation capability of LLMs accompanied by a customized knowledge pool. Accordingly, \ours introduces RAG agents to facilitate such a functionality. In the following example (as shown \lstlistingname~\ref{lst:rag_agents_1}), we show how to use a collection of Llama-index-based RAG agents (i.e., the \texttt{LlamaIndexAgent} inherited from the \texttt{RAGAgentBase}) to build a multi-agent copilot for \ours.
+
+We first initialize the agents. Note that the most important feature of RAG agents is that beyond customized personalities and behavioral styles configured by the system prompts, each agent is loaded with external knowledge, which is specified in the \texttt{agent\_configs} that contains configuration information such as data storage directory, targeted file types, document chunking settings, the indexing and embedding settings, \etc.
+
+The workflow of \textit{copilot} is designed as follows, the user first inputs a message, and if the user mentions some specific RAG agents as we defined, then the corresponding agents would respond, otherwise, the \texttt{guide\_agent} would decide the most suitable agent to respond to the query. Due to space limit, we only represent simplified codes here and please refer to the repository and documentation for more details.
+
+\begin{lstlisting}[language=Python, caption={Example of using RAG agents to build a copilot for \ours.}, label={lst:rag_agents_1}, float=t]
+import agentscope
+from agentscope.agents import UserAgent, DialogAgent, LlamaIndexAgent
+...
+# initialize agentscope with model configurations
+agentscope.init(model_configs="configs/model_configs.json")
+
+# initialize the RAG agents based on different configurations
+tutorial_agent = LlamaIndexAgent(**agent_configs[0]["args"])
+code_agent = LlamaIndexAgent(**agent_configs[1]["args"])
+api_agent = LlamaIndexAgent(**agent_configs[2]["args"])
+search_agent = LlamaIndexAgent(**agent_configs[3]["args"])
+...
+# initialize a basic dialog agent as the ``frontdesk assistant'' and a user agent
+guide_agent = DialogAgent(**agent_configs[4]["args"])
+user_agent = UserAgent()
+...
+while True:
+    x = user_agent()
+    # the workflow terminates when user inputs nothing or ``exit''
+    if len(x["content"]) == 0 or str(x["content"]).startswith("exit"):
+        break
+    # find out the agents mentioned in user's input
+    speak_list = filter_agents(x.get("content", ""), rag_agent_list)
+    if len(speak_list) == 0:
+        # if no agent is mentioned, the guide agent will decide which one to call
+        guide_response = guide_agent(x)
+        speak_list = filter_agents(
+            guide_response.get("content", ""),
+            rag_agent_list,
+        )
+    # agents called by the guide agent will be recorded
+    agent_name_list = [agent.name for agent in speak_list]
+    # the listed agents respond to the query in turn
+    for agent_name, agent in zip(agent_name_list, speak_list):
+        if agent_name in rag_agent_names:
+            agent(x)
+\end{lstlisting}
+
+
+\subsection{Web Search and Retrieve Agents}
+
+We have shown examples of agents generating responses by the capability of LLM (\texttt{DialogAgent}) and information retrieved from external knowledge libraries (\texttt{LlamaIndexAgent}). Nevertheless, we can also utilize internet resources to build agents, as introduced in the following example.
+
+As presented in \lstlistingname~\ref{lst:search_01}, the initialization involves three types of agents - the \texttt{UserAgent} that takes user inputs, the \texttt{SearcherAgent} that converts the user's questions into keywords and calls the search engine to retrieve webpages from the internet, and the \texttt{AnswererAgent} that retrieves information from web pages to compose answers.
+
+It is worth noting that, since a large number of web pages may be returned by the search agents. In the standard single-process mode, multiple \texttt{AnswererAgent} instances can only perform web searching and answer questions in a sequential manner on a single machine. For better efficiency, it is beneficial to allow multiple instances of \texttt{AnswererAgent} running in parallel, that is, the multi-machine multi-process mode of \ours agents. 
+
+\begin{lstlisting}[language=Python, caption={Example of utilizing web search and retrieve agents.}, label={lst:search_01}, float=t]
+import agentscope
+from searcher_agent import SearcherAgent
+from answerer_agent import AnswererAgent
+from agentscope.agents.user_agent import UserAgent
+
+agentscope.init(model_configs="configs/model_configs.json")
+
+# we can perform multiple searches at one time
+WORKER_NUM = 3
+searcher = SearcherAgent(
+    name="Searcher",
+    model_config_name="my_model",
+    result_num=args.num_workers,
+    search_engine_type=args.search_engine,
+    api_key=args.api_key,
+    cse_id=args.cse_id,
+)
+# instantiate the answerer agents
+answerers = []
+for i in range(args.num_workers):
+    answerer = AnswererAgent(
+        name=f"Answerer-{i}",
+        model_config_name="my_model",
+    )
+    # if we want to put agents in distributed (parallel) mode
+    if args.use_dist:
+        answerer = answerer.to_dist(lazy_launch=False)
+    answerers.append(answerer)
+user_agent = UserAgent()
+
+msg = user_agent()
+while not msg.content == "exit":
+    msg = searcher(msg)
+    results = []
+    for page, worker in zip(msg.content, answerers):
+        results.append(worker(Msg(**page)))
+    for result in results:
+        logger.chat(result)
+    msg = user_agent()
+\end{lstlisting}
+
+
+\subsection{ReAct Agents: Convert Natural Language to SQL Query}
+
+Natural Language to SQL query (NL2SQl) is a classical yet challenging task in both database and natural language processing communities, which aims to convert human input questions in natural language into SQL queries. In the research community, there is a collection of works exploring the potential of LLMs in NL2SQL, and it would be very interesting to explore this task with LLM-empowered agents.
+
+In \ours, we provide a special class of agents, the ReAct (reasoning and acting) agents. More specifically, we could create new service functions, by using the \texttt{ServiceToolkit} module, for the ReAct agents and corresponding LLMs. In this example, we try to equip the ReAct agent with a state-of-the-art NL2SQL algorithm, DAIL-SQL. 
+
+As the first step (as shown in \lstlistingname~\ref{lst:react_01}), we need to initialize the model config and the SQL database, then initiate and provide the corresponding database path in \texttt{sqlite} file format. Here we generate the SQLite file using the provided SQL commands. You can also use the \texttt{.sqlite} format file directly.
+
+Then, as shown in \lstlistingname~\ref{lst:react_02}, we define the tools for ReAct Agent to execute the SQL query. Namely, our agent should be able to generate the SQL query given the natural language input and execute the SQL query to get the result. We referenced a third-party Text-to-SQL tool  \texttt{DAIL-SQL} to generate a Text-to-SQL prompt. We use the \texttt{query\_sqlite} service function in the \texttt{agentscope.service} module. Now, we can initiate the ReAct Agent using the defined tools and interact with the agent, as shown in \lstlistingname~\ref{lst:react_03}.
+
+\begin{lstlisting}[language=Python, caption={Example of utilizing web search and retrieve agents.}, label={lst:react_01}, float=t]
+import agentscope
+from sql_utils import create_sqlite_db_from_schema
+...
+agentscope.init(model_configs="configs/model_configs.json")
+create_sqlite_db_from_schema(db_schema_path, db_sqlite_path)
+...
+\end{lstlisting}
+
+\begin{lstlisting}[language=Python, caption={Example of utilizing web search and retrieve agents.}, label={lst:react_02}, float=t]
+from agentscope.service import (
+    ServiceResponse, 
+    ServiceExecStatus, 
+    ServiceToolkit, 
+    query_sqlite,
+)
+from sql_utils import DailSQLPromptGenerator
+
+def generate_sql_query(question: str, db_path: str, model: Callable) -> ServiceResponse:
+    prompt_helper = DailSQLPromptGenerator(db_path)
+    prepared_prompt = prompt_helper.generate_prompt({"content": question})
+    
+    def get_response_from_prompt(prompt: dict, model: Callable) -> str:
+        ...
+    sql_response = get_response_from_prompt(
+        prepared_prompt["prompt"], model=model
+    )
+    return ServiceResponse(
+        ServiceExecStatus.SUCCESS,
+        sql_response
+    )
+
+# Use Service Toolkit to set up tool functions for LLMs
+service_toolkit = ServiceToolkit()
+service_toolkit.add(generate_sql_query, db_path=db_sqlite_path, model=loaded_model)
+service_toolkit.add(query_sqlite, database=db_sqlite_path)
+\end{lstlisting}
+
+\begin{lstlisting}[language=Python, caption={Example of utilizing web search and retrieve agents.}, label={lst:react_03}, float=t]
+from agentscope.agents import ReActAgent
+agent = ReActAgent(
+    name="assistant",
+    model_config_name='gpt-4',
+    service_toolkit=service_toolkit,
+    sys_prompt="You are a helpful agent that preform SQL queries base on natual language instructions.",
+    verbose=True, # set verbose to True to show the reasoning process
+)
+...
+mss = Msg(
+    name="user", 
+    content="How many singers do we have?", 
+    role="user"
+)
+logger.chat(mss)
+
+sql_query_mss1 = agent(mss)
+...
+\end{lstlisting}
+
+\subsection{\ours Workstation}
+
+\ours provides a very convenient and user-friendly development kit in the form of ``dragging windows'', the \textit{Workstation}. Here, implementing applications of \ours using this development kit is of low cost in the sense that, entry-level developers or those without any programming experience could easily develop their own application at ease by simply dragging those agent-related modules and connecting them in a very straightforward way. For example, as shown in \figref{fig:workstation_code}, we implement the basic conversation example in \textit{Workstation}. As we can see, we do not need to write any code, just simply type in the configurations such as detailed settings and APIs into the corresponding windows, link the windows to build the dependency and connection, and then with one-click, \textit{Workstation} would get ready for launch automatically. Meanwhile, the \textit{Workstation} also introduced static checking rules to ensure the correctness of the configurations.
+
+\ours Workstation also provides comprehensive support for advanced developers. The developers could export the configurations on the modules as \texttt{.json} files and execute by the \ours Workstation engine. Alternatively, one can also use the \ours Workstation Compiler to convert all configurations into Python codes for further editing or development to implement more customized adjustments.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.86\linewidth]{figures/workstation_code.pdf}
+    \caption{Workstation generates workflow configuration and Python code.}
+    \label{fig:workstation_code}
+\end{figure}

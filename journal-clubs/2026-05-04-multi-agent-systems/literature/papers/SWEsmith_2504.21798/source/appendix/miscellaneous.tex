@@ -1,0 +1,21 @@
+\section{Miscellaneous}
+\label{appx:misc}
+
+\textbf{Teaser figure description.} We briefly describe how the left hand graph of Figure~\ref{fig:scaling_teaser}, which depicts scaling of task instance collection for the \bugs{} vs. SWE-bench, was created.
+For \bugs{}, we simply collected the number of task instances for each repository.
+For SWE-bench, we ran the SWE-bench task instance candidate collection script on all $128$ repositories, which first crawls all PRs from a given repository.
+Then, each PR that edits at least one or more Python files and changes at least one or more testing related files is converted into a candidate task instance.
+Finally, based on the average task instance yield rate reported in~\citet{jimenez_swe-bench_2024}, we estimate the number of viable task instances to be $20$\% of the candidates.
+We then determine the number of task instances for \texttt{n} repositories at intervals of $5$ repositories ranging from $5$ to $250$, where the repositories are sorted by number of stars.
+In other words, the first five repositories we account for in the figure are the five with the fewest number of stars out of the $128$ repositories used.
+
+\textbf{Extended related works.}
+We discuss additional related works briefly, primarily about similar work towards synthesizing trajectories for training LM agents, but for the domain of web tasks.
+To improve the interactive capabilities of open source LMs~\citep{chen_fireact_2023}, prior works have also explored trajectory generation techniques for web benchmarks and settings~\citep{xie_osworld_2024,yao_webshop_2023,zhou_webarena_2024}.
+For web navigation, existing strategies rely on (1) performing random walks which are then labeled retroactively with instructions~\citep{xiang_language_2023,murty_nnetscape_2024}, (2) using online web tutorials as a source of indirect supervision for generating synthetic trajectories~\citep{ou_synatra_2024}, or (3) collecting human demonstrations~\citep{shen2024scribeagentspecializedwebagents,xu_agenttrek_2024}.
+These procedures do not translate well to the software engineering setting; random sequences of command line interactions usually do not achieve meaningful effects on a codebase.
+Our cursory efforts around replaying trajectories synthesized from online code edit sequences (e.g. GitHub commit histories) were unsuccessful due to the limited information available, which primarily capture file-level changes without reflecting the underlying skills, decision-making, or the broader context of a software development process.
+
+Our exploration of using SWE-agent to automatically determine installation and testing specifications for a repository is heavily influenced by two research directions - automatic execution environment construction using LMs~\citep{bogin2024superevaluatingagentssetting,eliseeva2025envbenchbenchmarkautomatedenvironment,vergopoulos2025automatedbenchmarkgenerationrepositorylevel}, and generating unit tests using LMs~\citep{mündler2025swtbenchtestingvalidatingrealworld}.
+Although relatively much less than SWE-bench style collection, \bugs{} still requires minimal amounts of human labor (around $8$ minutes total per repository).
+As we expand \bugs{} to more repositories and languages, we are continuing to consider how to completely automate the environment construction process end to end.

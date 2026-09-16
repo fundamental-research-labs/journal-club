@@ -1,0 +1,126 @@
+\section{Introduction}
+\label{sec:intro} 
+
+\if 0
+Thoughts:
+
+- if not then not rigor... its reckels.  
+
+- Existing work has delved into scientific research end to end, but they are not doing experimentation actually, treat experimentation as a byproduct because that requires rigor, but science requires critical thinking. 
+\fi
+
+Scientific research drives human progress, advancing medicine, technology, and our understanding of the universe. 
+At the heart of this endeavor lies experimentation—a disciplined intellectual pursuit that transforms human curiosity, expressed through bold hypotheses, into verifiable knowledge. 
+Experimentation thrives on creativity, as new ideas fuel discovery. 
+Yet it also depends on rigor—ensuring that research is methodologically sound and its findings are trustworthy~\cite{rigor2, rigor3}.
+\textit{If science isn’t rigorous, it’s reckless}~\cite{rigor1}.
+% Yet it also depends on rigor—if science isn’t rigorous, it’s reckless.~\cite{rigor1} Ensuring that research is methodologically sound and its findings are trustworthy preserves the power of scientific inquiry.
+
+\if 0
+A significant driver of this acceleration is the rise of large language models (LLMs) and LLM-driven agents, which have evolved from low-stakes applications, such as chatbots~\cite{openai} and gameplay~\cite{voyager}, to high-stakes domains, including cloud management~\cite{cloud1, terrafault, lilac} and autonomous scientific discovery~\cite{zhang2024comprehensive,auto-science1,lu2024ai}. 
+% LLMs themselves are products of this rapid research cycle, continuously refined through experimentation. 
+% LLM-driven agents actively participate in automating experimentation, assisting in data analysis~\cite{hong2024data, chen2024scienceagentbench}, and even generating hypotheses~\cite{sourati2023accelerating, hypothesis1, hypothesis2, hypothesis3}. 
+As these AI agents become integral to scientific exploration, they demand the same level of scrutiny as human researchers and must be held to the same rigorous standards as human researchers. 
+\fi
+
+In recent years, numerous works~\cite{zhang2024comprehensive,auto-science1,lu2024ai} leveraging large language models (LLMs) to automate scientific research have emerged (\S\ref{subsec:related-work}). 
+These solutions typically rely on ad-hoc prompt-based methods to mimic scientific workflows, which are prone to hallucination.
+While effective for creative tasks such as literature review and brainstorming, these approaches remain limited in their ability to support rigorous experimentation, a largely unexplored capability.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.99\linewidth, trim=50 60 50 70, clip]{figures/overview.png}
+    \caption{Curie overview.}
+    % \vspace{-7mm}
+    \label{fig:curie-workflow}
+\end{figure} 
+
+\begin{figure*}
+  \centering
+  \includegraphics[width=0.99\linewidth]{figures/case_study.png}
+\caption{
+Case Study. \sys can help researchers validate, expand, and critique existing research on the benefits of repeated sampling in LLM reasoning~\cite{brown2024large}. 
+The first panel (Original Finding) presents a result from the original paper. 
+The second panel (Reproduce) has \sys confirming this finding through rigorous experimentation.
+The third panel (Extend) has \sys exploring the impact of sampling temperature on repeated sampling.
+The final panel (Challenge) shows \sys identifying a limitation in the original methodology, suggesting an avenue for future research.
+}
+  \label{fig:case-study}
+\end{figure*} 
+ 
+
+\if 0
+Case Study. \sys can help researchers reproduce, extend, and challenge existing research on repeated sampling in LLM reasoning~\cite{brown2024large}. 
+ The first panel (Original Finding) presents a result from the original paper. 
+ The second panel (Reproduce) demonstrates that \sys successfully validates this claim by following a structured experimental process.
+ The third panel (Extend) shows that \sys assists the researcher to explore the impact of sampling temperature on repeated sampling.
+  The final panel (Challenge) identifies a limitation in the original methodology, suggesting an avenue for future research.
+\fi
+
+\if 0
+Scientific research drives human progress, advancing medicine, technology, and our understanding of the universe. 
+At the heart of this endeavor lies experimentation—a disciplined intellectual pursuit that demands a high degree of rigor, to transform human curiosity, expressed through various hypotheses, into verifiable knowledge.
+
+In recent years, numerous works~\cite{zhang2024comprehensive,auto-science1,lu2024ai} leveraging large language models (LLMs) to automate scientific research have emerged (\S\ref{subsec:related-work}). 
+These solutions typically rely on ad-hoc prompt-based methods and predefined workflows to mimic scientific workflows, which are prone to hallucination.
+While effective for tasks such as literature review, brainstorming, and data analysis, these approaches remain limited in their ability to support rigorous experimentation.
+\fi 
+More specifically, rigorous experimentation (\S\ref{subsec:rigor}) involves a \textit{methodical procedure} that includes formulating hypotheses, designing experiments, executing controlled trials, and analyzing results. 
+Achieving \textit{reliability} at every step is essential to ensure that the results are accurate, reproducible, and scientifically meaningful. 
+Finally, all procedures and results must be documented in a well-structured and \textit{interpretable} manner, facilitating verification, reproducibility, and collaboration across the scientific community.
+
+% To address these challenges,\lee{the last couple of sentences in the previous para look like requirements, not challenges; in order to make them as challenges, the previous para needs additional claims? e.g., ensuring methodical procedure, reliability, interpretability is challenging because ...; or we can simply say "to meet these requirements".} 
+To meet these requirements, we propose \sys, an AI agent framework representing the first step toward rigorous and automated experimentation (\S\ref{sec:curie}). 
+As shown in Fig.~\ref{fig:curie-workflow}, \sys takes an experimental question and relevant context (e.g., domain-specific knowledge or starter code) as input.
+The Architect Agent generates high-level experimental plans, coordinates the process, and reflects on findings to guide subsequent steps.
+Working in unison, our Technician Agents focus on carefully implementing and executing controlled experiments following these plans.
+
+% \begin{figure}
+%         \centering
+%         \includegraphics[width=0.99\linewidth, trim=50 60 50 70, clip] {overview-2.png}
+%     \caption{Curie overview.}
+%     % \vspace{-7mm}
+%     \label{fig:curie-workflow}
+% \end{figure} 
+
+% \begin{figure*}
+%   \centering
+%   \includegraphics[width=0.99\linewidth]{figures/case-study.png}
+% \caption{Case Study. \sys is able to reproduce, extend, and challenge existing research in LLM reasoning.}
+%   \label{fig:case-study}
+% \end{figure*} 
+% \lee{what is the relationship between this module and other entities (e.g., architect and technician)? Reading the description, the module seems to take an exp plan from the architect and validate the plan. So, does the architect use the module (meaning that the architect is a consumer of the module) or is there a third entity (or agent) that encompasses the module?} 
+% At the core of \sys lies the \textbf{Experimental Rigor Module}, which ensures reliability, methodical control, and interpretability by validating agent behaviors and orchestrating their interactions throughout the experimentation process.
+
+
+% At the core of \sys, the \textbf{Experimental Rigor Engine} validates agents' behaviors and coordinates their interactions throughout the experimentation process to ensure reliability, methodical control, and interpretability.
+At the core of \sys, the \textbf{Experimental Rigor Engine} preserves agent creativity while embedding rigor seamlessly throughout the experimentation process.
+% It validates agent behaviors and coordinates their interactions to ensure reliability, control, and interpretability.
+% \amber{this can be improved.}
+This is achieved via three key modules:
+(1) The \textit{Intra-Agent Rigor Module} safeguards \textit{reliability} within individual agents by enforcing a set of extensible rigor policies (e.g., validating that experiment plans align with objectives and setups are reproducible).
+(2) The \textit{Inter-Agent Rigor Module} 
+maintains methodical control over agent coordination, ensuring correct task transitions and efficient task scheduling.
+(3) Finally, the \textit{Experiment Knowledge Module} 
+% ensures interpretability by maintaining well-structured documentation, facilitating collaboration within our multi-agent framework on large-scale experiments.
+enhances interpretability by maintaining well-structured documentation, enabling seamless collaboration in large-scale experiments.
+ 
+
+% Though this architecture suggests applications in various subjects, this paper focuses on addressing research problems in computer science, leveraging existing LLM-friendly interfaces for computer access~\cite{claude-computer-use, yang2024swe}.
+Though our architecture suggests applications across various disciplines, 
+this paper focuses on addressing research problems in computer science by leveraging existing LLM-friendly interfaces for computer access~\cite{claude-computer-use, yang2024swe}.
+% In this work, we focus on addressing research problems in computer science by leveraging existing LLM-friendly interfaces for computer access~\cite{claude-computer-use, yang2024swe}.
+% Our proposed architecture is highly adaptable and can be easily generalized to applications across various disciplines.
+To evaluate \sys, we introduce an \textbf{Experimentation Benchmark} comprising 46 tasks of varying complexity across multiple domains within computer science (\S\ref{sec:benchmark}). 
+% We designed an \textbf{Experimentation Benchmark} to evaluate \sys on 40 experimentation tasks of varying complexity across multiple key domains in computer science.
+We derive these questions directly from influential research papers and widely adopted open-source projects, in order to reflect real-world challenges and practical significance. 
+As shown in Fig.~\ref{fig:case-study}, \sys enables researchers to reproduce, extend, and
+% critically evaluate 
+challenge
+existing research through rigorous experimentation.
+
+We benchmarked \sys (\S\ref{sec:experiments}) against several state-of-the-art agents: OpenHands~\cite{wang2024openhands} (a top-performing coding agent on SWE-Bench~\cite{jimenez2023swe}), and Microsoft Magentic~\cite{fourney2024magentic} (a state-of-the-art generalist multi-agent system).
+% and The AI Scientist’s~\cite{lu2024ai} experimentation module (\S\ref{sec:experiments}). 
+% Our empirical findings show that \sys improves the experiment design correctness by 1.2$\times$, improves execution reproducibility $2.4\times$ and improves conclusion accuracy by 3.4$\times$, compared to our strongest agent baseline.
+Our empirical findings show that \sys achieves a 3.4$\times$ improvement in correctly answering experimental questions, compared to the strongest baseline tested, among other aspects. 
+These results underscore \sys's ability to automate complex and rigorous experimentation tasks, making it a promising step toward accelerating scientific research.

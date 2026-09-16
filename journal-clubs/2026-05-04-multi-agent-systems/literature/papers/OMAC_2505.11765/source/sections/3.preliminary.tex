@@ -1,0 +1,77 @@
+
+\section{Problem Definition} \label{sec:pro_def}
+
+We study the optimization of MAS within the context of multi-step collaboration process. The definition of agents and the fundamental collaboration workflow are as follows:
+
+
+\noindent \textbf{Definition 1: Agents.} An LLM-powered agent is governed by natural language prompts to generate solutions for completing a given task. Formally, we define an agent $a$ as  a function: $\mathcal{A}: \mathcal{P} \times \mathcal{I} \rightarrow \mathcal{O}$. Here, $p \in \mathcal{P}$ represents the instruction prompt defining the role and functionality of the agent. In an in-context learning setting, the prompt may also include few-shot examples serving as demonstrations to guide the agent’s behavior. The input $i \in \mathcal{I}$ typically comprises the query information, task description, and potentially instructions or solutions from other agents in MAS. The output $o \in \mathcal{O}$ generally encompasses the agent's generated analyses, reasoning, and solutions to the given task.
+
+
+\noindent \textbf{Definition 2: Multi-Step Collaboration.} In this work, we consider multiple agents collaborating within a multi-step procedure. Typically, each step $s_t \in \mathcal{S}$ involves a subset of agents from the overall team, denoted as $\{a_{t,1}, a_{t,2}, ..., a_{t,n}\} \subseteq s_t$. This multi-step approach aims to enhance problem-solving by enabling agents at each step to leverage solutions and outcomes produced by agents in preceding steps. For instance, when solving a complex mathematical problem, agents in the initial step may first decompose the problem into a series of simpler subproblems. Agents in subsequent steps can then address each subproblem by integrating analyses and solutions generated earlier with relevant contextual information. 
+Especially, we propose determining and refining this collaboration structure (e.g., selecting agents to participate at each step) using \textbf{LLM-based controllers}. The functionalities of these controllers are detailed in Section \ref{sec:five_dim}.
+
+
+\endinput
+
+
+We formulate our problem as a Multi-Objective Markov Decision Process (MOMDP) \cite{roijers2013survey}, which can be described by the tuple $<\mathcal{S}, \mathcal{A}, T, R,\mathcal{S}, \rho>$ given a specific environment that the agent can interact with. The difference between MOMDP and classic Markov Decision Process (MDP) it that the reward function $R(\bs_t, a_t)$ in MOMDP is represented by a multi-dimensional vector in which each dimension describes the reward for a specific objective. In contrast, reward $R$ in a standard MDP is always a scalar. Especially, in our problem setting for sequential recommendation, the environment is taken as all the users on the platform and the agent is the recommender system. A state $\bs_t \in \mathcal{S}$ is taken as the representation of users' preferences at a given timestep $t$. 
+%Following previous research \cite{xin2022rethinking, yang2024generate, kang2018self}, we obtain $\bs_t$ by using a sequential model to encode user's historical interaction behaviours. 
+The action space $\mathcal{A}$ includes all candidate items to be recommended, such that $|\cA|=|\cV|=N$ where $\cV$ denotes the set of all items. $T$ is the dynamic function to define the state transition probability. $R$ is the reward function, where $\br_t=R(s_t, a_t)$ means the agent receives a reward 
+%\footnote{We assume a deterministic reward function to simplify our exposition following previous research.} 
+$\br_t$ after taking an action $a_t$ under state $\bs_t$. $\rho$ is the distribution of the initial states.
+
+
+% \renewcommand{\algorithmicrequire}{\textbf{Input:}}  \raisebox{0.5ex}{$\boldsymbol{\chi}$} 
+% \renewcommand{\algorithmicensure}{\textbf{Output:}}
+% \algnewcommand{\algorithmicand}{\textbf{ and }}
+% \algnewcommand{\algorithmicor}{\textbf{ or }}
+% \algnewcommand{\OR}{\algorithmicor}
+% \algnewcommand{\AND}{\algorithmicand}
+% \setlength{\textfloatsep}{1.5pt}
+% \begin{algorithm}[t]  % algorithm
+% 	\caption{\textbf{The VPMCR Scenario}}			% title
+% 	\begin{algorithmic}[1]	% there is raw labels for each raw
+% 	\Require		
+% 		user $u$,
+%         Target item set $\mathcal{V}_{target}$,
+%         all attribute types $\mathcal{C}$,
+%         clear preference space $\mathcal{C}_{CI}$,
+%         clear preference space $\mathcal{C}_{VI}$,
+%         all fine-grained attributes $\mathcal{P}$,
+%         all items $\mathcal{V}$,
+%         %The set of attributes preferred by the user $\mathcal{P}_{u}$,
+%         the number of items to recommend $k$,
+%         the maximum number of turns $T$;
+% 	\Ensure recommendation result: success or fail;
+%     \State User $u$ specifies an common attribute $p_{0}$ from ; 
+%     \State Update:  $\mathcal{P}_{u}=\{p_{0}\}$;
+%     $\mathcal{P}_{cand}=\mathcal{P} \setminus p_{0}$;
+%     $\mathcal{V}_{cand}=\mathcal{V}_{p_{0}}$
+%     \For{turn $t=1,2,3...T$}
+%         \State Select an action $a$
+%         \If{$a == a_{ask}$}
+%             \State Select the top attribute $p$ from $\mathcal{P}_{cand}$
+%             \If{$u$ accepts $p_{t}$}
+%                 \State Update: $\mathcal{P}_{u}=\mathcal{P}_{u} \cup p$;  $\mathcal{V}_{cand} =  \mathcal{V}_{cand} \cap \mathcal{V}_{p}$
+%             \EndIf
+%                 \State Update: $\mathcal{P}_{cand} = \mathcal{P}_{cand} \setminus p$
+            
+%         \Else[{$a == a_{rec}$}]
+%             \State Select the top-$k$ items $\mathcal{V}_{k}$ from $\mathcal{V}_{cand}$
+%             \If{User accepts $\mathcal{V}_{k}$}
+%                 \State \emph{ Recommendation succeeds}; Exit.
+%             \Else[User rejects $\mathcal{V}_{k}$]
+%                 \State Update: $\mathcal{V}_{cand} = \mathcal{V}_{cand} \setminus \mathcal{V}_{k}$
+%             \EndIf
+%         \EndIf
+%     \EndFor
+%     \State \emph{Recommendation fails}; Exit. 
+% 	\end{algorithmic}
+% 	\label{algo:MCR}
+% \end{algorithm}
+
+% The conversation state representation at each turn is represented by $s_t$, the action taken by the agent is $a_t$, and the reward received for taking action $a_t$ in state $s_t$ is $r(s_t, a_t)$. The target policy $\pi^{*}$: $\arg \max _{\pi \in \Pi} \mathbb{E}\left[\sum_{t=0}^{T} r\left(s_{t}, a_{t}\right)\right]$. 
+
+
+
+

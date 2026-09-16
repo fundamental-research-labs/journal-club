@@ -1,0 +1,90 @@
+\section{Database} \label{app:db}
+\subsection{Dataset Details}
+\vpara{Construction Details.}
+We acquire the source queries and databases via reusing and amalgamating several established datasets: WikiSQL ~\citep{zhongSeq2SQL2017}, WikiTableQuestions ~\citep{pasupat-liang-2015-compositional}, SQA ~\citep{iyyer-etal-2017-search-sqa}, HybridaQA ~\citep{chen-etal-2020-hybridqa}, and FeTaQA ~\citep{nan2021fetaqa}, ensuring the diversity of instructions and data.
+
+To further enrich (and avoid leakage from) the dataset, we employed \texttt{gpt-3.5-turbo} to perform data augmentation. 
+Provided with the header information and original rows of a table, \texttt{gpt-3.5-turbo} generates ten new rows. 
+Using the name, header information, and some SQL examples, we task \texttt{gpt-3.5-turbo} with generating five additional SQL queries. 
+Each acquired SQL statement is then fed sequentially into \texttt{gpt-3.5-turbo} with instructions to rephrase the sentences without changing their original meanings. 
+The valid entries are filtered and sampled into the final dataset with 300 entries, categorized into three basic types of DB operations: \textbf{select, insert, or update}.
+
+As a result, each sample in the dataset comprises:
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt,parsep=0.2em,topsep=0.0em,partopsep=0.0em]
+\item \textbf{Instruction.} A piece of description delineating the problem and guiding the agent's action.
+\item \textbf{Table Info.} Explanations about the table name and column names (i.e., meta information).
+\item \textbf{Table Content.} The actual contents within the table, utilized to create the database.
+\item \textbf{Correct Answer.} For selection-type samples, it is a text answer; for other entry types (i.e., insert, update), it is the hash code of the correctly modified table.
+\end{itemize}
+
+\vpara{Evaluation Setup.}
+We assess each problem in the dataset through the following procedure:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt,parsep=0.2em,topsep=0.0em,partopsep=0.0em]
+\item \textbf{Initialization.} An initial SQL script is constructed based on the table content, and a MySQL database is initialized in a docker container, which provides a forwarded port for interaction.
+\item \textbf{Interaction.} An initial prompt guides the agent to provide an executable SQL command along with its reasoning. The agent is provided with the prompt, instruction, and table information description, and it is expected to return a response in given format. We execute the SQL and directly return the result to the agent, continuing this loop until the agent commits its final answer or encounters an error (e.g., reaching the maximum round limit or failing to parse the action).
+\item \textbf{Checking.} For selection-type problems, we compare the agent's answer with the standard text answer, disregarding the order, but expecting an exact match. If the answer is a single number, all equivalent representations are accepted (e.g., 5, "5.0", '+5' are considered identical). For insertion or updating types of problems, we calculate and compare the hash of the table after the agent's operation with the hash of the table after the correct SQL operation.
+\end{itemize}
+
+\vpara{Metrics.}
+We measure the \textbf{Success Rate} of agents in completing instructions. Overall success rate is the macro average of the rate of three categories.
+% orginal description is wrong %
+% \todo{modified, please check @liuxiao}
+
+% removed everything related to "delete" %
+
+\subsection{Data Augmentation}
+We elaborate on the data augmentation of three types of DB tasks based on the existing SQL datasets~\citep{zhongSeq2SQL2017,pasupat-liang-2015-compositional,iyyer-etal-2017-search-sqa,chen-etal-2020-hybridqa,nan2021fetaqa}, which are all QA problems without some common operations including inserting and updating. 
+We first tested the validity of the raw data and then randomly sample from each category from filtered data to form the final dataset.
+We adopt \texttt{gpt-3.5-turbo} to enrich and rewrite the original instructions.
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt,parsep=0.2em,topsep=0.0em,partopsep=0.0em]
+    \item \textbf{Insert}: Given the name, the header information, and the original rows of a table, we generate 5 SQL statements for insertion. Later we rephrase the sentences without changing their meaning (using shorter or longer expressions or changing the order).
+    \item \textbf{Update}: Given the name, the header information, and the previously generated 5 SQL statements for insertion, we generate 5 SQL statements for modification based on the given statements. We rephrase the sentences following the above standard.
+\end{itemize}
+
+To ensure data quality, each augmented query statement are required to pass the unit test scripts.
+
+The \textit{query} type of tasks fall into the traditional scope of Text-to-SQL evaluation, and we only sample and categorize for evaluation.
+Each query statement in existing datasets is classified into following types: 'Counting', 'Aggregation-MIN', 'Aggregation-MAX', 'Aggregation-AVG', 'Aggregation-SUM', 'Ranking', or 'Comparison'. 
+Each one can only belong to one type.
+The remaining will be categorized as "Other".
+
+
+\subsection{Prompt Example}
+We use the following format of prompts:
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,244},
+    breaklines=true,
+    basicstyle=\ttfamily\small
+}\begin{lstlisting}
+User:
+I will ask you a question, then you should help me operate a MySQL database with SQL to answer the question.
+You have to explain the problem and your solution to me and write down your thoughts.
+After thinking and explaining thoroughly, every round you can choose to operate or to answer.
+your operation should be like this:
+Action: Operation
+```sql
+SELECT * FROM table WHERE condition;
+```
+You MUST put SQL in markdown format without any other comments. Your SQL should be in one line.
+Every time you can only execute one SQL statement. I will only execute the statement in the first SQL code block. Every time you write a SQL, I will execute it for you and give you the output.
+If you are done operating, and you want to commit your final answer, then write down:
+Action: Answer
+Final Answer: ["ANSWER1", "ANSWER2", ...]
+DO NOT write this pattern unless you are sure about your answer. I expect an accurate and correct answer.
+Your answer should be accurate. Your answer must be exactly the same as the correct answer.
+If the question is about modifying the database, then after done operation, your answer field can be anything.
+If your response cannot match any pattern I mentioned earlier, you will be judged as FAIL immediately.
+Your input will be raw MySQL response, you have to deal with it by yourself.
+\end{lstlisting}
+
+% \todo{modified, please check @liuxiao} % removed everything related to "delete" %
+
+\subsection{Study on bias in data augmentation}
+
+To validate that our dataset does not introduce biases induced by the model during the augmentation process, we re-annotated a small batch of data using Claude-2. Using \texttt{gpt-4} and \texttt{gpt-3.5-turbo} as examples.
+
+As depicted in Table~\ref{tab:db-re-annotated}, the data consistently exhibits similar scoring patterns, i.e., \texttt{gpt-4} performing less effectively on UPDATE operations but showing enhanced proficiency in INSERT tasks. This observation suggests that our dataset augmentation approach is unlikely to introduce substantial biases, maintaining the inherent score relationships across different operations.
+
+\input{tables/db_experiment}

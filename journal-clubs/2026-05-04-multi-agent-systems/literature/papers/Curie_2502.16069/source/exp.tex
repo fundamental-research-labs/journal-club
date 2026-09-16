@@ -1,0 +1,248 @@
+\section{Evaluation}
+\label{sec:experiments}
+
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.99\linewidth]{figures/ablation-complexity-v2.pdf}
+    \caption{Average scores across different complexity dimensions at varying difficulty levels for \sys, OpenHands, and Magentic. \sys outperforms the others consistently, with performance generally dropping as complexity increases.}
+    \label{fig:ablation-complexity}
+\end{figure*}
+
+
+We evaluate \sys using our experimentation benchmark, which consists of 46 research tasks spanning varying complexity levels across four key domains (\S\ref{sec:benchmark}).
+To enhance statistical robustness, each task is executed independently for five trials for each of our baselines (below) and \sys, and we report the average performance across these trials.
+Apart from our main results described in \S\ref{subsec:main-results}, our evaluation includes our case studies (Fig.~\ref{fig:case-study} and  App.~\ref{appendix:case-study}), and additional results (App.~\ref{appendix:additional-results}).
+
+\paragraph{Baselines.}
+We compare \sys with two state-of-the-art AI agents as our \textit{baselines}: OpenHands~\cite{wang2024openhands}, a top-performing coding agent, and Microsoft Magentic~\cite{fourney2024magentic}, a generalist multi-agent system. 
+These baselines were selected because our benchmark primarily focuses on coding-related tasks within computer science, where both models demonstrate strong performance, 
+with the expectation that Magentic, as a generalist multi-agent system, may be able to generalize to experimental tasks too.
+To ensure fairness, each baseline is provided with a detailed system prompt instructing them to act as a professional experimenter (see App.~\ref{appendix-subsec:exp-prompt}).
+All baselines and \sys utilize GPT-4o as the underlying LLM. 
+
+\paragraph{Performance Metrics.}
+We assess performance using four key metrics, each evaluated as a binary score per task, ensuring rigor at every stage of the experimentation process:
+
+\noindent\textit{1. Experiment Design} – Ability to structure the high-level experiment plan to address the research question. 
+
+\noindent\textit{2. Execution Setup} – Ensuring that the generated code (experiment setup) is executable and produces consistent results across multiple runs.
+% (even if the results are not the ground truth).
+
+\noindent\textit{3. Implementation Alignment} – Faithfulness of the experimental setup with the proposed plan.
+
+\noindent\textit{4. Conclusion Correctness} – Accuracy in reflecting the ground truth answer to the experimental question.
+
+\if 0
+\noindent\textbf{1. Experiment Design} – Ability to structure the high-level experiment plan to address the research question. 
+
+\noindent\textbf{2. Execution Setup} – Executability of the generated code and reproducibility of the experiment setup.
+
+\noindent\textbf{3. Implementation Alignment} – Faithfulness of the experimental setup with the proposed plan.
+
+\noindent\textbf{4. Conclusion Correctness} – Logical consistency between experimental results and derived conclusions.
+\fi
+
+%\textcolor{red}{The final \textbf{score} for a task is computed as a pass only if the agent successfully meets all four criteria, ensuring rigorous assessment of end-to-end experimentation capabilities.}
+
+
+\paragraph{Evaluator.} 
+We employ an LLM judge~\cite{zheng2023judging} for straightforward verification such as checking design, setup and conclusion, where the ground truth is provided.
+However, we manually assess the implementation alignment, as detecting semantic discrepancies between the intended methodology and code is non-trivial. 
+To ensure accuracy, we also verify the LLM judge’s assessments by cross-checking a subset of its evaluations against expert annotations, measuring agreement rates, and refining the judge system prompt. Details of the evaluation prompts are provided in App.~\ref{appendix-subsec:judge-prompt}.
+This hybrid evaluation approach enables reliable and scalable assessment of experimentation performance.
+
+% Emphasize that we are a simple coding agent, whereas these other guys are advanced purpose built to act as coding agent, and that we plan to integrate them into curie in the future, we are working on parallel things. 
+
+
+
+% Each task is subject to a hard limit on total execution time to simulate real-world constraints.
+
+\subsection{Benchmark Performance} 
+\label{subsec:main-results}
+% \paragraph{Main Results.}
+Table~\ref{table:main-results} shows aggregated success rates across all performance metrics and benchmark task domains.
+% \textit{Des.}, \textit{Exec.}, \textit{Align.}, and \textit{Con.} correspond to the performance metrics (1–4) introduced in \S\ref{sec:experiments}.
+
+% \textcolor{red}{For detailed results for each individual task, we provide a comprehensive table in Appendix~\ref{appenidx:detailed-res} that reports the accuracy for individual tasks. }
+
+\if 0
+weighted average explanation: XYZ. 
+
+Main table trends to explain:
+
+in terms of each individual metric: 
+
+- design weighted average results are roughly  similar: with curie achieving 97.9\%, OpenHands at 83.6\%, and Magentic coming last at 82.9\%. We notice that this is because we feature 22 easy questions, 10 medium and 14 hard questions. We were hoping to make it easier for other models to come to conclusions. 
+- Similarly for ML training
+
+- reproducibility for Curie is great, ranging from 66.7\% up till 92.7\%. This is because.. the other models fared this is expected because.. 
+
+- alignment: magnetic one has relatively decent alignemtn on average 35.2\% but was not able to convert those into meaningful conclusions. We observed that it was not able to complete execution of the code as it encounters various problems even though.. it also failed to clearly articulate its results.  with openhands too at 40.2\%. we better becasue of the rigor stuff. 
+
+
+domain specific: 
+- Reasoning: we performed very well across for highest for conclusion with 44.9\%. Openhands also highest for this at 14.2\% and Magentic achieving its only non-zero 6.7\%, and we posit this is due to intuitiveness of the conclusion, but we note that we were able to achieve 3x their conclusion accuracy, and also double the alignment accuracy. 
+- VDB: Curie underperformed for VDB tasks scoring only 25.6\% accuracy for conclusion, with OpenHands scoring 11.7\% faring pretty well the 2nd best of its results. Closest to OpenHands for this task. This is because agents can infer (amber) a more familiar task. 
+Alignment in this case also easier since the reasonably more training data expect, and shorter runs. 
+- Cloud computing: - Cloud computing we performed much better than OpenHands in terms of conclusion. we performed best this was a long running experiments. and so suited us well. In contrast each of the other agents struggled with running remote commands that can take a long time. We were able to catch more errors in reasoning and achieve much higher conclusion based on aligned setup and data retrieved, achieving 32.3\% while others achieved 5\% only. 
+- ML training. All of us underperformed in alignment, and exec. This is because the starter code provided was not as complete. we mainly provided the script, but we needed manual installs of various components. but there were some problems that required. Basically more code gen needed that our model struggles with. More dependencies.. 
+
+\fi
+
+% by metrics
+\noindent\textbf{Performance Breakdown By Metric.} 
+Across all four metrics, \sys consistently outperforms the baselines, demonstrating the benefits of our Experimental Rigor Engine in improving experimentation performance. 
+(i) For experiment design correctness, all frameworks perform well since the current tasks are relatively straightforward and do not require iterative refinement.
+% \sys achieved 97.9\%, OpenHands 83.6\%, and Magentic 82.9\%. This high performance is expected, as our tasks were intentionally straightforward design-wise to ensure fair comparisons with other baselines. 
+However, for more complex research tasks, \sys holds an advantage by dynamically refining hypotheses based on intermediate observations, whereas baselines rely on static planning. Our experimental knowledge module further enhances performance by improving recall and adaptation.
+(ii) For execution setup and implementation alignment, \sys demonstrates higher reliability, as \textit{Intra-\texttt{ARM}} proactively validates and corrects execution steps, while \textit{Inter-\texttt{ARM}} guarantees that we follow methodical task transitions. This results in particularly strong execution setup performance, from 66.7\% to 92.7\%.
+OpenHands (with 32.4\% and 40.2\%), as a coding-specialized agent, outperforms Magentic in this aspect.
+However, it still struggles with incomplete or erroneous setups, including getting stuck in loops, syntax errors, logic mistakes, and unresolved dependencies—leading to execution failures in complex environments. 
+Magentic, in particular, performs poorly in locating the correct files in the task starter file and handling script input/output.
+(iii) Finally, for conclusion correctness, its accuracy is largely constrained by earlier errors, as conclusions rely on the correctness of experimental results.
+However, \sys maintains a strong lead due to its Experiment Knowledge Module, which systematically documents experimental results for structured data analysis. This enables \sys to achieve a significantly higher conclusion score of 36.1\%, compared to 10.5\% for OpenHands and 2.3\% for Magentic.
+While Magentic demonstrates relatively decent alignment, it struggles to translate this into meaningful conclusions because of previous cascading errors.
+
+
+% Its inability to complete code execution due to various errors, coupled with a failure to clearly articulate results, limits its effectiveness in this dimension.
+
+% The drop in accuracy is observed due to reasons such as early termination of experiments prior to obtaining results (in particular exceeding context, or query limits set internally by us). 
+
+
+\if 0
+Across all four metrics, \sys consistently outperforms the baselines, demonstrating \sys’s ability to ensure rigor throughout the experimentation process.
+(i) For experiment design correctness, all frameworks perform well since the current tasks are relatively straightforward and do not require iterative refinement. However, for more complex or non-trivial research tasks, \sys has the advantage of dynamically refining hypotheses based on intermediate observations, whereas baselines rely on static planning.
+(ii) For execution setup and implementation alignment, \sys achieves higher reliability because it incorporates a rigor engine that proactively validates and corrects execution steps.
+While OpenHands, as a coding-specialized agent, performs slightly better than other baselines in this dimension, it still suffers from incomplete or erroneous setups, including \textit{code failures} due to syntax errors and logic mistakes, as well as \textit{unresolved dependencies}, which cause execution failures in complex environments. 
+Magentic, in particular, performs poorly in locating the correct files in the task starter file.
+(iii) For conclusion correctness, since conclusions depend on previous stages, their accuracy is usually bounded by earlier errors. 
+However, \sys maintains a strong lead due to its Experiment Knowledge Manager, which systematically documents all experimental results for structured data analysis.
+\fi 
+%since conclusions depend on previous stages, their accuracy is usually bounded by earlier errors. 
+
+
+% However, in some cases, an agent can still make correct inferences despite flawed execution, leading to a higher conclusion correctness rate than prior stages.
+
+ 
+
+
+% \textcolor{red}{ 
+% - cloud design seems easy?
+% - distinguish different domains, each domain test different aspects of abilities
+% }
+
+
+
+% % by domain
+\noindent\textbf{Performance Breakdown By Domain.}
+Across all four task domains, \sys consistently outperforms the baselines, demonstrating \sys's ability to adapt to different research domains. 
+(i) First, for LLM reasoning tasks, \sys performed exceptionally well, achieving the highest conclusion accuracy at 44.9\%. OpenHands had its best performance in this category (14.2\%), while Magentic attained its only non-zero score of 6.7\%. We attribute this to the inherent intuitiveness of conclusions for our tasks in this domain. 
+% Notably, \sys achieved 3.2$\times$ the conclusion accuracy than OpenHands, highlighting its ability to accurately convert results into correct conclusions. 
+(ii) For Vector DB tasks, both OpenHands and Magentic achieved their highest alignment scores—52.3\% and 63.6\%, respectively—likely due to the familiarity of the task. Alignment was also easier given the availability of well-established open-source benchmarks and shorter execution runs, which provided faster feedback. 
+(iii) For Cloud Computing tasks, \sys outperformed OpenHands significantly in all aspects (e.g., 6.5$\times$ the conclusion accuracy).
+This is because these tasks often involve long-running experiments, which requires robust execution tracking and dynamical experimentation workflows adjustment based on partial results. 
+(iv) Finally, for ML Training tasks, all agents underperformed in alignment and execution as the detailed environment setup instructions are not provided for these tasks.
+Despite this, \sys can figure out the correct setup by reflection and refinement, achieving a 7.3$\times$ higher conclusion accuracy than OpenHands.
+
+\if 0
+Across all four benchmark domains, \sys consistently outperforms the baselines, demonstrating \sys’s ability to adapt to different research domains. 
+We note that each domain presents unique challenges on different aspects the experimentation.
+The complexity of experiment design varies across domains. In cloud computing, the predefined search space and traditional system optimization objective make experiment design relatively straightforward. 
+% The difficulty of execution setup is also domain-dependent. 
+%However, for ML training, \sys performs better because it's hard to come up with a reasonable model configuration search space at one trial, while \sys is able to refine its search space or experiment plan 
+% Cloud Computing tasks involve almost-no environment setup 
+%Vector indexing tasks involve straightforward installation and execution steps, benefiting from FAISS’s well-documented libraries and structured code, enabling agents to perform well. 
+%However, LLM reasoning tasks introduce execution challenges due to intricate dependencies and the need for multi files coordination. 
+%Baselines often fail in this setting, either by misconfiguring execution environments or by failing to resolve required dependencies.
+Conclusion correctness also varies across domains. In relatively traditional tasks such as vector indexing and cloud computing, which focus primarily on system trade-offs such as latency, memory, and accuracy, agents can often infer reasonable conclusions based on clear performance trends. As a result, achieving high correctness scores in these domains is relatively easier. 
+In contrast, LLM reasoning and ML training require deeper conceptual understanding and empirical results beyond common sense, making it more difficult for baselines to derive correct conclusions.
+\fi
+ 
+
+
+
+
+% by agent framework abilities
+% as a coding agent, openhands performs better than magentic on Execution Setup by reflecting on the reported error and make code chenge or solve environment dependency issues.
+
+% but don't know how to explore search space, (including a lack of comprehensive strategies for model selection, hyperparameter tuning, and feature engineering. There is often no systematic approach to testing different models or configuration)
+
+% without detailed and precise instructions, Magentic struggles with locating correct files to rewrite and execute 
+
+% openhands:
+%    - Missing or improperly configured scripts (e.g., `experimental-workflow.sh`).
+ 
+
+
+% We aggregate the performance of the agent frameworks across different benchmark topics and different task difficulty levels to provide a high-level comparison as shown in Table ?. 
+
+
+% \sys outperforms baseline agents across all key metrics, demonstrating superior capability in structuring experiments, executing code, aligning implementations, and deriving correct conclusions.
+
+
+% Also, talk about how the model fails we noticed, and what needs more work, e.g., noticed conclusion is typically quite good, while setup fails... 
+
+% \noindent\textbf{Validating LLM judge efficacy.} For each of these metrics, we first hand-looked at all our log files manually for all of the benchmark questions for our pipeline first and openhands, we correlated this with the results obtained from LLM-as-Judge, and confirm that it is pretty good, i.e., corroborate. Because of this, our analysis for the remaining baselines was done using LLM-judge only. 
+
+% \noindent\textbf{Main results.} We observed the following: 
+% - First, on a high level, we see that we outperform everyone else across all metrics. 
+% - We see that in particular, our model struggles with setup: this is mainly due to us using pure GPT as the minimalist code gen ability, though we expect pluggable in future as module allow better using other code gen engines like openhands. What is more impressive is that our simple code gen engine was able to beat openhands on all tasks. Our code agent struggles with not being able to handle context error limits, and fails to solve problems after recursion limit hard coded.  
+% - Second, we see that openhands performs quite well as well at 2nd place, but typically suffers from many issues: setup not being reproducible/usable due to long running nature of our tasks at times, not capturing the SS, and arriving at  wrong conclusion.
+% - All other baselines performed much worse, highlighting.. 
+
+
+ % % \textcolor{orange}{Table - row: 4 topics. col: 4 agent frameworks. entry: 5 breakdown metrics.}
+
+% \noindent\textbf{Breakdown by complexity dimension.} Deeper analysis Break down by complexity dimension too:
+ 
+ % \textcolor{orange}{Table - row: 4 agent frameworks. col: different complexities. entry: conclusion metrics.}
+
+\paragraph{Performance Breakdown by Complexity.}
+Next, we analyze how each framework performs as we increase difficulty within each complexity dimension. Fig.~\ref{fig:ablation-complexity} reports the aggregated performance score, computed as the average across all four evaluation metrics.
+We observe that increasing complexity difficulties across all dimensions correlates with a decline in performance across all agents. However, the rate of degradation varies across complexity types and agent architectures. Notably, Magentic consistently underperforms across all complexity levels, highlighting the robustness of our complexity-based difficulty scaling in distinguishing agent capabilities.
+Further, we observe a sublinear decline in performance as task complexity increases, suggesting that our hardest tasks could be made even more challenging. Despite this, our current results demonstrate \sys's capabilities, supported by our case studies. Exploring the limit of experimentation difficulty and its impact on model performance remains an open direction for future work.
+
+In summary, our findings underscore the importance of rigorous evaluation across all stages of the experimentation process, shedding light on each framework’s strengths and limitations under varying complexity conditions.
+
+\if 0 
+pat thoughts on complexity breakdown: our average score here is based on average across all four of our performance metrics. 
+- the general trend is complexity leads to worse results. 
+- however, we can break it down a little. We see that overall complexity leads to poorer, and that magnetic fares worse consistently across complexities and difficulties. this showcases the effectiveness of our difficulty levels across complexities to influence results. 
+- setup complexity in particular the degradation is not that much across all of our baseliens and curie. we attribute this to the fact that coding complexity is a strong suit for most of our models. Pretty good at coding. However, the complexities of other mettircs increasing will cause setup itself to be harder to achieve as the model struggles with completing its task... 
+- the trend we observe is of certain \%.
+- sublinear, co-opting goals, harder  setups are all good. harder search space where.. is effective 
+
+\fi
+
+ % \textcolor{orange}{5 sub-figures: row: easy-hard. col: accuracy for different agents.}
+
+ 
+
+% \subsection{A Case Study}
+% \paragraph{Curie}
+% To provide deeper insights into the capabilities of our framework, we present a detailed case study illustrating its performance throughout the entire experimentation process. 
+% Figure ? provides a visual representation of the framework’s workflow, showcasing how it identifies key variables, generates correct code, explores the search space comprehensively, and synthesizes results into accurate conclusions. 
+
+
+
+% \subsection{Case Study of Common Mistakes?}
+
+% \paragraph{Other agents:}
+% While our proposed framework demonstrates strong performance across the experimentation process, baseline frameworks often fail to maintain rigor and consistency.  
+% We categorize these common mistakes into the following areas:
+
+% \todo{add our observations.}
+
+% Figure X illustrates the distribution of common mistakes made by baseline frameworks, showing that errors can occur at any stage of the experimentation process.  
+% \todo{add insights.}
+% These observations reveal the inherent challenges in automating scientific experimentation while ensuring rigorous standards. 
+% Our proposed framework systematically addresses these issues by  integrating our proposed rigor module.
+
+
+%  \textcolor{orange}{Figure - distribution of common mistakes for each agents.}
+
+
+ 
+
+

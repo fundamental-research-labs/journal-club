@@ -1,0 +1,32 @@
+\section{Related work}
+\label{section:related-work}
+
+\subsection{Language models for software engineering}
+Large language models (LLMs), trained with billions to trillions of code tokens, have demonstrated outstanding performance in a wide range of coding tasks, including
+code generation~\cite{codex,starcoder,codellama,dscoder,magicoder,starcoder2,dscoderv2},
+code optimization~\cite{cummins2024metalargelanguagemodel,evalperf},
+program repair~\cite{alpharepair,aprstudy,aprstudy2,repilot},
+and software testing~\cite{fuzz4all,titanfuzz,yuan2023no,schafer2023empirical,lemieux2023codamosa}.
+Initially, researchers primarily focused on single-shot code generation tasks, such as function-level~\cite{codex,mbpp,apps,codecontests,lcb}, class-level~\cite{classeval}, and repository-level code completion~\cite{cceval,repobench,repocoder}. However, with the rapid development of LLMs, the performance on many popular single-shot code generation benchmarks like \humaneval~\cite{codex}, \mbpp~\cite{mbpp}, and \evalplus~\cite{liu2023code} has become saturated.
+Since the development of \swebench~\cite{swebench}, which requires solving real-world \github issues, researchers start to work on improving LLMs' real-world issue-solving capability and have designed various scaffolds for \swebench.
+Two general types are
+(1) agentic scaffolds~\cite{sweagent,openhands,aider}, where an LLM drives the decision-making process based on its past actions and observations through tool-based interaction with the environment;
+and (2) pipeline-based scaffolds~\cite{agentless,moatless,autocoderover}, where an LLM goes through human-defined stages to solve a given issue.
+Generally, agentic methods are more general but require strong instruction-following and capable LLMs to drive the autonomous process, and can be computationally intensive due to multi-round interactions. In contrast, pipeline-based approaches are more specialized but efficient, with a focus on LLMs' pure code editing capability.
+Therefore, we designed our minimalist pipeline-based scaffold, \ouragentless, to focus on the enhancements of \ours's core code editing capabiltiy.
+
+\subsection{Training software agents}
+While existing scaffolds have successfully leveraged proprietary language models to tackle real-world software engineering tasks, open models typically yield subpar results in these settings.
+Moreover, the most effective approach to enhancing real-world software engineering capabilities through training remains unclear.
+Recently, researchers have begun exploring the possibility of training open LLMs specifically for software engineering tasks, aiming to improve performance on benchmarks such as \swebench.
+For instance, \swegpt~\cite{swegpt} introduces 7B and 72B model variants that build on top of \qwen{2.5-Coder-7B}~\cite{qwen25coder} and \qwen{2.5-72B-Instruct}~\cite{qwen25}, using an iterative development-process-centric approach.
+\swegym~\cite{swegym} presents the first open training environment for software engineering agents, significantly improving the performance of \qwen{2.5-Coder}'s 7B and 32B variants on \swebench.
+More recently, \swefixer~\cite{swefixer} finetunes the \qwen{2.5} base series, resulting in a 7B code retriever and a 72B code editor focused on efficient issue resolution, achieving notable best@1 improvements.
+Notably, all these works incorporate distilled samples from either \gpt{-4o} or \sonnet{} in their training data and are built upon \qwen{2.5} models.
+Their training objectives are all based on supervised finetuning.
+On the contrary, \ours is based on \llama~3~\cite{llama31} and trained through reinforcement learning (RL) using \tech.
+The seed dataset for RL is sourced exclusively from publicly available repositories,
+allowing \ours to self-improve its issue-solving capabilities through the RL inscentive.
+Remarkably, \ours achieves the best performance among these models with a \swebfinalbig{}\% solve rate on \swebverified~\cite{swebverified}, demonstrating for the first time that LLMs can already effectively address real-world issues through RL on real-world software artifacts.
+
+

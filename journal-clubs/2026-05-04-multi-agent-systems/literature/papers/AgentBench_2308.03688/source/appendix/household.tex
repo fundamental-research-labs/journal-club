@@ -1,0 +1,71 @@
+\section{House-holding} \label{app:hh}
+\subsection{Dataset Details}
+\vpara{Construction Details.}
+The ALFWorld benchmark comprises of textual environments designed to mimic household scenarios, providing an interactive environment where an agent can perform decision-making tasks through text-based interfaces. 
+Given the household environment description and an target instruction, the agent's objective is to break down the complex high-level target into a sequence of straightforward actions. 
+After each step, the agent receives environment feedback, allowing the agent to adapt the plan dynamically and move on to the subsequent task to eventually accomplish the main objective.
+
+Each evaluation sample in ALFWorld dataset encompasses following contents:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt,parsep=0.2em,topsep=0.0em,partopsep=0.0em]
+    \item \textbf{Environment Description.} The detailed description of the whole household environment, including agent's initial position and a snapshot of the room containing objects and their IDs.
+    \item \textbf{Objective. } The goal that needs the agent to accomplish in the environment, usually requiring multi-step reasoning and exploring (e.g. put the lamp on the table).
+    \item \textbf{Simulated Environment. } After every action of the agent, the simulated environment gives immediate feedback and evaluates whether the agent has completed the task.
+\end{itemize}
+
+In the dataset, we utilized 134 solvable problems from the ALFWorld \textit{eval out of distribution} split of the dataset. All the problems were categorized into six categories: \textit{pick and place}, \textit{pick clean then place}, \textit{pick heat then place}, \textit{pick cool then place}, \textit{look at obj}, and \textit{pick two obj}.
+
+\vpara{Evaluation Setup.}
+Due to the inherent complexity of the problem and the high standards required for the output format, we employ a 1-shot evaluation setting. 
+For each category of problem, we use one relatively simple and complete interact processes of the same category from the training set as an example. 
+Following ReAct~\citep{yao2023react}, we adopt the few-shot examples and prompts in corresponding repository\footnote{\url{https://github.com/ysymyth/ReAct}}. 
+Additionally, if LLM output format is invalid, we use the BLEU metric to assess the similarity of the output to all valid action options. The option with the highest similarity will be chosen as the action of the model for this round.
+
+For each sample, the evaluation process can be divided into 2 parts. 
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt,parsep=0.2em,topsep=0.0em,partopsep=0.0em]
+    \item \textbf{Initialization.} We describe the task to the model and provide one successful example. Afterwards, we elaborate on the environment and delineate the objective required to be accomplished.
+    \item \textbf{Interaction.} The model generates some thoughts and the next action based on the feedback received from previous interactions and the information from the environment. After receiving the action from the model, the environment provides feedback (changes to the environment or information observed by the model). This process is repeated until the model successfully achieves its goal (which is considered a success) or reaches its maximum number of actions (which is considered a failure). It is worth noting that sometimes, after several unsuccessful attempts, the model may repeatedly output the same content. To save evaluation time, we judge that if the model outputs identical content three times consecutively, it will be deemed a failure due to repetition.
+\end{itemize}
+
+
+\vpara{Metrics.}
+We employ the overall \textbf{Success Rate} as a measure of model performance, that is, the number of tasks successfully completed by the model divided by the total number of tasks.
+
+\subsection{Prompt Example}
+To align the output format with the legal commands supported by the simulated environment, we adopted a 1-shot evaluation setup where one successfully completed task example was concatenated after the instruction. 
+At the beginning of the interaction, we describe the task to the model using the following instruction.
+
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,244},
+    breaklines=true,
+    basicstyle=\ttfamily\small
+}\begin{lstlisting}
+Interact with a household to solve a task. Imagine you are an intelligent agent in a household environment and your target is to perform actions to complete the task goal. At the beginning of your interactions, you will be given the detailed description of the current environment and your goal to accomplish. For each of your turn, you will be given a list of actions which you can choose one to perform in this turn. You should choose from two actions: \"THOUGHT\" or \"ACTION\". If you choose \"THOUGHT\", you should first think about the current condition and plan for your future actions, and then output your action in this turn. Your output must strictly follow this format:\"THOUGHT: your thoughts.\n ACTION: your next action\n\"; If you choose \"ACTION\", you should directly output the action in this turn. Your output must strictly follow this format:\"ACTION: your next action\n\". After your each turn, the environment will give you immediate feedback based on which you plan your next few steps. if the environment output \"Nothing happened\", that means the previous action is invalid and you should try more options.
+Reminder: 
+1. the action must be chosen from the given available actions. Any actions except provided available actions will be regarded as illegal.
+2. Think when necessary, try to act directly more in the process.
+\end{lstlisting}
+
+All the tasks in the datasets are categorized into six classes. To better guide the model in accomplishing the objectives, we have selected one relatively simple example of successful completion of similar tasks for each category as 1-shot example. Here is an example:
+
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,244},
+    breaklines=true,
+    basicstyle=\ttfamily\small
+}\begin{lstlisting}
+User: You are in the middle of a room. Looking quickly around you, you see a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a countertop 1, a garbagecan 1, a handtowelholder 2, a handtowelholder 1, a sinkbasin 2, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1. Your task is to: put some spraybottle on toilet.
+Agent: THOUGHT: The task is to put some spraybottle on toilet, so first i need to search the room for some spraybottle. After finding the spraybottle, i need to take it to the toilet. I wil start my search on cabinets.\n ACTION: go to cabinet 1
+User: On the cabinet 1, you see a cloth 1, a soapbar 1, a soapbottle 1.
+Agent: ACTION: go to cabinet 2
+User: The cabinet 2 is closed.
+Agent: ACTION: open cabinet 2
+User: You open the cabinet 2. The cabinet 2 is open. In it, you see a candle 1, and a spraybottle 2.
+Agent: ACTION: take spraybottle 2 from cabinet 2
+User: You pick up the spraybottle 2 from the cabinet 2.
+Agent: ACTION: go to toilet 1
+User: On the toilet 1, you see a soapbottle 2.
+Agent: ACTION: put spraybottle 2 in/on toilet 1
+User: You put the spraybottle 2 in/on the toilet 1.
+
+\end{lstlisting}

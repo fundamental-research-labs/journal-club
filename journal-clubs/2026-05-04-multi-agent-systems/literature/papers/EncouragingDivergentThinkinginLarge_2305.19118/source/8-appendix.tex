@@ -1,0 +1,288 @@
+\onecolumn
+\newpage
+\appendix
+
+\section{Challenging Testbeds}
+\label{app:testbeds}
+
+We conduct experiments on two challenging tasks, namely, commonsense machine translation (i.e., Common~MT), and counter-intuitive arithmetic reasoning (i.e., Counter-Intuitive AR), which require deep levels of contemplation for LLMs. 
+
+\subsection{Commonsense Machine Translation}
+
+\begin{table*}[!h]
+\small
+\centering
+\begin{tabular}{l p{0.19\columnwidth} p{0.27\columnwidth} p{0.25\columnwidth}}
+\toprule
+\bf Ambiguity Type & \bf Source Sentence & \bf Correct Reference & \bf Incorrect Translation \\
+\midrule
+\multirow{2}{*}{\bf Lexical} & \zh{\underline{吃}掉敌人一个师。} & \textcolor{blue}{Destroy} a division of the enemy. & \textcolor{red}{Eat up} an enemy division.\\
+\cmidrule(lr){2-4}
+& \zh{他喜欢\underline{吃}苹果。}& He likes to \textcolor{blue}{eat} apples.& He likes to \textcolor{red}{destory} apples.\\
+\midrule
+\multirow{4}{*}{\bf Contextless} & \zh{\underline{正在手术}的是健康的医生。} & A healthy doctor \textcolor{blue}{is doing surgery}. & What \textcolor{red}{is undergoing surgery} is a doctor who is healthy.\\
+\cmidrule(lr){2-4}
+& \zh{\underline{正在手术}的是生命垂危的病人。}& What \textcolor{blue}{is undergoing surgery} is a patient whose life is dying.& A patient whose life is dying \textcolor{red}{is doing surgery}. \\
+\midrule
+\multirow{4}{*}{\bf Contextual} & \zh{当地震袭击中国时，\underline{援助的是中国}。} & When the earthquake hit China, \textcolor{blue}{China was aided}. & When the earthquake hit China, \textcolor{red}{China has assisted}.\\
+\cmidrule(lr){2-4}
+& \zh{当地震袭击日本时，\underline{援助的是中国}。}& When the earthquake hit Japan, \textcolor{blue}{China has assisted}.& When the earthquake hit Japan, \textcolor{red}{China was aided}. \\
+\bottomrule
+\end{tabular}
+\caption{Examples of lexical, contextual and contextless syntactic ambiguity from the Common~MT dataset. The underlined Chinese words are translated into the corresponding colored words in English. Best viewed in color.}
+\label{tab:mt-example}
+\end{table*}
+
+The Common~MT dataset is composed of Chinese$\Rightarrow$English translation examples~\citep{he-etal-2020-box}, which are used to examine three types of ambiguity resolution abilities of translation models. Specifically, The Common~MT test set we used covers 200 examples of lexical ambiguity, 450 examples of contextless syntactic ambiguity, and 350 examples of contextual syntactic ambiguity. Within the challenging part of Common~MT, the authentic translation of each source sentence requires a proper understanding of common sense knowledge. While these ambiguous sentences might appear to have a straightforward translation, such a literal interpretation is erroneous. Failure to identify and address such ambiguities may result in inaccurate translations.
+
+Table~\ref{tab:mt-example} lists some examples of these three types of ambiguity. Lexical ambiguity refers to words with multiple meanings in different contexts. Contextless and contextual syntactic ambiguity involve sentences with multiple interpretations, which can be resolved by context or common sense. As the lexical ambiguity of ``\zh{吃掉敌人一个师}'' shows, the source word ``\zh{吃掉}'' should be translated to ``destroy'' rather than the straightforward translation ``eat up'' by considering the common sense in the real world.
+
+
+\subsection{Counter-Intuitive Arithmetic Reasoning}
+Previous studies on thinking hierarchy~\citep{kahneman2011thinking} suggest that we humans have a fast and intuitive system and a slow and logical system, and tend to run the lower level system before the higher level one. Inspired by this, we created a more challenging dataset named Counter-Intuitive Arithmetic Reasoning (CIAR) to evaluate the reasoning abilities of LLMs at deep levels. 
+
+\begin{table*}[!tb]
+\centering
+\begin{tabular}{l p{0.75\columnwidth}}
+\toprule
+\bf Components & \multicolumn{1}{c}{\bf Content} \\
+\midrule
+\bf Question & When Alice walks up the hill, her speed is 1 m/s and when she goes down the hill, her speed is 3 m/s. Then when Alice walks up and down the hill, what is her average speed?\\
+\hline
+\bf Correct Answer &  1.5 m/s\\
+\hdashline
+\bf Explanation & If Alice covers a distance of d going up and down the hill, then her total distance is 2d. Her time going up the hill is d/1 = d, and her time going down the hill is d/3. So, her total time is d + d/3 = 4d/3. Therefore, her average speed is 2d / (4d/3) = 3/2 m/s. \\
+\hline
+\bf Incorrect Answer & 2 m/s \\
+\hdashline
+\bf Explanation &  Alice's average speed can be calculated by adding her speed going up the hill and her speed going down the hill, and then dividing by 2. So, (1 m/s + 3 m/s) / 2 = 2 m/s. Therefore, Alice's average speed is 2 m/s. \\
+\bottomrule
+\end{tabular}
+\caption{An example in Counter-Intuitive AR dataset.}
+\label{tab:qa-example}
+\end{table*}
+
+\paragraph{Dataset Description.}
+Our Counter-Intuitive AR dataset contains 200 questions collected from elicitation 
+questions~\citep{kong2022eliciting}\footnote{https://elicitation.info/questionnaire/1/}, 
+web data\footnote{https://www.geeksforgeeks.org/puzzles/} and additional manual derivatives of these questions.
+Compared to the commonly-used datasets, e.g., MultiArith~\citep{roy2015solving}, GSM8K~\citep{cobbe2021training},  our dataset presents two distinct challenges:
+
+\begin{itemize}[leftmargin=10pt]
+    \item \textbf{Resistance to Intuition.} 
+    The questions in our dataset are embedded in hidden traps designed to elicit intuitive and appealing answers that are often incorrect. This feature evaluates the abilities of LLMs to resist the traps of superficial expressions.
+    \item \textbf{Multi-Step Reasoning.} 
+    Each correct answer within the dataset requires a rigorous multi-step reasoning process, thereby evaluating the capacity of LLMs to engage in complex decision-making and problem-solving.
+\end{itemize}
+
+\paragraph{Dataset Format.}
+In our Counter-Intuitive AR dataset, each example contains three key components (see Table~\ref{tab:qa-example} for an example). We elaborate on the details below:
+\begin{itemize}[leftmargin=10pt]
+    \item \textbf{Questions.} The questions in our dataset are designed to stimulate counter-intuitive thinking, which aims to challenge conventional decision-making by presenting situations where the immediate, intuitive response is often incorrect.  
+    \item \textbf{Answers.} Each question is provided with a correct answer, which requires deep comprehension of the question and commonsense knowledge. Additionally, we also provide a plausible yet incorrect answer for comparison. 
+    \item \textbf{Explanations.} We offer comprehensive explanations for each correct answer, detailing the step-by-step rationale that leads to the right solution. We also provide the seemingly logical reasoning process behind incorrect answers. This reasoning process highlights the potential pitfalls and misconceptions during decision-making, especially when intuition is prioritized over rigorous logical reasoning. 
+    
+\end{itemize}
+
+\paragraph{Experimental Settings.}
+During our experiments, we did not utilize the explanations from the dataset. We provided detailed explanations to facilitate subsequent researchers to understand how the correct answer was derived.
+
+
+
+\section{Human Evaluation Details}
+We implement human evaluation as follows:
+\begin{itemize}[leftmargin=10pt]
+    \item \textbf{Human Score}: We randomly shuffled the display order of the translated sentences from all methods in an anonymous manner. Then, employed three professional human translators (Krippendorff's Alpha = 0.76) to directly assess all methods together. Finally, we calculated the average scores for each methods.
+    \item \textbf{Bias}: We also focus on whether the translation of specific words in CommonMT conforms to commonsense. Table~\ref{tab:mt-example} lists an example of lexical ambiguity, where the source word ``\zh{吃掉}'' should be translated to “destroy” rather than the straightforward translation “eat up”. Here, we asked the annotators to label each sentence as 1 (not conforming to commonsense) or 0 (conforming to commonsense), and report the degree of bias for the whole test set.
+\end{itemize}
+
+
+\clearpage
+
+\section{Results on math and symbolic reasoning tasks}
+\label{app:math_symbolic_results}
+
+\begin{table}[!ht]
+\centering
+% \setlength\tabcolsep{5pt}
+\begin{tabular}{l cc ccc}
+\toprule
+\multirow{2}{*}{\bf Method} & \multicolumn{2}{c}{\bf Math Reasoning	} & \multicolumn{3}{c}{\bf Symbolic Reasoning (BBH)}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-6}
+& \bf GSM & \bf AddSub & \bf Penguin & \bf Date & \bf Colored Objects \\
+\midrule
+\bf CoT          & 70.2 & 87.3 & 58.9 & 56.4 & 57.2 \\
+\bf Self-Reflect & 70.8 & 87.6 & 61.0 & 58.0 & 58.0 \\
+\bf MAD          & 73.8 & 92.1 & 63.7 & 65.2 & 58.8 \\
+\bottomrule
+\end{tabular}
+% \vspace{-5pt}
+\caption{Comparison of accuracy on math (e.g. GSM~\citep{cobbe2021training} and AddSub~\citep{hosseini2014learning}) and symbolic reasoning (three datasets from Big-Bench~\citep{srivastava2023beyond,suzgun2023challenging}).}
+\label{tab:math_symbolic_results}
+% \vspace{-10pt}
+\end{table}
+
+\section{Prompts for Different Debate Levels}
+
+\begin{table*}[!h]
+\centering
+\begin{tabular}{l p{0.8\columnwidth}}
+\toprule
+\bf Level & \multicolumn{1}{c}{\bf Prompt} \\
+\midrule
+ \multirow{2}{*}{~0} & Both sides must reach a full consensus on every point of the debate. Every statement must be agreed upon by both sides.\\[2pt]
+ \hline
+\vspace{-1mm}
+ \multirow{2}{*}{1} & Most of the debate should be characterized by disagreements, but there may still be a small amount of consensus on less significant points. \\[2pt]
+ \hline
+\vspace{-1mm}
+ \multirow{2}{*}{2~(Default)} & It's not necessary to fully agree with each other's perspectives, as our objective is to find  the correct answer.\\[2pt]
+ \hline
+\vspace{-1mm}
+ \multirow{2}{*}{3} & Both sides must disagree with each other on every point of the debate. There should be no consensus whatsoever.\\
+\bottomrule
+\end{tabular}
+\caption{Prompts for different levels of ``tit for tat'' state. We modulate the level of ``tit for tat'' state outlined in Section~\ref{sec:method} through appending natural language instructions to the debaters' meta prompt.}
+\label{tab:tit-for-tat-prompt}
+\end{table*}
+
+\section{Extra Computational Cost}
+
+\begin{table}[!ht]
+\centering
+\begin{tabular}{l c}
+\toprule
+\bf Method & \bf Cost (\# Generated Tokens) \\
+\midrule
+\bf COT & 1.0 \\
+\bf Self-Reflect   & 1.83$\times$ \\
+\bf MAD            & 2.46$\times$ \\
+\bottomrule
+\end{tabular}
+% \vspace{-5pt}
+\caption{Extra generated tokens on the counter-intuitive AR task.}
+\label{tab:computational_cost}
+% \vspace{-10pt}
+\end{table}
+
+We measure the inference cost by the number of generated tokens. As listed in Table~\ref{tab:computational_cost}, the self-reflection cost is 1.83 times that of the baseline COT method. Meanwhile, our MAD approach incurs an additional 0.63 times the inference cost. This increase in cost is deemed acceptable given the significant benefit our approach offers in enhancing LLMs' divergent thinking capabilities without requiring external signals (interaction with humans).
+
+\newpage
+
+\section{Debate Process}
+
+\subsection{Commonsense Machine Translation}
+
+Table ~\ref{table:debate_case_translation} presents the debate process of example translation discussed in Section~\ref{subsec_mt}. 
+    In this debate, both sides disputed the English translation of the Chinese sentence ``\zh{吃掉敌人一个师}''. The affirmative side proposed ``eat up an enemy division'', advocating for a more literal translation to depict the consumption or devouring of the enemy. In contrast, the negative side suggested ``eliminate an enemy division'', arguing this expression better conveys the destruction of the enemy in a military context. After the debate, the judge favored ``eliminate'', as it accurately reflected the severity and intent of the original military language. This debate highlights the complexities of translation, where context and nuance significantly impact the selection of appropriate words. In response to this issue, our MAD method helps LLMs understand semantics correctly and generate highly authentic translations.
+
+\begin{table*}[!ht]
+\centering
+\vspace{10pt}
+\begin{tabular}{p{15cm}}
+\toprule
+$<$\textbf{Debate Topic}$>$: \textit{What is the correct English translation of the following text: \zh{吃掉敌人一个师}?}\\
+\vspace{-1mm}
+\begin{minipage}[b]{0.03\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/devil.png}}
+\end{minipage}
+I believe the correct translation of the Chinese text ``\zh{吃掉敌人一个师}'' is  ``Eat up an enemy division.''  The word ``\zh{吃掉}'' literally means ``eat up'' or ``consume.'' \\
+\vspace{-1mm}
+\begin{minipage}[b]{0.03\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/angel.png}}
+\end{minipage}
+I disagree with your translation. I believe the correct translation of the Chinese text
+``\zh{吃掉敌人一个师}'' is ``Eliminate an enemy division.'' While ``\zh{吃掉}'' can be translated as ``eat up'' or ``consume'', it can also mean ``eliminate'' or ``annihilate'' in a military context. In this case, it is more appropriate to use ``eliminate'' as it conveys the idea of completely destroying the enemy division.\\
+\vspace{-1mm}
+\begin{minipage}[b]{0.03\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/judge.png}}
+\end{minipage}
+Both sides presented valid arguments and translations that accurately convey the meaning of the original Chinese text. The choice between ``eat up'' and ``eliminate'' may depend on the context and tone of the text. Therefore, there is no clear preference for either side at this time.\\
+\vspace{-1mm}
+\begin{minipage}[b]{0.03\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/devil.png}}
+\end{minipage}
+While ``eliminate'' does convey the idea of completely destroying the enemy division, it doesn't capture the connotation of consuming or devouring the enemy that is implied by ``\zh{吃掉}''.\\
+\vspace{-1mm}
+\begin{minipage}[b]{0.03\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/angel.png}}
+\end{minipage}
+In a military context, ``\zh{吃掉}'' is often used to describe the complete destruction of the enemy, rather than the consumption of their resources or territory.\\
+\vspace{-1mm}
+\begin{minipage}[b]{0.03\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/judge.png}}
+\end{minipage}
+Both sides presented valid arguments, but the negative side's argument that ``eliminate'' better captures the intensity and seriousness of the military language used in the original Chinese text was more convincing. Additionally, ``eliminate'' accurately conveys the idea of completely destroying the enemy division. Therefore, the correct English translation of the Chinese text ``\zh{吃掉敌人一个师}'' is ``Eliminate an enemy division.''\\
+\bottomrule
+\end{tabular}
+\caption{The debate process of translation example on Chinese sentence ``\zh{吃掉敌人一个师}''.}
+\label{table:debate_case_translation}
+\normalsize
+\end{table*}
+
+\newpage
+
+\subsection{Counter-Intuitive Arithmetic Reasoning}
+
+Table~\ref{table:debate_case_qa} shows the debate process of example answer in Table~\ref{tab:qa-example}. This debate is about calculating Alice's average speed while walking up and down a hill, with speeds given as 1 m/s uphill and 3 m/s downhill. 
+Initially, it was incorrectly proposed by affirmative side to just average the uphill and downhill speeds. The negative side, which is correct, states that average speed is total distance divided by total time.
+Given that the distances up and down the hill are equal, we must calculate the total time taken for the two directions before finding the average speed.
+Therefore, the average speed is calculated using the sum of the uphill and downhill distances (twice the distance of the hill) and the sum of the time taken for each (d/1 for uphill and d/3 for downhill). This leads to an average speed of 1.5 m/s, not 2 m/s as the affirmative side proposed. And the judge also supports the response from the negative side. Here, LLMs made a common mistake initially in understanding the concept of average speed. Our MAD method encourages divergent thinking and effectively prevents intuitive but incorrect responses, leading to the correct method for calculating average speed.
+
+\begin{table*}[!ht]
+\centering
+\vspace{10pt}
+\begin{tabular}{p{15cm}}
+\toprule
+$<$\textbf{Debate Topic}$>$: \textit{When Alice walks up the hill, her speed is 1 m/s and when she goes down the hill, her speed is 3 m/s. Then when Alice walks up and down the hill, what is her average speed?}\\
+\vspace{-1mm}
+\begin{minipage}[b]{0.03\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/devil.png}}
+\end{minipage}
+Alice's average speed can be calculated by adding her speed going up the hill and her speed going down the hill, and then dividing by 2. So, (1 m/s + 3 m/s) / 2 = 2 m/s. Therefore, Alice's average speed is 2 m/s. \\
+\vspace{-1mm}
+\begin{minipage}[b]{0.03\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/angel.png}}
+\end{minipage}
+I disagree with your answer. The problem doesn't give us any information about the distance Alice covers while going up and down the hill. So, we cannot simply add her speeds and divide by 2 to get her average speed. We need to know the distance she covers to calculate her average speed.\\
+\vspace{-1mm}
+\begin{minipage}[b]{0.03\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/judge.png}}
+\end{minipage}
+The average speed is calculated by dividing the total distance by the total time taken. As Alice walks up and down the hill, the distance covered in both directions is the same. Therefore, the total distance covered is 2 times the distance of either direction. \\
+\vspace{-1mm}
+\begin{minipage}[b]{0.03\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/devil.png}}
+\end{minipage}
+That's a good point. But we can assume that Alice covers the same distance going up and down the hill. In that case, we can use the formula for average speed, which is total distance divided by total time. If Alice covers a distance of d going up and down the hill, then her total distance is 2d. Her time going up the hill is d/1 = d, and her time going down the hill is d/3. So, her total time is d + d/3 = 4d/3. Therefore, her average speed is 2d/(4d/3) = 3/2 m/s. \\
+\vspace{-1mm}
+\begin{minipage}[b]{0.03\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/angel.png}}
+\end{minipage}
+Thank you for providing your answer. This average speed of 1.5 m/s takes into account both the uphill and downhill speeds, providing a balanced representation of Alice's overall performance while walking up and down the hill. \\
+\vspace{-1mm}
+\begin{minipage}[b]{0.03\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/judge.png}}
+\end{minipage}
+Yes. Let's assume the distance is d. The time taken to walk up the hill is d/1 and the time taken to walk down the hill is d/3. The total time taken is d/1 + d/3 = 4d/3. Therefore, the average speed is (2d)/(4d/3) = 1.5 m/s. Hence, the negative side is correct. \\
+\bottomrule
+\end{tabular}
+\caption{The debate process of arithmetic reasoning example.}
+\label{table:debate_case_qa}
+\end{table*}
+
+
+
+

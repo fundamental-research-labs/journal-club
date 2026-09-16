@@ -1,0 +1,278 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Evaluating agents’ understanding}\label{sec:results:understanding}
+% DRI: filip
+% 1. Evaluating agents understanding is hard, so we trained some prediction heads to see if we can access this understanding.
+% 2. The first prediction head we trained is win prob. 
+% Using win prob on OG game, we can see that we get better at agent understanding over training time.
+% 3. We next trained objective heads, here you can see them predicting things ahead of time in OG game.
+% 4. Finally, they understand heroes really well.
+
+
+It is often difficult to infer the intentions of an RL agent.
+Some actions are obviously useful --- hitting an enemy that is low on health, or freezing them as they're trying to escape --- but many other decisions can be less obvious.
+This is tightly coupled with questions on intentionality: does our agent plan on attacking the tower, or doe it opportunistically deal the most damage possible in next few seconds?
+
+To assess this, we attempt to predict future state of various features of the game from agent's LSTM state:
+% filip: commenting these two lines as we do not really assess performance of these predictors anymore
+% We trained small networks to translate the hidden states to predictions of certain events in the future of the game.
+% High accuracy in these predictions could be indicative of agent having good understanding of medium- to long-term gameplay.
+% Although they do not pass gradient into the main LSTM, 
+% We have trained most of them independently of the main agent, i.e. they are neural networks that map LSTM's hidden state to a prediction, but do not pass loss gradient into the agents' network.
+% Removing this sentence, I don't think it adds anything interesting.
+% Given that we have 5 heroes playing at the same time (and producing different activations from their respective main LSTM blocks), even prediction heads that are obviously a shared quantity (such as win probability) are produced in 5 copies, one for each agent.
+% Some features that we looked at were:
+\begin{itemize}
+\item \textbf{Win probability}: Binary label of either 0 or 1 at the end of the game.
+% \footnote{\label{foot:trained-with} This prediction is trained during the regular optimization process (rather than being trained in a separate training process afterward).}
+\item \textbf{Net worth rank}: Which rank among the team (1-5) in terms of total resources collected will this hero be at the end of the game? This prediction is used by scripted item-buying logic to decide which agents buy items shared by the team such as wards. 
+In human play (which the scripted logic is based on) this task is traditionally performed by heroes who will have the lowest net worth at the end of the game.
+% which is usually a job for a hero on the team whose strength is in helping teammates, rather than building its own power, which correlates with low net worth at the end of the game).
+\item \textbf{Team objectives / enemy buildings}: whether this hero will help the team destroy a given enemy building in the near future.
+\end{itemize}
+
+We added small networks of fully-connected layers that transform LSTM output into predictions of these values.
+For historical reasons, win probability passes gradients to the main LSTM and rest of the agent with a very small weight; the other auxiliary
+predictions use Tensorflow's \texttt{stop\_gradient} method to train on their own.
+
+One difficulty in training these predictors is that we train our agent on 30-second segments of the game (see \autoref{fig:timescales}), and any given 30-second snippet may not contain the ground truth (e.g. for win probability and networth position, we only have ground truth on the very last segment of the game).
+We address this by training these heads in a similar fashion to how we train value functions.
+If a segment contains the ground truth label, we use the ground truth label for all time steps in that segment; if not, we use the model's prediction at the end of the segment as the label.
+For win probability, for example, more precisely the label $y$ for a segment from time $t_1$ to $t_2$ is given by:
+\begin{equation}
+    y = \left\{
+        \begin{array}{ll}
+            1 & \textrm{last segment of the game, we win} \\
+            0 & \textrm{last segment of the game, we lose} \\
+            \hat{y}(t_2) & \textrm{else} \\
+        \end{array}
+    \right.
+\end{equation}
+Where $\hat{y}(t_2)$ is the model's predicted win probability at the end of the segment.
+Although this requires information to travel backward through the game, we find it trains these heads to a degree of calibration and accuracy.
+
+For the team objectives, we are additionally interested in whether the event will happen soon. 
+For these we apply an additional discount factor with horizon of 2 minutes.
+This means that the enemy building predictions are not calibrated probabilities, but rather probabilities discounted by the expected time to the event.
+
+% Instead of predicting the probability, we predict discounted feature value: $v_t = 1$ iff given event happens on timestep $t$,
+% $v_t = \gamma v_{t+1}$ otherwise.
+% Then we calculate ground truth for supervision based on events in the game segment and current prediction at the end of it.
+% The first two predictions (win probability and networth) are predicting a state that is entirely about the very end of the game.
+% The third (building destruction) can happen in the middle of the game, so we occasionally get ground truth during the episode.
+% In either case, we use a labeling scheme very similar to the value function: if a game segment contains the ground truth label, use that; if not, use the probability output at the last timestep of the segment as the label for all other timesteps.
+% Although this requires information to travel backward through the game, we find it trains these heads to a degree of calibration and accuracy.
+% For the third prediction (destroying buildings) we are interested in whether the hero will take this action {\it soon}, so we additionally apply a time discount factor with horizon 2 minutes.
+% We train these prediction heads in a supervised fashion from labels from the game state.
+% A number of events that we are interested in are binary, and can happen more than once.
+% It is very similar to training value function, with one difference.
+% We train value function at the beginning of rollout window to be equal to discounted value function at the end of rollout window (so we don't have to wait for the game to finish), plus discounted rewards received within this window.
+% For binary events we take the maximum of these two values, instead (this matters mostly for binary events that can happen multiple times, such as for Roshan --- we're interested only in the next one).
+% See \autoref{fig:supervisedhead}.
+
+% \begin{figure}
+%     \centering
+%     \begin{subfigure}[t]{\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{figures/supervised_heads.pdf}
+%     \end{subfigure}
+%     \caption{Auxiliary labels used by probes use future predictions from the model to fill in missing labels at rollout boundaries. This dynamic programming method is the same one used to train the value function, and allows us to train without waiting for a full game to complete.}
+%     \label{fig:supervisedhead}
+% \end{figure}
+
+\subsection{Understanding \openaifinals}\label{sec:results:understanding:finals}
+
+We used these supervised predictions to look closer at the game 1 from \openaifinals.
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[t]{0.7\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/winrates-OG-game-1.pdf}
+    \end{subfigure}
+    \caption{\textbf{Win Probability prediction of game 1 of \openaifinals}
+    In red we show the (\openaifive) agent's win probability prediction over the course of the game (which can be viewed by downloading the replay from \url{https://openai.com/blog/how-to-train-your-openai-five/}).
+    Marked are two significant events that significantly affected win probability prediction.
+    At roughly 5 minutes in the human team killed several of \openaifive's heroes, making it doubt its lead.
+    At roughly 18 minutes in, \openaifive team killed three human heroes in a row, regrouped all their heroes at the mid lane, and marched on declaring 95\% probability of victory.
+    Versions 0-56k are progressive versions of \cleanexpname agent predicting win probabilities by replaying the same game; as we can see, prediction converges to that of the bot
+    that actually played the game (original \openaifive), despite training over self-play games from separate training runs.
+    % agree on their understanding of the \dota game.
+    % Alongside it we plot the progression of win probabilities for the same game states, over the course of training of \cleanexpname.
+    % Because these other models are not controlling the agent, their predictions will naturally be worse then \openaifive's prediction; we can treat \openaifive's prediction as a sort of ground truth.
+    % Through this lens, we see that over the course of training \cleanexpname's win probability predictor became better and better (closer and closer to that of \openaifive).
+    % Predicted win probability by different versions of agents from \cleanexpname as well as OpenAI Finals / OG game agent, on Finals game 1. 
+    % \todo{Remove black lines.}
+    %See \autoref{fig:winrates-screenshots-OG-1} for explanation of the marked events when the win probability changed drastically.
+    }
+    \label{fig:winrates-OG-1}
+\end{figure}
+
+In \autoref{fig:winrates-OG-1} we explore the progression of win probability predictions over the course of training \cleanexpname, illustrating the evolution of understanding. %, from utterly cluele.
+Version 5,000 of the agent (early in the training process and low performance) already has a sense of what situations in the game may lead to eventual win. 
+The prediction continues to get better and better as training proceeds.
+This matches human performance at this task, where even spectators with relatively little gameplay experience can estimate who is ahead based on simple heuristics, but with more gameplay practice human experts can estimate the winner more and more accurately.
+
+On the winrate graph two dramatic game events are marked, at roughly the 5 and 18 minute point.
+One of them illustrates OpenAI Five's win probability drop, due to an unexpected loss of 3 heroes in close succession.
+The other shows how the game turns from good to great as a key enemy hero is killed.
+
+We also looked at heroes participation in destroying objectives.
+In \autoref{fig:objectives-OG-1} we can see different heroes' predictions for each of the objectives in game 1 of \openaifinals.
+In several cases all heroes predict they will participate in the attack (and they do).
+In few cases one or two heroes are left out, and indeed by watching the game replay we see that those heroes are busy in the different part of the map during that time.
+In \autoref{fig:objectives-screenshots-OG-1} we illustrate these predictions with more details for two of the events.
+
+% \begin{figure}
+%     \centering
+%     \begin{subfigure}[t]{0.45\textwidth}
+%         \centering
+%         % \todo{Restore Figure commented out because of compile time!}
+%         \includegraphics[width=\textwidth]{figures/OG-game-1-early-kills.png}
+%         \caption{}
+%         \label{fig:OG-game-1-early-kills}
+%     \end{subfigure}\hfill
+%     \begin{subfigure}[t]{0.45\textwidth}
+%         \centering
+%         % \todo{Restore Figure commented out because of compile time!}
+%         \includegraphics[width=\textwidth]{figures/OG-game-1-march-1.png}
+%         \caption{}
+%         \label{fig:OG-game-1-march-1}
+%     \end{subfigure}
+%     \begin{subfigure}[t]{0.45\textwidth}
+%         \centering
+%         % \todo{Restore Figure commented out because of compile time!}
+%         \includegraphics[width=\textwidth]{figures/OG-game-1-march-2.png}
+%         \caption{}
+%         \label{fig:OG-game-1-march-2}
+%     \end{subfigure}\hfill
+%     \begin{subfigure}[t]{0.45\textwidth}
+%         \centering
+%         % \todo{Restore Figure commented out because of compile time!}
+%         \includegraphics[width=\textwidth]{figures/OG-game-1-march-3.png}
+%         \caption{}
+%         \label{fig:OG-game-1-march-3}
+%     \end{subfigure}
+%     \caption{Screenshots corresponding with events marked on \autoref{fig:winrates-OG-1}: \ref{fig:OG-game-1-early-kills} shows roughly 5-min point
+%     when radiant win probability dropped significantly after getting their 3 heroes killed by dire (2 are already dead at the moment of the
+%     screenshot, the one within the frame also dies in seconds).
+%     Then in \ref{fig:OG-game-1-march-1} we see all of the alive dire heroes chasing radiant Sven, with radiant Crystal Maiden and Sniper catching up
+%     to them; in \ref{fig:OG-game-1-march-2} this reverses and radiant team chases dire away, keeping Sven alive and killing dire Riki; finally in
+%     \ref{fig:OG-game-1-march-3} dire is chased away towards their bottom lane, while radiant team regroups into $4$ heroes walking down the middle
+%     lane (and announcing $95\%$ probability of winning).}
+%     \label{fig:winrates-screenshots-OG-1}
+% \end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/objectives-OG-game-1.pdf}
+    \caption{Continuous prediction of destroying enemy buildings by \openaifive in Finals game 1.
+    Predictions by different heroes differ as they specifically predict whether they will participate in bringing given building down.
+    Predictions should not be read as calibrated probabilities, because they are trained with a discount factor.
+    See \autoref{fig:objectives-screenshots-OG-1:tower1bot} and \autoref{fig:objectives-screenshots-OG-1:tower2mid} for descriptions of the events corresponding to two of these buildings.}
+    \label{fig:objectives-OG-1}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[t]{0.85\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/OG-game-1-tower-1-bot-small.png}
+        \caption{}
+        \label{fig:objectives-screenshots-OG-1:tower1bot}
+    \end{subfigure}\\%\hfill
+    \begin{subfigure}[t]{0.85\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/OG-game-1-tower-2-mid-small.png}
+        \caption{}
+        \label{fig:objectives-screenshots-OG-1:tower2mid}
+    \end{subfigure}
+    \caption{Screenshots right before two of the dire tower falls in the \openaifinals game 1.
+    In \ref{fig:objectives-screenshots-OG-1:tower1bot}, Gyrocopter and Crystal Maiden attack the bottom tower 1 (upper left in
+    \autoref{fig:objectives-OG-1}) and plan perhaps to kill it (their predictions go up).
+    But they are chased away by the incoming dire (human) heroes, and their plan changes (the prediction that they will participate in the tower kill falls back to zero).
+    Radiant creeps kill the tower half a minute later.
+    In \ref{fig:objectives-screenshots-OG-1:tower2mid}, all radiant heroes attack mid tower 2 (center in \autoref{fig:objectives-OG-1}).
+    However just before it falls, few dire heroes show up trying to save it, and most radiant heroes end up chasing them a fair distance away from the building. 
+    The prediction for those heroes to participate in the tower kill drops accordingly.
+    }
+    \label{fig:objectives-screenshots-OG-1}
+    
+\end{figure}
+
+% We have evaluated performance of supervised heads predicting objectives (defeating buildings) as measured against actual events in the game.
+% We played $5000$ self-play games using each of the agents we have trained supervised heads for.
+% In order to produce confusion matrices, we had to discretize signal that comes out of supervised prediction heads.
+% We evaluated several different strategies for doing that --- ``firing'' whenever prediction signal on one of the horizons (at any given time step) exceeds certain threshold, whenever prediction signals on all horizons exceed certain threshold, whenever EMA of the signal exceeds certain threshold, etc.
+% Strategy that performed the best across the board was using EMA with $\beta=0.99$ of prediction signal using horizon of 120 seconds, and cutting it off at $0.3$.
+% Using this type of discretized signal, for each category (us defeating enemy buildings, enemies defeating our buildings) and each model version we have trained supervised heads for, we picked the best model based of first $4000$ games, and then evaluated on last $1000$ games.
+% You can see this test F1 score on \autoref{fig:supervised-objectives-performance}.
+% Furthermore, for all true positive cases, you can see how far ahead in time the event was predicted in \autoref{fig:supervised-objectives-hist}.
+
+% It appears that later versions of the model do not encode more accurate of further-ahead-looking data in their LSTM states.
+% As far as we can suspect that our agent's strategic planning has larger time span with later stages of training, it is not clearly observable from these predictions;
+% that is likely due to partial observability of the game, and even a perfect agent
+% will have to adjust its actions in the light of any openings it sees in enemy's defense.
+
+% \begin{figure}
+%     \centering
+%     \begin{subfigure}[t]{0.5\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{figures/supervised-objectives-f1score.pdf}
+%         \caption{Prediction quality for supervised heads trained on different versions of \cleanexpname.}
+%         \label{fig:supervised-objectives-performance}
+%     \end{subfigure}
+%     \begin{subfigure}[t]{\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{figures/supervised-objectives-hist.pdf}
+%         \caption{Histogram of how early before the event different versions of supervised heads ``fire''.}
+%         \label{fig:supervised-objectives-hist}
+%     \end{subfigure}
+%     \caption{Caption}
+% \end{figure}
+
+\subsection{Hero selection}\label{sec:results:understanding:selection}
+
+% One interesting use for win probability prediction is hero selection.
+In the normal game of \dota, two teams at the beginning of the game go through the process of selecting heroes.
+This is a very important step for future strategy, as heroes have different skill sets and special abilities.
+\openaifive, however, is trained purely on learning to play the best game of \dota possible given randomly selected heroes.
+
+Although we could likely train a separate drafting agent to play the draft phase, we do not need to; instead we can use the win probability predictor.
+Because the main varying observation that agents see at the start of the game is which heroes are on each team, the win probability at the start of the game estimates the strength of a given matchup. 
+Because there are only 4,900,896 combinations of two 5-hero teams from the pool of 17 heroes, we can precompute agent's predicted win probability from the first few frames of every lineup.
+Given these precomputed win probabilities, we apply a dynamic programming algorithm to draft the best hero available on each turn.
+Results of this approach in a web-based drafting program that we have built can be seen on \autoref{fig:hero-selection}.
+
+\begin{figure}
+    \centering
+    % \todo{Restore Figure commented out because of compile time!}
+    \includegraphics[width=\textwidth, trim=0 295 0 0,clip]{figures/hero-selection.png}
+    \caption{When drafting heroes, our drafting program would pick the one that maximizes worst-case scenario of opponent hero selection (minimax algorithm).
+    %``Optimality'' in this case is the optimality according to \openaifive agent's win probabilities, which don't always agree with how humans see the game.
+    In this example (from OpenAI Finals game 1), OpenAI Five deems the humans' first pick suboptimal, immediately updating its expected win probability of $52.8\%$ to $65.1\%$.
+    The drafter then makes two choices (which it believes to be optimal of course).
+    The humans' second and third choices further decreases their chances of victory (according to the agent), indicated by the green win probability.
+    However, for the human team's last two choices, OpenAI Five agrees they were optimal, as can be seen by the win probability remaining constant (even though choice 4, Riki, is a character very differently played by humans and by \openaifive).
+    % Lich has a win probability of $-100\%$ on the display as an artifact of removing this character from our available heroes following a \dota update.
+}
+    \label{fig:hero-selection}
+\end{figure}
+
+In addition to building a hero selection tool, we also learned about our agent's preferences from this exercise.
+In many ways \openaifive's preferences match human player's preferences such as placing a high value (within this pool) on the hero Sniper.
+In other ways it does not agree with typical human knowledge,
+for example 
+%it places high value on getting to play with Crystal Maiden, who is typically a support character (and it frequently surprised our human test teams with its ability to take advantage of this character). On the other hand, 
+it places low value on Earthshaker.
+% Very commonly used ability of this hero is Fissure, which creates an impassable
+% stone wall.
+% Humans frequently use it to e.g. prevent an enemy hero from escaping.
+Our agent had trouble dealing with geometry of this hero's ``Fissure'' skill, making this hero worse than others in training rollouts.
+
+Another interesting tidbit is that at the very start of the draft, before any heroes are picked, \openaifive believes that the Radiant team has a 54\% win chance (if picking first in the draft) or 53\% (if picking second).
+Our agent's higher estimate for the Radiant side over the Dire agrees with conventional wisdom within the \dota community.
+Of course, this likely depends on the set of heroes available.
+
+\end{document}

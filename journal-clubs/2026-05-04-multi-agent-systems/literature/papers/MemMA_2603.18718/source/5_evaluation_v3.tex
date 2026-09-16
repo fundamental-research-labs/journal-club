@@ -1,0 +1,297 @@
+\section{Experiments}
+This section presents the experimental results.
+We first compare \method with existing baselines, then evaluate 
+its flexibility across storage backends, and finally assess 
+the contribution of each component and key design choices.
+
+\subsection{Experimental Setup}
+\label{ssec:experimental_setup}
+\noindent\textbf{Datasets.} 
+We evaluate \method on LoCoMo~\cite{maharana2024evaluating}, a benchmark for long-horizon conversational memory.
+Following prior work~\cite{yan2025memory,fang2025lightmem}, we exclude the adversarial subset and focus on the reasoning-intensive QA setting.
+More dataset details are provided in Appendix~\ref{appendix:dataset_details}.
+
+\noindent\textbf{Baselines.} 
+We compare against two passive baselines: \emph{Full Text} and 
+\emph{Naive RAG}~\cite{gao2023retrieval}, and four active memory systems: 
+\emph{LangMem}~\cite{LangMemBlog}, 
+\emph{Mem0}~\cite{chhikara2025mem0}, 
+\emph{A-Mem}~\cite{xu2025mem}, and 
+\emph{LightMem}~\cite{fang2025lightmem}.
+Additional baseline details are in Appendix~\ref{appendix:baseline_details}.
+
+\noindent\textbf{Evaluation Protocol.} Following prior work~\cite{yan2025memory,chhikara2025mem0}, we report three metrics: token-level F1 (F1), BLEU-1 (B1), and LLM-as-a-Judge accuracy (ACC).
+F1 and B1 measure lexical overlap with the reference answer; 
+ACC measures semantic correctness via a judge model.
+GPT-4o-mini~\cite{gpt4ocard} and Claude-Haiku-4.5~\cite{anthropic2025claudehaiku45} are used as the backbones for the Memory Manager, Meta-Thinker, and Query Reasoner.
+To isolate memory construction quality from answer-generation capacity, we fix GPT-4o-mini as both the Answer Agent and the LLM judge across all experiments.
+The retrieval budget is top-$30$ entries, the iterative refinement budget is $H{=}3$, and we generate $J{=}5$ probe QA pairs per session for self-evolution.
+Additional implementation details are in Appendix~\ref{appendix:implementation_details}.
+
+% \noindent\textbf{Evaluation Protocol.} Following prior work~\cite{yan2025memory,chhikara2025mem0}, we report three metrics: token-level F1 (F1), BLEU-1 (B1), and LLM-as-a-Judge accuracy (ACC).
+% F1 and B1 measure lexical overlap with the reference answer; 
+% ACC measures semantic correctness via a judge model.
+% To ensure fair comparison, we fix the retrieval budget to top-$30$ entries and keep the answer-generation setting consistent across all methods.
+
+% \noindent\textbf{Implementation Details.}
+% GPT-4o-mini~\cite{gpt4ocard} and Claude-Haiku-4.5~\cite{anthropic2025claudehaiku45} 
+% are used as the default backbone for the Memory Manager, 
+% Meta-Thinker, and Query Reasoner.
+% The iterative query refinement budget is $H{=}3$.
+% To isolate memory construction quality from answer-generation 
+% capacity, we fix GPT-4o-mini as both the Answer Agent and the 
+% LLM judge across all experiments.
+% For in-situ self-evolution, we generate $J{=}5$ probe QA pairs 
+% per session using Claude-Opus-4.5~\cite{anthropic2025claudeopus45}, 
+% retrieve top-$30$ entries for verification.
+% All retrieval uses text-embedding-3-small~\cite{openai2024embedding3}.
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Results on LoCoMo across four question categories (multi-hop, temporal, open-domain, single-hop). We report F1, B1, and ACC (\%). Best results are in \textbf{bold}. GPT-4o-mini and Claude-Haiku-4.5 are backbones; GPT-4o-mini is the answer agent. $\method_{\mathrm{LM}}$ uses LightMem as storage backend.}
+\label{tab:locomo_category_results}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{c|l|ccc|ccc|ccc|ccc|ccc}
+\toprule
+\multirow{2}{*}{\textbf{Model}} & \multirow{2}{*}{\textbf{Method}}
+& \multicolumn{3}{c|}{\textbf{Multi-Hop}}
+& \multicolumn{3}{c|}{\textbf{Temporal}}
+& \multicolumn{3}{c|}{\textbf{Open-Domain}}
+& \multicolumn{3}{c|}{\textbf{Single-Hop}}
+& \multicolumn{3}{c}{\textbf{Overall}} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11} \cmidrule(lr){12-14} \cmidrule(lr){15-17}
+& 
+& \textbf{F1} & \textbf{B1} & \textbf{ACC}
+& \textbf{F1} & \textbf{B1} & \textbf{ACC}
+& \textbf{F1} & \textbf{B1} & \textbf{ACC}
+& \textbf{F1} & \textbf{B1} & \textbf{ACC}
+& \textbf{F1} & \textbf{B1} & \textbf{ACC} \\
+\midrule
+
+\multirow{6}{*}{\textbf{\rotatebox{90}{GPT}}}
+& Full Text              & 29.41 & 21.16 & 43.75 & 29.95 & 19.33 & 51.35 & 18.25 & 19.56 & 61.54 & 41.45 & 29.96 & 74.29 & 34.13 & 24.63 & 61.18 \\
+& Naive RAG              & 15.84 & 9.50 & 31.25 & 17.30 & 12.36 & 35.14 & 17.40 & 16.65 & 46.15 & 39.32 & 30.35 & 58.57 & 27.14 & 20.41 & 46.05 \\
+& LangMem                & 12.55 & 9.22 & 25.00 & 15.23 & 11.53 & 21.62 & 14.91 & 14.03 & 38.46 & 23.52 & 17.59 & 35.71 & 18.46 & 14.05 & 30.26 \\
+& A-Mem                  & 15.56 & 10.88 & 31.25 & 55.01 & 42.40 & 51.35 & 18.18 & 15.27 & 53.85 & 42.72 & 32.43 & 62.86 & 37.90 & 28.85 & 52.63 \\
+& LightMem               & 33.74 & 29.33 & 65.62 & \textbf{59.76} & \textbf{51.12} & 78.38 & \textbf{31.85} & \textbf{24.23} & \textbf{76.92} & 43.88 & 34.68 & 78.57 & 44.58 & 36.66 & 75.66 \\
+& $\method_{\mathrm{LM}}$ & \textbf{48.15} & \textbf{39.67} & \textbf{78.12} & 57.21 & 41.94 & \textbf{83.78} & 24.58 & 22.44 & \textbf{76.92} & \textbf{50.45} & \textbf{38.66} & \textbf{82.86} & \textbf{49.40} & \textbf{38.28} & \textbf{81.58} \\
+\midrule
+
+\multirow{6}{*}{\textbf{\rotatebox{90}{Claude-Haiku}}}
+& Full Text              & 29.41 & 21.16 & 43.75 & 29.95 & 19.33 & 51.35 & 18.25 & 19.56 & 61.54 & 41.45 & 29.96 & 74.29 & 34.13 & 24.63 & 61.18 \\
+& Naive RAG              & 15.84 & 9.50 & 31.25 & 17.30 & 12.36 & 35.14 & 17.40 & 16.65 & 46.15 & 39.32 & 30.35 & 58.57 & 27.14 & 20.41 & 46.05 \\
+& LangMem                & 20.05 & 14.85 & 34.38 & 34.72 & 26.33 & 37.84 & 20.01 & 20.85 & 69.23 & 22.65 & 16.19 & 48.57 & 24.81 & 18.78 & 44.74 \\
+& A-Mem                  & 15.79 & 10.32 & 28.13 & 56.41 & 43.23 & 54.05 & 16.34 & 17.76 & 38.46 & 38.37 & 27.98 & 65.71 & 36.12 & 27.10 & 52.63 \\
+& LightMem               & {35.11} & {31.85} & 59.38 & 58.42 & \textbf{49.85} & \textbf{89.19} & \textbf{32.60} & 24.43 & 69.23 & 44.06 & \textbf{36.56} & 71.43 & 44.69 & \textbf{37.77} & 73.03 \\
+& $\method_{\mathrm{LM}}$ & \textbf{35.38} & \textbf{32.48} & \textbf{65.62} & \textbf{59.25} & 44.66 & 83.78 & 28.59 & \textbf{26.86} & \textbf{84.62} & \textbf{45.31} & 35.85 & \textbf{77.14} & \textbf{45.10} & 36.53 & \textbf{76.97} \\
+\bottomrule
+\end{tabular}}
+% \vspace{-0.5}
+\end{table*}
+
+\subsection{Main Comparison with Baselines}
+\label{ssec:evaluation_main_results}
+To evaluate \method, we compare it with baselines.
+We use LightMem as the storage backend of \method, denoted by $\method_{\mathrm{LM}}$. GPT-4o-mini and Claude-Haiku-4.5 are the backbones. 
+Other settings follow these in Sec.~\ref{ssec:experimental_setup}.
+
+% To evaluate the effectiveness of \method, we compare \method with baselines. We use LightMem as the storage backend of \method, denoted by $\method_{\mathrm{LM}}$.
+% % LightMem is the storage backend of \method and 
+% GPT-4o-mini and Claude-Haiku-4.5 are the backbones. 
+% Other settings are the same as these in Sec.~\ref{ssec:experimental_setup}.
+
+Table~\ref{tab:locomo_category_results} reports the results. Three findings emerge:
+\textbf{(i)}~\emph{$\method_{\mathrm{LM}}$ achieves the best overall performance under both backbones}.
+Under GPT-4o-mini, it reaches $49.40$ F1, $38.28$ B1, and $81.58$ ACC, improving over LightMem by $+4.82$ F1, $+1.62$ B1, and $+5.92$ ACC.
+Under Claude-Haiku-4.5, it again achieves the best overall ACC, improving from $73.03$ to $76.97$ over LightMem.
+\textbf{(ii)}~\emph{The gains are strong at the category level.}
+Under GPT-4o-mini, $\method_{\mathrm{LM}}$ improves most on Multi-Hop and Single-Hop, raising ACC from $65.62$ to $78.12$ and from $78.57$ to $82.86$, respectively.
+The Multi-Hop gains are consistent with diagnosis-guided iterative retrieval helping recover distributed evidence, while the Single-Hop gains suggest that construction guidance and self-evolution help preserve precise answer-bearing details.
+% \textbf{(ii)}~\emph{The gains are also strong at the category level}. 
+% Under GPT-4o-mini, $\method_{\mathrm{LM}}$ improves most on Multi-Hop and Single-Hop, raising ACC from $65.62$ to $78.12$ and from $78.57$ to $82.86$, respectively.
+% Under Claude-Haiku-4.5, the largest improvement appears on Open-Domain, where ACC increases from $69.23$ to $84.62$.
+% These patterns are consistent with the full design of $\method_{\mathrm{LM}}$, which combines reasoning-aware coordination over construction and retrieval with in-situ self-evolving memory repair. 
+\textbf{(iii)}~\emph{$\method_{\mathrm{LM}}$ improves an already strong baseline.}
+LightMem is already the strongest baseline, yet $\method_{\mathrm{LM}}$ further improves it under both backbones, suggesting that the gain comes from memory-cycle coordination rather than a stronger storage backend.
+% We further analyze its flexibility across storage backends in Sec.~\ref{ssec:flexibility_storage}.
+
+\subsection{Flexibility across Storage Backends}
+\label{ssec:flexibility_storage}
+To assess the flexibility of \method across storage backends, we instantiate it on top of three memory systems: Single-Agent~\cite{yan2025memory} ($\method_{\mathrm{SA}}$), 
+A-Mem ($\method_{\mathrm{AM}}$), and 
+LightMem ($\method_{\mathrm{LM}}$).
+All other components and settings are fixed as in Sec.~\ref{ssec:experimental_setup}.
+
+% To assess the flexibility of \method across storage backends, we instantiate it on top of three memory systems: a single-agent memory pipeline~\cite{yan2025memory} ($\method_{\mathrm{SA}}$), A-Mem ($\method_{\mathrm{AM}}$), and LightMem (($\method_{\mathrm{SA}}$)).
+% All other components and settings are fixed as in Sec.~\ref{ssec:experimental_setup}.
+% Across all settings, the Meta-Thinker, Query Reasoner, and Answer Agent are kept fixed, and only the storage backend used by the Memory Manager is changed.
+% All other settings are the same as those in Sec.~\ref{ssec:experimental_setup}.
+
+Table~\ref{tab:backend_results} reports results on LoCoMo under GPT-4o-mini.
+Two observations emerge.
+\textbf{(i)}~\emph{\method consistently improves all backends.}
+In terms of ACC, \method improves the Single-Agent backend from $52.60$ to $84.87$, A-Mem from $52.63$ to $78.29$, and LightMem from $75.66$ to $81.58$.
+For A-Mem and LightMem, the gains are also consistent in F1 and B1.
+For the weaker Single-Agent backend, B1 decreases even though Acc rises sharply, suggesting that \method improves semantic correctness more than lexical overlap in this setting.
+These results indicate that \method improves long-horizon memory across diverse storage implementations.
+\textbf{(ii)}~\emph{The gains of \method complement storage quality rather than replace it.}
+Among the enhanced variants, $\method_{\mathrm{LM}}$ achieves the strongest overall performance, which is consistent with LightMem being the strongest standalone backend.
+This pattern suggests that \method improves how memory is coordinated, rather than relying on a particular storage design.
+
+% Table~\ref{tab:backend_results} reports the results on LoCoMo with GPT-4o-mini as the backbone model. We observe: 
+% \textbf{(i)}~\emph{\method consistently improves all backends.}
+% For example, \method improves A-Mem from 52.63 to 78.29 ACC and 
+% LightMem from 75.66 to 81.58 ACC, with gains spanning F1, B1, 
+% and ACC across both backends.
+% This confirms that \method's gains come from coordination over 
+% the memory cycle, not from a specific storage implementation.
+% \textbf{(ii)} \emph{The gains are complementary to storage quality}. Among the enhanced variants, $\method_{\mathrm{LM}}$ achieves the strongest overall performance, which is consistent with LightMem being the strongest standalone backend.
+% This pattern indicates that the gains of \method complement storage quality rather than replace it.
+% Stronger backends remain stronger after enhancement, while still benefiting from the proposed coordination policy.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Flexibility across backends on LoCoMo under GPT-4o-mini. Best results per backend are in \textbf{bold}.}
+\label{tab:backend_results}
+{
+\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{F1} & \textbf{B1} & \textbf{ACC} \\
+\midrule
+Single-Agent  & 22.64 & \textbf{17.24} & 52.60 \\
+$\method_{\mathrm{SA}}$ & \textbf{23.64} & 12.94 & \textbf{84.87} \\
+\midrule
+A-Mem & 37.90 & 28.85 & 52.63 \\
+$\method_{\mathrm{AM}}$ & \textbf{46.23} & \textbf{35.13} & \textbf{78.29} \\
+\midrule
+LightMem & 44.58 & 36.66 & 75.66 \\
+$\method_{\mathrm{LM}}$ & \textbf{49.40} & \textbf{38.28} & \textbf{81.58} \\
+\bottomrule
+\end{tabular}}
+\vspace{-0.5em}
+\end{table}
+
+
+\subsection{In-depth Dissection of MemMA}
+\label{ssec:ablation}
+\noindent\textbf{Ablation Studies.}
+To understand the contributions of key components in \method, we implement three ablated variants on the Single-Agent backend: 
+\textbf{(i)} \method/C removes Meta-Thinker guidance during construction and directly uses the Memory Manager for memory writing;
+\textbf{(ii)} \method/R removes iterative retrieval, reverting to one-shot retrieval based on semantic similarity; and
+\textbf{(iii)} \method/E removes the probe-and-repair loop of in-situ self-evolving memory construction and directly commits $M_{\tau}^{(0)}$ to the memory bank.
+% Single-Agent is used as the storage backend. 
+
+% GPT-4o-mini and Claude-Haiku-4.5 are used as the construction backends. 
+% All other settings are the same as those in Sec.~\ref{ssec:experimental_setup}. 
+
+Fig.~\ref{fig:ablation} reports the results under GPT-4o-mini and Claude-Haiku-4.5. The full $\method_{\mathrm{SA}}$ achieves the strongest overall performance, while the variants reveal complementary weaknesses. Specifically:
+(i)~\emph{Iterative retrieval is the most critical forward-path component.}
+$\method_{\mathrm{SA}}$/R causes the largest drop under both backbones, reducing ACC from $84.87$ to $70.39$ with GPT-4o-mini and from $88.82$ to $81.58$ with Claude-Haiku-4.5.
+This confirms that one-shot retrieval remains a major bottleneck and that diagnosis-guided refinement is essential for narrowing the information gap.
+(ii)~\emph{Self-evolution repairs construction omissions.}
+$\method_{\mathrm{SA}}$/E causes the second-largest degradation 
+% (ACC: $84.87$ $\to$ $73.68$ with GPT-4o-mini, $88.82$ $\to$ $84.21$ 
+% with Claude-Haiku-4.5).
+(ACC: $84.87$ $\to$ $73.68$ with GPT-4o-mini).
+The large ACC drop with only moderate F1 change suggests that 
+self-evolution mainly improves semantic correctness by repairing 
+missing information during construction.
+(iii)~\emph{Construction guidance reduces upstream noise.}
+$\method_{\mathrm{SA}}$/C reduces ACC from  $88.82$ to $83.55$ with 
+Claude-Haiku-4.5.
+This shows that construction decisions benefit from explicit strategic guidance rather than local heuristics alone, as the Meta-Thinker helps determine what should be retained, consolidated, or resolved before information enters the memory bank.
+These ablations confirm that \method's gains come from 
+complementary improvements on both paths of the memory cycle.
+
+\begin{figure}[t]
+    \small
+    \centering
+    \begin{subfigure}{0.235\textwidth}
+        \includegraphics[width=0.98\linewidth]{figures/single_ablation_gpt4o_mini.pdf}
+        \vskip -0.5em
+        \caption{GPT-4o-mini}
+    \end{subfigure}
+    \begin{subfigure}{0.235\textwidth}
+        \includegraphics[width=0.98\linewidth]{figures/single_ablation_haiku45.pdf}
+        \vskip -0.5em
+        \caption{Claude-Haiku-4.5}
+    \end{subfigure}
+    \vskip -0.5em
+    \caption{Ablation studies of $\method_{\mathrm{SA}}$ under GPT-4o-mini and Claude-Haiku-4.5 on LoCoMo.}
+    \vskip -1em
+    \label{fig:ablation}
+\end{figure}
+
+\begin{figure}[t]
+    \small
+    \centering
+    \begin{subfigure}{0.235\textwidth}
+        \includegraphics[width=0.98\linewidth]{figures/impact_retrieval_budget_LM.pdf}
+        \vskip -0.5em
+        \caption{$\method_{\mathrm{LM}}$}
+    \end{subfigure}
+    \begin{subfigure}{0.235\textwidth}
+        \includegraphics[width=0.98\linewidth]{figures/impact_retrieval_budget_SA.pdf}
+        \vskip -0.5em
+        \caption{$\method_{\mathrm{SA}}$}
+    \end{subfigure}
+    \vskip -0.5em
+    \caption{Impact of retrieval budget $k$ of \method under both GPT-4o-mini and Claude-Haiku-4.5.}
+    \vskip -1em
+    \label{fig:impact_retrieval_budget}
+\end{figure}
+
+\begin{figure}[t]
+    \small
+    \centering
+    \begin{subfigure}{0.235\textwidth}
+        \includegraphics[width=0.98\linewidth]{figures/impact_refinement_budget_gpt4omini.pdf}
+        \vskip -0.5em
+        \caption{GPT-4o-mini}
+    \end{subfigure}
+    \begin{subfigure}{0.235\textwidth}
+        \includegraphics[width=0.98\linewidth]{figures/impact_refinement_budget_haiku45.pdf}
+        \vskip -0.5em
+        \caption{Claude-Haiku-4.5}
+    \end{subfigure}
+    \vskip -0.5em
+    \caption{Impact of refinement budget $H$ of \method.}
+    \vskip -1em
+    \label{fig:impact_retrieval_refinement}
+\end{figure}
+
+\noindent\textbf{Impact of retrieval budget $k$.} 
+We vary $k \in \{10,20,30,40,50\}$ on both Single-Agent and LightMem backends and report results in Fig.~\ref{fig:impact_retrieval_budget}. We observe that the optimal $k$ depends on storage quality.
+% We vary $k \in \{10,20,30,40,50\}$ with GPT-4o-mini as the backbone. Fig.~\ref{fig:impact_retrieval_budget} reports results on both Single-Agent and LightMem backends. We observe that the optimal $k$ depends on storage quality.
+For $\method_{\mathrm{LM}}$, ACC peaks at $k{=}30$--$40$ ($81.58$) and declines at $k{=}50$ ($79.61$), indicating a sweet spot beyond which additional retrieval introduces noise.
+For $\method_{\mathrm{SA}}$, ACC increases steadily from $75.66$ at $k{=}10$ to $84.21$ at $k{=}50$, without saturation.
+We attribute this contrast to storage quality: stronger backends produce higher-quality, less redundant entries, so a moderate $k$ suffices and excess retrieval dilutes the evidence; weaker backends need a larger $k$ to retrieve enough evidence from sparser memory banks.
+
+\noindent\textbf{Impact of retrieval refinement budget $H$.}
+We vary the refinement budget $H \in \{0,1,2,3,4,5\}$ under both GPT-4o-mini and Claude-Haiku-4.5.
+The results of $\method_{\mathrm{SA}}$ and $\method_{\mathrm{LM}}$ are reported in Fig.~\ref{fig:impact_retrieval_refinement}.
+We observe that ACC improves sharply from one-shot retrieval ($H{=}0$) to a small $H$ and then declines.
+For example, $\method_{\mathrm{SA}}$'s ACC rises from $78.95$ at $H{=}0$ to $85.53$ at $H{=}2$, then drops back to $81.58$ at $H{=}4$.
+This shows that diagnosis-guided refinement converges quickly: one or two additional retrieval rounds suffice to close most information gaps, while further iterations risk retrieval drift. This validates the effectiveness of the Meta-Thinker's answerability diagnosis, which directs each refinement step toward the specific missing evidence rather than redundant searches. More analysis of the impact of probe generation model are in Appendix~\ref{appendix:impact_probe_generation_model}.
+
+% \subsection{Case Studies}
+% \label{ssec:case_studies}
+% To better understand why \method improves long-horizon QA, we examine representative cases from both paths of the memory cycle.
+% Our findings indicate that:
+% \textbf{(i)} on the forward path, Meta-Thinker guidance helps preserve important answer-bearing details during memory construction, and diagnosis-guided iterative retrieval recovers specific facts (e.g., entity names, temporal anchors) that initial top-$k$ retrieval misses;
+% \textbf{(ii)} on the backward path, 
+% in-situ self-evolution converts local probe failures into targeted memory repairs that transfer to downstream QA, for example by inserting missing named entities, sharpening vague event descriptions, and completing partial evidence clusters.
+% Detailed examples and traces are in Appendix~\ref{appendix:case_studies_details}.
+
+\subsection{Case Studies}
+\label{ssec:case_studies}
+We conduct a case study to better understand why \method improves long-horizon QA.
+% To better understand why \method improves long-horizon QA, we examine representative cases from both paths of the memory cycle.
+Our findings indicate that:
+\textbf{(i)} on the forward path, construction-time Meta-Thinker guidance determines whether answer-bearing details survive in memory, while diagnosis-guided iterative retrieval determines whether missing evidence is surfaced before the system commits to an answer.
+Importantly, iterative retrieval cannot compensate for details that were never preserved during construction.
+The cases also show that the retrieval controller and the storage backend play distinct roles: the Meta-Thinker and Query Reasoner identify the information gap, while the backend determines whether the required evidence can actually be recovered;
+\textbf{(ii)} on the backward path, in-situ self-evolution converts local probe failures into targeted memory repairs that transfer to downstream QA, for example by inserting missing named entities, sharpening vague event descriptions, and completing partial evidence clusters.
+Detailed examples are in Appendix~\ref{appendix:case_studies_details}.

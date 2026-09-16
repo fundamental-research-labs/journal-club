@@ -1,0 +1,134 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage[submission]{colm2025_conference}
+
+\input{assets/utils}
+
+% \usepackage[dvipsnames]{xcolor}
+\usepackage{adjustbox}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{microtype}
+\usepackage{url}
+\usepackage{lineno}
+\usepackage{CJKutf8}
+\usepackage{colortbl}
+\usepackage{capt-of}
+\usepackage{pifont}
+\usepackage{enumitem}
+% \usepackage{caption}
+% \usepackage{subcaption}
+
+\setlength{\textfloatsep}{7pt plus 1.0pt minus 2.0pt}
+\definecolor{darkblue}{rgb}{0, 0, 0.5}
+\hypersetup{colorlinks=true, citecolor=darkblue, linkcolor=darkblue, urlcolor=darkblue}
+
+
+\title{\bugs{}: Scaling Data for Software Engineering Agents}
+
+\newcommand{\stanford}{\textcolor{red}{\textsuperscript{1}}}
+\newcommand{\princeton}{\textcolor{orange}
+{\textsuperscript{2}}}
+\newcommand{\independent}{\textcolor{blue}{\textsuperscript{3}}}
+\newcommand{\alibaba}{\textcolor{violet}{\textsuperscript{4}}}
+
+\author{
+John Yang\stanford,
+Kilian Lieret\princeton,
+Carlos E. Jimenez\princeton,
+Alexander Wettig\princeton,
+Kabir Khandpur\independent,
+\And
+\textbf{
+Yanzhe Zhang\stanford,
+Binyuan Hui\alibaba,
+Ofir Press\princeton,
+Ludwig Schmidt\stanford,
+Diyi Yang\stanford
+}
+\And
+\stanford Stanford University\quad
+\princeton Princeton University\quad
+\independent Indepedent\quad
+\alibaba Alibaba Qwen
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+\newcommand{\bugs}{SWE-smith}
+% \carlos{I think these check / cross pngs are much nicer than ding}
+\newcommand{\greencheck}{\includegraphics[height=0.8em]{figures/check-mark.png}}
+\newcommand{\redx}{\includegraphics[height=0.8em]{figures/cross-mark.png}}
+
+% \newcommand{\john}[1]{{\color{blue} John: #1}}
+% \newcommand{\diyi}[1]{{\color{red} Diyi: #1}}
+% \newcommand{\kilian}[1]{{\color{ForestGreen} Kilian: #1}}
+% \newcommand{\steven}[1]{{\color{purple} Steven: #1}}
+% \newcommand{\ludwig}[1]{{\color{orange} Ludwig: #1}}
+% \newcommand{\ofir}[1]{{\color{olive} Ofir: #1}}
+% \newcommand{\carlos}[1]{{\color{Mahogany} Carlos: #1}}
+% \newcommand{\binyuan}[1]{{\color{blue} Binyuan: #1}}
+
+\newcommand*{\strreplace}{\texttt{str\_replace\_editor}}
+\newcommand*{\strreplacereplace}{\texttt{str\_replace\_editor str\_replace}}
+\newcommand*{\strreplaceview}{\texttt{str\_replace\_editor view}}
+\newcommand*{\strreplacecreate}{\texttt{str\_replace\_editor create}}
+
+
+\colmfinaltrue
+\begin{document}
+
+\ifcolmsubmission
+% \linenumbers
+\fi
+
+\maketitle
+
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/dataset}
+\input{sections/experiments}
+\input{sections/results}
+\input{sections/related_work}
+\input{sections/discussion}
+\input{sections/acknowledgments}
+
+\bibliography{colm2025_conference}
+\bibliographystyle{colm2025_conference}
+
+\newpage
+\appendix
+\section*{Appendix}
+The appendix is generally structured as follows.
+In Sections~\ref{appx:infra} to~\ref{appx:issue_generation}, we review details about \bugs{}'s infrastructure and collection strategies for curating the \bugs{} task instances and execution environments, providing comparisons to existing datasets such as SWE-bench and SWE-gym along the way.
+In Sections~\ref{appx:difficulty} and onward, we discuss more about how we created the trajectories dataset, then provide additional ablations and results showcasing the effectiveness of \bugs{} as a dataset.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{figures/overview.pdf}
+    \caption{
+    An overview of pipelines in \bugs{}.
+    Scripts/functions and manual steps are highlighted in \textcolor{blue}{blue}.
+    Artifacts that are also the inputs and outputs of these scripts are in \textcolor{orange}{orange}.
+    \bugs{} fits in seamlessly with the SWE-bench and SWE-agent ecosystem.
+    Use \bugs{} to construct execution environments and generate task instances.
+    Use SWE-agent to generate expert trajectories on \bugs{} task instances and run inference with models trained on these trajectories.
+    Use SWE-bench to evaluate how good your models are at resolving GitHub issues and performing software engineering tasks.
+    }
+    \label{fig:overview}
+\end{figure}
+
+\input{appendix/infrastructure}
+\newpage
+\input{appendix/bug_gen}
+\input{appendix/dataset_stats}
+\input{appendix/issue_gen}
+\input{appendix/difficulty_rater}
+\input{appendix/experiments}
+\input{appendix/miscellaneous}
+
+\end{document}

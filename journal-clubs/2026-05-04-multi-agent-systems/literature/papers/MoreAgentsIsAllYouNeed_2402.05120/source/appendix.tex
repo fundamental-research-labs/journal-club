@@ -1,0 +1,122 @@
+%\newpage
+\appendix
+\onecolumn
+% \section{Appendix}
+
+\section{Detailed Experiment Settings}
+\label{appendix:settings}
+\subsection{Common Settings}
+In all experiments involving GPT-3.5-Turbo presented in Section \ref{sec:experiments}, we utilize the model version \texttt{gpt-3.5-turbo-0613}. In Table \ref{table:tab1}, the notation GPT-4 corresponds to the model version \texttt{gpt-4-0613}. For the experiments conducted with GPT-3.5-Turbo in Section \ref{sec:analysis}, we employ the model version \texttt{gpt-3.5-turbo-1106} with the JSON mode enabled. Similarly, GPT-4 in this context refers to \texttt{gpt4-1106-Preview} operating in JSON mode.
+
+\subsection{Experiments on Arithmetic Reasoning Tasks}
+For the implementation of Agent Forest to arithmetic reasoning tasks within the GSM8K and MATH datasets, we execute the initial sampling phase by Algorithm \ref{alg:sampling-and-voting}. Samples are extracted from the responses by matching ``boxed\{\{X\}\}'', where ``X'' denotes a numerical value or a mathematical expression. 
+
+In the subsequent voting phase, to evaluate the similarity between samples, as outlined in Algorithm \ref{alg:sampling-and-voting}, we employ mathematical equivalence comparisons for each sample. The most probable sample is chosen as the final answer. This answer is subjected to a comparison of mathematical equivalence with the ground truth to ascertain the correctness of the result.
+
+\subsection{Experiments on General Reasoning Tasks}
+For general reasoning tasks, as encountered in the MMLU and Chess datasets, Agent Forest is applied following Algorithm \ref{alg:sampling-and-voting} during the sampling phase. Samples are extracted by matching the pattern ``(X'' or ``(X)'', where ``X'' corresponds to the options A, B, C, or D in MMLU task and the chessboard position in Chess task.
+
+During the voting phase, we calculate similarity by counting the frequency of each option's occurrence within the samples. The most frequently occurring option is then chosen as the final answer. This selected answer is compared with the ground truth to determine the accuracy of the result.
+
+\subsection{Experiments on Code Generation Task}
+In the code generation task, we apply the Agent Forest method to produce Python code using the HumanEval dataset. During the sampling phase, we extract Python code snippets from the model's responses. 
+
+In the voting phase, we compute the \texttt{BLEU} score using \textit{sacreBLEU} \cite{sacrebleu} to evaluate the similarity between each of the generated samples. The sample with the highest cumulative \texttt{BLEU} score is selected as the final answer. This method ensures that the final output is the most representative and accurate piece of code as determined by consensus through similarity scoring among the samples.
+
+
+\section{Detailed Experiment Results}
+
+\subsection{Additional Accuracy Curves}
+\label{appendix:curves}
+
+In this section, we provide the accuracy curves of our experiments across various datasets when utilizing different LLMs. From these curves, we demonstrate that our method has the following properties:
+
+\begin{itemize}
+    \item \textbf{Generalizability.} By using our method standalone, the performance can be generally enhanced by increasing the ensemble size.
+    \item \textbf{Compatibility.} Our method can generally enhance other methods by increasing the ensemble size.
+\end{itemize}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{fig/13b.pdf}
+    \vspace{-3mm}
+    \caption{Accuracy curves across various datasets using the Llama2-13B model.}
+    \label{fig:13b_exp}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{fig/70b.pdf}
+        \vspace{-3mm}
+    \caption{Accuracy curves across various datasets using the Llama2-70B model.} 
+    \label{fig:70b_exp}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{fig/gpt.pdf}
+            \vspace{-3mm}
+    \caption{Accuracy curves across various datasets using the GPT-3.5-Turbo model.}
+    \label{fig:gpt_exp}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{fig/debate_13b.pdf}
+            \vspace{-3mm}
+    \caption{Debate accuracy curves across various datasets using the Llama2-13B model.}
+    \label{fig:debate_13b}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{fig/debate_70b.pdf}
+            \vspace{-3mm}
+    \caption{Debate accuracy curves across various datasets using the Llama2-70B model.}
+    \label{fig:debate_70b}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{fig/debate_gpt.pdf}
+            \vspace{-3mm}
+    \caption{Debate accuracy curves across various datasets using the GPT-3.5-Turbo model.}
+    \label{fig:debate_gpt}
+\end{figure}
+
+
+\subsection{Statistical Test Results}
+\label{appendix:statistical}
+In this section, we performed a one-way ANOVA to determine if there are significant differences in accuracy across different ensemble sizes (1, 10, 20, 30, 40), across 10 independent runs. The detailed p-values are provided in Table \ref{table:statistical_test}, where all p-values are less than 0.05, demonstrating that the differences in accuracy between ensemble sizes are significant.
+
+\begin{table}[ht!]
+\caption{Statistical test results (p-values) of different LLMs on different datasets. One-way ANOVA is performed where ensemble sizes are (1, 10, 20, 30, 40).}
+\label{table:statistical_test}
+\begin{center}
+\begin{adjustbox}{width=0.7\linewidth}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{LLMs} & \textbf{GSM8K} & \textbf{MATH} & \textbf{Chess} & \textbf{MMLU} & \textbf{HumanEval} \\
+\midrule
+Llama2-13B & 1.56e-44 & 9.11e-32 & 1.97e-18 & 7.86e-38 & 5.46e-8\\
+Llama2-70B & 1.93e-43 & 2.16e-29 & 1.09e-9 & 1.06e-26 & 5.24e-7 \\
+GPT-3.5-Turbo & 6.03e-30 & 9.66e-39 & 4.62e-24 & 2.46e-39 & 7.47e-13 \\ \bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+\end{table}
+
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.9\textwidth]{fig/token_usage.pdf}
+    \vspace{-3mm}
+    \caption{Token usage vs. accuracy.}
+    \label{fig:token_usage}
+\end{figure}
+
+
+
+\subsection{Token Usage vs. Accuracy}
+\label{appendix:token_accuracy}
+Figure \ref{fig:token_usage} shows the tradeoff between token budget and accuracy, where the x-axis represents the token budget and the y-axis represents the accuracy.

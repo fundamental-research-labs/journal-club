@@ -1,0 +1,136 @@
+\section{Dataset Statistics}
+\label{appx:dataset}
+We present additional breakdowns and analyses of the \bugs{} dataset, focusing on the kinds of repositories and bugs that are represented.
+
+\textbf{Repository categorization.}
+We present an exhaustive list of repositories used in \bugs{} in Table~\ref{tab:summary_of_repos}.
+We categorize the repositories into seven general buckets: Data Parsing and Transformation ($39$), Web \& API Development ($11$), Code Quality \& Testing ($12$), Visualization \& Presentation ($8$), System Tools \& Protocols ($17$), Natural Language Processing ($7$), and Miscellaneous ($6$).
+The categorizations were performed by first, determining an appropriate set of categories based on manual inspection supported by the descriptions and GitHub topics associated with each repository.
+After settling upon the buckets, we asked GPT-4o to provide a label based on the repository's metadata and \texttt{README} dump.
+\bugs{} represents a wider and more variegated coverage of software tools and applications compared to any prior works.
+
+\input{tables/all_repos}
+
+\subsection{Bug Generation Statistics}
+\label{appx:dataset:bug_gen_stats}
+We provide extensive details about different aspects of each of the bug generation strategies, including the yield rates, labor/monetary costs, and dataset characterizations.
+
+\textbf{Yield rates.}
+In Table~\ref{tab:per_bug_type_yield_rate}, we provide the yield rates for each bug generation method across all repositories in \bugs{}.
+In general, we find that the PR Mirroring has the lowest yield rate at $13.18$\% (although this rate is somewhat higher than SWE-bench's yield rate of $2294/93139 = 2.46$\%).
+For using LMs to generate bugs, modifying functions to introduce bugs intentionally has a higher yield than asking LMs to perform a best-effort rewrite.
+The efficacy of Procedural Modifications varies by strategy.
+For instance, shuffling the functions declared in a class only breaks existing test(s) $1.93$\% of the time, but inverting a conditional will lead to a task instance for $47.04$\% of modifications.
+Finally, combining bug patches has an extremely high yield rate - this is to be expected because we only attempt to combine bug patches that have been validated as usable task instances breaking $1+$ tests.
+
+\input{tables/per_bug_type_yield_rate}
+
+The number of repositories captured by each bug generation technique varies due to each strategy's specific preconditions, which at times may not be effective for some repositories.
+For instance, the \textit{Procedural (Class *)} set of methods only mutates Python classes.
+This strategy is fruitless for the minority of \bugs{} repositories that do not define any classes.
+The \textit{Procedural (Op Break Chains)} method randomly removes operations and operands from expressions with two or more operations (e.g. $a+b+c \rightarrow a+b$) --- such expressions are not always present in \bugs{} repositories.
+
+The collective yield rate across \bugs{}'s bug generation strategies is significantly higher than SWE-bench's collection strategy.
+
+\input{tables/per_repo_yield_rate}
+
+The yield rate also varies with respect to the repository it is being applied to.
+We provide a summary of yield rates by repository in Table~\ref{tab:per_repo_yield_rate}.
+We generally observe that lower test coverage correlates with a lower yield rate.
+
+\textbf{Dataset characterizations.}
+In Table~\ref{tab:per_bug_type_stats}, we provide statistics about the validated task instances produced by different bug generation strategies.
+Our work's LM-based strategies rewrite one function in one file.
+Procedural modifications will also only change one file, but depending on the strategy, $1+$ functions or classes may be changed.
+Combining multiple patches from the same file always produces a patch with $2+$ functions edited.
+Combining across modules produces a patch with $2+$ files edited.
+The targeted nature of each of the bug creation strategies is reflected in the typical number of functions and files that the bugs produced by each strategy edits.
+
+\input{tables/per_bug_type_stats}
+
+In Figure~\ref{fig:dataset_comparison}, we show the distributions for different attributes of \bugs{} compared to other SWE-bench style datasets.
+Compared to prior works, there is a much higher proportion of task instances with more than one Fail-to-Pass test.
+For any one repository, we find that \bugs{} task instances collectively cause failures for a much higher percentage of the testing suit than other datasets; a potential benefit of this is that training on \bugs{} based trajectories may expose models to a much broader set of functionalities in a codebase.
+The number of lines and files edited by \bugs{} task instances is highly similar to the trend lines for SWE-bench Verified.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{figures/dataset_comparison.pdf}
+    \caption{
+    Comparison of cumulative distributions for Fail-to-Pass tests along with the lines and files edited by the gold patch across \bugs{} and four SWE-bench style datasets.
+    }
+    \label{fig:dataset_comparison}
+\end{figure}
+
+We note that unlike other datasets, the trend line of \bugs{} task instances is ``adjustable".
+In other words, the Figure~\ref{fig:dataset_comparison} distributions are a capture of the task instances provided in this release of \bugs{}.
+However, because of \bugs{}'s flexible bug creation techniques, the distribution can be ``shaped" if needed.
+For instance, generating more task instances using the bug patch combination method would shift all three curves in Figure~\ref{fig:dataset_comparison}.
+We make this point to highlight the fact that the attributes of SWE-bench task instances are, in a sense, constrained by real world software development behavior.
+On the other hand, \bugs{} can be used to break tests and code that may not be reflected at all in any existing pull request.
+In this sense, we argue that LMs trained on \bugs{} have better ``exposure" to a codebase compared to exclusively training on pull requests.
+
+\textbf{Continuation of scaling execution environments.}
+The validation and evaluation procedures for \bugs{} deviate slightly from SWE-bench's harnesses.
+The main reasons for these differences can largely be attributed to the granularity of installation specifications.
+In SWE-bench, each task instance corresponds to a unique base commit, with additional \texttt{version} and \texttt{environment\_setup\_commit} keys needed as indirection for mapping an instance to the correct set of installation and testing instructions.
+Across time, the continuous evolution of a repository and its dependencies make for an incredibly high degree of variability in how a repository should be installed correctly.
+To solve this variability, the community has resorted to creating an image per task instance, as done in~\citet{chowdhuryintroducing}.
+Therefore, for $2294$ SWE-bench task instances, there are $2294$ unique Docker images, each at a size of at least several gigabytes ($\sim5$-$6$ GBs).
+
+On the other hand, the simplicity and scalability of \bugs{}'s design allows one to support many task instances with comparatively much fewer Docker images.
+As mentioned above, installation and testing procedures are (repository, commit) specific.
+Therefore, when bugs are generated from each (repository, commit), all bugs can be reproduced and tested successfully from the same Docker image.
+In other words, if I generate $100$ bugs for a repository at some commit, instead of $100$ Docker images, only a single Docker image is required to run inference on any of the $100$ task instances.
+
+This design is what enables \bugs{} to be significantly more space-efficient than SWE-bench.
+Based on the publicly released images, for SWE-bench's $2294$ task instances, $1.2$ TBs of storage are required to download all Docker images locally.
+for SWE-bench Multimodal's $517$ task instances, $1.2$ TBs are required.
+The higher per-instance Docker image size for SWE-bench Multimodal is due to how JavaScript dependency management tools (e.g. \texttt{npm}) require more storage compared to equivalent Python infrastructure (e.g. \texttt{pypi}).
+\citet{pan_training_2024} states that each image for the $2438$ instances an average of $2.6$GB, totaling 6 TB of storage total.
+Such a storage requirement can be a significant barrier for academic practitioners.
+
+On the other hand, with more than $20$x the number of bugs, \bugs{} requires only $125$ Docker images total, corresponding to the number of unique (repository, commit) pairs (in this work, for each repository, we only determine installation and test specifications for one commit).
+The $125$ images require a total of $290.54$ GBs.
+In summary, compared to SWE-bench's task collection strategy, \bugs{}'s design makes it easier to not only create task instances, but also train on them as well.
+
+\subsection{Case Study: SWE-bench \& \bugs{}}
+\label{appx:dataset:case-study}
+To better understand the differences between the SWE-bench and \bugs{} collection strategies, we perform \bugs{} collection on the \texttt{pallets/flask} GitHub repository, one of the $12$ test split repositories from the original SWE-bench benchmark.
+We review the steps covered in Section~\ref{sec:swesmith:collection} applied to \texttt{pallets/flask} in detail.
+First, we defined the installation and testing specifications for the \texttt{pallets/flask} repository at commit \texttt{bc09840}.
+Next, we apply the LM modification bug generation strategy to this version of the repository, generating $267$ unique bugs.
+
+We observe several differences.
+First, \textit{the \bugs{} collection strategy yields a much higher number of bugs outright.}
+From SWE-bench, $11$ task instances are from the \texttt{pallets/flask} repository.
+The task instances were originally filtered from $2434$ pull requests (PRs), with $107$ satisfying SWE-bench's filtering criteria of (1) being linked to one or more issues and (2) featuring 1+ new tests.
+Out of these $107$, the $11$ ($0.45$\% of $2434$) task instances represent the proportion of PRs that execution environments could be successfully constructed for.
+On the other hand, running the function-level rewriting strategy for bug generation originally yielded $402$ candidates, of which $267$ were determined to be valid task instances.
+
+Second, \textit{\bugs{} requires significantly less human effort while only incurring minor costs}.
+Collecting the $11$ \texttt{pallets/flask} task instances (steps include scraping PRs, determining repository versions across time, defining version-specific installation/test specifications, running execution-based validation multiple times) took an estimated $38$ hours worth of human labor.
+On the contrary, defining installation and testing specifications for the latest commit of \texttt{pallets/flasks} took $10$ minutes. 
+The subsequent function-level rewriting strategy for bugs took $23$ minutes to run, incurring a total cost of just \$$2.47$ ($\sim$\$$0.00613$ per instance).
+The final execution-based validation step that filters out $402 - 267 = 135$ unqualified bug candidates ran in $14$ minutes.
+Since both the bug and problem statement generation strategies are repository agnostic, no additional human intervention is necessary for these steps.
+Head to head, per instance for the \texttt{pallets/flask} repository, SWE-bench style collection requires $38 \times 60 / 11 = 207.27$ minutes compared to $0.176$ minutes ($\sim10.6$ seconds) and \$$0.00613$ in API costs using \bugs{}.
+
+Third, \textit{collectively, \bugs{} task instances break a significantly larger proportion of existing tests in a codebase}.
+We define ``bug coverage" as the proportion of tests broken by $1$+ instance across all task instances.
+For the SWE-bench split of \texttt{pallets/flask}, there are $207$ unique tests across all $11$ instances.
+Of these $207$ tests, $15$ are broken by $1$+ instance, corresponding to a bug coverage rate of $7.25$\%.
+For the \bugs{} split of \texttt{pallets/flask}, there are $474$ unique tests across $267$ instances.
+The larger amount of tests is due to increased test coverage in the \texttt{pallets/flask} repository as of Nov. 28, 2024 (when \bugs{} was collected) compared to June 2023 (when SWE-bench was collected).
+Of these $474$ tests, $422$ are broken by $1$+ instance, a bug coverage rate of $89.03$\%.
+We attribute the significant difference to a consistent tendency in real world open source software development workflows, that is, the \textit{minority} of tests are introduced to capture existing, errant behavior in the repository.
+The significant majority of tests are committed alongside working code, ensuring that already correct behavior is upheld.
+Well-maintained repositories will typically not merge commits that cause such tests to fail.
+This results in a large number of tests where few to no commits correspond to those tests' failures.
+
+Finally, \textit{\bugs{} does not yield instances appropriate for evaluation}.
+The \bugs{} pipeline as presented does not produce hidden tests, a crucial difference that makes SWE-bench more suitable for evaluation.
+Consequently, when expert trajectories are generated, the Fail-to-Pass tests are present in the repository at inference time.
+Furthermore, our issue generation strategy does not include checks for known problems such as underspecified text descriptions or solution leakage~\citep{chowdhuryintroducing}. 
+Simple amendments could make \bugs{} task instances suitable for evaluation, such as deleting Fail-to-Pass test functions or files along with a validation procedure around the ambiguity and leakage of the issue text.
+Finally, thorough analyses of how faithful \bugs{} task instances are to real world issues and PRs would be necessary to justify synthetic bugs for evaluation.

@@ -1,0 +1,122 @@
+\section{Introduction}
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.9\linewidth]{icml2024/fig/architecture.pdf}
+%     \caption{Architecture of more agents and representative previous works. Nodes denote agents (LLM), squares represent prompts, arrows represent interaction, and colors indicates various prompts or llms. \textcolor{red}{need refine}}
+%     \label{fig:arch}
+% \end{figure}
+
+% We aim to fill the gap in the literature by systematically studying the effects and potential benefits of employing multiple agents or iterations in LLM applications, offering valuable insights into the practical implications of this strategy.
+
+% 讲述背景->发现现象 -> 举例描述现象，突出以往方法中存在的现象，仅体现在有限的场景下，并未呈现一个普适性。一个有价值的问题出现了，这个现象是否普遍的存在？
+% Although large language models (LLMs) demonstrate remarkable capabilities in variety of applications \citep{llmsurvey}, such as language generation, understanding, and reasoning, they struggle to provide accurate answers when faced with complicated tasks. To improve the performance of LLMs, some of recent studies focus on ensemble methods \citep{cotsc, fusellm} and multiple LLM-Agents collaboration frameworks \citep{debate,autogen}. 
+%However, these methods are implemented by dedicated prompt engineering \citep{spp} or complex multi-agent communication framework \citep{autoagent}. Is there a method which can enhance the LLM performance in a simple way?
+
+% In these works, multiple LLM agents are instantiated to improve the performance of LLMs. For instance, LLM-Debate \cite{debate} employs multiple LLM agents in a debate form. The reasoning performance is improved by instantiating more agents in solving arithmetic tasks compared to instantiating a single agent. Similarly, CoT-SC \citep{cotsc} generates multiple thought chains, which can be implemented by multiple agents, and select the most consistent one as the final answer. The reasoning performance is improved by involving more thought chains compared to CoT \citep{cot} which employs a single thought chain. We find that the performance can be improved by scaling up the number of agents instantiated in these works. However, this phenomenon has been observed only in limited scenarios, and a comprehensive study is lacking. 
+
+% Although large language models (LLMs) demonstrate remarkable capabilities in a variety of applications \citep{llmsurvey}, such as language generation, understanding, and reasoning, they struggle to provide accurate answers when faced with complicated tasks. To improve the performance of LLMs, some recent studies focus on deploying multiple LLM agents with ensemble methods \citep{cotsc, fusellm} or collaboration frameworks \citep{debate,autogen}. In these works, they typically claim that involving more agents in their proposed methodologies can yield better performance. However, is this phenomenon universal?
+
+% To validate this phenomenon, we turn to the simplest sampling-and-voting method to leverage LLM agents. In Figure \ref{fig:intro_finding}, we find that, maybe surprisingly, the ensemble of smaller LLMs can achieve comparable or even superior performance compared with larger LLMs. We thus conduct a comprehensive study on how the performance scales with the ensemble size. 
+
+
+
+% In these works, multiple LLM agents are instantiated to improve the performance of LLMs. For instance
+
+%We note that these methods alprompt engineering \cite{iclsurvey} and multiple LLM-agents collaboration frameworks \cite{agentsurvey,agentsurvey1}. Despite the  implementations of these methods, some of these approaches exhibit the same phenomenon: the performance of LLM scales with the number of agents (LLMs) instantiated. For instance, LLM-Debate \cite{debate} employs multiple LLM agents in a debate form to enhance reasoning performance, and it is noted that the more agents involved, the greater the performance gains in arithmetic scenarios. Similarly, if we consider an LLM as an agent, CoT-SC \cite{cotsc} applies the Chain of Thought (CoT) approach \cite{cot} to multiple agents and notes improved performance with more agents. However, this phenomenon have been noted in only limited scenarios, and a comprehensive study is still lacking. An intriguing question arises: Does this phenomenon generally exist?
+
+
+% Large language models (LLMs) demonstrate remarkable capabilities in language generation, understanding, and reasoning. Recent studys focus on unsupervised methods to further enhance LLM performance, such as prompt engineering \cite{iclsurvey} and multiple LLM-agents collaboration frameworks \cite{agentsurvey,agentsurvey1}. Despite the differing implementations of these methods, some of these approaches exhibit the same phenomenon: the performance of LLM scales with the number of agents (LLMs) instantiated. For instance, CoT-SC \cite{cotsc} samples from a single LLM by various Chain of Thought (CoT) \cite{cot} observes that involving more samples correlates with higher performance. Similarly, LLM-Debate \cite{debate} employs multiple LLM agents to enhance reasoning performance, and it is noted that the more agents involved, the greater the performance gains in arithmetic scenarios. However, these studies only exhibit the phenomenon in a few limited scenarios, and as of now, there has been no comprehensive study on this phenomenon. An intriguing question arises: Does this phenomenon generally exist?
+
+%\textcolor{red}{I suggest you guys write the intro in Chinese using simple and clear language and ask GPT to translate. 1. a bit background. 2. what is motivating. 3. what did we do. 4. how we did it. 5. to sum up.}
+
+Although large language models (LLMs) demonstrate remarkable capabilities in various applications \citep{llmsurvey}, such as language generation, understanding, and reasoning, they struggle to provide accurate answers when faced with complicated tasks. To improve the performance of LLMs, some recent studies focus on ensemble methods \citep{cotsc, fusellm} and multiple LLM-Agents collaboration frameworks \citep{debate,autogen}. However, these methods are implemented by dedicated prompt engineering \citep{spp} or complex multi-agent communication framework \citep{autoagent}. 
+% \textcolor{red}{Is there a method that can enhance the LLM performance simply? are you serious... cannot express like this.... }
+
+
+Interestingly, we have identified a phenomenon within these studies. Utilizing multiple LLM agents can enhance the effectiveness of LLMs. For instance, LLM-Debate \cite{debate} employs multiple LLM agents in a debate form. The reasoning performance is improved by instantiating more agents in solving arithmetic tasks compared to instantiating a single agent. Similarly, CoT-SC \citep{cotsc} generates multiple thought chains by multiple agents and selects the most consistent one as the final answer. The reasoning performance is improved by involving more thought chains compared to CoT \cite{cot} which employs a single thought chain. In these works, we find that the performance can be improved by scaling up the number of agents instantiated. An intriguing question arises: Can we generally enhance LLM performance by leveraging multiple LLM agents in a simple way?
+
+
+% However, this phenomenon has been observed only in limited scenarios, and a comprehensive study is lacking. 
+To address this question, we propose a simple sampling-and-voting method to leverage multiple LLM agents and conduct the first comprehensive study to verify its generalizability. Compared to existing studies \cite{cotsc,complexity-cot,debate} that claim the presence of this phenomenon, our study not only encompasses more tasks, including reasoning and generation, but also explores orthogonality with other methods. 
+
+The result indicates that LLM performance can generally be improved by increasing the ensemble size (i.e., the number of agents). Surprisingly, Figure \ref{fig:intro_finding} shows that ensembles of smaller LLMs can sometimes achieve comparable or superior performance to larger LLMs. Moreover, by combining our method with other existing methods, we find the performance can be further improved. By comparing with the performance of complicated methods, the result shows that employing our method solely can achieve comparable performance in most cases. This implies that comparable performance can be achieved without the need for additional handcraft prompt design or complex collaboration frameworks.
+
+% 我们首次围绕这个现象做了广泛的研究。
+% We conduct the first comprehensive study on this phenomenon via a simple sampling-and-voting method which unfolds in two phases. Initially, the query is iteratively fed into a single LLM or a multiple LLM-Agents collaboration framework to generate multiple outputs. Subsequently, majority voting is used to determine the final result. The experiments are conducted by using various LLMs of different sizes on diverse datasets including reasoning tasks and code generation tasks. The result indicates that LLM performance can generally be improved by increasing the ensemble size (i.e., the number of agents). Surprisingly, ensembles of smaller LLMs can sometimes achieve comparable or superior performance to larger LLMs, which is shown in Figure \ref{fig:intro_finding}. Moreover, by combining our method with other existing methods, we find the performance can be further improved. By comparing with the performance of complicated methods, the result shows that employing our method solely can achieve comparable performance in most cases. This implies that comparable performance can be achieved without the need for additional handcraft prompt design or complex collaboration frameworks.
+
+\begin{figure}[t!]
+    \centering
+    \includegraphics[width=0.6\linewidth]{icml2024/fig/intro_finding.png}
+    \caption{The accuracy increases with ensemble size across Llama2-13B, Llama2-70B and GPT-3.5-Turbo in GSM8K. When the ensemble size scales up to $15$, Llama2-13B achieves comparable accuracy with Llama2-70B. Similarly, When the ensemble size scales up to $15$ and $20$, Llama2-70B and GPT-3.5-Turbo achieve comparable accuracy with their more powerful counterparts.}
+    \label{fig:intro_finding}
+\end{figure}
+
+% 我们的实验结果发现了一个有趣的关联，其实验的难度和最终获得的性能增益相关。为了理解这些改进背后的原因，我们分析了问题难度对我们方法有效性的影响。通过实验分析了各个维度，并得出了性质，并利用性质进一步增强了方法。
+
+Additionally, the experimental results indicate a correlation between the efficacy of the performance improvements and the difficulty of the problems addressed. To understand the reasons behind these performance improvements, we analyze the influence of problem difficulty on the effectiveness of our method. We classify difficulty into three dimensions: the inherent difficulty, the number of steps, and the prior probability of the correct answer. Through a series of experiments, we adjust these dimensions and observe their effects independently. %From our results, we conclude three key properties that, when leveraged, can significantly enhance performance using our method.
+
+In this paper, we conduct the first comprehensive study on the phenomenon: the performance of LLMs can be improved by increasing the ensemble size.
+Our contributions are summarized as follows:
+
+\begin{itemize}
+\item  We propose a simple sampling-and-voting method and demonstrate that the performance of LLMs scales with the number of agents instantiated.
+\item We explore the compatibility of our methods with existing methods, revealing that our method can enhance these methods to achieve further performance improvements.
+\item We further analyze the effectiveness of our method in tackling problems at varying difficulties, and propose optimization methods.
+%\item We conduct the first comprehensive study on the phenomenon: the performance of LLMs can be improved by increasing the ensemble size. We demonstrate that this phenomenon generally exists on various types of datasets across multiple LLMs by employing our method. Additionally, we explore the compatibility of our methods with existing methods, revealing that our method can enhance these methods to achieve further performance improvements.
+
+%\item We further analyze the effectiveness of our method in tackling problems at varying difficulties which are classified into three dimensions: the inherent complexity, the length of reasoning steps, and the probability of a correct response. %we identify three properties and leverage them to further enhance the method's efficacy.
+\end{itemize}
+
+%% 一个有价值的问题出现了，这个现象是否可以抽象成方法，在广泛的场景下，普适的增强各种方法. 讲述方法: 其既可以单独使用，也可增强其他方法。然后描述方法实现
+%An intriguing question arises: Is it possible to refine this phenomenon into a general methodology that augments diverse methods in a wide array of scenarios? To address this, we crystallize the essence of the phenomenon into a simple yet straightforward sampling and voting method which can be used independently or to enhance other methods. It unfolds in two phases: First, the query is iteratively fed into a single LLM or a multi-agent LLM collaboration framework to generate multiple outputs. Then, a majority vote among these outputs determines the final result.
+
+
+% 通过全面的实验，表明我们的方法在不同的场景下具有泛化性。且单独使用，结合其他方法使用都可获得不错的效果。在多数场景下单独使用就够了，结合其他方法可以增强他们的效果。有趣的是, 在某些场景下小模型可达到大模型效果
+%To affirm the generalizability of our method, we conduct comprehensive experiments spanning various LLMs of differing scales and datasets that range from reasoning tasks to code generation and further explore the synergy between our method and other methods aimed at improving LLM performance. The results indicate that using our method individually achieves comparable performance to composite methods in most cases. And when combined with other methods, our method further enhances their performance. Surprisingly, our experiments reveal that ensembles of smaller LLMs can sometimes achieve comparable or superior performance to larger LLMs.
+
+
+%Our contributions can be summarized as follows:
+%\begin{enumerate}
+%\item We introduce a straightforward sampling and voting method to enhance the performance of LLMs. We demonstrate its generalizability through a series of comprehensive experiments, showcasing its efficacy across a range of tasks and model sizes. Additionally, we explore the method's compatibility with existing enhancement methods, revealing that our method can enhance these methods to produce further performance improvements.
+
+%\item We provide an analysis of our method's effectiveness in tackling problems at varying difficulties. Based on this analysis, we identify three distinct properties and leverage them to further enhance the method's efficacy.
+%\end{enumerate}
+
+% Recent approaches \cite{cotsc,debate} in augmenting large language model (LLM) capabilities have revealed a correlation: the more LLM agents tends to yield superior performance. We have distilled the prevalent phenomenon into a straightforward sampling and voting mechanism, referred to as the ``More agents" mechanism. Specifically, the ``More Agents" mechanism refers to the process of addressing the same problem using multiple LLM agents, or by having a single agent iteratively generate multiple outcomes. Subsequently, a majority voting method is employed to select the most consistent answer as the final result. The mechanism capitalizes on the collective intelligence of multiple agents or the varied perspectives offered by iterative outputs to enhance the accuracy and reliability. Although elements of the ``More Agents" mechanism have been hinted at in some studies \cite{cotsc,complexity-cot,diverse,debate,dylan}, there has not been a dedicated and rigorous exploration of the phenomenon. To fill this gap, our approach represents the first comprehensive study to deliver a detailed analysis of the "more agents" mechanism. 
+
+
+% We have integrated the ``More Agents" mechanism with a variety of methods \cite{spp,cot,zs-cot,debate,reflexion} across multiple datasets \cite{math,bbb,mmlu,humaneval,gsm} and LLMs \cite{chatgpt,llama2} of different scales, reveals that the ``More Agents" mechanism can broadly enhance the performance of various methods in diverse settings. Remarkably, the vanilla mechanism often competes with, and in many instances surpasses, intricate composite methods that incorporate it. Furthermore, the augmentation with ``More Agents" enables less powerful LLMs to meet or exceed the performance of their more advanced counterparts which indicates that we have identified a mechanism that is simple yet exceedingly effective. Moreover, we conducted an ablation study on the mechanism, which indicates that it is not only versatile but also robust.
+
+% Furthermore, we have delved deeper into the intrinsic properties to the ``More Agents" mechanism by conducting experiments with tunable properties, revealing the scope of applicability and garnering valuable insights. These insights have enabled us to refine and amplify the mechanism's effectiveness. Our analyses yield a nuanced comprehension of the mechanism's functionality and optimization potential for various LLM applications.
+
+
+% Our approach conducted over a variety of datasets \cite{math,bbb,mmlu,humaneval,gsm} and across different scales of LLMs \cite{chatgpt,llama2}, reveals that the``more agents" mechanism is the primary factor behind the performance enhancements of current methodologies. Remarkably, this mechanism achieves comparable or even superior results without the need for additional complex agent structures or manual prompt designs.
+
+
+% The pursuit of enhanced performance in complex reasoning tasks has driven the development of various methodologies \cite{reasoning_survey} within the realm of large language models (LLMs). Recent advancements in ensemble optimization \cite{reasoning_survey} and LLM-agent Collaboration \cite{dylan} have demonstrated a compelling trend: the more agents (LLMs) involved, the better the performance. This phenomenon is not confined to any single methodological design but spans across various approaches, including ensemble-optimization \cite{cotsc,complexity-cot,mcr,self-agreement,diverse}, LLM ensembles \cite{llm-blender,foe,frugalgpt,llms-routing,rtte}, and LLM-based multi-agent coordination \cite{debate,mad,debate3,dylan}. Each of these strategies, despite their differences in design, consistently showcases enhanced outcomes along with an increasing number of agents used.
+
+% In this paper, we distill this phenomenon into a simple yet effective mechanism, termed as the "More Agents" mechanism, which leverages a straightforward sampling and voting approach. This mechanism, which operates without the need for elaborate prompt design, can be viewed as an underlying principle that drives the performance improvements exhibited by existing methods, such as \cite{cotsc,complexity-cot}.
+
+% Our extensive experimental campaign, conducted over a variety of datasets\cite{math,bbb,mmlu,humaneval,gsm} and across different scales of LLMs\cite{chatgpt,llama2}, reveals that the``more agents" mechanism is the primary factor behind the performance enhancements of current methodologies. Remarkably, this mechanism achieves comparable or even superior results without the need for additional complex agent structures or manual prompt designs.
+
+% Further empirical analysis \ref{sec:analysis} has allowed us to explore the properties of the ``more agents" mechanism. We have primarily discerned the following insights:
+% \begin{enumerate}
+% \item As the inherent difficulty of the task increases, we observe a corresponding increase in performance gain, although with diminishing returns.
+% \item The number of reasoning steps required to solve a task is directly proportional to the performance gain. \label{intro:item2}
+% \item The likelihood of the correct answer being chosen over other options positively correlates with the magnitude of performance improvement. \label{intro:item3}
+% \end{enumerate}
+% Leveraging these properties, we have extended the ``more agents" mechanism to enhance its effectiveness. Based on the second property, we have generalized the method to yield substantial performance improvements. Similarly, drawing from the third property, we have tailored the mechanism for both homogeneous and heterogeneous agent settings, leading to significant gains.
+
+% Our contributions can be summarized as follows:
+% \begin{enumerate}
+% \item Our approach represents the first comprehensive study of the ``More Agents" mechanism which consistently enhances a variety of methods across diverse settings, uncovering its widespread efficacy and robustness. 
+% \item We identified three distinct properties of the ``More Agents" mechanism and leveraged them to further enhance the mechanism's efficacy.
+% \end{enumerate}
+
+% In summary, our work not only elucidates the underlying mechanics of agent-based performance improvements in LLMs but also provides a scalable and efficient strategy for harnessing the collective intelligence of LLM agents. This paves the way for future research and applications that can benefit from the simplicity and effectiveness of the ``more agents" mechanism.
+
+% We are the first to find the phenomenon that with increasing the voting 
+
+
+

@@ -1,0 +1,312 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+\section{Scale and Data Quality Ablation Details}
+\label{sec:methods}\label{appendix:substudies}
+
+% Scaling Deep Reinforcement Learning this far is more than simply a matter of buying more computers and increasing some numbers in a configuration file\commentjon{Wording here should be revised: ideally talk about the typical challenges and requirements of large scale ML. e.g. reproducibility, stability, sequentiality, etc. In each case distributed systems makes those problems hard, and so a novel platform was needed to solve this (Rapid). The problems we face range from common (training divergence, hyperparams) to the more unique (machines failing, DDOS-Pypi, and other scale-related challenges).}. 
+As shown in \autoref{fig:lotsa-results} of the main text, we studied several key ingredients of RL at this scale, and learned important lessons which we conjecture should generalize beyond this environment. 
+In this section we explain the details of these experiments. 
+
+Training runs the size of \openaifive are expensive; running a scan of 4 different variants would be prohibitively expensive. For this reason we use the normal \dota environment, simply using a batch size 8x smaller than \cleanexpname (which itself was 2-3 times smaller than \openaifive). 
+See \autoref{fig:multiple-baselines} for an estimate of the variation in these training runs.
+
+\begin{figure}
+    \centering
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\textwidth]{figures/reproducibility_trueskill.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\textwidth]{figures/reproducibility_variance.pdf}
+    \end{subfigure}
+    \caption{\textbf{Variation in 5v5 baseline training:} On the left, the \trueskillname over the course of training for different ``baseline'' experiments, using identical settings and hyperparameters. On the right, the standard deviation in \trueskillname across four runs. See \autoref{appendix:hyperparams} for the hyperparameters used. Although we only have 4 runs, we can estimate that different runs tend to vary by about 2 \trueskillname.}
+    \label{fig:multiple-baselines}
+\end{figure}
+
+
+Throughout the following sections we scan over various parameters of the experimental setup and monitor the results in terms of \trueskillname (see \autoref{appendix:trueskill}) and speedup (see \autoref{eqn:speedup}).
+
+Our the uncertainty on speedup comes from uncertainty in both the numerator and the denominator. 
+Although we have some understanding in the variance in the number of iterations for a baseline to reach each \trueskillname (see \autoref{fig:multiple-baselines}), we do not have the luxury of multiple runs of every experiment.
+Instead, we use as proxy for the uncertainty on the number of iterations to reach \trueskillname $T$, the number of iterations to reach to reach $T\pm\Delta T$ where $\Delta T$ is the variance in \trueskillname across the variations in \autoref{fig:multiple-baselines}, approximately 2 \trueskillname points.
+We combine the numerator and denominator uncertainty in quadrature to attain an overall uncertainty for the speedup.
+
+In each experiment the baseline uses hyperparameters given in \autoref{appendix:hyperparams}, except as noted.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Batch Size}\label{sec:methods:batchsize}
+
+% Reinforcement Learning using policy gradients relies on informative improvement directions derived by observing the direction that maximizes reward over the observed experience data. Because the gradient of the actions with respect to the expected reward gradient cannot be derived analytically or in closed form, a (unsure of wording: sample based?) estimator is used instead. The variance of this estimator is dependent on the batch size.
+
+% Unlike prior work, which treats minibatch size as a parameter dictated by system constraints, we made it into a key design parameter in our experiments, and built our training infrastructure to grow the batch size as large as possible.
+
+Training using small mini-batches is a generally accepted trade-off between convergence time and number of optimization steps. 
+However, recent literature on large-scale supervised learning of image classifiers \cite{Goyal2017Imagenet, You2017Imagenet, You2018minutenet} explored much larger batch sizes and showed that strong scaling was possible by carefully tuning learning rate and initialization of the neural network. 
+This renewed interest in reducing convergence-time and treating batch-size as a key design parameter also motivated the work of \cite{mccandlish2018empirical}, where an analytical tool is derived to estimate a training-time optimal batch size on per task basis by studying the ``noise scale'' of the gradients.
+
+While existing literature on large-scale training of neural networks had focused on supervised learning, as far as we know using large batch sizes for reinforcement learning was novel when we began the \dota project.
+These observations were later shown to be consistent with the analytical tools derived in \cite{mccandlish2018empirical}. 
+% Noise scale for scale-64 increases linearly over the course of the experiment from 0 to 10^5. At TS 175, it's around 6e4. Batch size is 64*120=8e3.
+% Noise scale for scale-512-7, long after ts 175, hovers around 2e4 (batch size 512*120=6e4)
+% These seem to be ordered the wrong way around, so I don't think we can conclude much from them, probably there's some measurement miscalculation.
+In this section we demonstrate how large batch-sizes affect optimization time.
+
+Because we average gradients across the pool of optimizer machines, the effective total batch size is given by the product of the number of GPU optimizers with the batch size on each optimizer. 
+We always use the maximum batch size on each optimizer which will fit within the GPU's memory constraints (120 for our setup). 
+Thus in order to change the overall batch size we increase the number of optimizer GPUs. 
+We increase the size of the other machine pools in the experiment (rollout CPU workers, forward pass GPUs, etc), such that the larger batch size experiment is truly optimizing over more data, not simply reusing the same data more. 
+This means that doubling the batch size causes the experiment to use twice as much computing power in almost all respects.
+Because we do not have the resources to separately optimize these hyperparameters at each individual batch size, we keep all other hyperparameters fixed to those listed under ``baseline'' in \autoref{table:hyperparams}.
+
+%We speculate that large batch-sizes have a linear speedup on training time because a fixed number of examples of specific strategies or game events must be optimized over to improve. Supposing that the rate of occurrence of these events is a fixed intrinsic parameter of the environment, then it is possible to trade off optimization steps for batch size in order to witness the same number of events.
+
+%We hypothesize that if certain events are sufficiently rare, then due to the optimization process, spreading their observation over non-sequential gradient steps might nullify their impact on the learnt policy. If this is the case, then it might motivate the use of large batch-sizes as being qualitatively different from small scale training, beyond serving as a quantitative speedup.
+
+\begin{figure}
+    \centering
+    % To regenerate these plots run "python3 paper/plots/scale.py ~/Desktop/scale_"
+    \begin{subfigure}[t]{0.49\linewidth}
+        \vskip 0pt % this vskip is used for top-alignment
+        \includegraphics[width=\textwidth]{figures/scale_trueskill.pdf}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \vskip 0pt % this vskip is used for top-alignment
+        \includegraphics[width=\textwidth]{figures/scale_speedup.pdf}
+    \end{subfigure}
+    \caption{\textbf{Effect of batch size on training speed:} (Replicated from main text \autoref{subfig:batch-size}) \genericcaptionsentence{increasing the batch size.} The dotted line indicates perfect linear scaling (using 2x more data gives 2x speedup). 
+    Larger batch size significantly speeds up training, but the speedup is sublinear in the resources consumed. 
+    Later training (\trueskillname 175) benefits more from increased scale than earlier training (\trueskillname 100). 
+    Note that \trueskillname 175 is still quite early in the overall training of \openaifive which ultimately reaches above 250 (see \autoref{fig:final-ts}), so these results are inconclusive about whether large batch size causes linear speedup for the bulk of the training time.}
+    \label{fig:batchsize}
+\end{figure}
+
+Results can be seen in \autoref{subfig:batch-size}, with discussion in the main text. 
+% and are reproduced in \ref{fig:batchsize}. 
+% Increasing the batch size increases the speed of training.
+
+% The increase is  sublinear at the scales involved here; for example in \autoref{fig:batchsize} we see that increasing the batch size (and thus the compute resources used) by a factor of 4 only gives a speedup of approximately 2x in terms of time to train to \trueskillname 175. 
+% The speedup benefits of larger batch size are more pronounced later in training than earlier in training. 
+% This from-scratch, small-scale study is only able to probe the very early phase of a long-running training run like \openaifive or \cleanexpname; \cleanexpname reaches \trueskillname 175 less than 5\% of the way through its training time. 
+% The later stages of such a training run likely benefit more from increased batch size than the regime probed by this scan.
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection{Model Capacity}\label{sec:methods:capacity}
+% %  DRI: Jie + Jonathan
+
+% When training neural networks, a generally held belief is that larger neural networks perform better (assuming enough data can be gathered to avoid overfitting, that they can be optimized with high throughput, etc). 
+% Models used for unsupervised text and image modeling have been scaled to billions of parameters with proper initialization and regularization\todo{citations-big-models}.
+
+% By contrast, typical neural nets used in reinforcement learning are much smaller. 
+% Many commonly studied benchmark problems in the literature use models ranging from tens of thousands to tens of millions of parameters \cite{espeholt2018impala, cobbe2018coinrun}. 
+% Larger RL models appear when training from raw perceptual inputs like pixels is desirable, and a large number of parameters are consumed by processing vision.
+
+% One explanation for this is that the environments are not rich enough to benefit from significant model capacity. 
+% By contrast, our \dota policy has nearly 159M parameters, with 134M of them coming from a single-layer LSTM. 
+% A complex game like \dota presents a unique opportunity to explore how model capacity affects performance in reinforcement learning.
+
+% Model capacity can be tricky to isolate in reinforcement learning at scale due to systems issues --- a larger model will take up more GPU memory, requiring smaller batch sizes. 
+% Larger models will take longer to compute and apply gradients, and to transfer over the network. 
+% In our asynchronous training system, these timings affect how on-policy data is and how many times a single piece of data is used for optimization.
+
+% To control for these systems effects, we ran a series of experiments where we only allowed each sample to be used at most once (sample reuse 1), using only on-policy data (staleness 0). 
+% We varied the size of our final pre-LSTM hidden layer and hidden state from \{512, 1024, 2048, 4096\}, keeping the rest of the model the same (e.g. embeddings for various categorical entities).
+% Note that each scale up resulted in a roughly 4x increase in the size of the model. 
+
+% The results can be found in the main text in \autoref{subfig:model-capacity} and are reproduced in \autoref{fig:modelsize}.
+% As we increased model size, performance (as measured by \trueskillname at a given training iteration) increased monotonically with increasing model capacity up to 50 million parameters, with 50 million and 159 million harder to distinguish. 
+% However, when controlling for the number of training FLOPS used,
+% we see that the smallest model is the most efficient. 
+% As with batch size, using a larger model gets results faster, but the tradeoff is sublinear in the compute used.
+% When a project is compute-limited, then, it makes sense to use smaller models; when data-bound, larger models may train slightly faster on the same amount of data.
+
+% \begin{figure}
+%     \centering
+%     \begin{subfigure}[t]{0.45\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{figures/capacity_trueskill.pdf}
+%     \end{subfigure}\hfill
+%     \begin{subfigure}[t]{0.45\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{figures/capacity_speedup.pdf}
+%     \end{subfigure}\hfill
+%     \caption{\textbf{Effect of model size on training speed (iterations)} 
+%     (Replicated from main text \autoref{subfig:model-capacity})
+%     \genericcaptionsentence{decreasing the LSTM size, as measured in iterations.} Increasing model size generally results in faster training, with diminishing returns as we reach model size 4096.}
+%     \label{fig:modelsize}
+% \end{figure}
+
+% \begin{figure}
+%     \centering
+%     \begin{subfigure}[t]{0.5\textwidth}
+%         \centering
+%         \includegraphics[width=0.9\textwidth]{figures/capacity_flops_trueskill.pdf}
+%     \end{subfigure}\hfill
+%     \begin{subfigure}[t]{0.5\textwidth}
+%         \centering
+%         \includegraphics[width=0.9\textwidth]{figures/capacity_flops_speedup.pdf}
+%     \end{subfigure}\hfill
+%     \caption{\textbf{Effect of model size on training speed (FLOPs):} \genericcaptionsentence{decreasing the LSTM size, as measured in compute usage.} Larger models are more data efficient but consume more compute resources.
+%     \todo{Replace Petaflops with Petaflop/s*day on trueskill x-axis}
+%     \todo{Total param count instead of LSTM size on speedup x-axis}}
+% \end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Sample Quality --- Staleness}\label{sec:methods:staleness}
+% DRI: Michael + Filip + Jonathan
+
+In an ideal world, each piece of data in the optimizer would be perfectly on-policy (to obtain unbiased gradients), would be used exactly once and then thrown out (to avoid overfitting), would be from a completely different episode than every other piece of data (to eliminate correlations), and more.
+Because of our enormous batch size and small learning rate, we hypothesized that loosening the above constraints would not be a large price to pay in exchange for the benefits of asynchronous processing.
+However, we actually learned that issues like this surrounding data quality can be quite significant.
+In this and next section we will focus on two of these issues, which we call {\it staleness} and {\it sample reuse}.
+
+Early on in the development of our agent we would play the whole game of \dota using single set of parameters, then send this huge package of sample data to optimizers for training.
+One of the negative effects of this approach was that this would render data stale; the policy parameters which played the start of the game would be an hour old or more, making the gradients estimated from them incorrect.
+Therefore we have switched to accumulating small amount of training data; sending it over to optimizers and updating agent parameters; then continuing with the same game.
+
+In order to generate rollouts with a certain version of the parameters, a long round-trip has to happen (see \autoref{fig:training-architecture}).
+This new set of parameters is published to the controller, then independently pulled by forward pass machines, which only then will start using this version of parameters to perform forward-passes of our agent.
+Then some amount of gameplay must be rolled forward and after that the data is finally sent to the optimizers.
+In the meanwhile, the optimizers have been running on previously-collected data and advanced by some number of new gradient descent steps.
+In our setup where rollouts send about 30 seconds of gameplay in each chunk, this loop takes 1-2 minutes.
+% By the time this is done, the optimizers have advanced by some number of new gradient descent steps (as visible in box (A) of \autoref{fig:optimization}), thus turning the data under optimization slightly off-policy.
+Because our learning rate is small, and this is only a few minutes on the scale of a multi-week learning endeavor, one might expect this to be a minor concern --- but to the contrary, we observe that this it can be a crucial detail.
+
+% At optimization step $i$ (optimizing parameter version $i$ to produce $i+1$), we define the {\it staleness} as $i$ minus average parameter version that produced data  in the optimizer batches being trained on.
+% \footnote{
+% n.b. This is actually the thing we used to call ``freshness.'' But ``staleness'' is a better name because it implies the correct orientation (lower is better). \todo{remove this footnote before publishing.}
+% }
+
+In this study we artificially introducing additional delay to see the effect.
+This is implemented on the rollout workers; instead of sending their data immediately back to the optimizers, they now put it in a queue, and pop data off the end of it to send to the optimizers.
+Thus the length of the queue determines the amount of artificial staleness introduced. See \autoref{fig:full-queue-to-freshness}; we observe the desired increase in measured staleness with the length of the queue.
+
+The results can be found in the main text in \autoref{subfig:staleness}, and are reproduced in \autoref{fig:staleness}. 
+Staleness negatively affects speed of training, and the drop can be quite severe when the staleness is larger than a few versions. 
+For this reason we attempt to keep staleness as low as possible in our experiments.
+
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/staleness_trueskill.pdf}
+        \label{fig:full-staleness}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/staleness_speedup.pdf}
+        \label{fig:full-staleness-speedup}
+    \end{subfigure}
+    \caption{\textbf{Effect of Staleness on training speed.}
+    (Replicated from main text \autoref{subfig:staleness}) \genericcaptionsentence{increasing Staleness.} Increasing staleness of data causes significant losses in training speed.}
+    
+    \label{fig:staleness}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/full-queue-to-freshness.pdf}
+    \caption{Adding a queue that buffers rollout data on the way to optimizers increases measured staleness in a predictable manner. Error bars indicate the standard deviation of measured staleness as it varied over the course of training due to distributed systems fluctuations.
+    }
+    \label{fig:full-queue-to-freshness}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Sample Quality --- Sampling and Sample Reuse}\label{sec:methods:samplereuse}
+% DRI: Michael
+
+Our asynchronous training system reuses samples in multiple optimization steps. 
+Each optimizer's experience buffer is constantly asynchronously collecting data from rollout machines. 
+At each optimization step, a batch of data is sampled from this buffer. The buffer is configured to hold 4096 samples. 
+Our optimizers compute the average sample reuse as the ratio between data arrival and consumption rates:
+\begin{equation}\label{eqn:sample-reuse}
+    \textrm{Sample Reuse} \equiv \frac
+    {\left(\textrm{samples per batch}\right) \times \left(\textrm{batches per second}\right)}
+    {\left(\textrm{experience buffer intake samples per second}\right)}
+\end{equation}
+
+% \todo{Remove this paragraph if we only use 5v5 data.} Two separate methods are used to sample data, a smart buffer and a simple random buffer. The smart buffer that prioritizes sampling data that has not been used yet and penalizes samples for every time they have been used. As new data comes in, this buffer prioritizes evicting already used samples and those that are stale. Conversely, the simple buffer just randomly samples enough data to fill the batch and evicts the oldest data first. Most experiments in this paper use the smart buffer, however the 1v1 experiments that investigate sample reuse use the simple random buffer due to performance constrains of the smart buffer. There is also a max sample reuse parameter that enforces a maximum number of uses for every sample, in our experiments it has been set to 4.
+
+Sample reuse is a function of the round trip time between rollout machines and optimizers, the ratio of rollout machines to optimizers, and other factors, and thus we only approximately hit target values but do not set them exactly. 
+We measure the effect of sample reuse by varying the rate of incoming samples to the optimizers. 
+In practice, the rate of data production from each rollout worker stays relatively stable, so we vary this rate by changing the number of rollout CPU workers and forward pass GPUs while keeping the number of optimizers and everything else fixed.
+
+Our baseline experiment is tuned to have a sample reuse of approximately 1. 
+To measure the effect of sample reuse we reduced the number of rollouts by 2, 4, and 8x to induce higher sample reuse. 
+Additionally we also doubled the number of rollouts for one experiment to investigate the regime where sample reuse is lower than 1. 
+These adjustments yielded sample reuse measurements between 0.57 and 6.3 (see \autoref{fig:samplereuse:scale-effect}). 
+It is important to highlight that adjusting the number of rollouts directly affects the number of simultaneous games being played, which affects the diversity of games that are used for training.
+
+The results can be found in the main text in \autoref{subfig:sample-reuse}, and are reproduced in \autoref{fig:samplereuse}. 
+We found that increasing sample reuse causes a significant decrease in performance. 
+As long as the optimizers are reusing data, adding additional rollout workers appears to be a relatively cheap way to accelerate training.
+CPUs are often easier and cheaper to scale up than GPUs and this can be a significant performance boost in some setups.
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[t]{0.49\linewidth}
+        \vskip 0pt % this vskip is used for top-alignment
+        \includegraphics[width=\textwidth]{figures/sample_reuse_trueskill.pdf}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \vskip 0pt % this vskip is used for top-alignment
+        \includegraphics[width=\textwidth]{figures/sample_reuse_speedup.pdf}
+    \end{subfigure}
+    \caption{\textbf{Effect of Sample Reuse on training speed.}
+    (Replicated from main text \autoref{subfig:sample-reuse})
+    \genericcaptionsentence{increasing Sample Reuse.} Increasing sample reuse causes significant slowdowns. In fact, the run with 1/8th as many rollout workers (sample reuse around 6.3), seems to have converged to less than 75 \trueskillname.}
+    \label{fig:samplereuse}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/full-artificial-sample-reuse.pdf}
+    \caption{As our target sample reuse increases measured sample reuse increases predictably. Error bars indicate the standard deviation of measured sample reuse as it varied over the course of training.
+    }
+    \label{fig:samplereuse:scale-effect}
+\end{figure}
+
+The fact that our algorithms benefit from extremely low sample reuse underlines how sample inefficient they are. 
+Ideally, our training methods could take a small amount of experience and use that to learn a great deal, but currently we cannot even usefully optimize over that experience for more than a couple of gradient steps. 
+Learning to use rollout data more efficiently is one of the major areas for future work in RL research.
+
+This investigation suggests that sample reuse below one can be beneficial. 
+This experiment out performed all others after around iteration 5,000, including the experiment with sample reuse 1.
+The improvement over sample reuse 1 is minor compared to the gaps between more severe sample reuses, but it is significant.
+Intuitively one might expect that using each sample exactly once would be the most optimal, as no data would get wasted and no data would get used twice; collecting more data and then not optimizing over it would not help.
+
+However, the sample reuse is measured as an average rate of data production to consumption (\autoref{eqn:sample-reuse}).
+Because the optimizers sample each batch randomly from the buffer, sample reuse 1 just means that on \emph{average} each sample is used once, but in fact many samples are used twice, and some not used at all.
+For this reason producing twice as much data as we can consume still reduces the number of samples which get selected multiple times. 
+Of course the magnitude of improvement is relatively small and the cost (doubling the number of rollout workers and forward pass GPUs) is significant.
+Doubling the number of rollout workers may also decrease correlation across samples;
+using two adjacent samples from the same game (when very little has changed between them) may have similar drawbacks to using the same sample twice. 
+
+
+\begin{figure}
+    \centering
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\textwidth]{figures/async_sync_trueskill.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\textwidth]{figures/async_sync_iter_trueskill.pdf}
+    \end{subfigure}
+    \caption{\textbf{Asynchronous training:} Plots of \trueskillname over the course of training for a ``baseline'' experiment together with a ``synchronous'' run using only on-policy data (staleness = 0) and restricting each sample to be used at most once (max sample reuse = 1). On the left, the x-axis is wall time. On the right, the x-axis is iterations. Asynchronous training is nearly 3x faster at achieving \trueskillname 150 when measuring by wall time, even though the two runs perform similarly as a function of the number of iterations.}
+    \label{fig:sync-async}
+\end{figure}
+
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Cut because it's already in the main text.
+% \subsection{Long Time Horizon}
+% % DRI: Jonathan + Jie
+% \todo{Need to significantly edit/rewrite this section.}
+% An important difference between the training of \openaifive and past reinforcement learning agents is the usage of a very low discount factor. We train using a temporal difference actor-critic algorithm, where the critic estimates the discounted future returns from a given state, and uses this prediction to evaluate the {\em advantage} of the chosen actions. The discount factor has a large impact on the behavior of trained reinforcement learning agents: heavily discounting future rewards encourages greedy decision making, while low discounts will weigh more heavily rewards that are temporarily distant and closer to the true win/loss objective. This tradeoff is generally decided by considering how future rewards will shape the behavior of the agent, for instance in Atari's ALE the discount ranges from \todo{XXX to YYY}\todo{citations-horizon-discount}.
+
+% In \dota, games typically take 45 minutes or $\approx20,000$ successive actions, using standard discount factors would completely eliminate the win or loss rewards from the feedback of the agent for many of the actions taken throughout the early and middle parts of the game. We must instead use a lower discount factor of ZZZ, which corresponds to a ``horizon'' of AAA, whereas prior work would only consider horizons of BBB. Because of the uncertainty in the game and stochasticity of the oppponent's actions, predicting future rewards with a low discount factor is error prone, and will in turn increase the policy gradient variance \commentjon{This is surely documented somewhere, what's a good reference for this common sense statement?} and make optimization harder.
+
+% Longer horizons should in principle induce higher level play and emphasize taking key objectives, but they also muddy the relationship between action and reward during the initial training phase, particularly when wins and losses are dominated by environment randomness. We attempt to mitigate this effect by gradually increasing the horizon over the course of training from a starting point of XXX to a later YYYY.
+% We observe that increasing the horizon in this way successfully allows to train agents with a much higher horizon than ever done before.
+% We further investigate the impact of increasing and decreasing horizon later in training by resuming \openaifive Unsurgeried with different horizons and observing whether changes in horizon lead to better or worse policies. We report our findings in \autoref{fig:horizon}, which demonstrates that for a trained 5v5 agent there is a monotonic relationship between horizon and skill
+\end{document}

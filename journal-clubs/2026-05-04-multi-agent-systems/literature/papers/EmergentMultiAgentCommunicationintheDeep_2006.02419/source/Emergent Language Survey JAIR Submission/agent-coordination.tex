@@ -1,0 +1,139 @@
+\subsection{Communication Facilitating Inter-Agent Coordination}
+\label{sec:agent-coordination}
+
+A number of sequential decision-making problems in communication networks \cite{Cortes:etal:2004}, finance \cite{Lux:Marchesi:1999} and other fields cannot be tackled without multi-agent modeling. As the complexity of tasks and the number of agents grow, the coordination abilities of agents become of fundamental importance. Humans excel at large-group coordination, and language clearly plays a central role in their problem solving ability \cite{Tomasello:2010,DavidBarrett:Dunbar:2016,Lupyan:Bergen:2016}. This insight is inspiring algorithmic innovations in multi-agent learning, where communication is used to facilitate coordination among multiple agents interacting in complex environments. While many ingredients of the experiments we review in this section are shared with those we discussed above, now our emphasis is not on the nature of the emergent language, but on whether its presence will aid multi-agent communities to achieve better coordination. Consequently, we focus on setups going beyond referential games, looking at what communication brings in terms of ``added value'' when it is not simply a goal in itself.
+
+Pre-deep-learning work on multi-agent communication for coordination
+\cite{Panait:Luke:2005} used to hard-code communication, e.g., by directly
+sharing sensory observations or information concerning the current
+state of agents or their policies
+\cite{Tan:1993}. % in the form of $<$state, action, reward$>$ or $<$state, action, utility$>$ tuples (\cite{Tan:1993}).
+Reinforcement learning provides a mechanism for learning communication
+protocols, lifting many assumptions required by hand-coded
+protocols \cite{Kasai:etal:2008}. \citeA{Foerster:etal:2016}  combined reinforcement
+learning and deep networks in the context of developing communication
+protocols for interacting agents, presenting experiments with both
+discrete and continuous communication (the RIAL and DIAL systems briefly discussed in Section \ref{sec:discrete-continuous} above). The study found that allowing agents to communicate improves coordination, as indicated by
+higher team rewards compared to no-communication controls. However,
+while continuous communication systematically results in improved
+coordination \cite<see also>{Sukhbaatar:etal:2016,Kim:etal:2019,Singh:etal:2019},
+discrete communication does not yield consistent improvements when the
+complexity of the environment grows, and it only manages to marginally improve
+on the baselines when the agents are constrained to share the same
+weight parameters, a rather unrealistic assumption.
+
+%As reviewed by Panait and Luke \cite{Panait:Luke:2005}, pre-deep-learning work on multi-agent communication for coordination used hard-coded communication methods, e.g., directly sharing sensory observations or information concerning the current state of agents or their policies in the form of $<$state, action, reward$>$ or $<$state, action, utility$>$ tuples (\cite{Tan:1993}). Reinforcement learning provides us with a mechanism for learning communication protocols and can lift many assumptions around hand-code protocols, as illustrated by early attempts to use it in the context of multi-agent communication (~\cite{Kasai:etal:2008}) %presented agents with cooperative tasks, and they used tabular Q-Learning, a standard reinforcement learning technique, to let them discover communication codes maximizing the collective agents' reward. While a significant departure from hand-coded protocols, Q-Learning scales exponentially with the number of agents, limiting the agents' observation to symbolic,  constraints the format of communication to discrete.\textbf{I did not understand what is the problem with communication being discrete? Rather, there is a problem with limiting the simulation to symbolic observations? Maybe something missing in the sentence?}
+%In a seminal work, Foerster et al.~~\cite{Foerster:etal:2016} for the first time combined reinforcement learning and deep networks in the context of developing communication protocols for interacting agents, and presented experiments with both discrete and continuous communication (\textbf{see box??}). %The authors introduced two frameworks, DIAL and RIAL, whose main difference lies in the form of the learned communication protocol. In DIAL, the agents are given a continuous communication channel, making it easy to back-propagate the learning signal obtained by solving the task through the whole multi-agent system, effectively turning the multi-agent system into a single, large, deep network. In RIAL, the communication happens through discrete symbols, thus making it impossible for agents to transmit rich error information via continuous back-propagation through agents. Instead, the only learning signal received by the agents is task reward. Thanks to this bottleneck, RIAL features genuine decentralized training and execution. Similarly to human communities, each agent treats the others as a part of its environment, with no access to their internal states. Moreover, communication via discrete symbols provides the symbolic scaffolding for interfacing the agents' emergent code to natural language.
+%The main finding of this study is that allowing agents to communicate improves coordination, as indicated by the higher team-rewards obtained when compared to no-communication controls. However, while continuous communication systematically results in improved coordination,  discrete communication does not yield consistent improvements when the complexity of the environment grows. It only marginally improves on the baselines when the agents are constrained to share the same weight parameters. 
+% From the learning dynamics points of view, DIAL allows gradients to flow through the communication channel, effectively treating multiple agents as a single entity and it is debatable whether such a multi-agent framework is significantly different than a single neural network. In contrast RIAL's non-differentiable communication channels assumes agents are independent learners, a more realistic assumption but at the same time 
+
+% \subsubsection{Addressing the difficulty of learning communication protocols in dynamic multi-agent environments}
+Learning with a discrete channel is more challenging due to the joint exploration problem, i.e., the environment non-stationarity introduced by the fact that all agents are learning  simultaneously and independently.  In an attempt to facilitate learning with a discrete channel, \citeA{Lowe:etal:2017}  allowed centralized training but decentralized execution. Specifically, the authors modified the standard actor-critic approach from reinforcement learning \cite{Sutton:Barto:1998}, under which an agent's own observation and action are used by an agent-specific ``critic'' to produce an estimate of the value of the action. In \citeA{Lowe:etal:2017}, the critic was shared by all agents,  thus allowing them to receive, at training time only, extra information about the other agents' policies, without access to their internal states.  
+
+In the already discussed study of \citeA{Mordatch:Abbeel:2018}, agents are placed in an environment in
+which they can use non-verbal means of communication, i.e., communicate
+directly through their actions, much like the bees' waggle dance
+\cite{VonFrisch:1967}. When explicit verbal
+communication is disallowed, the agents find other means to
+coordinate, such as pointing, guiding and pushing. While more
+restrictive than a proper language relying on its own separate channel, this
+type of communication might be easier to learn, as actions are already
+grounded in the agents' environment, unlike linguistic communication,
+which assumes utterances to carry no \emph{ex-ante} semantics. It is a natural question whether non-verbal communication could act as a
+stepping stone towards more complex forms of language.
+
+Finally, the importance of looking at human communication as source of inspiration for inductive biases has not gone unnoticed. \citeA{Eccles:etal:2019} capitalize on pragmatics, considering a speaker whose goal is to be informative and relevant (adhering to the equivalent Gricean maxims), and a listener who assumes that the speaker is cooperative, i.e., providing meaningful and relevant information \cite{Grice:1975}.  The authors frame these inductive biases into additional training objectives, one for each interlocutor. The speaker is rewarded for message policies that have high mutual information with the speaker's trajectory,  resulting in the production of different messages in different situations. The listener is rewarded when its behaviour is affected by the speaker's messages, encouraging it to attend to the communication channel. \citeA{Foerster:etal:2019} simulate a process akin to pragmatic inference \cite{Goodman:Frank:2016}, which guides human behaviour in a variety of communicative scenarios. Specifically,  in the context of Hanabi \cite{Bard:etal:2020}, a cooperative card game where agents communicate through their game moves, agents reason about their co-players' observable actions, aiming at uncovering their intents and modeling their beliefs, in order to produce more informative signals.
+
+\subsection{Beyond Cooperation: Self-interested and Competing Agents}
+
+While most deep agent emergent communication work considers
+interactions between cooperative agents, there is increasing interest in cases where
+agents' interests diverge. Communication between self-interested and
+competing agents has been extensively studied in game theory and
+behavioral economics \cite{Crawford:Sobel:1982}, since in human
+interaction and decision making tensions between collective and
+individual rewards constantly arise. From a practical point of view, a
+better understanding of emergent communication in
+non-fully-cooperative situations can positively impact applications
+such as self-driving cars.
+
+Theoretical results suggest that,
+when the agents' incentives are not aligned, meaningful communication
+is not guaranteed \cite{Farrell:Rabin:1996}. Compared to what happens when agents
+communicate directly through their core actions \cite<as in>{Mordatch:Abbeel:2018}, linguistic communication differs in
+three key properties,  labeled  as ``cheap talk'' by
+\citeA{Farrell:Rabin:1996}. Linguistic communication
+is i) costless, i.e., the sender incurs no penalty for sending
+messages; ii) non-binding, i.e., messages sent through this channel do
+not commit the sender to any course of action and iii) non-verifiable,
+i.e., there is no inherent link between linguistic communication and
+the agents' behaviours, so that agents can potentially lie. %
+% let's try to understand why
+%Emergent communication typically takes the form of cheap talk.
+In cooperative games this is not an issue, since the agents' incentives are aligned and communication can only increase their pay-offs. When agent interests diverge, however, senders could choose to communicate information increasing their personal reward only (and potentially decreasing that of others), and consequently disincentivize receivers from paying attention.
+
+\citeA{Cao:etal:2018} study language emergence in a
+semi-cooperative model of agent interaction, i.e., a negotiation
+environment \cite{DeVault:etal:2015} consisting in a multi-turn
+version of the ultimatum game \cite{Guth:etal:1982}. In each episode,
+agents are presented with a set of objects, and each agent is
+assigned a hidden value for each object (e.g., in an episode, peppers
+might be very valuable for one agent, and cherries useless).  At each
+step, agents emit a cheap talk message, as well as a (non-verbally
+conveyed) proposal on how to split the goods. Either agent can
+terminate the episode at any time by accepting the proposal that the
+other agent made in the previous step. If the agents do not reach an
+agreement within 10 turns, neither gets any reward. The authors find
+that when agents are self-interested, i.e., each agent is trained to
+maximize its own reward, they only coordinate through the non-verbal
+proposal channel, corroborating results of 
+game-theoretical analyses \cite{Crawford:Sobel:1982}. On the other
+hand, ``pro-social'' agents (that receive the
+cumulative reward of both agents for the split they agreed upon) do
+learn to meaningfully rely on the linguistic channel.
+% while using a cheap-talk channel does not
+% allow then to coordinate and achieve equal splitting, communicating
+% via the grounded channel allows then to coordinate, corroborating
+% theoretical results from the game theory
+% literature~\cite{Crawford:Sobel:1982}. At the same time, when agents
+% are cooperative, i.e., both maximizing a common reward function, both
+% communication channels are successful in establishing coordination.
+
+% , and agents negotiate in order to agree on a split of the objects such that they each maximize their own reward.
+
+% ~\cite{Cao:etal:2018} implemented their experimental setup using Deep Reinforcement Learning materials, i.e., agents are parametrized as neural networks and learning is performed using the REINFORCE rule. The authors performed experiments with two modes on communication, communicating on the action space, i.e., grounded communication in terms of object proposals which at the end of the game to calculate their reward, and communicating using a cheap-talk channel. The authors find that when agents are self-interested, i.e., when each agent is set to maximize their own reward, while using a cheap-talk channel does not allow then to coordinate and achieve equal splitting, communicating via the grounded channel allows then to coordinate, corroborating theoretical results from the game theory literature~\cite{Crawford:Sobel:1982}. At the same time, when agents are cooperative, i.e., both maximizing a common reward function, both communication channels are successful in establishing coordination. 
+
+% Going beyond classic referential games, Cao et
+% al.~\cite{Cao:etal:2018} (partially inspired by
+% \cite{Lewis:etal:2017}) studied whether agents can learn to use
+% multiple-turn conversations to achieve their goals in a negotiation
+% scenario. In each episode of their game, two agents A and B are
+% exposed to a (symbolically represented) set of items. Each of them is
+% also provided with (random and hidden) utilities for each item type
+% (e.g., in a specific episode, peppers might be very valuable and
+% cherries useless for agent A). At each step, agents emit a
+% multiple-symbol message, as well as a (non-verbally conveyed) proposal
+% on how to split the goods. Either agent can terminate the episode at
+% any time by accepting the proposal that the other agent issued at the
+% previous step. If the agents do not reach an agreement within 10
+% turns, neither gets any reward. The agents learn to play the game at
+% least somewhat successfully in all setups, but the crucial factor
+% determining whether they will meaningfully use the linguistic channel
+% (as opposed to only rely on the information directly conveyed by the
+% non-verbal proposals) is whether they are rewarded ``prosocially''
+% (each agent receives the cumulative reward of both agents under the
+% agreed split) or egotistically. Only prosocial agents learn to use
+% language, sharing in particular information about their
+% utilities. When one agent is made to play against a community of other
+% agents, the language channel, again, is meaningfully used only when
+% there are enough prosocial agents in the community. However, each pair
+% of agents develops its own idiolect, with no convergence to a common
+% language.
+
+\citeA{Jaques:etal:2019} reported similar negative results for vanilla cheap talk among 
+self-interested agents in the context of sequential social dilemmas \cite{Leibo:etal:2017}. %, a temporally extended version of Prisoner's Dilemma. %in which cooperation and defection takes place on the policy space rather than on the individual action space. \textbf{I found the previous sentence hard to follow: perhaps it can be shortened and made less technical?}
+% Based on both empirical and theoretical considerations,  the authors introduce an inductive bias for promoting the emergence of useful communication in self-interested agents.
+Inspired by theories of the importance of social learning \cite{Herrmann:etal:2007}, the authors extended individual task rewards with an extra term capturing an agent \emph{social influence}, i.e., how effective the sender's active communication is on other agents. This is calculated as the impact that silencing the agent's communication channel has on the other agents' behaviour, and acts as intrinsic motivation for learning useful communication strategies. %
+% KL divergence between the receiver agents' policies with and without considering the communication from the sender agent.
+This inductive social bias results in agents with better
+coordination skills, and consequently higher collective rewards.

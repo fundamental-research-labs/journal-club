@@ -1,0 +1,108 @@
+\section{\bugs{}: Software Task Generation at Scale}
+\label{sec:swesmith}
+The core principle of \bugs{}'s collection strategy is to define an execution environment first, and then synthesize task instances within the environment.
+Conceptually, this is a simple inversion of SWE-bench's approach, which instead prioritizes identifying task instances, and then attempts to build an environment for each.
+In this section, we describe the procedure in detail and show how, in practice, \bugs{} scales significantly better in terms of repositories, task instances, and storage.
+
+\subsection{Collection}
+\label{sec:swesmith:collection}
+
+\textbf{Building execution environments for repositories with passing tests.}
+Given a repository, we run SWE-agent~\citep{yang_swe-agent_2024} on the latest commit for at most $100$ steps, instructing it to install the codebase and run the test suite.
+We then manually verify the installation and testing instructions, check if more than $80$\% of existing tests pass, and finally create a Docker image for the repository.
+We target repositories for the $5,000$ most downloaded packages listed in the Python Package Index (PyPI) as of November 18, 2024, sort the PyPI packages by GitHub stars, and then remove any PyPI package with less than $1,000$ stars, as well as all $12$ SWE-bench test repositories from consideration.
+More in \S\ref{appx:infra:repo_selection}.
+
+\textbf{Creating task instance candidates.}
+Per repository, we employ four different strategies to create candidates.
+As shown in Figure~\ref{fig:preview}, each strategy takes in a repository as input, then produces task instance candidates represented as \texttt{.diff} files.
+Extensive details in \S\ref{appx:bugs:generate}.
+\begin{itemize}[leftmargin=15pt]
+    % \kilian{are we filtering for complexity of the functions here?}
+    % \john{yes, but electing to address this in appendix}
+    \item \textbf{LM Generation}: Per repository, we identify all programmatic entities (functions, classes), then take two approaches: (1) provide an LM with the function and prompt it to introduce errant \textit{modifications} (henceforth referred to as ``LM Modify"), and (2) given only the function header and docstring, ask the LM to \textit{rewrite} it (``LM Rewrite").
+    More in \S\ref{appx:bugs:generate:lm}.
+    \item \textbf{Procedural Modification}: Per function, we acquire an abstract syntax tree (AST) representation of the code, then randomly perform one or more transformations (e.g., remove a conditional/loop, change an operator, +$11$ more. See Table~\ref{tab:pm_list}).
+    More in \S\ref{appx:bugs:generate:prod}.
+    \item \textbf{Combine Bugs}: LM generation and Procedural Modification task instances exclusively edit one function or class.
+    To create more complex tasks that require editing multiple portions of the codebase, we devise a ``Patch Combination" strategy that creates a task instance by aggregating candidates from the same file(s) or module(s).
+    More in \S\ref{appx:bugs:generate:combine}.
+    \item \textbf{Invert PRs} (or ``PR Mirror"): Per repository, we collect all PRs that modify Python files.
+    Per PR, we attempt to \emph{undo} its revisions in the current version of the repository.
+    To achieve this, we provide an LM with the PR's code changes (a \texttt{.diff} plaintext) and prompt it to rewrite each affected file such that the PR edits are reverted.
+    Unlike SWE-bench, we do \textit{not} check out the PR’s base commit, as the install specifications determined in the previous step may not be compatible with older versions of the repo.
+    More in \S\ref{appx:bugs:generate:pr}.
+\end{itemize}
+
+\textbf{Execution-based validation of candidates.}
+We apply each candidate patch to the corresponding repository, run the test suite, and only keep patches that break one or more existing, passing tests (referred to as \textit{Fail-to-Pass} or \textit{F2P} test(s)).
+% The F2P test(s) are used as execution-based signal to determine if a bug was resolved.
+% If either no existing tests fail or the test suite cannot be run successfully, the patch is discarded.
+For efficiency purposes, we also limit testing runtime to two minutes; bug candidates that cause test runtimes in excess of this time limit are discarded.
+Minor additional details in \S\ref{appx:infra:harnesses}.
+
+\textbf{Generating problem statements.} 
+The issue text associated with a bug can significantly alter the difficulty and feasibility of the task instance.
+Detailed descriptions of ``expected" vs. ``observed" behavior or bug-reproduction code in issue text heavily affect an agent's capacity to localize bugs or iterate on proposed solutions.
+We explore several techniques covered fully in \S\ref{appx:issue_generation}, and ultimately settle on a simple strategy.
+Per task instance, we provide an LM with the \texttt{.diff} patch, source code of a random F2P test, and execution output from running the repository's test suite with the bug patch applied.
+We prompt the LM for GitHub issue-style text that includes reproduction code based on the F2P test.
+
+\textbf{What human labor remains?}
+The steps requiring manual effort are (1) parsing the correct installation setup procedures from the agent trajectory ($\sim7$ min per repository), 
+% \kilian{couldn't we ask the agent to directly generate a setup file based on its actions?}
+and (2) implementing the parser for test outputs ($\sim1$ min per repository).
+Step two requires very little time because parsers can be reused for repositories with the same testing infrastructure (e.g., \texttt{pytest}).
+\bugs{} removes the need for manual efforts to determine installation specifications for multiple versions of a codebase across time, the most costly step of SWE-bench collection.
+% 128 repo * 8 min per repo / 60 = 16.6h
+Creating \bugs{} took one author $\sim{}20$h of human labor.
+
+\subsection{Features}
+\label{sec:swesmith:features}
+
+We apply \bugs{} to $128$ Python repositories, generating a total of $50$k instances.
+Table~\ref{tab:dataset_summary} captures the key statistics.
+On average, we generate $381$ task instances per repository, with as many as $2277$ for \texttt{pandas-dev/pandas}.
+We summarize the distribution of task instances per repository in Figure~\ref{fig:num_insts_per_category}, where repositories are grouped into one of six general categories.
+\bugs{} took \$$1360$ to create (\$$1000$ to generate bugs, \$$160$ for automatic repository installation with SWE-agent, \$$200$ to generate issues for $10$K bugs).
+Generating an issue costs $2.54$¢ on average.
+More dataset analyses in \S\ref{appx:dataset}.
+
+\begin{table}[t]
+\centering
+\begin{minipage}[b]{0.33\textwidth}
+    \setlength{\abovecaptionskip}{0em}
+    \includegraphics[width=\textwidth]{figures/boxplot_num_insts.pdf}
+    \captionof{figure}{
+    Distribution of instances per repo for $128$ repo's grouped into $6$ categories.
+    }
+    \label{fig:num_insts_per_category}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{0.64\textwidth}
+    \input{tables/dataset_summary}
+\end{minipage}
+\end{table}
+
+Bug generation strategies vary in cost and yield rate.
+Of methods relying on LMs, PR Mirrors are more expensive because the task entails rewriting entire files, as opposed to individual functions for LM Modify and LM Rewrite.
+Yield rates are limited by either lack of test coverage for the change or because the bug candidate did not actually introduce relevant issues.
+For example, for LM Rewrite, the LM is asked to re-implement the function; it is \textit{not} explicitly asked for bugs.
+When requested outright (LM Modify), the yield is higher.
+
+\input{tables/dataset_comparison}
+
+\textbf{How difficult are \bugs{} task instances?}
+To determine whether task instances produced by \bugs{} are realistic and challenging, we train a Qwen $2.5$ $32$B model on $1{,}699$ human-annotated (task, label) pairs from~\citet{chowdhuryintroducing} to rate tasks as (\texttt{easy}, \texttt{medium}, \texttt{hard}) by training.
+To quantify difficulty, each difficulty label corresponds to values of $1$/$5$/$9$.
+The model achieves $75.3$\% test accuracy.
+We then rate difficulty of task instances from both \bugs{} and prior SWE-bench style datasets~\citep{chowdhuryintroducing,jimenez_swe-bench_2024,pan_training_2024,yang_swe-bench_2024}.
+\bugs{} task instances span a broad range of difficulties, similar to SWE-bench and SWE-gym.
+The average difficulty score for \bugs{} ($5.27$–$5.72$ across bug generation strategies) is comparable to SWE-bench ($5.01$) and SWE-gym ($5.62$). This suggests SWE-smith enables realistic and appropriately challenging evaluation.
+We discuss why bug strategies yield different levels of difficulty and visualize difficulty per dataset in \S\ref{appx:difficulty}.
+
+\textbf{Scaling execution environments.}
+Unlike SWE-bench which creates a Docker image per task instance, \bugs{} leverages a simpler design where tasks from the same repository share the same environment, reducing storage overhead significantly, as shown in Table~\ref{tab:dataset_comparison}.
+This approach not only makes scaling task instances more affordable, but also renders \bugs{} more accessible and maintainable than existing datasets.
+We estimate that creating a similar quantity of task instances ($50$k) using SWE-bench would require $50$ to $150$ TBs of storage for environments, a $500$x difference.
+Extended discussion in \S\ref{appx:dataset:bug_gen_stats}.

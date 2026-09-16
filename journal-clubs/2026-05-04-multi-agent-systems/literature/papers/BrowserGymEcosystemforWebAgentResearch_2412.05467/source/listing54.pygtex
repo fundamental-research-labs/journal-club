@@ -1,0 +1,37 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from} \PYG{n+nn}{agentlab.agents} \PYG{k+kn}{import} \PYG{n}{dynamic\PYGZus{}prompting} \PYG{k}{as} \PYG{n}{dp}
+
+\PYG{k}{class} \PYG{n+nc}{ExampleAgent}\PYG{p}{(}\PYG{n}{Agent}\PYG{p}{):}
+    \PYG{k}{def} \PYG{n+nf+fm}{\PYGZus{}\PYGZus{}init\PYGZus{}\PYGZus{}}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{,} \PYG{n}{flags}\PYG{p}{,} \PYG{n}{chat\PYGZus{}model\PYGZus{}args}\PYG{p}{):}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{flags} \PYG{o}{=} \PYG{n}{flags}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{action\PYGZus{}set} \PYG{o}{=} \PYG{n}{HighLevelActionSet}\PYG{p}{([}\PYG{l+s+s2}{\PYGZdq{}bid\PYGZdq{}}\PYG{p}{])}
+
+        \PYG{c+c1}{\PYGZsh{} unified LLM/VLM API for using different provider}
+        \PYG{c+c1}{\PYGZsh{} e.g.: OpenAI, OpenRouter, Azure, or self hosted using TGI.}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{chat\PYGZus{}llm} \PYG{o}{=} \PYG{n}{chat\PYGZus{}model\PYGZus{}args}\PYG{o}{.}\PYG{n}{make\PYGZus{}model}\PYG{p}{()}
+
+    \PYG{k}{def} \PYG{n+nf}{get\PYGZus{}action}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{,} \PYG{n}{obs}\PYG{p}{):}
+        \PYG{n}{instructions} \PYG{o}{=} \PYG{n}{dp}\PYG{o}{.}\PYG{n}{GoalInstructions}\PYG{p}{(}\PYG{n}{obs}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}goal\PYGZus{}object\PYGZdq{}}\PYG{p}{])}
+        \PYG{n}{observation} \PYG{o}{=} \PYG{n}{dp}\PYG{o}{.}\PYG{n}{Observation}\PYG{p}{(}\PYG{n}{obs}\PYG{p}{,} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{flags}\PYG{o}{.}\PYG{n}{obs}\PYG{p}{)}
+        \PYG{n}{action} \PYG{o}{=} \PYG{n}{dp}\PYG{o}{.}\PYG{n}{ActionPrompt}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{action\PYGZus{}set}\PYG{p}{,} \PYG{n}{action\PYGZus{}flags}\PYG{o}{=}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{flags}\PYG{o}{.}\PYG{n}{action}\PYG{p}{)}
+
+        \PYG{n}{prompt} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}\PYG{o}{.}\PYG{n}{join}\PYG{p}{([}
+            \PYG{n}{instructions}\PYG{o}{.}\PYG{n}{prompt}\PYG{p}{,} \PYG{c+c1}{\PYGZsh{} the goal of the task}
+            \PYG{n}{observation}\PYG{o}{.}\PYG{n}{prompt}\PYG{p}{,} \PYG{c+c1}{\PYGZsh{} html and/or ax\PYGZus{}tree depending on flags.obs}
+            \PYG{n}{action}\PYG{o}{.}\PYG{n}{prompt}\PYG{p}{,} \PYG{c+c1}{\PYGZsh{} the action space described based on flags.action}
+            \PYG{n}{action}\PYG{o}{.}\PYG{n}{concrete\PYGZus{}ex}\PYG{p}{,} \PYG{c+c1}{\PYGZsh{} concrete example of the expected answer}
+        \PYG{p}{])}
+
+        \PYG{c+c1}{\PYGZsh{} Progressively shrink some part of the prompt until it fits the limit}
+        \PYG{c+c1}{\PYGZsh{} Each component has its own shrinking strategy}
+        \PYG{n}{prompt} \PYG{o}{=} \PYG{n}{dp}\PYG{o}{.}\PYG{n}{fit\PYGZus{}tokens}\PYG{p}{(}\PYG{n}{prompt}\PYG{p}{,} \PYG{n}{max\PYGZus{}prompt\PYGZus{}tokens}\PYG{o}{=}\PYG{l+m+mi}{40000}\PYG{p}{)}
+
+        \PYG{n}{action\PYGZus{}str} \PYG{o}{=} \PYG{n}{action}\PYG{o}{.}\PYG{n}{parse\PYGZus{}answer}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{chat\PYGZus{}llm}\PYG{p}{(}\PYG{n}{prompt}\PYG{p}{))}
+        \PYG{k}{return} \PYG{n}{action\PYGZus{}str}\PYG{p}{,} \PYG{n}{bgym}\PYG{o}{.}\PYG{n}{AgentInfo}\PYG{p}{(}\PYG{n}{chat\PYGZus{}messages}\PYG{o}{=}\PYG{p}{[}\PYG{n}{prompt}\PYG{p}{])}
+
+
+    \PYG{k}{def} \PYG{n+nf}{obs\PYGZus{}preprocessor}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{,} \PYG{n}{obs}\PYG{p}{):}
+        \PYG{n}{obs}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}processed\PYGZus{}html\PYGZdq{}}\PYG{p}{]} \PYG{o}{=} \PYG{n}{process\PYGZus{}html}\PYG{p}{(}\PYG{n}{obs}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}dom\PYGZus{}object\PYGZdq{}}\PYG{p}{]}
+        \PYG{k}{return} \PYG{n}{obs}
+
+\end{Verbatim}

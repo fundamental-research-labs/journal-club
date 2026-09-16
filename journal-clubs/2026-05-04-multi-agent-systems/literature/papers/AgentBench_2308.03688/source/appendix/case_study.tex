@@ -1,0 +1,575 @@
+\subsection{Findings}
+\label{app:case_study}
+
+\subsubsection{Instruction Following Matters}
+\label{app:instruction_matters}
+Based on the data presented in Table~\ref{tab:validation-model-comparison}, we can draw a few important observations on the performance differentiation between Commercial API-based models and Open-Sourced models.
+It's noteworthy to highlight the areas of Invalid Format and Invalid Action, where the Open-Sourced models report more challenges. Specifically, 10.4\% of the Open-Sourced model outcomes were marked as Invalid Format, in comparison to the 6.0\% from Commercial API-based models. Similarly, Invalid Actions were seen more in Open-Sourced models (13.6\%) than in Commercial API-based models (4.6\%). These discrepancies might be indicative of the robustness and generalization abilities of commercial models, or perhaps the attention to details during the model's design and training phases, especially instruction following.
+
+\begin{table}[h]
+\centering
+\resizebox{\textwidth}{!}{
+    \begin{tabular}{lcccccc}
+    \toprule
+    Model Category & Completed & Context Limit Exceeded & Invalid Format & Invalid Action & Task Limit Exceeded \\
+    \midrule
+    Commercial API-based Models & 61.5\% & 3.0\% & 6.0\% & 4.6\% & 24.9\% \\
+    Open-Sourced Models & 39.1\% & 0.0\% & 10.4\% & 13.6\% & 36.9\% \\
+    \bottomrule
+    \end{tabular}
+}
+\caption{Comparison of Outcome distribution for 2 types of models.}
+\label{tab:validation-model-comparison}
+\end{table}
+
+It's also worth noting that even some of the best models might sometimes overlook important instructions. 
+
+Although we clearly instructed the correct format of DB task:
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,244},
+    breaklines=true,
+    basicstyle=\ttfamily\small
+}\begin{lstlisting}
+[omitted...]
+your operation should be like this:
+Action: Operation
+```sql
+SELECT * FROM table WHERE condition;
+```
+[omitted...]
+\end{lstlisting}
+Even \texttt{gpt-4} still sometimes fail to respond correctly.
+
+
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,244},
+    breaklines=true,
+    basicstyle=\ttfamily\small
+}\begin{lstlisting}
+To modify the capacity of the 'Princeton Tigers' team in the 'Team Information' table to '45,000', we need to use the UPDATE statement in SQL. The UPDATE statement is used to modify the existing records in a table. 
+
+The syntax for the UPDATE statement is as follows:
+
+```sql
+UPDATE table_name
+SET column1 = value1, column2 = value2, ...
+WHERE condition;
+```
+
+In this case, the table_name is 'Team Information', the column we want to update is 'Capacity', and the new value is '45,000'. The condition is that the 'Team' column should be 'Princeton Tigers'. 
+
+Let's execute this operation.
+\end{lstlisting}
+Neither "Action" label nor a correct SQL statement is returned. We speculate that this may arise due to the models internalizing certain output patterns during their training or alignment processes, causing them to neglect specific task directives.
+
+\subsubsection{Consistency and Execution in Agent Planning}
+
+A fundamental capability of an agent is the possession of coherent and unified thought processes that enable the formulation and implementation of viable plans based on real-world conditions. Many models possess the ability to analyze and formulate initial plans upon encountering a problem. However, even some of the most advanced models can easily deviate from or forget their original plans. The disparity in the ability of different models to consistently follow thought sequences when executing plans is relatively vast. This capability profoundly influences the efficacy and operational potency of Language Models (LLMs) acting as agents. Here we exemplify this phenomenon with the House Holding environment.
+
+The House Holding environment encompasses a simulated domestic setting in which models are required to select appropriate actions from a given action space, based on observations of the surrounding environment provided by the task and given objectives to complete. With a multitude of entities and a plethora of available actions, the House Holding environment offers a high degree of freedom, which intensely challenges a model's ability to maintain clear and coherent thought processes.
+
+A success example by \texttt{gpt-4} is shown below.
+
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,244},
+    breaklines=true,
+    basicstyle=\ttfamily\small
+}\begin{lstlisting}
+user:
+Here is your task. You are in the middle of a room. Looking quickly around you, you see a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a countertop 1, a garbagecan 1, a handtowelholder 2, a handtowelholder 1, a sinkbasin 2, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1.
+Your task is to: put a clean soapbar in countertop. 
+
+agent:
+THOUGHT: To complete the task, I need to find a soapbar, clean it, and then put it on the countertop. I'll start by checking my inventory to see if I already have a soapbar.
+ ACTION: inventory
+
+
+user:
+You are not carrying anything. 
+
+agent:
+THOUGHT: I don't have a soapbar in my inventory. I'll check the cabinets, as they are likely places to find a soapbar.
+ ACTION: go to cabinet 1
+
+
+user:
+The cabinet 1 is closed. 
+
+agent:
+ACTION: open cabinet 1
+
+
+user:
+You open the cabinet 1. The cabinet 1 is open. In it, you see a cloth 1. 
+
+agent:
+THOUGHT: There's no soapbar in cabinet 1. I'll check the other cabinets.
+ ACTION: go to cabinet 2
+
+
+user:
+The cabinet 2 is closed. 
+
+agent:
+ACTION: open cabinet 2
+
+
+user:
+You open the cabinet 2. The cabinet 2 is open. In it, you see a toiletpaper 2. 
+
+agent:
+THOUGHT: There's no soapbar in cabinet 2 either. I'll continue to check the remaining cabinets.
+ ACTION: go to cabinet 3
+
+
+user:
+The cabinet 3 is closed. 
+
+agent:
+ACTION: open cabinet 3
+
+
+user:
+You open the cabinet 3. The cabinet 3 is open. In it, you see a soapbottle 2. 
+
+agent:
+THOUGHT: There's no soapbar in cabinet 3, but there's a soapbottle. I'll check the last cabinet before deciding what to do next.
+ ACTION: go to cabinet 4
+
+
+user:
+The cabinet 4 is closed. 
+
+agent:
+ACTION: open cabinet 4
+
+
+user:
+You open the cabinet 4. The cabinet 4 is open. In it, you see a candle 1, and a spraybottle 1. 
+
+agent:
+THOUGHT: There's no soapbar in any of the cabinets. I'll check the sinkbasins next, as soapbars are often kept there.
+ ACTION: go to sinkbasin 1
+
+
+user:
+On the sinkbasin 1, you see nothing. 
+
+agent:
+ACTION: go to sinkbasin 2
+
+
+user:
+On the sinkbasin 2, you see nothing. 
+
+agent:
+THOUGHT: There's no soapbar on either of the sinkbasins. The last place to check is the toilet.
+ ACTION: go to toilet 1
+
+
+user:
+On the toilet 1, you see a spraybottle 2. 
+
+agent:
+THOUGHT: There's no soapbar in the toilet either. It seems there's no soapbar in this room. I'll have to report that I can't complete the task.
+ ACTION: Task failed. No soapbar found in the room.
+
+user:
+Nothing happens. 
+
+agent:
+THOUGHT: It seems I missed something. I'll examine the toilet to see if there's a soapbar that I overlooked.
+ ACTION: examine toilet 1
+
+
+user:
+On the toilet 1, you see a spraybottle 2. 
+
+agent:
+THOUGHT: There's still no soapbar in the toilet. I'll check the countertop next.
+ ACTION: go to countertop 1
+
+
+user:
+On the countertop 1, you see a candle 2, a soapbar 1, a soapbottle 1, and a toiletpaper 1. 
+
+agent:
+ACTION: take soapbar 1 from countertop 1
+
+
+user:
+You pick up the soapbar 1 from the countertop 1. 
+
+agent:
+ACTION: go to sinkbasin 1
+
+
+user:
+On the sinkbasin 1, you see nothing. 
+
+agent:
+ACTION: clean soapbar 1 with sinkbasin 1
+
+
+user:
+You clean the soapbar 1 using the sinkbasin 1. 
+
+agent:
+ACTION: go to countertop 1
+
+
+user:
+On the countertop 1, you see a candle 2, a soapbottle 1, and a toiletpaper 1. 
+
+agent:
+ACTION: put soapbar 1 in/on countertop 1
+\end{lstlisting}
+
+\begin{figure}[h]
+    \centering
+    \vspace{-4mm}
+    \includegraphics[width=\linewidth]{figs/gpt4alf.pdf}
+    \caption{The thought and plan of \texttt{gpt-4}}
+    \label{fig:gpt4alf}
+    \vspace{-2mm}
+\end{figure}
+
+From the dialogue history, it's evident that \texttt{gpt-4} has consistently maintained clear and coherent thought processes. As illustrated in Figure~\ref{fig:gpt4alf}, \texttt{gpt-4} systematically completed the task by following a clear sequence of steps. It initially decomposed the task into a sequence of Find -> Clean -> Put. Subsequently, it undertook a depth-first search within the abstract planning tree. Impressively, after each exploration, it successfully backtracked to the parent node. This consistent cognitive capability significantly propelled \texttt{gpt-4} ahead of other models.
+
+Moreover, it's noteworthy that \texttt{gpt-4} encountered a moment of perplexity when it failed to find the desired soapbar after examining the Toilet. However, it promptly realized that there was one last location left unchecked, the countertop. Initially, \texttt{gpt-4} might have assumed it needed to retrieve the soapbar from elsewhere to place it on the countertop, without considering the possibility that the soapbar might already be there. Evidently, \texttt{gpt-4} demonstrated the capacity for self-reflection, allowing it to reassess and modify its assumptions when they proved unfruitful. This ability for self-evaluation and readjustment further assisted \texttt{gpt-4} in completing tasks that required deeper contemplation.
+
+In contrast to the above is the performance of \texttt{gpt-3.5-turbo} on the same sample.
+
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,244},
+    breaklines=true,
+    basicstyle=\ttfamily\small
+}\begin{lstlisting}
+user:
+Here is your task. You are in the middle of a room. Looking quickly around you, you see a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a countertop 1, a garbagecan 1, a handtowelholder 2, a handtowelholder 1, a sinkbasin 2, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1.
+Your task is to: put a clean soapbar in countertop. 
+
+agent:
+THOUGHT: To complete the task, I need to find a clean soapbar and place it on the countertop. I should start by searching for a clean soapbar in the available locations.
+ACTION: go to cabinet 1
+
+user:
+The cabinet 1 is closed. 
+
+agent:
+THOUGHT: The cabinet 1 is closed, so I should try to open it to see if there is a clean soapbar inside.
+ACTION: open cabinet 1
+
+user:
+You open the cabinet 1. The cabinet 1 is open. In it, you see a cloth 1. 
+
+agent:
+THOUGHT: I didn't find a clean soapbar in cabinet 1, but I did find a cloth. I should keep searching for a clean soapbar in other locations.
+ACTION: close cabinet 1
+
+user:
+You close the cabinet 1. 
+
+agent:
+THOUGHT: Since I didn't find a clean soapbar in cabinet 1, I should continue searching in other locations. Let's try examining cabinet 2.
+ACTION: examine cabinet 2
+
+user:
+The cabinet 1 is closed. 
+
+agent:
+THOUGHT: Apologies for the confusion. Let's try examining cabinet 1 again since it was previously closed.
+ACTION: examine cabinet 1
+
+user:
+The cabinet 1 is closed. 
+
+agent:
+THOUGHT: I need to find a clean soapbar to complete the task. Since the cabinet 1 is closed, I should try opening it to see if there is a clean soapbar inside.
+ACTION: open cabinet 1
+
+user:
+You open the cabinet 1. The cabinet 1 is open. In it, you see a cloth 1. 
+
+agent:
+THOUGHT: I didn't find a clean soapbar in cabinet 1, but I did find a cloth. I should keep searching for a clean soapbar in other locations.
+ACTION: close cabinet 1
+
+user:
+You close the cabinet 1. 
+
+agent:
+THOUGHT: Since I didn't find a clean soapbar in cabinet 1, I should try examining other locations. Let's examine cabinet 2 to see if there is a clean soapbar there.
+ACTION: examine cabinet 2
+
+user:
+The cabinet 1 is closed. 
+
+agent:
+THOUGHT: I apologize for the confusion. Let's try examining cabinet 1 again since it was previously closed.
+ACTION: examine cabinet 1
+
+user:
+The cabinet 1 is closed. 
+
+agent:
+THOUGHT: I apologize for the confusion. Let's try opening cabinet 1 again to see if there is a clean soapbar inside.
+ACTION: open cabinet 1
+
+user:
+You open the cabinet 1. The cabinet 1 is open. In it, you see a cloth 1. 
+
+agent:
+THOUGHT: I didn't find a clean soapbar in cabinet 1, but I did find a cloth. I should keep searching for a clean soapbar in other locations.
+ACTION: close cabinet 1
+
+user:
+You close the cabinet 1. 
+
+agent:
+THOUGHT: Since I didn't find a clean soapbar in cabinet 1, I should try examining other locations. Let's examine cabinet 2 to see if there is a clean soapbar there.
+ACTION: examine cabinet 2
+
+user:
+The cabinet 1 is closed. 
+
+agent:
+THOUGHT: I apologize for the confusion. Let's try examining cabinet 1 again since it was previously closed.
+ACTION: examine cabinet 1
+
+user:
+The cabinet 1 is closed. 
+
+agent:
+THOUGHT: I apologize for the confusion. Let's try opening cabinet 1 again to see if there is a clean soapbar inside.
+ACTION: open cabinet 1
+
+user:
+You open the cabinet 1. The cabinet 1 is open. In it, you see a cloth 1. 
+
+agent:
+THOUGHT: I didn't find a clean soapbar in cabinet 1, but I did find a cloth. Since the task is to put a clean soapbar on the countertop, I should continue searching for a clean soapbar in other locations.
+ACTION: close cabinet 1
+
+user:
+You close the cabinet 1. 
+
+agent:
+THOUGHT: Since I didn't find a clean soapbar in cabinet 1, I should try examining other locations. Let's examine cabinet 2 to see if there is a clean soapbar there.
+ACTION: examine cabinet 2
+
+user:
+The cabinet 1 is closed. 
+
+agent:
+THOUGHT: I apologize for the confusion. Let's try examining cabinet 1 again since it was previously closed.
+ACTION: examine cabinet 1
+
+user:
+The cabinet 1 is closed. 
+
+agent:
+THOUGHT: I apologize for the confusion. Let's try opening cabinet 1 again to see if there is a clean soapbar inside.
+ACTION: open cabinet 1
+
+user:
+You open the cabinet 1. The cabinet 1 is open. In it, you see a cloth 1. 
+
+agent:
+THOUGHT: Since I didn't find a clean soapbar in cabinet 1, I should try examining other locations. Let's examine cabinet 2 to see if there is a clean soapbar there.
+ACTION: examine cabinet 2
+
+user:
+The cabinet 1 is open. In it, you see a cloth 1. 
+
+agent:
+THOUGHT: Since I didn't find a clean soapbar in cabinet 1, I should try examining other locations. Let's examine cabinet 2 to see if there is a clean soapbar there.
+ACTION: examine cabinet 2
+
+user:
+The cabinet 1 is open. In it, you see a cloth 1. 
+
+agent:
+THOUGHT: Since I didn't find a clean soapbar in cabinet 1, I should try examining other locations. Let's examine cabinet 2 to see if there is a clean soapbar there.
+ACTION: examine cabinet 2
+\end{lstlisting}
+
+While \texttt{gpt-3.5-turbo} was able to decompose the task, it struggled to adhere to its initial plan. As it encountered failed attempts, the model gradually lost sight of the original plan.
+
+\begin{figure}[b]
+    \centering
+    % \vspace{-10mm}
+    \includegraphics[width=\linewidth]{figs/completed-distribution.pdf}
+    \vspace{-5mm}
+    \caption{\textbf{Distribution of Rounds (Left) and Tokens (Right) in Completed Task Trajectories.} For the rounds distribution, the median is 6.0 and the average is 7.95, with the middle 50\% ranging from 4.0 to 9.0 rounds. Regarding the tokens distribution, the median is 1850.0 and the average is 2220.1, with the middle 50\% between 761 and 2709 tokens.}
+    \label{fig:completed-distribution}
+\end{figure}
+
+\subsubsection{Understanding Task Completion: Distribution of Tokens and Rounds in Completed Trajectories}
+
+
+% \todo{Newly added. Plz check @xiao}
+
+In this section, we delve into the detailed characteristics of task completion by examining the distribution of tokens and rounds in completed trajectories. Our analysis uncovers significant insights into the prevalent completion patterns for tasks. 
+
+As shown in Figure~\ref{fig:completed-distribution}, the rounds distribution indicates a median of 6.0 and an average of 7.95, with the medium 50\% of tasks ranging from 4.0 to 9.0. This observation suggests that while there is variability in the number of rounds required for task completion, a substantial portion of tasks are completed within a relatively limited number of rounds. Regarding the tokens distribution, it presents a median of 1850.0 and an average of 2220.1, with the medium 50\% of tasks requiring between 761 and 2709 tokens for completion. Besides, The analysis points to the fact that the vast majority of tasks are completed within 3000 tokens, indicating a ceiling for the typical information exchange necessary in task accomplishment. 
+
+Understanding the common range for rounds and tokens is crucial in anticipating task requirements and serves as a benchmark for assessing the efficiency and effectiveness of various task trajectories.
+
+\subsubsection{Primary Cause of Task Limit Exceeded: The Models Tend to Repeat the Previous Content}
+
+
+% \todo{Newly added. Plz check @xiao}
+
+\begin{figure}[t]
+    \centering
+    % \vspace{-10mm}
+    \includegraphics[width=\linewidth]{figs/tle-analysis-omission.pdf}
+    \vspace{-3mm}
+    \caption{$P(n, t)$, percentage among all TLE trajectories that there exists a pair of responses whose Rouge-L score is not less than $t$ in the last $n$ rounds before omission strategy started.}
+    \label{fig:tle-analysis-omission}
+\end{figure}
+
+% \begin{figure}[t]
+%     \centering
+%     % \vspace{-10mm}
+%     \includegraphics[width=\linewidth]{figs/tle-analysis.pdf}
+%     \vspace{-10mm}
+%     \caption{$P(n, t)$, percentage among all TLE samples that there exists a pair of responses whose Rouge-L score is not less than $t$ in the last $n$ rounds before omission strategy started.}
+%     \label{fig:tle-analysis}
+% \end{figure}
+
+Our observations, detailed in Section \ref{sec:analysis}, reveal that Task Limit Exceeded (TLE) is a predominant factor in the non-completion of tasks, making its analysis pivotal. In this section, we explore the primary cause of TLE incidents, which significantly impede the model's ability to successfully complete tasks. 
+
+Understanding why TLE occurs is crucial for comprehending why models fail to complete tasks and for developing strategies to enhance model performance. Our analysis identifies that the tendency of models to repeat previously generated content is the most significant contributor to TLE incidents.
+
+We in detail analyzed the TLE interaction trajectories. Firstly, we find that the TLE results contain a trajectory with 25.5 rounds on average, far larger than that in completed trajectories. And most of them are forced to terminate because of round limit.
+
+We count the percentage of TLE results that the model have repeated some content in the last $n$ rounds, where \textit{repeat} here means two responses share a high Rouge-L f-score~\citep{lin-2004-rouge} in a dialogue. In order to exclude the influence of omission strategy, before we take the last $n$ rounds, we truncate the trajectories and keep the longest prefixes whose total tokens are within 3500. We consider repetitions in the last $n$ rounds, rather than just the final two, due to the model's potential to cycle through a series of states. For instance, a model might repetitively cycle through a sequence of actions such as entering a room, opening a drawer, closing the drawer, and leaving the room. In this scenario, the model would be looping through four distinct states, meaning that an exact repetition of content would only be evident in the last 5 rounds, not just the final two.
+
+Formally, we define $ T $ as the set comprising sequences of agent responses in interaction trajectories that result in a Time Limit Exceeded (TLE) outcome. Each element within this set is denoted as a sequence $ (r_1, r_2, \ldots, r_m) $, where $ r_k $ represents the agent's response in the $ k $-th round of interaction. We define repetition percentage $P(n, t)$ as follows:
+
+\begin{equation}
+    P(n, t) = \frac{\# \{(r_1, r_2, \ldots, r_m)\in T \ | \ \exists \ i,j \  (m - n < i < j \le m \land RougeL(r_i, r_j) \ge t) \}}{\# T}
+\end{equation}
+
+As illustrated in Figure~\ref{fig:tle-analysis-omission}, more than 90\% of the trajectories experiencing Task Limit Exceeded (TLE) demonstrate a significant level of repetition. This is evidenced by at least two responses within the last 10 rounds sharing a Rouge-L score of 0.8 or higher, indicating a notable degree of redundancy.
+
+\subsubsection{The Influence of Code Tuning on LLM Acting as Agents}
+
+\label{sec:influence-of-code-tuning}
+
+In light of the aggregated results, we posit that code tuning significantly aids the model's performance in relatively straightforward and procedural tasks. The outcome tables demonstrate that the CodeLlama series consistently outperforms the Llama2 series in webshop tasks. However, the downside of code tuning appears to be a potential compromise in the model's logical reasoning capacity and situational awareness. In the digital card game scenario, the CodeLlama series lagged behind the Llama2 series. The primary distinction between the two scenarios lies in the guidance provided. In the webshop, the one-shot prompt precisely outlines a shopping process template, which, when followed simplistically, leads to satisfactory scores. In contrast, the Digital Card Game demands that the model assess the current status of both competitors, devise intricate counter-strategies, and achieve high scores without the crutch of a simple procedural template.
+
+
+\begin{figure}[t]
+    \centering
+    \caption{Averaged sample validity ratio of webshop}
+    \includegraphics[width=\linewidth]{figs/codellama_vs_llama2.pdf}
+    \label{fig:codellama_vs_llama2}
+    \vspace{-5mm}
+\end{figure}
+
+As illustrated in Figure~\ref{fig:codellama_vs_llama2}, the completion rate of the \texttt{codellama} series in the WebShop tasks significantly surpasses that of the \texttt{llama2} series.
+
+\subsubsection{Self Correcting ability}
+
+In many test cases, the primary reason for the model's failure is its inability to identify its own mistakes from the error feedback provided by the environment. This is especially evident in the DB task. Models with the ability to self-correct their SQL statements significantly outscore others. We use \texttt{claude-2} as a representative example to illustrate this capability.
+
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,244},
+    breaklines=true,
+    basicstyle=\ttfamily\small
+}\begin{lstlisting}
+user:
+How manywins for dunfermline athletic that has a total final appearances less than 2?
+The name of this table is Scottish Challenge Cup Finalists, and the headers of this table are Club,Wins,Last final won,Runners-up,Last final lost,Total final appearances.
+
+agent:
+ Let me walk through this step-by-step:
+
+The question is asking how many wins Dunfermline Athletic has, where its total final appearances is less than 2. 
+
+To solve this, I first need to find the total final appearances for Dunfermline Athletic. I can do that with this SQL query:
+
+```sql
+SELECT Total final appearances 
+FROM Scottish Challenge Cup Finalists
+WHERE Club = 'Dunfermline Athletic';
+```
+
+This will give me the total final appearances for Dunfermline Athletic. 
+
+Then, I need to check if this number is less than 2. If so, I can get the number of wins for Dunfermline Athletic like this:
+
+```sql
+SELECT Wins
+FROM Scottish Challenge Cup Finalists 
+WHERE Club = 'Dunfermline Athletic' AND `Total final appearances` < 2;
+```
+
+This will give me the number of wins for Dunfermline Athletic, given its total final appearances is less than 2.
+
+I'm ready to execute the SQL and get the final answer.
+
+Action: Operation
+
+```sql
+SELECT Total final appearances 
+FROM Scottish Challenge Cup Finalists
+WHERE Club = 'Dunfermline Athletic';
+```
+
+user:
+1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'appearances  FROM Scottish Challenge Cup Finalists WHERE Club = 'Dunfermline Ath' at line 1
+
+agent:
+ Oops, my mistake. The column name `Total final appearances` has spaces, so I need to escape it with backticks:
+
+```sql
+SELECT `Total final appearances`
+FROM Scottish Challenge Cup Finalists
+WHERE Club = 'Dunfermline Athletic';
+```
+
+Let me try running that SQL again:
+
+Action: Operation
+
+```sql
+SELECT `Total final appearances`
+FROM Scottish Challenge Cup Finalists
+WHERE Club = 'Dunfermline Athletic';
+```
+
+user:
+1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'Cup Finalists WHERE Club = 'Dunfermline Athletic'' at line 1
+
+agent:
+ My apologies, I made another syntax error. The table name `Scottish Challenge Cup Finalists` also contains spaces, so I need to escape that with backticks too:
+
+```sql
+SELECT `Total final appearances`
+FROM `Scottish Challenge Cup Finalists` 
+WHERE Club = 'Dunfermline Athletic';
+```
+
+Let me execute this SQL statement again:
+
+Action: Operation
+
+```sql  
+SELECT `Total final appearances`
+FROM `Scottish Challenge Cup Finalists`
+WHERE Club = 'Dunfermline Athletic';
+```
+
+user:
+[('1',)]
+
+[omitted...]
+\end{lstlisting}
+
+As indicated in the log, \texttt{claude-2} successfully discerned from the MySQL error message that it had overlooked adding backticks around fields with spaces in the SQL statement.
+
+

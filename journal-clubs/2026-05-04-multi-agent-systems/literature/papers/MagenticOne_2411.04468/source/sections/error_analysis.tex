@@ -1,0 +1,40 @@
+\subsection{Error Analysis}
+
+As a final element of evaluation, we conducted an analysis to better understand \team's current failure modes.
+
+\paragraph{Approach.} As \team works to solve tasks, it produces extremely rich and detailed logs. Manual inspection of these logs often reveals mistakes, missed opportunities, dead-ends, and run-time errors encountered by the agents. Many of these issues are systematic, suggesting opportunities where the team could be improved. These opportunities could exist even when the agents successfully complete a task e.g., because of suboptimal behavior. However, manual inspection of these lengthy logs is slow and laborious, and scaling this manual labor to a large number of logs can become cost-prohibitive. 
+
+To address this, we opted to automate log analysis using LLMs. The general problem here is to automate the process of {\em qualitative coding}, i.e., automatically discovering major themes in errors and inefficiencies observed in the logs. We implemented a multi-phase approach to accomplish this. For each task, we use GPT-4o to distill the team logs into a detailed postmortem document, which seeks to identify the root cause of failure, along with any contributing factors. These will serve as the basis for analysis. 
+
+Each root-cause document is then automatically assigned a few descriptive codes (aka labels) using GPT-4o. With no pre-defined code book, there is initially a high diversity of codes across documents. After generating these initial codes, the next step is to group them into batches, with each batch being sent to  GPT-4o for clustering. This step merges similar codes into a more consolidated set. The process of consolidating and refining the codes is repeated iteratively, either until the codes stabilize or a maximum number of iterations is reached. 
+
+We used 200 random samples of logs to bootstrap these codes and then once the final set of codes is determined, it is applied to the entire set of documents. 
+
+\paragraph{Results.} Figure~\ref{fig:errors} shows the distribution of error codes that were automatically discovered by this approach for both versions of \team on the combined validation sets of all benchmarks. The codes are sorted by occurrence. Here we describe the top three codes. The details of all the codes, their definitions, and examples are available in Appendix~\ref{sec:appendix:error}. 
+
+The most common code, persistent-inefficient-actions, refers to scenarios where agents repeatedly engage in unproductive behaviors without adapting their strategies, despite encountering failures. This persistence in ineffective actions leads to delays and suboptimal task outcomes. For instance, agents might continuously attempt the same unsuccessful web searches without modifying their queries or repeatedly access incorrect data sets without making necessary adjustments, resulting in wasted effort and time.
+
+The second-most common code, insufficient-verification-steps, highlights situations where tasks are marked as complete without thorough validation of the data involved, leading to unreliable or erroneous results. Essential checks are bypassed, causing assumptions about data integrity that may not hold true. An example of this would be accepting final outputs without verifying their correctness, which can introduce errors into downstream analysis or decision-making processes due to unchecked inaccuracies.
+
+The third-most common code, inefficient-navigation-attempts is related to errors arising from incorrect or inefficient navigation, which result in missed targets or prolonged task completion times. Agents often misinterpret interface layouts, leading to unnecessary cycling through tabs or menus. For example, an agent might repeatedly click through multiple tabs to locate the 'Settings' page, causing delays. Similarly, incorrect clicks on navigation bars can prevent access to the correct configuration settings. Confusion over user interface design can lead agents back to the main menu instead of the required subsection, further delaying task completion. Additionally, agents might persistently access incorrect page links, resulting in significant delays in retrieving important data. This code underscores the need for better navigation strategies and interface design to enhance task efficiency.
+
+Figure~\ref{fig:confusion} shows a heat map of the codes broken down by specific benchmarks and version of \team. The heatmap again shows the presence of two most common codes -- persistent-inefficient-actions and insufficient-verification-steps -- across all benchmarks. The code underutilized-resource-options, which refers to scenarios where agents fail to utilize available data, tools, or resources effectively, is also prevalent in the logs. This code indicates that agents may not be taking full advantage of the resources at their disposal, leading to inefficient task execution and unnecessary manual actions. Another code, inefficient-navigation-attempts, is especially prevalent in the logs from the WebArena benchmark, where agents may struggle with interpreting interface layouts and taking inefficient paths to complete tasks.
+
+\begin{figure}[!th]
+    \centering
+    \begin{subfigure}{0.8\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{imgs/global_code_count.pdf}
+        \caption{Distribution of error codes obtained by the automated analysis of \team's behavior as observed in the logs of the validation examples across all benchmarks studied.}
+        \label{fig:errors}
+    \end{subfigure}
+    \\
+    \begin{subfigure}{\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{imgs/confusion_matrix.pdf}
+        \caption{Heatmap of the error codes obtained by the automated analysis of \team's behavior as observed in the logs of the validation examples across all benchmarks studied.}
+        \label{fig:confusion}
+    \end{subfigure}
+    \caption{Error analysis of \team's behavior.}
+    \label{fig:error_analysis}
+\end{figure}

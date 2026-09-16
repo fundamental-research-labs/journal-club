@@ -1,0 +1,136 @@
+\section{Introduction}
+\label{sec:introduction}
+% LLM-based coding agents have achieved strong results on software engineering tasks~\citep{jimenez2023swe,yang2024swe,wang2024openhands}, and their task-completion horizons continue to grow at a rapid pace~\citep{kwa2025measuring}. However, most of this progress has been demonstrated on short-horizon, single-issue scenarios. 
+
+% \gncomment{The intro felt very long and verbose, so I tried to shorten it.}
+
+As LLM-based software engineering agents improve, we have come to expect more of them.
+Whereas fixing isolated github issues on real-world repositories was a major challenge a few years ago \citep{jimenez2023swe,yang2024swe,wang2024openhands}, we are now asking agents to build large apps from scratch \citep{zhao2024commit0} or implement entire research papers \citep{starace2025paperbench}.
+
+
+One method for performing this implementation is tasking a single agent with a large task, and hoping that it can execute on it from start to finish.
+While task-completion horizons of agents continue to grow rapidly \citep{kwa2025measuring}, these systems are still limited in the scope of tasks they can perform reliably, and a single agent performing a large task also takes significant wall-clock time.
+% \gncomment{I'm not sure that I agree with all of this}
+% However, this progress has been largely demonstrated in single-issue short-horizon scenarios \citep{gao2025survey}, where modifications are localized and state changes remain limited. Long-horizon tasks that require the implementation of many interdependent functions in a shared codebase \citep{zhao2024commit0,starace2025paperbench, deng2025swe} remain largely unsolved, as they require sustained coordination over a mutable shared artifact. The root of this difficulty is architectural design, rather than merely model capacity. A single agent operates within a single context window and a single execution thread. Regardless of model strength, this monolithic execution model fundamentally cannot sustain the concurrent and isolated progress required by long-horizon shared-artifact tasks \citep{google2025context, anthropic2025context, zhang2024chain}. The agent's expanding interaction history fills its context window, causing it to forget earlier decisions and repeat mistakes~\citep{liu2024lost}, while prior errors accumulated in context raise the probability of subsequent ones through self-conditioning~\citep{sinha2025illusion}. Independent components that could run concurrently are instead queued behind one another~\citep{zhao2024commit0}, and the agent must switch between planning, coding, and testing within one process, demands that interfere when interleaved~\citep{benkovich2026agyn}. Stronger models may alleviate these symptoms, but they do not alter the underlying execution constraints and fully eliminate them.
+% % Stronger models can alleviate these symptoms, but cannot eliminate them. 
+% % Concurrent execution, bounded per-agent context, and separation of task delegation from implementation each require more than one agent \citep{han2024llm, cemri2025multi}. 
+% Concurrent execution, bounded per-agent context, and separation between delegation and implementation each require multiple execution processes \citep{han2024llm, cemri2025multi} from multiple agents.
+To this end, in this paper, we study the question: \textit{``how can multiple agents be coordinated to asynchronously collaborate over a shared artifact in an effective way?''}
+
+% In this paper, we study the question: ``How can we better coordinate multiple agents to collaborate efficiently and effectively?''
+
+
+
+
+% \jy{https://arxiv.org/pdf/2602.03053 multi-agent with verification framework --> doesn't evaluate on long-horizon tasks}
+
+While much research has focused on coordinating multiple agents, ranging from role-based pipelines that mirror human software engineering teams \citep{hong2023metagpt,qian2024chatdev}, to hierarchical managers that decompose and delegate subtasks \citep{benkovich2026agyn}, to include verification mechanisms in multi-agent systems \citep{venkataramani2026mas}, and to automated searches over communication topologies \citep{zhang2025multi}---most of these approaches primarily address how tasks are decomposed and allocated across agents.
+However, the core challenges of \emph{asynchronous} multi-agent collaboration over shared artifacts remain unsolved. When multiple agents need to modify a shared resource, their edits can interfere with each other: one agent's change may silently break an assumption that another agent is relying on \citep{khatua2026cooperbench}. Even when each agent produces high-quality output in isolation, integration frequently can fail because parallel agents develop inconsistent views of the shared state, leading to incompatible changes and execution conflicts \citep{cemri2025multi}.
+Imagine two agents editing the same file: one renames a function, while the other writes new code that still calls its old name. Both agents complete their work correctly in isolation, yet the integrated result fails to run. Such conflicts are often discovered only at integration time, where the fix is not a one-line patch but a full revision of at least one agent's work \citep{cognition2025multiagent}.
+
+% \jy{In contrast, CAID addresses a fundamentally different coordination problem: asynchronous parallel execution over a shared, pre-existing repository with interdependent subtasks and explicit integration gates.}
+
+
+Human software engineering teams face these coordination failures routinely, and they have developed a mature infrastructure to mitigate them. Developers work in isolated copies of the repository (e.g., via \texttt{git worktrees}), so parallel edits do not overwrite one another. When changes are ready, version-control integration protocols (e.g., merge-based workflows) consolidate contributions and surface conflicts explicitly rather than allowing silent interference. The dependency graphs determine which modules can be developed in parallel and which have a lower priority and must wait for upstream components. Test suites verify each change automatically through executable tests, so the correctness does not rely solely on any single developer's judgment. 
+These SWE primitives can map directly onto the coordination mechanisms to help us design the multi-agent systems for shared-artifact work.
+% These SWE primitives can map directly onto the coordination mechanisms to help us design the multi-agent systems for shared-artifact work.
+
+% In human software engineering, teams face exactly these problems every day, and the discipline has built mature infrastructure for solving them.
+
+With SWE primitives, we build \ourmethod (Figure~\ref{fig:teaser}), a multi-agent system grounded in SWE primitives, in which a manager agent dynamically decomposes and delegates tasks to multiple engineer agents who execute concurrently in isolated workspaces.
+% Our framework explicitly separates centralized delegation, asynchronous execution, and workspace isolation as independent but coordinated multi-agent architecture. 
+In particular, each engineer operates in its own \texttt{git worktree}, a fully isolated workspace with the versioned copy of the repository to ensure parallel edits remain physically separated and non-interfering. When an engineer finishes, its changes are integrated back through \texttt{git merge}, which surfaces conflicts explicitly rather than allowing silent interference in the final repository state. As in human software teams, each engineer is responsible not only for implementation, but also for executable self-verification and conflict resolution at commit time. All communication between the manager and engineers uses structured \texttt{JSON} instructions and git commits rather than free-form dialog, avoiding the inter-agent misalignment that has been identified as the primary failure mode in multi-agent systems~\citep{cemri2025multi}. We provide further details on the design of \ourmethod in Section~\ref{sec:methods}. Our results suggest that grounding multi-agent coordination in existing primitives from human SWE offers a practical and scalable architectural foundation for long-horizon shared-artifact tasks.
+
+We evaluate \ourmethod on two long-horizon, complex software engineering tasks because they provide a natural testbed for \emph{shared-artifact} collaboration. Specifically, we test \ourmethod on Commit0~\citep{zhao2024commit0}, which requires agents to implement Python libraries from scratch (e.g., \texttt{tinydb}, \texttt{minitorch}, \texttt{jinja}), and on PaperBench~\citep{starace2025paperbench}, which needs agents to reproduce the main contributions and results of a conference paper. Together, these benchmarks allow us to evaluate \ourmethod with the lens of branch-and-merge coordination in long-horizon multi-agent software engineering. Our contributions are threefold. First, we introduce \ourmethod, a multi-agent system for long-horizon software engineering. Second, we show that branch-and-merge is central to effective multi-agent software engineering, and that SWE primitives provide the basis for implementing it. Third, our experiments show that \ourmethod consistently improves the performance of Commit0 and PaperBench across multiple models.
+
+
+% Together, these benchmarks stress the multi-agent coordination challenges we address: how to delegate 1) interdependent tasks without losing global coherence view, 2) how to execute them in parallel without destructive interference, and 3) how to consolidate independent progress into a single, test-passing repository state. Our analysis shows that branch-and-merge is an important coordination mechanism that yields a reusable paradigm for designing multi-agent systems, and that SWE primitives provide a practical way to realize it.
+% It separates task delegation from execution, allows multiple agents to work in parallel without interfering with one another, and ensures that their independently developed outputs can be reliably integrated into a coherent final result.
+
+% Unlike many long-horizon reasoning \citep{jin2024marple} and planning \citep{zhou2023webarena, shridhar2020alfworld} benchmarks, software engineering tasks require multiple parallel changes to a single dynamically evolving codebase, explicitly surface dependency constraints and integration conflicts, and allow correctness to be objectively validated via tests. In software engineering, "progress" is only meaningful if independently produced changes can be consolidated into a coherent repository state that passes tests. For long-horizon SWE tasks, multiple agents must make interdependent changes that eventually consolidate into a single repository state.
+% To assess the stability and effectiveness of \ourmethod under shared-artifact coupling, we 
+
+
+
+
+% \paragraph{P1: Single-agent bottlenecks → multi-agent is necessary → Research Question}
+
+% \begin{enumerate}
+%     \item LLM agents have achieved strong results on coding tasks [SWE-Agent \citep{yang2024swe}, OpenHands\citep{wang2024openhands}, SWE-bench \citep{jimenez2023swe} results].
+%     \item However, on long-horizon complex tasks---those requiring implementation of many interdependent subtasks---single agents hit fundamental bottlenecks:
+%     \begin{enumerate}
+%         \item Context saturation: as task scale grows, the agent's context window fills up, causing information loss and ``forgetting'' of completed or remaining tasks [Lost in the Middle \citep{liu2024lost}; SWE-bench Pro \citep{deng2025swe} on long-horizon challenges].
+%         \item Sequential execution: all subtasks are serialized in a single execution thread, unable to exploit the inherent parallelism among independent subtasks [commit0 \citep{zhao2024commit0} results showing single agent cannot finish within iteration budget].
+%         \item Cognitive overload: a single agent must simultaneously plan (which files first), implement (write code), and verify (run tests)---three distinct cognitive demands that interfere with each other [Agyn's \ argument for role separation\citep{benkovich2026agyn}; MAS Challenges survey identifying task allocation as a core challenge \citep{han2024llm}].
+%     \end{enumerate}
+%     \item These bottlenecks point to multi-agent collaboration as a necessary direction. → Refer Teaser Figure 1 (left: single agent sequential execution → timeout; right: multi-agent parallel completion).
+%     \item \textbf{Research Question}: For such long-horizon complex tasks, how should we design multi-agent systems to achieve effective task decomposition/delegation, parallel execution, and result integration?
+% \end{enumerate}
+
+
+% \paragraph{P2: Existing multi-agent approaches are insufficient + why SWE is the ideal setting}
+
+% \paragraph{\textbf{P2: Why existing agents/MAS break in long-horizon SWE → SWE-primitives as the coordination mechanism (refer teaser)}}
+
+% \begin{enumerate}
+%     \item These bottlenecks are architectural, not capability-limited---a stronger model is still one context window and one execution thread; it cannot address the fundamental need for parallelism.
+%     \item \textbf{Existing agentic SWE systems largely remain single-agent at the execution core: even when they incorporate tools and planning, code changes are produced by one agent operating in one mutable workspace, so long-horizon progress is still serialized and fragile under dependency churn.} [SWE-Agent \citep{yang2024swe}, OpenHands\citep{wang2024openhands}]
+%     \item \textbf{Meanwhile, most MAS coordination mechanisms were developed for reasoning/planning domains where outputs are independent texts that can be aggregated (voting, debate) and do not involve shared mutable artifacts.} [MacNet, LatentMAS, TDAG, MegaAgent]
+%     \item \textbf{As a result, their coordination mechanisms---DAG topologies, RL-learned orchestration [Evolving Orchestration], latent-space communication [LatentMAS]---do not directly address the key SWE failure modes: parallel edits interfere through a shared artifact, integration must be structured, and progress must be continuously verifiable.}
+%     \item \textbf{Our approach is to use SWE-primitives themselves as the coordination mechanism.} We turn to software engineering: SWE infrastructure provides mature primitives that directly target the above failure modes. **→ Refer Teaser Figure 2 (framework diagram) for how primitives instantiate a multi-agent loop.**
+%     \begin{enumerate}
+%         \item Shared mutable state: the codebase is a persistent artifact that every agent modifies.
+%         \item Spatial decomposability: files and functions provide natural task boundaries.
+%         \item Explicit dependency structure: import graphs define ordering constraints.
+%         \item Automated verification: test suites provide objective correctness oracles.
+%         \item Conflict potential: parallel edits to the same codebase can produce inconsistencies.
+%     \end{enumerate}
+%     These properties both pose real coordination challenges for multi-agent systems and provide objective evaluation criteria.
+%     \item \textbf{Even within SWE, existing MAS [Agyn, TRAE, Prometheus] often stop at role splitting: roles are distributed, but parallel execution with dependency-aware scheduling and structured integration is not the default.} Division of labor $\neq$ parallel collaboration: the fundamental problems of parallelism and dependency scheduling remain unsolved.
+% \end{enumerate}
+
+
+
+% \paragraph{\textbf{P3: Method overview --- SWE-primitives-driven Manager-Engineer dynamic delegation}}
+
+% \begin{enumerate}
+%     \item \textbf{Core idea: SWE primitives are multi-agent coordination primitives. Rather than inventing new coordination mechanisms, we directly reuse SWE infrastructure as system building blocks.}
+%     \begin{enumerate}
+%         \item Multiple developers editing simultaneously → \texttt{git worktree}/branch for workspace isolation → the context isolation that multi-agent systems need.
+%         \item Multiple developers' work must be combined → \texttt{git merge} for conflict-free integration → the output integration that multi-agent systems need.
+%         \item Implementation order is constrained → import/dependency graphs for task scheduling → the dependency-aware scheduling that multi-agent systems need.
+%         \item Correctness must be verified → test suites for automated verification → the closed-loop feedback that multi-agent systems need.
+%         \item Multiple developers working concurrently → async execution with synchronization points → the parallel execution that multi-agent systems need.
+%     \end{enumerate}
+%     \item Refer Teaser Figure 2 (framework diagram).
+%     \item Based on the insight above, we design a Manager-Engineer dynamic delegation framework. The core loop:
+%     \begin{enumerate}
+%         \item Manager analyzes the codebase, constructs the dependency graph, and decomposes tasks into parallelizable groups.
+%         \item Manager delegates subtasks to $N$ Engineer agents. Each Engineer works in an isolated \texttt{git worktree}---not a shared workspace, because shared workspaces cause merge conflicts and context pollution when multiple agents edit simultaneously; worktrees guarantee each agent a complete, independent copy of the codebase.
+%         \item Each Engineer commits to its own branch upon completion. Manager merges back to main and verifies correctness via the test suite.
+%         \item Manager dynamically assigns new tasks based on updated dependency state---not a static pipeline, because static pipelines fix all assignments upfront and cannot adapt to runtime completion, failures, or newly unlocked dependencies.
+%         \item Manager-Engineer communication uses structured JSON (task\_id, file\_path, functions\_to\_implement, instruction)---not free-form dialogue, because free-form communication leads to inter-agent misalignment [Why MAS Fail identifies this as the primary failure mode]; structured format guarantees zero ambiguity and is auditable.
+%         \item The delegate-implement-merge-reassign cycle continues until all functions are implemented.
+%     \end{enumerate}
+% \end{enumerate}
+
+
+% \paragraph{P4: Method overview --- Manager-Engineer dynamic delegation}
+
+% \paragraph{\textbf{P4: Evaluation setting --- Why SWE tasks are a natural multi-agent testbed}}
+
+% \begin{enumerate}
+%     \item \textbf{We evaluate our multi-agent system on SWE tasks because they are a natural testbed for collaboration: they require parallel changes to a shared artifact, expose conflicts and dependency constraints, and admit objective verification via tests.}
+%     \item \textbf{Benchmarks: we evaluate on Commit0 and PaperBench, which instantiate long-horizon SWE tasks with interdependent subtasks and explicit verification signals.}
+%     \item \textbf{Evaluation focus: whether SWE-primitives-driven coordination turns parallel execution into stable, verifiable progress under the same model and iteration budget as a single-agent baseline.}
+% \end{enumerate}
+
+
+% \paragraph{\textbf{P5: Results + Takeaway}}
+
+% \begin{enumerate}
+%     \item Evaluate on Commit0: $X$ real-world Python libraries (tinydb, jinja, simpy, etc.), each requiring implementation of dozens of functions across interdependent files.
+%     \item Compared against single-agent baseline under the same model and iteration budget.
+%     \item Specific numbers: XX\% vs YY\%.
+%     \item \textbf{Takeaway: using SWE-primitives as coordination mechanisms yields a reusable methodology for designing multi-agent systems that achieve true parallel execution with structured integration and verification, outperforming single-agent approaches on long-horizon SWE tasks.}
+% \end{enumerate}

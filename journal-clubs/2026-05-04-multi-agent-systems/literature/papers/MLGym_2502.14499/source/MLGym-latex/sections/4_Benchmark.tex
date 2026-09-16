@@ -1,0 +1,156 @@
+\section{\mlgym-Bench}
+\label{sec:benchmark}
+
+% \dn{Please take a look and leave feedback}
+% \rr{did a pass and left comments / made some edits}
+
+% \todo[inline]{@deepak: add citations for the tasks}
+% \todo[inline]{@deepak: add a table of the tasks, type, dataset size, etc.}
+% \todo[inline]{@deepak: rewrite/edit this section}
+
+
+% \dn{Should we introduce the levels in this version? Since we don't have tasks for each level of benchmark available it might seem incomplete.}
+% \ts{Dunno, but I find it useful to outline the overall idea, how to approach the Agents for science in general}
+% \rr{moved this framework to intro as i think it fits better}
+
+
+The primary motivation behind our benchmark is to challenge models across different aspects of machine learning, including data handling, model architecture, and strategic decision-making.
+By incorporating tasks from data science, game theory, computer vision, natural language processing, and reinforcement learning, the benchmark aims to provide a varied and comprehensive agent evaluation testbed.
+
+The tasks included in the benchmark are carefully selected to represent real-world challenges, ensuring that models are tested on their ability to generalize and perform effectively across various scenarios.
+Each task is accompanied by standardized evaluation scripts and baseline implementations, providing a clear reference point for performance assessment and comparison.
+
+The benchmark suite is structured into four main categories, each focusing on a specific domain of machine learning: Data Science, Game Theory, Computer Vision, Natural Language Processing, and Reinforcement Learning.
+Below we describe each of the tasks in the benchmark.
+
+\subsection{Data Science}
+
+\ibold{House Price Prediction}~\citep{kaggle_house_prices} In the House Price Prediction task, the goal is to predict housing prices using the Kaggle House Price dataset.
+This task evaluates models based on their ability to accurately predict prices from various features, using RMSE and R2 as performance metrics.
+%
+The baseline for this task is a simple Ridge Regression model with minimal feature engineering.
+
+\subsection{3-SAT}
+
+\ibold{3-SAT}~\citep{cook1971complexity} In the 3-SAT task, the LLM agent is given a DPLL code and is prompted to optimize the variable selection heuristic.
+%
+The associated DPLL code is stored in a read-only file, and the agent can inspect it to structure its heuristic function code, however, it cannot modify it.
+%
+A simple random selection heuristic is used as a baseline and starter code for the LLM agent.
+%
+The performance is measured by the total wall-clock time taken to solve a set of 100 generated 3-SAT instances. The instances are genereted using the algorithm described in~\citet{selsam2018satAlgorithm}.
+
+% \todo[inline]{@deepak: check and add the number of 3-SAT instances in the dataset.}
+
+\subsection{Game Theory}
+
+We consider several tasks related to making strategic choices in iterated games, considering multiple well-known games.
+Specifically, we consider the task of producing code for a strategy for playing in a repeated two-player game.
+In each such task we provide an opponent strategy, in the form of an opponent bot for playing the game, and ask the agent to produce code for a strategy for best-responding to this opponent, i.e. provide code for a strategy that maximizes the score against that opponent.
+We very briefly review game theory terminology, with various textbooks covering this topic in more detail~\citep{fudenberg1991game}.
+
+In a two-player {\bf normal form game} $G$, players select actions simultaneously, with the outcome determined by the choices of both players.
+Let $A^1 = \{ a^1_1, \ldots, a^1_k \}$ be the (pure) strategies available to player $1$ and let $A^2 = \{ a^2_1, \ldots, a^2_m \}$ be the strategies available to player $2$.
+Denote the set of {\bf strategy profiles}, consisting of a strategy choice for {\it both} players as $A = A_1 \times A_2$.
+The utility of the players depends on the actions selected by both for them, i.e. the payoffs are $u: A \rightarrow \mathbb{R}^n$,  where $u(a) = (u_1(a), u_2(a))$ for $a \in A$, and where each player $i$ tries to maximize their individual utility $u_i$.
+A mixed strategy is a probability distribution $\Delta$ over pure strategies.
+Given a mixed strategy profile $\sigma = (\sigma_1,\sigma_2)$ the expected utility of $u_i$ of player $i$ is 
+%\begin{equation*}
+$    u_i(\sigma_1, \sigma_2) = \sum_{(a_1, a_2) \in A} \sigma_1(a_1) \sigma_2(a_2) u_i(a_1, a_2)$. 
+
+A repeated game consists of $k$ rounds in which the players play the same underlying normal form game.
+The history at the $j+1$'th round consists of the actions (pure strategies) chosen by both players in each of the rounds $1$ to $j$.
+We denote by $H$ the set of all possible such histories, so a strategy in a repeated game is a function $a_i : H \rightarrow \Delta(A)$, i.e. a function that takes the history of actions chosen in the previous round and provides a distribution over the actions the agents would take in the next round.
+In our tasks, a strategy in the repeated game is expressed as a piece of code that takes in the history (actions of both players in the previous rounds), and outputs an action for the next round (where the code may make some random choices, hence yielding a distribution over the selected next round actions).
+Given an opponent strategy $a_2$, the goal of our agent is to produce a strategy that best responds to the opponent and produces a the maximal payoff, i.e $\arg \max_{a_1} u_1(a_1, a_2)$.
+Note that in this equation $a_2$ is a {\it given} opponent strategy expressed as a piece of code that takes the history over the previous rounds and selects an action for the next round (possibly making some random choices), and that the goal of an agent is to produce $a_1$ as a piece of code capturing the strategy of the first player.
+The agent optimization goal is selecting the code $a_1$ so as to maximize player 1's expected payoff $u_1$ against the fixed opponent $a_2$.
+
+We consider the repeated version of prominent games, which we briefly discuss here: iterated Prisoner's Dilemma~\citep{flood1958some,fudenberg1991game,axelrod1980effective}, Battle of the Sexes~\citep{cooper1989communication,luce2012games} and Colonel Blotto~\citep{roberson2006colonel}. As our goals was to highlight how our agent framework could be used to solve game theoretic tasks, rather than providing a rigorous evaluation and analysis of many game theoretic environments, we only included few games. However, additional games could easily be added in.
+
+\ibold{Prisonner's Dilemma}~\citep{axelrod1980effective}. In this game, two players each have two options: cooperate or defect. When both cooperate, they receive a moderate reward. If one defects while the other cooperates, the defector gets a high reward while the cooperator gets a low payoff. If both defect, they both receive a low payoff. Due to the structure of payoffs, although mutual cooperation yields the best collective outcome, individual incentives often push towards defection. We included a repeated game, consisting of $k=20$ rounds of the game. In the repeated version, players remember previous interactions and can adjust their strategies based on the history consisting of the past outcomes. Repeating the stage game multiple times allows for the development of trust and cooperation, as players recognize that consistent cooperation can lead to better long-term benefits than short-term defection~\citep{axelrod1980effective}. As our opponent strategy we provided a simple model which randomizes between cooperation, defection, or actions chosen based only on the last round of the interaction. 
+
+\ibold{Battle of Sexes}~\citep{cooper1989communication}. This is a simple game illustrating coordination challenges between two participants with different preferences. In the game, two participants have to agree on a venue (for instance where to go to spend an evening). There are two possible venues, and both players would rather make the same choice rather than making different choices. The strategic dilemma arises because as each player wants to coordinate their choice with the other, but they have a different ranking over the venues (one prefers the first venue and the other prefers the second venue). Similarly to the iterated Prisoner's Dilemma, we have used a repeated game with $k=20$ rounds and used a simple opponent that makes random choices using the information from the last round. 
+
+\ibold{Colonel Blotto Game}~\citep{roberson2006colonel}. This game is a model of strategic allocation of limited resources under competition. Two players (``Colonels'') must simultaneously distribute their resources (such as troops) over several alternative locations (``battlefields''). The player who allocates more resources to a battlefield wins that battlefield. The overall winner is the player who wins the most battlefields. The key challenge arises from the fact that players must make their allocations without knowing how their opponent will distribute their resources. This yields an environment where players try and anticipate their opponent's moves to decide how to best allocate their own resources in order to maximize their chances of winning. A key insight from the game is the importance of diversification and unpredictability: it is harder to exploit an opponent who spreads resources across multiple battlefields and varies their strategy. Our target opponent used a very simple random allocation rule (re-normalizing to the overall budget of resources).
+
+It is important to note that in all the game theoretic tasks, the agent is allowed to look at the opponent's strategy, and thus these tasks measure code understanding and the LLM's capabilities to exploit the opponent's strategy.
+In the future, we plan to add tasks where the opponent's strategy is not provided to the agent, and agent is pitted against multiple opponents in a round robin fashion, similar to the setup used in Axelrod's original Prisoner's Dilemma tournament. 
+% \dm{do we also plan to add tasks where the opponent strategy is fixed, but not provided}
+
+\begin{table}[!h]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+    \begin{NiceTabular}{llll}
+        \toprule
+        Problem Setting & Domain & Task & Dataset/Environment \\
+        \midrule
+        Supervised Learning & Data Science & Regression & House Price Prediction\tablefootnote{\url{https://www.kaggle.com/datasets/yasserh/housing-prices-dataset}} \\
+        \midrule
+        Supervised Learning & Computer Vision & Image Classification & CIFAR-10~\citep{krizhevsky2009learning} \\
+        Supervised Learning & Computer Vision & Image Classification & Fashion MNIST~\citep{xiao2017/online} \\
+        Supervised Learning & Computer Vision & Image Captioning & MS-COCO~\citep{lin2014microsoft}  \\
+        \midrule
+        Supervised Learning & Natural Language Processing & Natural Language Inference & MNLI~\citep{williams2018multi}  \\
+        Self-Supervised Learning & Natural Language Processing & Language Modeling & FineWeb~\citep{penedo2024finewebdatasetsdecantingweb}  \\
+        \midrule
+        Reinforcement Learning & Reinforcement Learning & MetaMaze Navigation & Gymnax~\citep{gymnax2022github} \\
+        Reinforcement Learning & Reinforcement Learning & MountainCar Continuous & Gymnax~\citep{gymnax2022github} \\
+        Reinforcement Learning & Reinforcement Learning & Breakout MinAtar &  Gymnax~\citep{gymnax2022github}
+        \\
+        \midrule
+        Algorithmic Reasoning  & Computer Science & 3-SAT & Randomly Generated~\citep{selsam2018satAlgorithm} \\ 
+        \midrule
+        Algorithmic Reasoning  & Game Theory & Prisonner's Dilemma & N/A\\
+        Algorithmic Reasoning  & Game Theory & Battle of Sexes & N/A \\
+        Algorithmic Reasoning  &  Game Theory & Colonel Blotto & N/A \\
+        \bottomrule
+    \end{NiceTabular}
+    \end{adjustbox}
+    \caption{List of tasks included in \mlgym-Bench along with their respective problem setting, domain, and datasets.}
+    \label{tab:aup_scores}
+\end{table}
+% \dm{Would there be value in having 3 broad domains for the tasks: (1) Supervised ML tasks (CV and NLP) (2) RL tasks (3) Algorithmic/strategic reasoning tasks (Game Theory and 3-SAT)}\rr{added}
+
+
+\subsection{Computer Vision}
+
+\ibold{Image Classification (CIFAR-10)}~\citep{krizhevsky2009learning} The Image Classification CIFAR-10 task involves classifying images into one of ten classes using the CIFAR-10 dataset.
+This task tests the ability of models to learn visual patterns and features, with a baseline accuracy of 49.71\% encouraging improvements 
+
+\ibold{Image Classification (Fashion MNIST)}~\citep{xiao2017/online} The Image Classification Fashion MNIST task involves classifying fashion items into predefined categories using the Fashion MNIST dataset. The agent is provided with a simple two layer CNN as a baseline and it has to optimize for the accuracy on the test set. The agent can optimize the model architecture and the hyper-parameters for the training.
+
+% \ibold{Image Captioning MS COCO} The Image Captioning MS COCO task involves generating descriptive captions for images using the MS COCO dataset.
+% This task challenges models to integrate vision and language processing capabilities, providing a platform for testing advanced image-to-text models.
+
+\ibold{Image captioning (MS-COCO)}~\citep{lin2014microsoft} For the image captioning task, the agent has to write the modeling code and come up with a good architecture and training setup for the image-text pairs in the MS-COCO dataset. We provide a baseline code for training to the agent which uses an image encoder and text decoder. We use the MS-COCO training and validation sets after removing all images containing humans. The agent has to optimize for the BLEU scores~\citep{papineni2002bleu} computed over the model-generated captions and ground truth captions for a given image.
+
+% \dn{NOT SURE IF WE HAVE RESULTS FOR MSCOCO and MNIST: LOVISH PLEASE CONFIRM}
+
+\subsection{Natural Language Processing}
+
+For language, we test the agent's ability to understand and modify training setup for both Natural Language Understanding (NLU) and Natural Language Generation (NLG) as detailed below.
+
+\ibold{Natural Language Inference}~\citep{williams2018multi} In this task, the agent starts from a pre-trained BERT model \citep{devlin2018bert} and we provide the baseline code to fine-tune on the training set of the MNLI benchmark to the agent. The agent is expected to come up with good hyper-parameters and fine-tuning strategy to optimize the test set accuracy on MNLI.
+
+\ibold{Language Modeling}~\citep{modded_nanogpt_2024} In the Language Modeling task, the agent is expected to train a language model for next token prediction using a smaller version of the FineWeb \citep{penedo2024finewebdatasetsdecantingweb} dataset.
+%
+The LLM Agent is provided with the dataset and the NanoGPT \citep{modded_nanogpt_2024} codebase as a baseline and starting point. We use version \texttt{\#8} from \texttt{modded-nanogpt}\footnote{\url{https://github.com/KellerJordan/modded-nanogpt}} as the starting point. The training and validation sets contain 1.773B and 100M tokens, respectively.
+%
+The perfomance metric is the perplexity of the trained model on the validation set.
+
+% \dn{SAME HERE. LOVISH PLEASE CONFIRM IF WE HAVE RESULTS FOR MNLI}
+
+\subsection{Reinforcement Learning}
+
+% \dn{descriptions for these tasks can be extended to include more details. OR readers can refer to the original papers for more details.}
+
+\ibold{MetaMaze Navigation}~\citep{miconi2020backpropaminetrainingselfmodifyingneural} The MetaMaze Navigation task simulates a grid-world environment where agents must navigate using local observations and reach the goal location.
+
+\ibold{Mountain Car Continuous}~\citep{brockman2016openaigym} We use the continuous version of the Mountain Car environment introduced in~\citet{brockman2016openaigym}, where the task is to learn a policy that drives a car up a steep hill in a continuous control environment.
+
+\ibold{Breakout MinAtar}~\citep{young2019minataratariinspiredtestbedthorough} The Breakout MinAtar task involves playing the arcade game Breakout in a simulated environment.
+This environment was introduced in~\citet{young2019minataratariinspiredtestbedthorough} and is a popular benchmark for evaluating reinforcement learning agents.
+
+For all the RL tasks, we use the environments from the Gymnax library \citep{gymnax2022github} and the PPO algorithm from Gymnax-blines\footnote{\url{https://github.com/RobertTLange/gymnax-blines}} as a baseline and starting code for the LLM agent.
+

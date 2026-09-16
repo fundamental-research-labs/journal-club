@@ -1,0 +1,17 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+\section{\dota Gym Environment}
+\label{appendix:gym-ocean}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Data flow between the training environment and \dota}
+
+\dota includes a scripting API designed for building bots. The provided API is exposed through Lua and has methods for querying the visible state of the game as well as submitting actions for bots to take. Parts of the map that are out of sight are considered to be in the fog of war and cannot be queried through the scripting API, which prevents us from accidentally ``cheating'' by observing anything a human player would not be able to see (although see~\autoref{appendix:bloopers}).
+
+We designed our \dota environment to behave like a standard OpenAI Gym environment\cite{brockman2016gym}. This standard respects an API contract where a {\tt step} method takes action parameters and returns an observation from the next state of the environment. To send actions to \dota, we implemented a helper process in Go that we load into \dota through an attached debugger that exposes a gRPC server. This gRPC server implements methods to configure a game and perform an environment step. By running the game with an embedded server, we are able to communicate with it over the network from any remote process.
+
+When the step method is called in the gRPC server, it gets dispatched to the Lua code and then the method blocks until an observation arrives back from Lua to be returned to the caller. In parallel, the \dota engine runs our Lua code on every step, sending the current game state observation\footnote{Originally the Lua scripting API was used to iterate and gather the visible game state, however this was somewhat slow and our final system used an all-in-one game state collection method that was added through cooperation with Valve} to the gRPC server and waiting for it to return the current action. The game blocks until an action is available. These two parallel processes end up meeting in the middle, exchanging actions from gRPC in return for observations from Lua. Go was chosen to make this architecture easy to implement through its channels feature.
+
+Putting the game environment behind a gRPC server allowed us to package the game into a Docker image and easily run many isolated game instances per machine. It also allowed us to easily setup, reset, and use the environment from anywhere where Docker is running. This design choice significantly improved researcher productivity when iterating on and debugging this system.
+\nicetohave{(jie) I think it would be extremely interesting to get timings for different parts of this process. emphasizes complexity of the environment}
+
+\end{document}

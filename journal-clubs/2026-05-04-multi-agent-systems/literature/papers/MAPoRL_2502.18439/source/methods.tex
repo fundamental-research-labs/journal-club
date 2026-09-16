@@ -1,0 +1,184 @@
+\section{{Post-Co-Training} with MARL}
+\label{sec:MARL}
+\vspace{-2mm}
+\safevspace{-2mm}
+{We now provide an overview of our new paradigm of \textit{Multi-Agent Post-Co-Training with RL (\ours)} for LLM collaboration. 
+In our framework, each agent's response per turn is evaluated by a verifier, which assigns a score reflecting the answer's validity. The reward 
+is defined as the (weighted) sum of the verifier's scores from the current turn and those from the future turns, thus capturing both the immediate feedback and the projected long-term impact of the agent's response. The agents’ policies are updated using multi-agent PPO for each turn, ensuring that the learning process incorporates both the performance {in the current turn} and the influence of the anticipated collaborative interactions {in the future turns}.} 
+
+\vspace{-2mm}
+
+
+
+
+\subsection{Multi-Agent System - Collaborative Debate Formulation}
+{We follow the collaborative debate system proposed by \citet{du2023improving}as an example of our multi-LLM system in the experiments.}  Note that, \ourstwo~can be applied to other multi-LLM systems as long as each agent’s response can be evaluated—for example, by a verifier that assigns a score reflecting the quality or correctness of the response.  The reward for each agent is then determined by summing the verifier scores of all the responses influenced by that agent throughout the {multi-agent interaction} process.
+Assume we have a collaborative debate system that runs for \( T \) turns and involves \( A \) agents.  In each turn, an LLM must determine its next response based on the history of its own answers as well as the answers provided by other LLM agents. Let \( q \) be the given question, and let \( s_{ti} \) denote the solution provided by agent \( i \) at turn \( t \).  We inductively express the solution \( s_{(t+1)i} \) as follows:
+\safevspace{-0.3cm}
+
+{
+\vspace{-0.5cm}
+\small
+\begin{align*}
+s_{1i} = \text{LLM}_i\left(q\right), \,
+s_{(t+1)i} = \text{LLM}_i\left(q \oplus_{j \in [A], t' \in [t]} s_{t'j}\right)  
+\end{align*}}
+\safevspace{-8mm}
+\vspace{-0.5cm}
+
+
+\noindent where \( \oplus \) denotes token-wise concatenation, $1 \leq t \leq T-1$ and \( \text{LLM}_i(s) \) represents the function of inputting {prompt}  \( s \) into the \( \text{LLM}_i \) {which outputs logits over its token space, followed by sampling a token based on these logits.} If $A = 1$, then this setup is equivalent to that of  self-correcting LMs~\cite{madaan2024self}. Now, we define \(\btheta = (\theta_{ta})_{t\in[T], a \in [A]}\), where \(\theta_{ta}\) represents the parameters of the \(a\)-th agent at turn \(t\). We denote LLM parameterized by  $\theta_{ta}$ as \(LLM_{\theta_{ta}}\).
+
+Next, to implement \ourstwo, we define the reward function for the multi-agent RL formulation,   using the verifier score. {Due to space constraints, we here introduce the \textit{Influence-aware Verification Rewards}, and defer other choices of the reward functions that we will use in the experiments to \Cref{appendix_reward}.} 
+
+\vspace{-2mm}
+\begin{definition}[Influence-aware Verification Reward]
+\label{def:infl-veri}
+The influence-aware verification reward function $R_{\btheta}(q, s_{ta})$ is defined as 
+\begin{align*}
+    &R_{\btheta}(q, s_{ta}) = \EE \bigg[\frac{1}{\sum_{t' \in [t, T]} \gamma^{t'-t}} \biggl( \text{Verifier}(q, s_{ta}) 
+    \\
+    &\, + \sum_{t' \in [t+1, T]}\sum_{j \in [A]} \frac{1}{A}\gamma^{t'-t}\text{Verifier}(q, s_{t'j})\biggr) \bigg].  
+\end{align*}
+\end{definition}
+
+{Here, the expectation arises from the randomness of other agents' answers, which are influenced by the agent's current response, and \(\gamma \in [0,1]\) is a discount factor.}
+This reward not only considers the verifier's score for the current solution \( s_{ta} \), but also incorporates the impact of this solution on the future answers of all agents. The term \( \sum_{j \in [A]} \frac{1}{A} \) averages the verifier's scores across all the agents, reflecting the influence that \( s_{ta} \) has on the overall multi-agent system.
+
+
+
+\subsection{Multi-Agent RL Formulation}
+The reward of each agent, as well as its answer generation, is intertwined with the actions of other agents in the multi-LLM system with the reward function (\Cref{def:infl-veri}). Thus, instead of single-agent RL, we design a multi-agent RL approach. For this paper, we choose multi-agent PPO \citep{yu2022surprising} as a representative multi-agent RL algorithm and instantiate it in the language domain. 
+
+Conventional multi-agent PPO extends PPO to multi-agent settings by training decentralized policies, either with a shared critic or through independent learning, where each agent optimizes its policy based on local observations and rewards. Typically, agents learn independently or with limited coordination mechanisms, such as centralized critics or shared value functions. Our approach adapts multi-agent PPO by defining the state as the concatenation of the multi-agent interaction history, allowing agents to condition their responses on past interactions. Additionally, we introduce reward structures that are aligned but not fully identical across agents, encouraging them to fulfill different roles while collectively working toward solving the task.
+
+Since we are solving multi-turn problems, the value function for each turn's state {needs to be defined}. The state of each turn's  value $V_{ta\btheta}$ is the expectation of the cumulated reward  conditioned on the input text $i_{ta}^x$, which is defined as 
+
+\safevspace{-6mm}
+{\small
+\begin{align*}
+    V_{ta\btheta}(i_{ta}^x) = \EE \left[\sum_{x' = x}^{\texttt{length}(s_{ta})} r_{\btheta} (q, s_{ta}^{1:x'}) \bigggiven q, i_{ta}^{x} \right].
+\end{align*}}
+\safevspace{-5mm}
+
+\noindent Here, \( i_{ta}^{x'} = q \oplus_{t' \in [t-1], j \in [A]} s_{t'j} \oplus s^{1:{x'}}_{ta} \) and 
+
+\safevspace{-4mm}
+
+{
+\small
+\begin{align*}
+    &r_{\btheta}(q, s_{ta}^{1:x'}) = \pmb{1}(x' = \texttt{length}(s_{ta})) R_{\btheta}(q, s_{ta}) 
+\\
+&\, -\lambda_{\text{KL}} \text{KL}\left(\text{LLM}_{\theta_{\text{ref},ta}}(i_{ta}^{x'}) \,\|\, \text{LLM}_{\theta_{ta}}(i_{ta}^{x'})\right), 
+\end{align*}
+}
+
+\safevspace{-4mm}
+
+
+\noindent where $t$ denotes the turn index and $a$ refers to agent  $a \in [A]$, $s_{ta}^{1:x}$ represents the generated token from agent $a$ up to the $x$-th token in turn $t$, with $\theta_{\text{ref},ta}$  denoting the parameter of a reference LLM, and  \( \lambda_{\text{KL}}\geq 0\) is some regularization coefficient. As per our reward construction, the value maximization 
+not only considers the current turn’s verifier score,  but also anticipates future verifier scores from the same or other agents across multiple turns, which makes multi-agent training {relevant}. {We estimate the advantage function using Generalized Advantage Estimation (GAE)~\citep{schulman2015high}, which leverages the value function to measure how much better the current token selection is compared to the baseline value function.  
+
+The value function is approximated by a neural network with parameter \(\theta_{vta}\), denoted as \(V(i_{ta}^x;\theta_{vta})\), which serves as an estimate of \(V_{ta\btheta}(i_{ta}^x)\). Using \(V(i_{ta}^x;\theta_{vta})\), we estimate the advantage function \(A(i_{ta}^x;\btheta, \theta_{vta})\) via GAE. } The loss function for multi-agent PPO is then given by: 
+\vspace{-7mm}
+
+
+\begin{align*}
+    &L_{\text{PPO}}(\theta_{ta}, \theta_{vta})  = L_{\text{Surrogate}}(\theta_{ta}) + L_{\text{Value}}(\theta_{vta}),
+\end{align*}
+\vspace{-8mm}
+
+\noindent where $L_{\text{Surrogate}}(\theta_{ta})$ is defined as {
+
+\vspace{-5mm}
+
+{\small \begin{align*}
+\mathbb{E}\Bigl[
+  &\min\Bigl(
+    R_{ta}^x\,A\bigl(i_{ta}^x; \btheta_{\text{old}}, \theta_{\text{old},vta}\bigr), 
+     \\
+    &\qquad \qquad \texttt{clip}_{\epsilon}\bigl(R_{ta}^x\bigr)\,
+    A\bigl(i_{ta}^x; \btheta_{\text{old}}, \theta_{\text{old},vta}\bigr)
+  \Bigr)
+\Bigr].
+\end{align*}}
+\safevspace{-7mm}
+
+\noindent and $L_{\text{Value}}(\theta_{vta})$ is defined as 
+
+\vspace{-5mm}
+
+
+{\small 
+\begin{align*}
+    &L_{\text{Value}}(\theta_{vta}) = \EE \left[\lambda_{\text{value}} \left(V(i_{ta}^x; \theta_{vta}) - V^\text{target}_{ta}(i_{ta}^x)\right)^2\right].
+\end{align*}
+} 
+\vspace{-5mm}
+
+\noindent Here, $\texttt{clip}_{\epsilon}(\alpha) := \min(\max(1-\epsilon, \alpha), 1+\epsilon)$, \( R_{ta}^x = \frac{\text{LLM}_{\theta, ta}(s^{x+1}_{ta} \mid i_{ta}^{x})}{\text{LLM}_{\theta_{\text{old}, ta}}(s^{x+1}_{ta} \mid i_{ta}^{x})} \), \(\btheta_{\text{old}} = (\theta_{\text{old},{ta}})_{t\in[T], a \in [A]}\) is the parameter used in the rollout for multi-agent PPO, and 
+
+\vspace{-5mm}
+{\small \begin{align*}
+    V_{ta}^{\text{target}}(i_{ta}^x) = V(i_{ta}^x; \theta_{\text{old}, vta}) + A(i_{ta}^x; \btheta_{\text{old}}, \theta_{\text{old}, vta})).
+\end{align*}}
+\noindent The expectation \( \mathbb{E} \) is taken over the randomness from \[q \sim \mathcal{Q}, s_{t'a'} \sim \text{LLM}_{\theta_{\text{old}, t'a'}}(q \oplus_{t'' \in [t'-1], j \in [A]} s_{t'j}) \] for all $t' \in [t], a \in [A]$, and $x \sim \text{Unif}([\texttt{length}(s_{ta})])$, where $\cQ$ denotes the distribution of questions.
+
+
+Each agent for each turn optimizes its policy and value function simultaneously, over the parameters \((\theta_{ta}, \theta_{vta})\). These agent interactions among multiple LLMs inherently lead to a multi-agent RL problem, rather than a single-agent RL one, as each agent influences others' learning processes throughout training. 
+
+\safevspace{-2mm}
+
+\subsection{Reward {Shaping to Incentivize Collaboration}}
+\label{sec:incentive-coll}
+As discussed in Section~\ref{sec:theory}, incorporating {additional incentives in the reward}  can steer  agents towards better   collaboration. We define four key parameters when implementing such a reward-shaping: parameters $\alpha_0$ and $\alpha_1$ correspond to the incentives related to an agent's own revision of the answer, {and parameters $\beta_0$ and $\beta_1$ correspond to those related to her influence on other agents' answers.} Specifically, $\alpha_0$ represents the ability to extract useful information from incorrect answers ({\it critical reasoning}), while $\alpha_1$ reflects an agent's tendency to be {\it persuaded} by the correct information. Meanwhile, $\beta_0$ represents the ability to provide incorrect answers that still contain useful information, potentially leading to better responses in the future turns. In contrast, $\beta_1$ captures an agent's ability to effectively {\it persuade others} when providing correct answers. We provide \Cref{tab:bonus_penalty_case1} and \Cref{tab:bonus_penalty_case2} to summarize the design of these incentives. 
+
+\begin{table}[h]
+    \small
+    \centering
+    \resizebox{\linewidth}{!}{  %
+    \begin{tabular}{cccc}
+        \toprule
+        Answer (t) & Answer (t+1) & Majority (t) & Incentive \\
+        \midrule
+        R & W & R & -$\alpha_1$ \\
+        R & W & W & -$\alpha_0$ \\
+        W & R & W & $\alpha_0$ \\
+        W & R & R & $\alpha_1$ \\
+        \bottomrule
+    \end{tabular}
+    }
+    \vspace{-2mm}
+
+     \caption{{The design of additional incentives} regarding an agent's own answer revision in \ourstwo. The incentive is determined by how an agent changes its answer between consecutive turns ($t$ and $t+1$) relative to the majority opinion of others. \textbf{R} indicates a correct answer, \textbf{W} indicates an incorrect answer. The incentive value is applied to the agent's answer at turn $t+1$.}
+    \label{tab:bonus_penalty_case1}
+        \vspace{-3mm}
+\end{table}
+
+\begin{table}[h]
+    \small
+    \centering
+    \resizebox{\linewidth}{!}{  
+    \begin{tabular}{cccc}
+        \toprule
+        Majority (t) & Majority (t+1) & Answer (t) & Incentive \\
+        \midrule
+        R & W & R & -$\beta_1$ \\
+        R & W & W & -$\beta_0$ \\
+        W & R & W & $\beta_0$ \\
+        W & R & R & $\beta_1$ \\
+        \bottomrule
+    \end{tabular}
+    }
+    \vspace{-2mm}
+    \caption{{The design of additional incentives} regarding an agent's influence on other agents' answers in \ourstwo. The incentive is based on how the majority opinion changes between consecutive turns $t$ and $t+1$ relative to the agent's answer at turn $t$. The incentive value is applied to the agent's answer at turn $t$.}
+    \label{tab:bonus_penalty_case2}
+            \vspace{-3mm}
+
+\end{table}
+
+
+
+
+

@@ -1,0 +1,92 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+\section{Reward Weights}\label{appendix:rewards}
+\begin{table}
+\begin{threeparttable}
+\begin{tabular}{c|c|c|p{8cm}}
+    Name          & Reward & Heroes & Description \\\hline
+    Win           & 5      & Team & \\
+    Hero Death    & -1     & Solo & \\
+    Courier Death & -2     & Team & \\
+    XP Gained     & 0.002  & Solo & \\
+    Gold Gained   & 0.006  & Solo & For each unit of gold gained. Reward is not lost when the gold is spent or lost. \\
+    Gold Spent    & 0.0006 & Solo & Per unit of gold spent on items without using courier. \\
+    Health Changed& 2      & Solo & Measured as a fraction of hero's max health.\tnote{$\ddagger$} \\
+    Mana Changed  & 0.75   & Solo & Measured as a fraction of hero's max mana. \\
+    Killed Hero   & -0.6   & Solo & For killing an enemy hero. The gold and experience reward is very high, so this reduces the total reward for killing enemies. \\
+    Last Hit      & -0.16  & Solo & The gold and experience reward is very high, so this reduces the total reward for last hit to $\sim 0.4$. \\
+    Deny          & 0.15   & Solo & \\
+    Gained Aegis  & 5      & Team & \\
+    Ancient HP Change & 5     & Team & Measured as a fraction of ancient's max health. \\
+    Megas Unlocked   & 4      & Team & \\
+    T1 Tower\tnote{*}      & 2.25   & Team & \\
+    T2 Tower\tnote{*}      & 3   & Team & \\
+    T3 Tower\tnote{*}    & 4.5 & Team & \\
+    T4 Tower\tnote{*}    & 2.25 & Team & \\
+    Shrine\tnote{*}      & 2.25 & Team & \\
+    Barracks\tnote{*}    & 6 & Team & \\
+    Lane Assign\tnote{$\dagger$}  & -0.15 & Solo & Per second in wrong lane. \\
+\end{tabular}
+\begin{tablenotes}
+    \item[*] For buildings, two-thirds of the reward is earned linearly as the building loses health, and one-third is earned as a lump sum when it dies.
+    \item[$\dagger$] See \autoref{sec:lane-assignments}.
+    \item[$\ddagger$] Hero's health is quartically interpolated between 0 (dead) and 1 (full health); health at fraction $x$ of full health is worth $\left(x + 1 - (1-x)^4\right)/2$. This function was not tuned; it was set once and then untouched for the duration of the project.
+\end{tablenotes}
+\end{threeparttable}
+\caption{Shaped Reward Weights}
+\label{table:rewards}
+\end{table}
+
+Our agent's ultimate goal is to win the game.
+In order to simplify the credit assignment problem (the task of figuring out which of the many actions the agent took during the game led to the final positive or negative reward), we use a more detailed reward function.
+Our shaped reward is modeled loosely after potential-based shaping functions \cite{Ng99policyinvariance}, though the guarantees therein do not apply here. 
+We give the agent reward (or penalty) for a set of actions which humans playing the game generally agree to be good (gaining resources, killing enemies, etc). 
+
+
+All the results that we reward can be found in \autoref{table:rewards}, with the amount of the reward. Some are given to every hero on the team (``Team'') and some just to the hero who took the action ``Solo.'' Note that this means that when team spirit is 1.0, the total amount of reward is five times higher for ``Team'' rewards than ``Solo'' rewards.
+
+In addition to the set of actions rewarded and their weights, our reward function contains 3 other pieces: 
+\begin{itemize}
+    % \item \textbf{GAE: } We use generalized advantage estimation (see \autref{sec:model:optimization}), the rewards are smoothed across timestep using an exponential factor $\gamma$. This means that a reward earned at time T also positively benefits the actions at time $T-1$, $T-2$, etc, each slightly less than the time before.
+    \item \textbf{Zero sum: } The game is zero sum (only one team can win), everything that benefits one team necessarily hurts the other team. We ensure that all our rewards are zero-sum, by subtracting from each hero's reward the average of the enemies' rewards.
+    \item \textbf{Game time weighting: } Each player's ``power'' increases dramatically over the course of a game of \dota. 
+    A character who struggled to kill a single weak creep early in the game can often kill many at once with a single stroke by the end of the game. This means that the end of the game simply produces more rewards in total (positive or negative). 
+    If we do not account for this, the learning procedure focuses entirely on the later stages of the game and ignores the earlier stages because they have less total reward magnitude. 
+    We use a simple renormalization to deal with this, multiplying all rewards other than the win/loss reward by a factor which decays exponentially over the course of the game. Each reward $\rho_i$ earned a time $T$ since the game began is scaled:
+    \begin{equation}
+        \rho_i \leftarrow \rho_i \times 0.6^{(T/\textrm{10 mins})}
+    \end{equation}
+    \item \textbf{Team Spirit: }
+    %All RL problems face a credit assignment problem in which a single agent needs to learn which actions it took in the past are the ones that truly caused a reward it gains in the future. 
+    Because we have multiple agents on one team, we have an additional dimension to the credit assignment problem, where the agents need learn which of the five agent's behavior cause some positive outcome.
+    The partial rewards defined in \autoref{table:rewards} are an attempt to make the credit assignment easier, but they may backfire and in fact add more variance if an agent receives reward when a \emph{different} agent takes a good action.
+    To attempt dealing with this, we have introduced {\it team spirit}.
+    It measures how much agents on the team share in the spoils of their teammates.
+    If each hero earns raw individual reward $\rho_i$, then we compute the hero's final reward $r_i$ as follows:
+    \begin{equation}
+        r_i = (1 - \tau) \rho_i + \tau \overline{\rho}
+    \end{equation}
+    with scalar $\overline{\rho}$ being equal to mean of $\rho$.
+    If team spirit is 0, then it's every hero for themselves; each hero only receives reward for their own actions $r_i=\rho_i$.
+    If team spirit is 1, then every reward is split equally among all five heroes; $r_i = \overline{\rho}$.
+    For a team spirit $\tau$ in between, team spirit-adjusted rewards are linearly interpolated between the two.
+    
+    Ultimately we care about optimizing for team spirit $\tau=1$; we want the actions to be chosen to optimize the success of the entire team. However we find that lower team spirit reduces gradient variance in early training, ensuring that agents receive clearer reward for advancing their mechanical and tactical ability to participate in fights individually. 
+    See \autoref{sec:methods:exploration} for an ablation of this method.
+\end{itemize}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/sparse_trueskill.pdf}
+    \caption{\textbf{Sparse rewards in \dota:} \trueskillname over the course of training for experiments run with 0-1 loss only. For the sparse reward run horizon was set to 1 hour ($\gamma=0.99996$) (versus 180 seconds for the baseline run). 
+    The baseline otherwise uses identical settings and hyperparameters including our shaped reward.
+    The sparse reward succeeds at reaching \trueskillname 155; for reference, a hand-coded scripted agent reaches \trueskillname 100.
+    }
+    \label{fig:sparse-rewards}
+\end{figure}
+
+We ran a small-scale ablation with partial reward weights disabled (see \autoref{fig:sparse-rewards}). Surprisingly, the model learned to play well enough to beat a hand-coded scripted agent consistently, though with a large penalty to sample efficiency relative to the shaped reward baseline.
+From watching these games, it appears that this policy does not play as effectively at the beginning of the game, but has learned to coordinate fights nearer to the end of the game.
+Investigating the tradeoffs and benefits of sparse rewards is an interesting direction for future work.
+
+\end{document}

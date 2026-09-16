@@ -1,0 +1,167 @@
+\documentclass[]{fairmeta}
+% ################# PACKAGES ###########################
+\usepackage[round,authoryear]{natbib}
+\usepackage{hyperref}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{nicematrix}
+% Define our command before loading amssymb
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{adjustbox}
+\usepackage{soul}
+\usepackage[inline]{enumitem}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{bbding}
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{xspace}
+\usepackage{lmodern}
+\usepackage{tablefootnote}
+
+% \renewcommand{\lstlistingname}{Table} % Change "Listing" to "Table"
+\makeatletter
+\AtBeginDocument{
+\renewcommand{\sectionautorefname}{Section}
+\renewcommand{\subsectionautorefname}{Section}
+\renewcommand{\subsubsectionautorefname}{Section}
+\renewcommand{\appendixautorefname}{Appendix}
+}
+\makeatother
+% \let\subsectionautorefname\sectionautorefname
+% \let\subsubsectionautorefname\sectionautorefname
+\lstset{
+    basicstyle=\ttfamily\footnotesize, % Set the text font and size
+    breaklines=true,
+    frame=single,
+    captionpos=t, % Caption on top
+    showstringspaces=false,
+    numbers=none, % Remove line numbers
+}
+
+
+% \lstset{
+
+% Option "twocolumn" available, but please prioritize single-column
+
+% \title{\mlgym: A New Framework and Benchmark for AI Agents Solving ML Research Tasks}
+% \title{\mlgym: A New Framework and Benchmark for Advancing AI Research Assistants}
+\title{{\mlgym}: A New Framework and Benchmark for Advancing AI Research Agents}
+% \title{\mlgym: A New Framework and Benchmark for Automating AI Research}
+
+% \title{\mlgym: Can LLMs Solve AI Research Tasks?}
+
+\author[1\dagger]{Deepak Nathani}
+\author[2,7]{Lovish Madaan}
+\author[3\dagger]{Nicholas Roberts}
+\author[7]{Nikolay Bashlykov}
+\author[7]{Ajay Menon}
+\author[5]{Vincent Moens}
+\author[7]{Amar Budhiraja}
+\author[6]{Despoina Magka}
+\author[7]{Vladislav Vorotilov}
+\author[7]{Gaurav Chaurasia}
+\author[7]{Dieuwke Hupkes}
+\author[7]{Ricardo Silveira Cabral}
+\author[7]{Tatiana Shavrina}
+\author[6]{Jakob Foerster}
+\author[6]{Yoram Bachrach}
+\author[1]{William Yang Wang}
+\author[2,7]{Roberta Raileanu}
+
+
+\affiliation[1]{University of California, Santa Barbara}
+\affiliation[2]{University College London}
+\affiliation[3]{University of Wisconsin--Madison}
+\affiliation[4]{University of Oxford}
+\affiliation[5]{PyTorch Core Libraries at Meta}
+\affiliation[6]{FAIR at Meta}
+\affiliation[7]{GenAI at Meta}
+
+
+\contribution[\dagger]{Work done during internship at Meta}
+% \contribution[\dagger]{Joint last author}
+
+\abstract{
+We introduce Meta \mlgym and \mlgym-Bench, a new framework and benchmark for evaluating and developing LLM agents on AI research tasks. This is the first Gym environment for machine learning (ML) tasks, enabling research on reinforcement learning (RL) algorithms for training such agents. \mlgym-bench consists of 13 diverse and open-ended AI research tasks from diverse domains such as computer vision, natural language processing, reinforcement learning, and game theory. Solving these tasks requires real-world AI research skills such as generating new ideas and hypotheses, creating and processing data, implementing ML methods, training models, running experiments, analyzing the results, and iterating through this process to improve on a given task. We evaluate a number of frontier large language models (LLMs) on our benchmarks such as Claude-3.5-Sonnet, Llama-3.1 405B, GPT-4o, o1-preview, and Gemini-1.5 Pro. Our \mlgym framework makes it easy to add new tasks, integrate and evaluate models or agents, generate synthetic data at scale, as well as develop new learning algorithms for training agents on AI research tasks. We find that current frontier models can improve on the given baselines, usually by finding better hyperparameters, but do not generate novel hypotheses, algorithms,  architectures, or substantial improvements. We open-source our framework and benchmark to facilitate future research in advancing the AI research capabilities of LLM agents.
+% \dn{removing https URL mention for submission}
+% \dm{is game theory a machine learning research task? shall we just say AI research tasks?}
+}
+
+\date{\today}
+\correspondence{Deepak Nathani at \email{dnathani@ucsb.edu}, Roberta Raileanu at \email{raileanu@meta.com}}
+
+% You can add additional metadata fields as follows 
+\metadata[Code]{\url{https://github.com/facebookresearch/MLGym}}
+% \metadata[Blogpost]{\url{https://ai.meta.com/blog/?page=1}}
+
+\crefformat{section}{\S#2#1#3}
+\crefformat{subsection}{\S#2#1#3}
+\crefformat{subsubsection}{\S#2#1#3}
+
+% ############### CUSTOM MACROS #######################
+\newcommand{\ibold}[1]{\textbf{\textit{#1}}}
+% \newcommand{\cbhtml}[1]{\textcolor[HTML]{#1}{\rule{0.75em}{1em}}}
+% \newcommand{\cb}[1]{\textcolor{#1}{\rule{0.75em}{1em}}}
+\newcommand{\cbhtml}[1]{\textcolor[HTML]{#1}{\raisebox{-0.1em}{\rule{0.75em}{1em}}}}
+\newcommand{\cb}[1]{\textcolor{#1}{\raisebox{-0.1em}{\rule{0.75em}{1em}}}}
+\newcommand{\greencheck}{\textcolor{green}{\Checkmark}}
+\newcommand{\cross}{\textcolor{red}{\XSolid}}
+\newcommand{\hexbox}[2]{\colorbox[HTML]{#1}{#2}}
+\newcommand{\hextext}[2]{\textcolor[HTML]{#1}{#2}}
+\definecolor{pastelgreen}{RGB}{102,204,102}
+\definecolor{pastelred}{RGB}{255,77,77}
+
+\newcommand{\deltaup}[1]{\makebox[0pt][l]{\textcolor{pastelgreen}{\small\textuparrow#1}}}
+\newcommand{\deltadown}[1]{\makebox[0pt][l]{\textcolor{pastelred}{\small\textdownarrow#1}}}
+
+\newcommand{\dn}[1]{\colorbox{magenta}{\textcolor{white}{Deepak}}\textcolor{magenta}{\textbf{:#1}}}
+\newcommand{\rr}[1]{\colorbox{red}{\textcolor{white}{Roberta}}\textcolor{red}{\textbf{:#1}}}
+\newcommand{\ts}[1]{\colorbox{blue}{\textcolor{white}{Tatiana}}\textcolor{blue}{\textbf{:#1}}}
+\newcommand{\am}[1]{\colorbox{orange}{\textcolor{white}{Ajay}}\textcolor{orange}{\textbf{:#1}}}
+\newcommand{\yb}[1]{\colorbox{purple}{\textcolor{white}
+{Yoram}}\textcolor{purple}{\textbf{:#1}}}
+\newcommand{\jf}[1]{\colorbox{green}{\textcolor{white}{Jakob}}\textcolor{green}{\textbf{:#1}}}
+\newcommand{\lm}[1]{\colorbox{teal}{\textcolor{white}{Lovish}}\textcolor{teal}{\textbf{:#1}}}
+\newcommand{\nb}[1]{\colorbox{violet}{\textcolor{white}{Nikolay}}\textcolor{violet}{\textbf{:#1}}}
+\newcommand{\nr}[1]{\colorbox{Emerald}{\textcolor{white}{Nick}}\textcolor{Emerald}{\textbf{:#1}}}
+\newcommand{\dm}[1]{\colorbox{Emerald}{\textcolor{white}{Despoina}}\textcolor{Emerald}{\textbf{:#1}}}
+\newcommand{\mlgym}{\fontfamily{lmr}\selectfont\mdseries\textsc{MLGym}\xspace}
+
+
+
+
+
+\begin{document}
+
+\maketitle
+
+% \listoftodos[List of TODOs]
+
+% \todo[inline]{@roberta, @tatiana: please take a look at the author list and order.}
+\input{sections/1_Introduction}
+\input{sections/2_Related_Work}
+
+\input{sections/3_Environment}
+
+\input{sections/4_Benchmark}
+
+\input{sections/5_Experiments}
+
+\input{sections/6_Results}
+
+\input{sections/7_Conclusion}
+
+\clearpage
+\newpage
+\bibliographystyle{plainnat}
+\bibliography{paper}
+
+\clearpage
+\newpage
+\beginappendix
+
+\input{sections/Appendix}
+
+\end{document}

@@ -1,0 +1,144 @@
+\section{Experiments}
+
+In order to demonstrate the capabilities and performance of AutoAgents in orchestrating autonomous agent groups to collaboratively accomplish tasks, we have performed extensive quantitative experiments on benchmark tasks and thorough case studies on more complex and realistic applications. In the quantitative analysis, we mainly present results for the \textbf{Open-ended Question Answer} task (detailed in Section~\ref{sec:qa}) and the \textbf{Trivia Creative Writing} task (detailed in Section~\ref{sec:triva}) to evaluate the framework effectiveness under distinct settings. The \textbf{Case Studies}, discussed in Section~\ref{sec:case}, illustrate the potential of a multi-agent group tackling intricate practical scenarios cooperatively.
+
+\textbf{Implementation Details:} We conduct all experiments using the GPT-4 API\footnote{The specific model version employed is “GPT-4-0613”.} and set the temperature to 0 to ensure reproducibility. The rationale behind this selection is the exceptional performance these models offer, providing more accurate and standardized output. Additionally, their accessibility and ease of use through APIs enable us to directly call and interact with the models during our research, significantly simplifying the process. The maximum number of discussions during the drafting phase is 3, and the maximum number of self-refinement by a single agent and collaborative refinement by multiple agents during the execution phase is 5.
+
+\subsection{Open-ended Question Answer}
+\label{sec:qa}
+
+\textbf{Task Description.} Open-ended Question Answering is a crucial and challenging task in the domain of NLP and generative AI. It requires an AI system to produce coherent, elaborate, and human-like responses to questions that have no predetermined or fixed set of possible answers. ~\cite{zheng2023judging} proposed MT-bench, a benchmark consisting of 80 high-quality collected open-ended questions from various categories such as common sense, counterfactual, coding, etc. We then utilize AutoAgents to produce collaborative answers based on multiple generated agents and compare them with the responses given by \textbf{Vicuna-13B}, \textbf{ChatGPT}, and \textbf{GPT-4}.
+
+\begin{table}[!htbp]
+\caption{Win Rate of AutoAgents over other models on Open-ended Question Answer, with FairEval~\cite{wang2023large} and HumanEval serving as evaluators.}
+\label{tab:open}
+\centering
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Evaluator} & v.s. \textbf{ChatGPT} & v.s. \textbf{Vicuna-13B} & v.s. \textbf{GPT-4}\\
+\midrule
+FairEval~\cite{wang2023large} & 96.3\% & 96.3\% & 76.3\% \\
+% ChatEval~\cite{chan2023chateval} &  &  &  \\
+HumanEval & 75\% & 75\% & 62.5\% \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\textbf{Evaluation Metrics.} 
+To measure the quality of open-ended responses with minimal evaluation bias, we adopt \textbf{FairEval}~\cite{wang2023large} and HumanEval as the evaluation metrics for both the single agent and AutoAgents. FairEval incorporates several methods to mitigate the impact of various sources of bias, resulting in a better alignment with human judgment. For \textbf{HumanEval}, we enlist several volunteers to rate the responses from different models based on their helpfulness, reliability, accuracy, and level of detail. 
+% Finally, we evaluate the relative win rate of AutoAgents over the single-agent model.
+
+\textbf{Results.} 
+Table~\ref{tab:open} demonstrates that AutoAgents outperforms individual LLM models in both FairEval based on LLM and Human evaluations. AutoAgent can produce more comprehensive and nuanced answers to open questions by synthesizing multiple expert models. It can also provide more elaborate explanations and justifications for its answers. More examples are given in the Appendix~\ref{sec:analysis}.
+
+
+\subsection{Trivia Creative Writing}
+\label{sec:triva}
+
+\textbf{Task Description.} 
+The Trivia Creative Writing task~\cite{wang2023unleashing} challenges the capabilities of large language models to retrieve and integrate diverse information from their internal self-compressed knowledge. This task requires a model to craft a coherent story around a given topic while incorporating the answers to $N$ trivia questions. We evaluate the models under two settings, $N=5$ and $N=10$, where a higher $N$ entails more trivia questions and thus demands the model to exhibit more extensive domain knowledge. We constructed a benchmark consisting of 100 instances for each $N$, encompassing a total of 1000 trivia questions.
+
+\begin{table}[!htbp]
+\caption{The results of Trivia Creative Writing task. $\Delta$ indicates the differences compared with Standard Prompting (first row).}
+\label{tab:trivia}
+\centering
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lccccc}
+\toprule
+\multirow{2}{*}{\textbf{Methods}} &\multicolumn{2}{c}{\textbf{N (\# trivia questions) = 5 }} && \multicolumn{2}{c}{\textbf{N (\# trivia questions ) = 10}} \\
+\cmidrule{2-3}\cmidrule{5-6}
+& \textbf{Score (\%)} & \textbf{$\Delta$ (v.s Standard \%)} & & \textbf{Score (\%)} & \textbf{$\Delta$ (v.s Standard \%)} \\
+\midrule
+Standard & 74.6 & 0.0\% && 77.0 & 0.0\% \\ 
+CoT~\cite{yao2023tree} & 67.1 & \textcolor{textred}{-10.0\%} && 68.5 & \textcolor{textred}{-11.1\%}\\
+SPP-Profile~\cite{wang2023unleashing} & 79.1 & \textcolor{textgreen}{+5.9\%} && 83.0 & \textcolor{textgreen}{+7.8\%} \\
+SPP~\cite{wang2023unleashing} & 79.9 & \textcolor{textgreen}{+7.1\%} && 84.7 & \textcolor{textgreen}{+10.0\%} \\
+\textbf{AutoAgents} & \textbf{82.0} & \textcolor{textgreen}{\textbf{+9.9\%}} && \textbf{85.3} & \textcolor{textgreen}{\textbf{+10.8\%}}\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\textbf{Evaluation Metrics.} Drawing on the approach of~\cite{wang2023unleashing}, we adopt an automatic metric to identify factual errors and measure a model’s capacity to integrate diverse domain knowledge. We conduct string matching with the veridical target answers for each question on the generated output. The target answers are supplied from the TriviaQA dataset~\cite{joshi2017triviaqa}, and each question can have a list of answer variants. A match to any of the answer variants of a question is regarded as a correct mention. The metric score is calculated as $\text{\tasktrivia{} Metric Score} = {\text{\# correct answer mentions}} / {\text{\# trivia questions}}$.
+
+
+
+\textbf{Results.}
+Table~\ref{tab:trivia} demonstrates the superior performance of AutoAgents in knowledge acquisition over the existing methods. Compared to the Standard method, which does not employ Agent Generation, AutoAgents achieves a remarkable 10\% improvement across all experiments. Moreover, AutoAgents also surpasses SSP~\cite{wang2023unleashing}, which utilizes agent generation but with a different approach. The enhanced performance of AutoAgents can be attributed to its elaborate methods of agent generation discussions and task execution including collaborative refinement and self-refinement. More examples are given in the Appendix~\ref{sec:analysis}.
+
+
+\subsection{Further Analysis}
+\label{sec:further analysis}
+
+This section delves into the significance of key components within AutoAgents by separately analyzing the \textit{self-refinement action}, \textit{collaborative refinement action}, \textit{dynamic memory}, and \textit{observers in the draft stage} across 20 instances~\footnote{The last 20 samples from a dataset of 100 samples are used as test instances.} of the Trivia Creative Writing task and additional case studies.
+
+\begin{table}[!htbp]
+\caption{The ablation studies of AutoAgents on 20 instances of Trivia Creative Writing task. $\Delta$ indicates the differences compared with Standard Prompting (first row).}
+\label{tab:ablation}
+\centering
+% \scriptsize
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lcc}
+\toprule
+\multirow{2}{*}{\textbf{Methods}} &\multicolumn{2}{c}{\textbf{N (\# trivia questions) = 5 }}  \\
+\cmidrule{2-3}
+& \textbf{Score (\%)} & \textbf{$\Delta$ (v.s Standard \%)} \\
+\midrule
+Standard & 74.6 & 0.0\%  \\ 
+CoT~\cite{yao2023tree} & 66.0 & \textcolor{textred}{-11.5\%} \\
+SPP-Profile~\cite{wang2023unleashing} & 74.0 & \textcolor{textred}{-0.01\%}  \\
+SPP~\cite{wang2023unleashing} & 84.4 & \textcolor{textgreen}{+13.1\%}  \\
+\midrule
+\textbf{AutoAgents} w/o observers & 87.0 & \textcolor{textgreen}{\textbf{+16.6\%}} \\
+\textbf{AutoAgents} w/o self-refinement & 87.0 & \textcolor{textgreen}{\textbf{+16.6\%}} \\
+\textbf{AutoAgents} w/o collaborative refinement & 88.0 & \textcolor{textgreen}{\textbf{+18.0\%}} \\
+\textbf{AutoAgents} w/o dynamic memory & 89.0 & \textcolor{textgreen}{\textbf{+19.3\%}} \\
+\textbf{AutoAgents} & \textbf{90.0} & \textcolor{textgreen}{\textbf{+20.6\%}} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\noindent
+\textbf{Collaborative discussion is crucial for rational agent generation and plan allocation.}
+During the Drafting Stage, the Planner in AutoAgents engages in collaborative discussions with two Observers to determine the optimal list of agents and the execution plan. Figure~\ref{fig:planner} illustrates the contrast between agent generation with and without collaborative discussion. In the absence of Observer feedback, the Planner tends to generate programmers exclusively to accomplish game development, neglecting the holistic process of game creation. With the input and coordination of the Observers, the Planner incorporates game design experts, UI design experts, and testing experts into the agent list. It is evident that the agent generation under collaborative discussions is more comprehensive and more aligned with the realistic scenarios of game development. This also corroborates the significance of collaborative discussions for agent generation and plan allocation, which will subsequently influence the execution outcomes. Concurrently, Table~\ref{tab:ablation} elucidates that in the absence of observers, there is a marked 3\% reduction in the overall performance of AutoAgents. This substantiates the imperative role of collaborative discussions in agent generation. AutoAgent markedly enhances the caliber of agent generation via collaborative discussions, a facet notably overlooked by other generative frameworks in their consideration of agent generation quality. The empirical data presented in Table~\ref{tab:open} and ~\ref{tab:trivia} further accentuate the superiority of AutoAgents when juxtaposed against counterparts like AgentVerse and SPP.
+
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\linewidth]{./figures/plan.pdf}
+\caption{Comparison of whether there is a collaborative discussion in the Drafting Stage in the task that \textit{developing Python-based software for the Tetris game}.
+}
+\label{fig:planner}
+\end{figure}
+
+\noindent
+\textbf{Enhancing single-agent through self-refinement.}
+Self-Refinement~\cite{madaan2023self_refine, shinn2023reflexion, gou2023critic, self-debug, inner-monologue, yao2022react} is a technique that enables LLMs to “converse” with themselves, evaluate their own generation, and iteratively improve their answers. Self-refinement has been shown to enhance the accuracy of LLMs’ outputs in various domains~\cite{madaan2023self_refine, shinn2023reflexion, gou2023critic, self-debug, inner-monologue, yao2022react}. Although AutoAgents is a framework for multi-agent collaboration, it also requires self-refinement agents to perform specialized roles for individual tasks. As shown in the results in Table~\ref{tab:ablation}, the performance of AutoAgents decreases by 3\% in the absence of the self-refinement action. This observation corroborates the assertion that self-refinement is instrumental in augmenting proficiency in trivia creative writing tasks. Furthermore, the enhancement of single agents via self-refinement plays a pivotal role in fortifying the integrity of the overarching multi-agent framework.
+
+\noindent
+\textbf{Enhancing multi-agent collaboration through collaborative refinement action.}
+For collaborative refinement, the process resembles the collaborative dialogue mentioned above, which involves integrating knowledge from different domains to accomplish tasks that demand cross-domain knowledge fusion. 
+The results in Table~\ref{tab:ablation} demonstrate the performance when \textit{collaborative refinement} is absent. It's observable that compared to the scenario with AutoAgents, there is a decline of 2\%. Since the necessity for multiple agents to collaborate on a single task is entirely dependent on the decision made by the agent in the drafting phase, not all problems necessarily involve tasks that require collaborative refinement. However, it's evident that when this principle is omitted from the prompt's design, there's a noticeable performance decrease. 
+
+\noindent
+\textbf{Improve the effectiveness of actions by dynamic memory.}
+Dynamic memory predominantly addresses the requisites of specialized agents. As shown in Figure~\ref{fig:memory}, the Action Observer amalgamates pivotal data for forthcoming tasks, utilizing the historical action records archived in long-term memory. Table~\ref{tab:ablation} elucidates a 1\% diminution in the efficacy of AutoAgents bereft of dynamic memory. Quintessential insights derived from dynamic memory are assimilated into the prompt, thereby augmenting the comprehension of critical information and bolstering the operational proficiency of actions.
+
+\subsection{Case Study}
+\label{sec:case}
+
+To demonstrate the applicability of AutoAgents to more sophisticated and realistic scenarios, we conduct a case study in the software engineering domain. Software engineering is a complex collaborative endeavor that involves diverse roles and responsibilities. From developers who create the underlying code, to UI designers who prioritize user experience, and software testers who ensure the software’s quality, experts collaboratively work to enhance and refine the application, ensuring that it meets both functional and user-centric criteria.
+
+\begin{figure}[!htbp]
+\centering
+% \setlength{\abovecaptionskip}{0.2cm}
+\includegraphics[width=\linewidth]{./figures/case.jpg}
+\caption{The illustration of an example process of software development. The task is to \textit{develop Python-based software for the Tetris game}.}
+\label{fig:case}
+\vspace{-0.5cm}
+\end{figure}
+
+As an illustration in Figure~\ref{fig:case}, a Tetris game has been developed by employing AutoAgents, which has generated various expert roles, such as game design expert, UI design expert, programmer, and debugging expert, to accomplish the game development task. The game design experts provide the game logic documents that specify the rules and mechanics of the game. The UI design experts design the UI components that create the visual interface of the game. The programmers implement the game design based on the aforementioned documents and use appropriate programming languages and tools. Finally, the debugging expert tests the game and debuges the program to ensure its functionality and quality. The game development process is based on the collaboration of multiple expert roles, with more elaborate documentation and programs, making it easier for users to comprehend.

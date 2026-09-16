@@ -1,0 +1,57 @@
+# Domain Icons
+
+<table>
+<tr><th>Domain</th><th>Icon</th></tr>
+<tr><td><code>accounting</code></td><td><img src="accounting.svg" width="80"></td></tr>
+<tr><td><code>audiosyn</code></td><td><img src="audiosyn.svg" width="80"></td></tr>
+<tr><td><code>aviation</code></td><td><img src="aviation.svg" width="80"></td></tr>
+<tr><td><code>calendar</code></td><td><img src="calendar.svg" width="80"></td></tr>
+<tr><td><code>chess</code></td><td><img src="chess.svg" width="80"></td></tr>
+<tr><td><code>circuit</code></td><td><img src="circuit.svg" width="80"></td></tr>
+<tr><td><code>crystal</code></td><td><img src="crystal.svg" width="80"></td></tr>
+<tr><td><code>dbschema</code></td><td><img src="dbschema.svg" width="80"></td></tr>
+<tr><td><code>dns</code></td><td><img src="dns.svg" width="80"></td></tr>
+<tr><td><code>docker</code></td><td><img src="docker.svg" width="80"></td></tr>
+<tr><td><code>earncall</code></td><td><img src="earncall.svg" width="80"></td></tr>
+<tr><td><code>edifact</code></td><td><img src="edifact.svg" width="80"></td></tr>
+<tr><td><code>emails</code></td><td><img src="emails.svg" width="80"></td></tr>
+<tr><td><code>fiction</code></td><td><img src="fiction.svg" width="80"></td></tr>
+<tr><td><code>filesystem</code></td><td><img src="filesystem.svg" width="80"></td></tr>
+<tr><td><code>fonteng</code></td><td><img src="fonteng.svg" width="80"></td></tr>
+<tr><td><code>foodmenu</code></td><td><img src="foodmenu.svg" width="80"></td></tr>
+<tr><td><code>genealogy</code></td><td><img src="genealogy.svg" width="80"></td></tr>
+<tr><td><code>geodata</code></td><td><img src="geodata.svg" width="80"></td></tr>
+<tr><td><code>geotrack</code></td><td><img src="geotrack.svg" width="80"></td></tr>
+<tr><td><code>graphviz</code></td><td><img src="graphviz.svg" width="80"></td></tr>
+<tr><td><code>hamradio</code></td><td><img src="hamradio.svg" width="80"></td></tr>
+<tr><td><code>infra</code></td><td><img src="infra.svg" width="80"></td></tr>
+<tr><td><code>jobboard</code></td><td><img src="jobboard.svg" width="80"></td></tr>
+<tr><td><code>json</code></td><td><img src="json.svg" width="80"></td></tr>
+<tr><td><code>landmarks</code></td><td><img src="landmarks.svg" width="80"></td></tr>
+<tr><td><code>latex</code></td><td><img src="latex.svg" width="80"></td></tr>
+<tr><td><code>libcatalog</code></td><td><img src="libcatalog.svg" width="80"></td></tr>
+<tr><td><code>makefile</code></td><td><img src="makefile.svg" width="80"></td></tr>
+<tr><td><code>malware</code></td><td><img src="malware.svg" width="80"></td></tr>
+<tr><td><code>mathlean</code></td><td><img src="mathlean.svg" width="80"></td></tr>
+<tr><td><code>molecule</code></td><td><img src="molecule.svg" width="80"></td></tr>
+<tr><td><code>musicsheet</code></td><td><img src="musicsheet.svg" width="80"></td></tr>
+<tr><td><code>obj3d</code></td><td><img src="obj3d.svg" width="80"></td></tr>
+<tr><td><code>playlist</code></td><td><img src="playlist.svg" width="80"></td></tr>
+<tr><td><code>protein</code></td><td><img src="protein.svg" width="80"></td></tr>
+<tr><td><code>python</code></td><td><img src="python.svg" width="80"></td></tr>
+<tr><td><code>quantum</code></td><td><img src="quantum.svg" width="80"></td></tr>
+<tr><td><code>recipe</code></td><td><img src="recipe.svg" width="80"></td></tr>
+<tr><td><code>robotics</code></td><td><img src="robotics.svg" width="80"></td></tr>
+<tr><td><code>satellite</code></td><td><img src="satellite.svg" width="80"></td></tr>
+<tr><td><code>screenplay</code></td><td><img src="screenplay.svg" width="80"></td></tr>
+<tr><td><code>slides</code></td><td><img src="slides.svg" width="80"></td></tr>
+<tr><td><code>spreadsheet</code></td><td><img src="spreadsheet.svg" width="80"></td></tr>
+<tr><td><code>starcatalog</code></td><td><img src="starcatalog.svg" width="80"></td></tr>
+<tr><td><code>subtitles</code></td><td><img src="subtitles.svg" width="80"></td></tr>
+<tr><td><code>transit</code></td><td><img src="transit.svg" width="80"></td></tr>
+<tr><td><code>translation</code></td><td><img src="translation.svg" width="80"></td></tr>
+<tr><td><code>treebank</code></td><td><img src="treebank.svg" width="80"></td></tr>
+<tr><td><code>vector</code></td><td><img src="vector.svg" width="80"></td></tr>
+<tr><td><code>weather</code></td><td><img src="weather.svg" width="80"></td></tr>
+<tr><td><code>weaving</code></td><td><img src="weaving.svg" width="80"></td></tr>
+</table>

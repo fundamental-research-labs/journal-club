@@ -1,0 +1,46 @@
+\section{Related Work}
+\label{sec:related}
+
+Multi-agent systems fall at the intersection of game theory, distributed systems, and Artificial Intelligence in general~\citep{shoham_08}, and thus have a rich and diverse literature. Our work builds on and is related to prior work in deep multi-agent reinforcement learning, the centralized training and decentralized execution paradigm, and emergent communication protocols.
+
+\textbf{Multi-Agent Reinforcement Learning (MARL).} Within MARL (see \citet{busoniu_08} for a survey), our work
+is related to efforts on using recurrent neural networks to approximate agent policies~\citep{hausknecht_aaai15},
+stabilizing algorithms for multi-agent training~\citep{lowe_nips17, foerster_aaai18},
+and tasks in novel domains \eg coordination and navigation in 3D environments~\citep{peng_arxiv17,openai_18,jaderberg_arxiv18}.
+
+\textbf{Centralized Training \& Decentralized Execution.} Both~\citet{sukhbaatar_nips16} and~\citet{hoshen_nips17}
+adopt a centralized framework at both training and test time -- a central controller processes
+local observations from all agents and outputs a probability distribution over joint actions.
+In this setting, the controller (\eg a fully-connected network) can be viewed as implicitly
+encoding communication. \citet{sukhbaatar_nips16} propose an efficient controller architecture
+that is invariant to agent permutations by virtue of weight-sharing and averaging (as in~\citet{zaheer_nips17}),
+and can, in principle, also be used in a decentralized manner at test time since each
+agent just needs its local state vector and the average of incoming messages to take an action.
+Meanwhile,~\citet{hoshen_nips17}
+proposes to replace averaging by an attentional mechanism to allow targeted interactions between agents.
+While closely related to our communication architecture, this work only considers fully-supervised
+one-next-step prediction tasks, while we study the full reinforcement learning problem
+with tasks requiring planning over long time horizons.
+
+Moreover, a centralized controller quickly becomes intractable in real-world tasks with many agents and high-dimensional observation spaces \eg navigation in House3D~\citep{house3d}.
+To address these weaknesses, we adopt the framework of centralized learning but decentralized execution
+(following~\citet{foerster_nips16,lowe_nips17}) and further relax it by allowing agents to communicate.
+While agents can use extra information during training, at test time, they pick actions solely based on
+local observations and communication messages.
+
+
+\textbf{Emergent Communication Protocols.} Our work is also related to recent work on learning communication
+protocols in a completely end-to-end manner with reinforcement learning -- from perceptual input (\eg pixels)
+to communication symbols (discrete or continuous) to actions (\eg navigating in an environment).
+While~\citep{foerster_nips16,jorge_iclrw16,visdial_rl,kottur_emnlp17,mordatch_arxiv17,lazaridou_iclr17}
+constrain agents to communicate with discrete symbols with the explicit goal to study emergence of language,
+our work operates in the paradigm of learning a continuous communication protocol in order to solve a downstream
+task~\citep{sukhbaatar_nips16,hoshen_nips17,jiang_nips18,singh_iclr19}.
+\citet{jiang_nips18,singh_iclr19} also operate in a decentralized execution
+setting and use an attentional communication mechanism, but in contrast to our work,
+they use attention to decide \emph{when} to communicate, not \emph{who} to communicate with.
+In \Secref{sec:competitive}, we discuss how to potentially combine the two approaches.
+
+Table~\ref{table:related} summarizes
+the main axes of comparison between our work and previous efforts in this exciting space.
+

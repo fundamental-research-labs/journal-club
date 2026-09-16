@@ -1,0 +1,179 @@
+\section{Learning to Communicate}
+\label{sec:exp1}
+
+Our first question is whether agents converge to successful
+communication at all. To test this, we run them through a training
+phase of 50k rounds of play and report test performance after each
+round. Figure \ref{fig:exp1_comm} plots the communicative success
+(i.e., proportion of test plays in which the agents successfully
+coordinated) as a function of training rounds. We see that our agents
+do indeed converge to communication, approaching their asymptotes
+after about 1.5K rounds. These results are robust to changing various parameters of the game (sender architecture, image representation, vocabulary size).%with an average success rate of 94$\%$ across
+%models.\COMMENT{is this with probs or fc representations?}
+
+
+\begin{figure}[tb]
+\centering
+\includegraphics[scale=0.4]{figures/fc}
+\caption{Communication success as a function of training iterations for the configurations using fc visual representations.}
+\label{fig:exp1_comm}
+\end{figure}
+
+
+
+% \begin{table}
+% \centering
+% \begin{tabular}{c|c|c|c|c|c|c|c}
+% visual representation&vocab size & used words& sender & commun. success &purity & rand. purity & purity-rand. purity\\\hline
+% probs & 100 & 58 & shared & 1.00 & 0.46        & 0.27 & 0.19\\
+% fc & 100 & 38 & shared & 1.00 & 0.41           & 0.23 & 0.18\\
+% probs & 10 & 10 & shared & 1.00 & 0.35         & 0.18 & 0.18\\
+% fc & 10 & 10 & shared & 1.00 & 0.32            & 0.17 & 0.14\\
+% probs & 100 & 2 & fullyconnected & 0.99 & 0.21 & 0.15 & 0.06\\
+% fc & 10 & 2 & fullyconnected & 0.99 & 0.21     & 0.15 & 0.05\\
+% probs & 10 & 2 & fullyconnected & 0.99 & 0.20  & 0.15 & 0.04\\
+% fc & 100 & 2 & fullyconnected & 0.99 & 0.19    & 0.15 & 0.04\\
+% \end{tabular}
+% \label{tab:exp1_table}
+% \caption{Table with results, no noise}
+% \end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{c|c|c|c|c|c|c|c}
+id & sender   &vis   &voc &used     &comm    &      purity ($\%$)   &obs-chance\\
+ 	&	& rep & size& symbols & success($\%$) &  & purity ($\%$) \\\hline
+1&informed&probs     &100       &58          &100                &46           &0.27 \\
+2&informed&fc        &100       &38          &100                &41           &0.23 \\
+3&informed&probs     &10        &10          &100                &35           &0.18 \\
+4&informed&fc        &10        &10          &100                &32           &0.17 \\
+5&agnostic&probs     &100       &2           &99                 &21           &0.15 \\
+6&agnostic&fc        &10        &2           &99                 &21           &0.15 \\
+7&agnostic&probs     &10        &2           &99                 &20           &0.15 \\
+8&agnostic&fc        &100       &2           &99                 &19           &0.15 \\
+\end{tabular}
+\label{tab:exp1_table}
+\caption{Playing the referential game. \emph{Used symbols} column reports number of distinct vocabulary symbols that were produced at least once in the test phase. See text for explanation of \emph{comm success} and \emph{purity}. All purity values are highly significant ($p<0.001$) compared to simulated chance symbol assignment when matching observed symbol usage. %\textbf{Is this indeed the case? that is, is observed purity above the max chance value for all experiments reported in this table? if not, update accordingly. AL: YES, but I measured in your perl simulations how many times the chance purity was over the observed one.} 
+The \emph{obs-chance purity} column reports the difference between observed purity and expected purity under chance.}
+\end{table}
+
+Table~\ref{tab:exp1_table} shows communication success for various configurations after 5k training rounds. Both sender architectures learn
+to coordinate with the receiver. However, they have very different
+qualitative behavior.  The informed sender, being encouraged to detect
+pairwise relations between images, tends to make use of more symbols
+from the available vocabulary, while the sender without this feature
+coordinates using a very compact vocabulary. This might suggest that
+the informed sender is using more varied and word-like symbols (recall
+that the images depict about 463 objects, so we would expect a
+natural-language-endowed sender to use a wider array of symbols to
+discriminate among them). However, it could also be the case that the
+informed sender vocabulary simply contains higher
+redundancy/synonymy. Figure~\ref{fig:exp1_synonymy} plots the singular
+values and spectral clustering of the informed sender symbol usage
+(with fc input representations and 100 as  symbol vocabulary
+size). We observe that, while there is some redundancy, the vocabulary
+would not be able to get reduced to two symbols with the current
+communication protocol.
+\COMMENT{I did not follow the line of reasoning here: isn't the fact that the vocabulary could be reduced to two singular values a sign that it's indeed very redundant?} AL: Why do you  say that the vocabulary can be reduced to two symbols only? There is some information carried by the other dimensions as well.
+
+\begin{figure}[tb]
+\centering
+\includegraphics[scale=0.35]{figures/singular}
+\caption{Singular values and spectral clustering of symbols}
+\label{fig:exp1_synonymy}
+\end{figure}
+
+\COMMENT{I am commenting out the
+  former description and replacing it with one of what I did. Alex: if
+  the description that follows is wrong, please reinstate yours.}
+
+We now turn to investigating the semantic properties of the emergent
+communication protocol. Recall that the vocabulary that agents use is
+arbitrary and has no initial meaning. Thus, one way to look for the
+emergence of high (vs.~low) level semantics is to look for the
+relationship between symbols and the sets of images they refer to. To
+look for these higher-level properties, we exploit the fact that the
+objects in our images were categorized into \textbf{10} \textbf{AL: Why 10? We have 20...} broader
+categories (such as \emph{weapon} and \emph{mammal}) by
+\cite{McRae:etal:2005}. If the agents converged to intuitive meanings
+for the symbols, we would expect that objects belonging to the same
+category would activate the same symbols, e.g., that, say, when the
+target images depict bayonets and guns, the sender would use the same
+symbol to signal them. To quantify this, we associate each object to
+the symbol that is most often activated when the target images contain
+the object. We then assess the quality of the resulting symbol-based
+clusters by measuring their \emph{purity} with respect to the McRae
+categories. Purity \citep{Zhao:Karypis:2001} is a standard measure of
+cluster quality, reaching 100\% for perfect clustering with respect to
+the gold standard, and approaching 0 as cluster quality deteriorates.
+
+Although purity is far from perfect, it is significantly above chance
+in all cases, and we confirm that the informed-sender is producing
+symbols that are more semantically natural than those of the agnostic
+one. Perhaps surprisingly, purity is not at chance level even when
+only two symbols are used. Qualitatively, in this case the agents seem
+to converge to a (noisy) living-vs-non-living distinction, which,
+intriguingly, has been recognized as the most basic one in the human
+semantic system \citep{Caramazza:Shelton:1998}.
+
+% We then compare this to the expected purity that we would get if class labels were randomly assigned to images. We see that the purity is higher than random, but that the clusters are not completely pure. 
+
+% It is hard to interpret this measure as an absolute one, but we will show in our next experiment that interventions which we expect to raise the utilization of higher order features do, in fact, raise this measure as well.
+
+
+% ALEX FROM HERE
+% We now turn to investigating the natural language properties of the
+% emergent communication protocol. Recall that the vocabulary that
+% agents use is arbitrary and has no initial meaning. Thus, one way to
+% look for the emergence of high (vs.~low) level semantics is to look
+% for the relationship between symbols and the images they refer
+% to.
+
+% %[Discuss number of words used and whether that is necessarily high vs. low level]
+% To look for these higher-level properties, we exploit the fact that
+% each image that we work with already has an ImageNet class and there
+% are many images in our set from each class. The basic idea is to ask
+% whether we can use higher-level attributes of the image (e.g., whether
+% the image is depicting a cat) to predict which vocabulary word the
+% agents use to refer to it. If the agents are using low-level features
+% (e.g., brightness in certain areas of the image), then we should be
+% unable to do so.
+
+% For every image, we look at the most commonly used word when that image is the target. We then treat the ImageNet class (eg. chair, fox, butterfly) as a clustering of images and compute the purity of the cluster by
+
+% %[purity equation here]
+
+% We then compare this to the expected purity that we would get if class labels were randomly assigned to images. We see that the purity is higher than random, but that the clusters are not completely pure. 
+
+% It is hard to interpret this measure as an absolute one, but we will show in our next experiment that interventions which we expect to raise the utilization of higher order features do, in fact, raise this measure as well.
+% ALEX TO HERE
+
+\COMMENT{Assuming my description above is correct, I think the
+  following is a different experiment, and this should be clarified}
+
+We can visualize the clustering patterns as follows. For every
+ImageNet class, we look at the symbol most commonly used by the sender
+when an image of that class is the target. In addition, for each
+class, we generate an embedding by averaging the embeddings of each
+image in the class. We think this captures higher-level class
+semantics for two reasons: first, the top layers of convolutional
+neural networks are often thought to be expressing quite high-level
+features of images \citep{Zeiler:Fergus:2014}. Second, if lower-level
+features (e.g., brightness) are randomly assigned within class then
+this averaging removes lower-level signals and leaves only higher
+level ones.
+
+\COMMENT{I don't understand the line of reasoning above. The aim of the current analysis is to show that the agents are converging to a meaningful code. In this perspective, what is the point of trying to use an external mechanism that is not part of agent's communication, namely averaging across images of objects? I think the latter should simply be justified as a way to improve the visualization, and not in virtue of any denoising function they might have. Perhaps, it would be even better to plot single images randomly selected?}
+
+We then take these class embeddings and inspect if they form natural clusters and whether these clusters align with word usage. To see this, we perform a t-SNE mapping~\cite{Laurens:Hinton:2008} of the class embedding matrix, color-coded  by their majority symbol used. Figure \ref{fig:exp1_tsne} shows the result.
+
+%\COMMENT{These plots should feature labels for a subset of the points, to let the reader understand what's going on.}
+
+\begin{figure}[tb]
+\centering
+\includegraphics[scale=0.39]{figures/informed_fc_10_v1n0}
+\includegraphics[scale=0.39]{figures/informed_fc_10_v1n1}
+\caption{t-SNE plots of configurations without noise (\textbf{left}, 4th row of Table~\ref{tab:exp1_table}) and with noise (\textbf{right}, 2nd row of Table~\ref{tab:exp2_multiinstance}).}
+\label{fig:exp1_tsne}
+\end{figure}
+

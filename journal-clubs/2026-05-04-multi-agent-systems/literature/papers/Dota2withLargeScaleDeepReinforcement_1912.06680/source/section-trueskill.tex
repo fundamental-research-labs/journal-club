@@ -1,0 +1,32 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+\section{\trueskillname: Evaluating a \dota Agent Automatically}\label{appendix:trueskill}
+We use the \trueskillname\cite{herbrich2007trueskill} rating system to evaluate our agents. 
+
+We first establish a pool of many reference agents of known skill. 
+%During the project's lifetime, these reference agents were saved from past experiments, with their code updated to match the environment as versions got upgraded.
+%All results presented in this work use a fixed set of reference agents drawn from the history of \openaifive's training and other smaller experiments.
+We evaluate the reference agents' \trueskillname by playing many games between the the various reference agents, and using the outcome of the games to compute a \trueskillname for each agent. 
+Our \trueskillname environment use the parameters $\sigma=25/3$, $\beta=\sigma/2$, $\tau=0.0$, $\texttt{draw\_probability}$=0.02.
+% Why 2% draw probability, when we have no draws? 
+% Apparently that's been in our code since forever. :( After digging into \trueskillname math, it seems to cause a ~2% change to the update amount.
+Reference agents' $\mu$ are aligned so that an agent playing randomly has $\mu=0$.
+A hand-crafted scripted agent which we wrote, which can defeat beginners but not amateur players, has \trueskillname around 105.
+
+During our experiments we continually added new reference agents as our agent ``outgrew'' the existing ones.
+For all results in this work, however, use a single reference agent pool containing mostly agents from \openaifive's training history along with some other smaller experiments at the lower end. 
+The 83 reference agents range in \trueskillname from 0 (random play) to 254 (the version that beat the world champions).
+
+To evaluate a training run during training, a dedicated set of computers continually download the latest agent parameters and plays games between the latest trained agent and the reference agents.
+We attempt to only play games against reference agents that are nearby in skill in order to gain maximally useful information; we avoid playing agents more than 10 \trueskillname points away (corresponding to a winrate less than 15\% or more than 85\%).
+When a game finishes, we use the \trueskillname algorithm to update the test agent's \trueskillname, but treat the reference agent's \trueskillname as a constant.
+After 750 games have been reported, we log that version's \trueskillname and move on to the new current version.
+New agents are initialized with $\mu$ equal to the final $\mu$ of the previous agent. 
+This system gives us updates approximately once every two hours during running experiments.
+
+One difficulty in using \trueskillname across a long training experiment was maintaining consistent metrics with a changing environment. 
+Two agents that were trained on different game versions must ultimately play on a single version of the game, which will result in an inherent advantage for the agent that trained on it. 
+Older agents had their code upgraded in order to always be compatible with the newest version, but this still leads to metric inflation for newer agents who got to train on the same code they are evaluated on. 
+This included any updates to the hero pool (adding new heroes that old agents didn't train with), game client updates or balancing changes, and adding any new actions (using a particular consumable or item differently).
+
+\end{document}

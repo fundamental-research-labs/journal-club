@@ -1,0 +1,579 @@
+\section{Dissecting LLM-MA Systems: Interface, Profiling, Communication, and Capabilities}
+\label{Sec3:Taxonomy}
+% ddl 11.17
+In this section, we delve into the intricacies of LLM-MA systems, where multiple autonomous agents engage in collaborative activities akin to human group dynamics in problem-solving scenarios. \xz{A critical inquiry we address is how these LLM-MA systems are  aligned  to  their operational environments and the collective objectives they are designed to achieve. To shed light on this, we present the general architecture of these systems  in Fig. \ref{fig:Architecture}.} Our analysis dissects the operational framework of these systems, focusing on four key aspects: the agents-environment interface, agent profiling, agent communication, and agent capability acquisition.
+
+\begin{figure*}[ht]
+\centering
+\includegraphics[width= 0.73\textwidth]{img/LLM-MA.png}
+\caption{The Architecture of LLM-MA Systems.} 
+\label{fig:Architecture} 
+\end{figure*}
+
+
+%We present a comprehensive taxonomy that offers a wide-ranging perspective of the domain. Concretely, this section introduces the taxonomy of LLM-based Multi-Agents from the following four perspectives: Agents-Environment Interface, Agents Profiling, Agents Communication, and Agents Capabilities. Subsequently, we elaborate on the criteria of the taxonomy in detail.  
+
+\subsection{Agents-Environment Interface}
+% 1. What is Environment 
+\xz{The operational environments defines the specific contexts or settings in which the LLM-MA systems are deployed and interact. 
+For example, these environments can be like software development \cite{hong2023metagpt}, gaming \cite{mao2023alympics}, and various other domains such as financial markets \cite{li2023tradinggpt}  or even social behavior modeling \cite{park2023generative}.  The LLM-based agents perceive and act within the environment, which in turn influences their behavior and decision making. For example, in the Werewolf Game simulation, the sandbox environment sets the game's framework, including transitions from day to night, discussion periods, voting mechanics, and reward rules. Agents, such as werewolves and the Seer, perform specific actions like killing or checking roles. Following these actions, agents receive feedback from the environment, informing them of the game's current state. This information guides the agents in adjusting their strategies over time, responding to the evolving gameplay and interactions with other agents.}
+%We begin with the Agents-Environment Interface of the LLM-based Multi-Agents. The Environment of the Multi-agents systems typically refers to the external setting within multiple agents. Agents can interact with the environment to obtain feedback. 
+The Agents-Environment Interface refers to the  way in which agents interact with and perceive the environment. It's through this interface that agents understand their surroundings, make decisions, and learn from the outcomes of their actions.
+We categorize the current interfaces in LLM-MA systems into three types, \emph{Sandbox, Physcial}, and \emph{None}, as detailed in Table \ref{summary}.
+%The Agents-Environment Interface can be categorized into three types: Sandbox, Physcial and None. 
+The \emph{\textbf{Sandbox}} refers to a simulated or virtual environment built by human where agents can interact more freely and experiment with various actions and strategies. This kind of interface is widely used in software development (code interpreter as simulated environment)~\cite{hong2023metagpt}, gaming (using game rules as simulated environment)~\cite{mao2023alympics}, etc.  The \emph{\textbf{Physical}} is a real-world environment where agents interact with physical entities and obey real-world physics and constraints. In physical space, agents normally need to take actions that can have direct physical outcomes. For example, in tasks such as sweeping the floor, making sandwiches, packing groceries, and arranging cabinets, robotic agents are required to perform actions iteratively, observe the physical environment, and continuously refine their actions~\cite{mandi2023roco}. Lastly, \emph{\textbf{None}} refers to scenarios where there is no specific external environment, and agents do not interact with any environment. For example, many applications~\cite{du2023improving,xiong2023examining,chan2023chateval} utilize multiple agents to debate a question to reach a consensus. These applications primarily focus on communication among agents and do not depend on the external environment.
+
+% This environment defines the rules, interfaces, and boundaries through which agents communicate and perform their tasks. 
+% 2. Why the Environment concept exists in the multi-agent work / Why the environment is important in multi-agent?
+% The Environment provides a fundamental structured medium through which agents can interact and communicate. 
+% 3. Basic properties: What is state and space and Detail categorization of the basic properties
+% There are two basic properties of the environment: State and Space. 
+
+% \paragraph{State:} The State refers to whether the condition or status of the multi-agents system would change over time. The State can be categorized into three types: None, Static or Dynamic. None means that there is no specific environment setting. The Static means that the environment remains constant or unchanged over time, while the dynamic means that the environment can change or evolve over time. 
+
+% \paragraph{Space:} The Space represents the type of environment or platform in which the agents operate and the space can be categorized into three types: Text-only, Sandbox, and Physical. Text-only means that the interactions and activities of the agents are conducted entirely through written text. In such a space, the agents’ capabilities are primarily focused on understanding, generating, and responding to textual information. The Sandbox refers to a simulated or virtual environment where agents can interact more freely and experiment with various actions and strategies. Such space allows for more complex interactions than a text-only space. The Physical is a real-world environment where agents interact with physical entities and obey real-world physics and constraints. In physical space, agents normally need to take actions that can have direct physical outcomes. 
+% 4. How to implement this concept in large language model based multi-agents work (Usually)
+
+\subsection{Agents Profiling}
+% What is (Definition, suitable for which kind of scenario) / 
+% Why need (insights from real world, pros,cons compared to other methods) / (potential limitations) / 
+% How to implement in LLM /
+
+In LLM-MA systems, agents are defined by their traits, actions, and skills, which are tailored to meet specific goals. Across various systems, agents assume distinct roles, each with comprehensive descriptions encompassing characteristics, capabilities, behaviors, and constraints. For instance, in gaming environments, agents might be profiled as players with varying roles and skills, each contributing differently to the game's objectives. In software development, agents could take on the roles of product managers and engineers, each with responsibilities and expertise that guide the development process. Similarly, in a debating platform, agents might be designated as proponents, opponents, or judges, each with unique functions and strategies to fulfill their roles effectively. These profiles are crucial for defining the agents' interactions and effectiveness within their respective environments. Table \ref{summary} lists the agent \emph{\textbf{Profiles}} in recent LLM-MA works.
+
+%% 1.What is Agent Profiling
+%For Agent Profiling, this concept involves identifying and comprehending the traits, actions, and skills of each agent. 
+%% 2. Why the Agent Profiling concept exists in the multi-agent work / Why important?
+%Agent Profiling is fundamental in multi-agent systems to help assign a unique role to each agent and ensure the collective capabilities of the system are fully leveraged. 
+%% 3. Basic properties: What is state and space and Detail categorization of the basic properties
+%There are two basic properties of Agent Profiling: Agent Profiling Methods and Agent Profiles. 
+
+%\paragraph{Agent Profiling Methods:} The Agent Profiling Methods refer to the methods to build the agent profiles. The  Agent Profiling Methods can be 
+Regarding the \emph{\textbf{Agent Profiling Methods}}, we 
+categorized them into three types: \emph{Pre-defined, Model-Generated}, and \emph{Data-Derived}.
+%From existing datasets. 
+In the \emph{\textbf{Pre-defined}} cases,  agent profiles are explicitly defined by the system designers. 
+The \emph{\textbf{Model-Generated}} method creates agent profiles by models, e.g., large language models. The \emph{\textbf{Data-Derived}} method involves constructing agent profiles based on pre-existing datasets.
+%means that the agent profiles are created by existing datasets. 
+
+%\paragraph{Agent Profiles:} 
+% What is
+%The Agent Profiles refer to the comprehensive descriptions of the roles (characteristics, capabilities, behaviors, constraints, etc) of individual agents within the system. The setting of the agent profiles depends on the practical problems.
+% Why need
+%Well-designed agent profiles can help each agent play its roles better and ensure that each agent is utilized according to its strengths, thus leading to effective coordination and task distribution.
+
+% 4. How to implement this concept in large language model based multi-agents work (Usually)
+
+
+% \subsection{Agent Management}
+
+% % Basic concept
+% % 1. What is (definition)
+% % 2.  Why need (importance to multi-agent system, insights from real world)
+
+% % Details concept
+% % 1. What is (Definition, suitable for which kind of scenario)
+% % 2. Why need (insights from real world, pros,cons compared to other methods) / (potential limitations) 
+% % 3. How to implement in LLM
+
+% % What is (Definition) 
+% Agent Management refers to the strategies used to oversee or optimize the functioning of individual agents within the system. It involves how agents are created, maintained, and potentially evolved or decommissioned over time. 
+% % Why need (importance to a multi-agent system; insights from real world)
+% % Agent management ensures that the collective capabilities of the agents are fully utilized over time, and the multi-agent system as a whole can adapt and evolve in response to new challenges.
+
+% % Basic categories: What is and Why need
+% Agent Management can be categorized into three types based on the previous work: Static, Dynamic Generation. The Static means that agents are created with a fixed set of capabilities and roles that do not change over time. Static agent management is suitable for the case that agents continue to perform their designated functions reliably without the need for updates or modifications. Dynamic Generation involves creating new agents on-the-fly during the system’s operation and this management method allows the system to scale and adapt by introducing agents tailored to current needs. 
+% Dynamic Refinement means that existing agents are capable of learning and improving over time based on their interactions and experiences. This method is ideal for environments that are dynamic and unpredictable. 
+
+
+
+\subsection{Agents Communication} \vspace{-0.05cm}
+% Basic concept
+% 1. What is (definition)
+%Agent Communication refers to how agents interact with each other in the multi-agent system to achieve individual or collective goals.
+% 2.  Why need (importance to multi-agent system, insights from real world)
+%Agent Communication is crucial for the multi-agent system because it is the backbone that supports collective intelligence.
+% Details concept
+% 1. What is (Definition, suitable for which kind of scenario)
+% 2. Why need (insights from real world, pros,cons compared to other methods) / (potential limitations) 
+% 3. How to implement in LLM
+%There are two basic properties of Agent Communication: Communication Paradigms and Communication Structure.
+
+The communication between agents in LLM-MA systems is the critical infrastructure supporting collective intelligence. We dissect agent communication from three perspectives: 1) \emph{Communication Paradigms}:   the styles and methods of interaction between agents; 2) \emph{Communication Structure}: the organization and architecture of communication networks within the multi-agent system; and 3) \emph{Communication Content}  exchanged between agents.
+
+\paragraph{Communication Paradigms:} %The Communication Paradigms refers to the communication style of interaction between agents. The Communication Paradigms Methods can be categorized into three types: 
+Current LLM-MA systems mainly take three paradigms for communication: 
+\emph{Cooperative}, \emph{Debate}, and \emph{Competitive}.  \emph{\textbf{Cooperative}}  agents work together towards a shared goal or objectives, typically exchanging information to enhance a collective solution. The \emph{\textbf{Debate}} paradigm is employed when agents engage in argumentative interactions, presenting and defending their own viewpoints or solutions, and critiquing those of others. This  paradigm is ideal for reaching a consensus or a more refined solution. \emph{\textbf{Competitive}} agents work towards their own goals that might be in conflict with the goals of other agents. 
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width= 0.44\textwidth]{img/Agent_communication.png}
+\caption{The Agent Communication Structure.} 
+\label{fig: Agent_communication} 
+\end{figure}
+
+\paragraph{Communication Structure:} %The Communication Structure refers to the way communication networks are organized within the multi-agent system. The Communication Structure can be categorized into three types: Layered, Decentralized, and Centralized. The details of these three communication structures are demonstrated in Fig.~\ref{fig: Agent_communication}. 
+Fig.~\ref{fig: Agent_communication} shows {four} typical communication structures in LLM-MA systems. 
+\emph{\textbf{Layered}} communication is structured hierarchically, with agents at each level having distinct roles and primarily interacting within their layer or with adjacent layers. \cite{liu2023dynamic} introduces a framework called Dynamic LLM-Agent Network (DyLAN), which organizes agents in a multi-layered feed-forward network. This setup facilitates dynamic interactions, incorporating features like inference-time agent selection and an early-stopping mechanism, which collectively enhance the efficiency of cooperation among agents. 
+\emph{\textbf{Decentralized}} communication operates on a peer-to-peer network, where agents directly communicate with each other, a structure commonly employed in world simulation applications.
+\emph{\textbf{Centralized}} communication involves a central agent or a group of central agents coordinating the system's communication, with other agents primarily interacting through this central node.
+{\emph{\textbf{Shared Message Pool}} is proposed by MetaGPT~\cite{hong2023metagpt} to improve the communication efficiency. This communication structure maintains a shared message pool where agents publish messages and subscribe to relevant messages based on their profiles, thereby boosting communication efficiency.}
+% examples
+%means that the communication is organized in hierarchical layers, where agents in each layer have specific roles and communicate predominantly within that layer or with the adjacent layers. The Decentralized means that the communication is a peer-to-peer network and agents communicate directly with each other. This communication structure is widely used in world simulation applications. Centralized means that in this communication, there is a central agent or a set of central agents that coordinate communication within the system while other agents communicate primarily through this central node. 
+
+\paragraph{Communication Content:} %The Communication Content refers to the communication information between agents. In LLM-based Multi-Agents systems, the type of communication information would be text. The concrete content between different agents would be diverse and 
+In LLM-MA systems, the Communication Content typically takes the form of text. The specific content varies widely and  depends on the particular application. For example, in software development, agents may communicate with each other about code segments. In simulations of games like Werewolf,  agents might discuss their analyses, suspicions, or strategies.  
+
+% Code, Game.. 
+
+
+\subsection{Agents Capabilities Acquisition}
+% How LLM-based Multi-Agents Learn during communication
+% What learned: 1. Experience => Memory  2. On-policy: Temammates dynamically
+% How the learned help 1. Self-revolution (Prompt?) Plan
+% ProAgent: Building Proactive Cooperative AI with Large Language Models
+The Agents Capabilities Acquisition is a crucial process in LLM-MA, enabling agents to learn and evolve dynamically. In this context, there are two fundamental concepts: the types of \emph{\textbf{feedback}} from which agents should learn to enhance their capabilities,  and the \emph{\textbf{strategies}} for agents to \emph{\textbf{adjust}} themselves to effectively solve complex problems. 
+%\emph{\textbf{designing}} inter-agents modeling 
+% to effectively solve complex problems.
+%Based on previous introduced basic elements of LLM-based Multi-Agents, a LLM-based Multi-Agents system can be built. The Agents Capabilities Acquisition helps the agents in the multi-agent system learn and revolution dynamically, empowering the capabilities of the multi-agent system. For Capabilities Acquisition, two important basic concepts are Feedback and Agents Adjustment to Complex Problems. 
+% We also summarize the advanced knowledge sharing strategy for Multi-Agents systems.
+\paragraph{Feedback:} Feedback involves the critical information that agents receive about the outcome of their actions, helping the agents learn the potential impact of their actions and adapt to complex and dynamic problems. In most studies, the format of feedback provided to agents is textual. Based on the sources from which agents receive this feedback, it can be categorized into four types. \textbf{1) Feedback from Environment}, e.g.,  from either real world environments or   virtual environments~\cite{wang2023survey}. It is prevalent in most LLM-MA for problem-solving scenarios, including Software Development (agents obtain feedback from Code Interpreter), and Embodied multi-agents systems (robots obtain feedback from real-world or Simulated environments). \textbf{2) Feedback from Agents Interactions}  means that the feedback comes from the judgement of other agents or from agents communications. It is common in problem-solving scenarios like science debates, where agents learn to  critically evaluate and refine the conclusions through communications. In  world simulation scenarios such as Game Simulation,  agents learn to refine strategies based on previous interactions between other agents. \textbf{3)  Human Feedback} comes directly from humans and is crucial for aligning the multi-agent system with human values and preferences.   This kind of feedback is widely used in most ``Human-in-the-loop'' applications~\cite{wang2021putting}. Last \textbf{4) None}.  In some cases, there is no feedback provided to  the agents. This  often happens for world simulation works focused on analyzing simulated results rather than the planning capabilities of agents. In such scenarios, like propagation simulation, the emphasis is on result analysis, and hence, feedback is not a component of the system. 
+
+\paragraph{Agents Adjustment to Complex Problems:} 
+To enhance their capabilities, agents in LLM-MA systems can adapt through three main solutions.
+%Multi-Agents systems are usually used in complex problem scenarios, most multi-agents systems need to dynamically adjust themselves to rapidly adapt to complex problems and perform better in the future. The adjustments to complex problems can be categorized into three types: Memory, Self-Evolution and Dynamic Generation. 
+\textbf{1) Memory.} Most LLM-MA systems leverage a memory module for agents to adjust their behavior. Agents store information from previous interactions and feedback in their memory. When performing actions, they can retrieve relevant, valuable memories, particularly those containing successful actions for similar past goals, as highlighted in~\cite{wang2023survey}. This process aids in enhancing their current actions.  
+\textbf{2) Self-Evolution.}  Instead of  {only relying on the historical records to decide subsequent actions as seen in  \emph{Memory}-based solutions, agents can dynamically self-evolve by modifying themselves such as altering their initial goals and planning strategies, and training themselves based on feedback or communication logs. \cite{nascimento2023self} proposes a self-control loop process to allow each agent in the multi-agents systems to be self-managed and self-adaptive to dynamic environments, thereby improving the cooperation efficiency of multiple agents. {
+% In the LLM-MA, when each agent effectively models the goals, plans, and beliefs of other agents, it can help facilitate mutual understanding, thereby enhancing collaborative planning capabilities.
+\cite{zhang2023proagent} introduces ProAgent which anticipates teammates' decisions and dynamically adjusts each agent's strategies based on the communication logs between agents, facilitating mutual understanding and improving collaborative planning capability.} \cite{wang2023adapting} discusses a  \emph{Learning through Communication} (LTC) paradigm, using the communication logs of multi-agents to generate datasets to train or fine-tune LLMs. LTC enables continuous adaptation and improvement of agents through interaction with their environments and other agents, breaking the limits of in-context learning or supervised fine-tuning, which don't fully utilize the feedback received during interactions with the environment and external tools for continuous training. Self-Evolution enables agents' autonomous adjustment in their profiles or goals, rather than just learning from historical interactions.} 
+\textbf{3) Dynamic Generation.} In some scenarios,   the system can generate new agents on-the-fly during its operation~\cite{chen2023autoagents,chen2023agentverse}. This capability enables the system to scale and adapt effectively, as it can introduce agents that are specifically designed to address current needs and challenges. 
+
+{With the scaling up LLM-MA with  a larger  number of agents,  the escalating complexity of managing various kinds of agents has been a critical problem. \emph{Agents Orchestration} emerged as a pivotal challenge and began to gain attention in ~\cite{multiorches1,multiorches2}. We will further discuss this topic in Section \ref{scale_up}.}
+% The Self-Evolution method emphasizes on the self profiles or goals adjustment of the agents themselves instead of learning from history interactions like the Memory method. The Dynamic Generation involves creating new agents on-the-fly during the system’s operation and this management method allows the system to scale and adapt by introducing agents tailored to current needs.
+
+% \paragraph{Knowledge Sharing:} The Feedback and Adjustment to Complex Problems are two basic concepts for each agent in the multi-agents system. For the synergy between multiple agents, MetaGPT~\cite{hong2023metagpt} proposes the Knowledge Sharing strategy to main a shared common environment and broadcast the learned knowledge between agents. By doing this, agents can exchange their learned knowledge effectively and enhance the collective learning and performance of the system.
+
+
+% Relation between Agents and Environment
+% 
+
+% Knowledge sharing / partially sharing / non-sharing
+
+% Information Mediums
+% broadcasting
+
+% \subsection{Training Scheme}
+
+
+% Multi-Modal Agents Framework
+%\paragraph{Multi-Agents Orchestration and Efficiency:} 
+% \paragraph{Agents Orchestration:}
+
+% Multi-agents orchestration and efficiency have been discussed to enhance the ability of agents to work together effectively and adapt to complex environments~\cite{multiorches1,multiorches2}. 
+
+
+% \paragraph{Inter-Agents Modeling:}
+%\subsection{Multi-Agents Orchestration and Efficiency}
+%\label{Sec5:Orchestration}
+% What and why efficient communiction is important
+%In previous taxonomy of LLM-based Multi-Agents systems, we introduce that multiple agents can have different profiles, communicate with each other, and acquire capabilities from different feedback. These are basics for the LLM Multi-Agents systems but may not maximize the capabilities of the system. Hence, 
+% To harness and maximize the potential benefits of the collective intelligence in LLM-MA systems, \xz{promoting collaborative learning is essential. This concept is widely discussed in previous Multi-Agents systems and Reinforcement Learning based Multi-Agents systems,} 
+
+
+
+
+
+\begin{table*}[h!]
+\centering
+\scalebox{0.59}{  
+\begin{tabular}{c|cc|c|c|cc|cc|cc}
+\toprule
+ & &    &    &  {\color[HTML]{BF9000} } &
+  \multicolumn{2}{c|}{{\color[HTML]{4472C4} \textbf{ Agents   Profiling }}} &
+  \multicolumn{2}{c|}{{\color[HTML]{548135} \textbf{\begin{tabular}[c]{@{}c@{}}Agents \\ Communication\end{tabular}}}} &
+  \multicolumn{2}{c}{{\color[HTML]{FF00FF} \textbf{Agents Capabilities Acquisition}}} \\ \cline{6-11} 
+\multirow{-2}{*}{\textbf{Motivation}} &
+  \multicolumn{2}{c|}{\multirow{-2}{*}{\textbf{Research Domain \& Goals}}} &
+  \multirow{-2}{*}{\textbf{Work}} &
+  \multirow{-4}{*}{{\color[HTML]{BF9000} \textbf{\begin{tabular}[c]{@{}c@{}}Agents-Env.\\ Interface  \end{tabular}}}} &
+  %\\  ( Sandbox /  \\ Physical /\\ None )\end{tabular}}}} &
+  \multicolumn{1}{c|}{{\color[HTML]{4472C4} \textbf{ \begin{tabular}[c]{@{}c@{}}Profiling\\ methods\end{tabular}}   }} &  %( Pre-defined / \\ Model-Generated / \\ Data-Derived )\end{tabular}}}}   &
+  {\color[HTML]{4472C4} \textbf{\begin{tabular}[c]{@{}c@{}}Profiles\\ (examples)\end{tabular}}} &
+  \multicolumn{1}{c|}{{\color[HTML]{548135} \textbf{Paradigms}}} &
+%  \textbf{\begin{tabular}[c]{@{}c@{}}  Paradigms\\ ( Cooperative / \\ Debate / \\ Competitive )\end{tabular}}}} &
+  {\color[HTML]{548135}  \textbf{Structure}} &
+%  \textbf{\begin{tabular}[c]{@{}c@{}}Structure\\ ( Layered /\\ Decentralized / \\ Centralized)\end{tabular}}} &
+  \multicolumn{1}{c|}{{\color[HTML]{FF00FF} \textbf{Feedback from}}} &
+  %\textbf{\begin{tabular}[c]{@{}c@{}}Feedback from\\ (Environment /\\ Agents Interactions /\\ Human)\end{tabular}}}} &
+  {\color[HTML]{FF00FF} \textbf{\begin{tabular}[c]{@{}c@{}}Agents \\ Adjustment \end{tabular}}}     \vspace{1pt} \\ \hline 
+  %\\ (Memory update from experience /\\ Self-Evolution from experience /\\ Dynamic Generation)\end{tabular}}} \\ \hline
+ &
+  \multicolumn{2}{c|}{} &
+ {\scriptsize  \cite{qian2023communicative}} &
+  Sandbox &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Pre-defined, \\ Model-Generated\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}}CTO,\\ programmer\end{tabular} &
+  \multicolumn{1}{c|}{Cooperative} &
+  Layered &  
+  \multicolumn{1}{c|}{   \begin{tabular}[c]{@{}c@{}}Environment, \\ Agent interaction,\\ Human\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}}Memory,\\ Self-Evolution\end{tabular} \\ \cline{4-11} 
+ &
+  \multicolumn{2}{c|}{Software development} &
+  { \scriptsize \cite{hong2023metagpt}} &
+  Sandbox &
+  \multicolumn{1}{c|}{Pre-defined} &
+  \begin{tabular}[c]{@{}c@{}}Product Manager, \\ Engineer\end{tabular} &
+  \multicolumn{1}{c|}{Cooperative} &
+   \begin{tabular}[c]{@{}c@{}}Layered, \\ Shared Message Pool\end{tabular} &
+  \multicolumn{1}{c|}{ \begin{tabular}[c]{@{}c@{}}Environment, \\ Agent interaction,\\ Human\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}}Memory,\\ Self-Evolution\end{tabular} \\ \cline{4-11} 
+ &
+  \multicolumn{2}{c|}{ } &
+  { \scriptsize \cite{dong2023selfcollaboration}} &
+  Sandbox &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Pre-defined, \\ Model-Generated\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}}Analyst,\\ coder\end{tabular} &
+  \multicolumn{1}{c|}{Cooperative} &
+  Layered &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\  Agent interaction\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}}Memory,\\ Self-Evolution\end{tabular} \\ \cline{2-11} 
+ &
+  \multicolumn{1}{c|}{} & \begin{tabular}[c]{@{}c@{}}Multi-robot  \\ planning \end{tabular} &
+ % Scalable multi-robot planning &
+ { \hspace{-10pt}  \scriptsize  \cite{chen2023scalable} \hspace{-10pt} } &
+  \begin{tabular}[c]{@{}c@{}}Sandbox, \\ Physical\end{tabular} &
+  \multicolumn{1}{c|}{Pre-defined} &
+  Robots &
+  \multicolumn{1}{c|}{Cooperative} &
+  \begin{tabular}[c]{@{}c@{}}Centralized,\\ Decentralized\end{tabular} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\  Agent interaction\end{tabular}} &
+  Memory \\ \cline{3-11} 
+ &
+ % \multicolumn{1}{c|}{\multirow{-3}{*}{Embodied Agents}} &
+    \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Embodied\\ Agents \end{tabular} } &
+   \begin{tabular}[c]{@{}c@{}}Multi-robot  \\ collaboration \end{tabular} &
+%  Multi-robot collaboration &
+ { \scriptsize \cite{mandi2023roco}} &
+  \begin{tabular}[c]{@{}c@{}}Sandbox, \\ Physical\end{tabular} &
+  \multicolumn{1}{c|}{Pre-defined} &
+  Robots &
+  \multicolumn{1}{c|}{Cooperative} &
+  Decentralized &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  Memory \\ \cline{3-11} 
+ &
+  \multicolumn{1}{c|}{} &
+ \begin{tabular}[c]{@{}c@{}}Multi-Agents  \\ cooperation \end{tabular} &
+%  Multi-Agents cooperation &
+ {\hspace{-15pt} \scriptsize \cite{zhang2023building} \hspace{-15pt}} &
+  Sandbox &
+  \multicolumn{1}{c|}{Pre-defined} &
+  Robots &
+  \multicolumn{1}{c|}{Cooperative} &
+  Decentralized &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  Memory \\ \cline{2-11} 
+ \multirow{-5}{*}{\begin{tabular}[c]{@{}c@{}}Problem \\ Solving\end{tabular}}  &
+%  \multicolumn{1}{c|}{Science Experiments} &
+   \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}} Science \\ Experiments \end{tabular}} &
+   \begin{tabular}[c]{@{}c@{}} Optimization \\ of MOF \end{tabular} &
+%  Optimization of MOF. &
+ {\hspace{-10pt} \scriptsize  \cite{chatgptforchem} \hspace{-10pt} } &
+  Physical &
+  \multicolumn{1}{c|}{Pre-defined} &
+  \begin{tabular}[c]{@{}c@{}}Strategy planers,\\ literature \\ collector, coder\end{tabular} &
+  \multicolumn{1}{c|}{Cooperative} &
+  Centralized &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Human\end{tabular}} &
+  Memory \\ \cline{2-11} 
+ &
+  \multicolumn{1}{c|}{} &
+   \begin{tabular}[c]{@{}c@{}} Improving \\ Factuality \end{tabular} &
+%  Improving Factuality &
+ { \scriptsize \cite{du2023improving}} &
+  None &
+  \multicolumn{1}{c|}{Pre-defined} &
+  Agents &
+  \multicolumn{1}{c|}{Debate} &
+  Decentralized &
+  \multicolumn{1}{c|}{Agent interaction} &
+  Memory \\ \cline{3-11} 
+ &
+    \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Science \\ Debate\end{tabular}} &
+   \begin{tabular}[c]{@{}c@{}}Examining,\\ Inter-Consistency\end{tabular} &
+%  Examining Inter-Consistency &
+ {\hspace{-15pt} \scriptsize \cite{xiong2023examining} \hspace{-10pt}} &
+  None &
+  \multicolumn{1}{c|}{Pre-defined} &
+  \begin{tabular}[c]{@{}c@{}}Proponent,\\ Opponent,\\ Judge\end{tabular} &
+  \multicolumn{1}{c|}{Debate} &
+  \begin{tabular}[c]{@{}c@{}}Centralized,\\ Decentralized\end{tabular} &
+  \multicolumn{1}{c|}{Agent interaction} &
+  Memory \\ \cline{3-11} 
+ &
+  \multicolumn{1}{c|}{} &
+  \begin{tabular}[c]{@{}c@{}}Evaluators \\ for debates \end{tabular} &
+%  Evaluators for debates &
+ { \hspace{-10pt} \scriptsize \cite{chan2023chateval}} &
+  None &
+  \multicolumn{1}{c|}{Pre-defined} &
+  Agents &
+  \multicolumn{1}{c|}{Debate} &
+  \begin{tabular}[c]{@{}c@{}}Centralized,\\ Decentralized\end{tabular} &
+  \multicolumn{1}{c|}{Agent interaction} &
+  Memory \\ \cline{3-11} 
+&
+  %\multicolumn{1}{c|}{\multirow{-4}{*}{Science Debate}} &
+    \multicolumn{1}{c|}{} &
+    \begin{tabular}[c]{@{}c@{}}Multi-Agents \\ for Medication\end{tabular} &
+%  Multi-Agents for Medication &
+ {\hspace{-10pt}  \scriptsize \cite{tang2023medagents} \hspace{-10pt} } &
+  None &
+  \multicolumn{1}{c|}{Pre-defined} &
+  \begin{tabular}[c]{@{}c@{}}Cardiology,\\ Surgery\end{tabular} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Debate,\\ Cooperative\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}}Centralized,\\ Decentralized\end{tabular} &
+  \multicolumn{1}{c|}{Agent interaction} &
+  Memory \\ \hline
+ &
+  \multicolumn{1}{c|}{} &
+    \begin{tabular}[c]{@{}c@{}} Modest Community \\ (25 persons)\end{tabular} &
+%  Modest Community (25 persons) &
+ {\hspace{-10pt}  \scriptsize \cite{park2023generative} \hspace{-10pt} } &
+  Sandbox &
+  \multicolumn{1}{c|}{Model-generated} &
+  \begin{tabular}[c]{@{}c@{}}Pharmacy,\\ shopkeeper\end{tabular} &
+  \multicolumn{1}{c|}{-} &
+  - &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  Memory \\ \cline{3-11} 
+ &
+  \multicolumn{1}{c|}{} &
+  \begin{tabular}[c]{@{}c@{}}  Online community \\ (1000 persons)\end{tabular} &
+%  Online community (1000 personas) &
+ {\hspace{-10pt}  \scriptsize \cite{park2022social} \hspace{-10pt} } &
+  None &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Pre-defined,\\ Model-generated\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}}Camping,\\  fishing\end{tabular} &
+  \multicolumn{1}{c|}{-} &
+  - &
+  \multicolumn{1}{c|}{Agent interaction} &
+ \begin{tabular}[c]{@{}c@{}}Dynamic\\  Generation\end{tabular}    \\ \cline{3-11} 
+ &
+  \multicolumn{1}{c|}{Society} &
+  Emotion propagation &
+ {\hspace{-10pt}  \scriptsize \cite{gao2023s} \hspace{-10pt} } &
+  None &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Pre-defined,\\ Model-generated\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}}Real-world \\ user \end{tabular} &
+  \multicolumn{1}{c|}{-} &
+  - &
+  \multicolumn{1}{c|}{Agent interaction} &
+  Memory \\ \cline{3-11} 
+ &
+  \multicolumn{1}{c|}{} &
+    \begin{tabular}[c]{@{}c@{}}  Real-time \\ social interactions \end{tabular} &
+%  Real-time social interactions &
+ {\hspace{-15pt} \scriptsize \cite{kaiya2023lyfe} \hspace{-15pt}} &
+  Sandbox &
+  \multicolumn{1}{c|}{Pre-defined} &
+  \begin{tabular}[c]{@{}c@{}}Real-world \\ user \end{tabular} &
+  \multicolumn{1}{c|}{-} &
+  - &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  Memory \\ \cline{3-11} 
+ &
+  \multicolumn{1}{c|}{ } &
+  Opinion dynamics &
+ {\hspace{-10pt}  \scriptsize \cite{li2023quantifying}} &
+  None &
+  \multicolumn{1}{c|}{Pre-defined} &
+  \begin{tabular}[c]{@{}c@{}}NIN, NINL,\\ NIL\end{tabular} &
+  \multicolumn{1}{c|}{-} &
+  - &
+  \multicolumn{1}{c|}{Agent interaction} &
+  Memory \\ \cline{2-11} 
+ &
+  \multicolumn{1}{c|}{} &
+  WereWolf &
+  \begin{tabular}[c]{@{}c@{}} {\scriptsize \cite{xu2023exploring} }\\ {\scriptsize  \cite{xu2023language} }\end{tabular} &
+  Sandbox &
+  \multicolumn{1}{c|}{Pre-defined} &
+  \begin{tabular}[c]{@{}c@{}}Seer,\\ werewolf,\\ villager\end{tabular} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Cooperative, \\ Debate,\\ Competitive\end{tabular}} &
+  Decentralized &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  Memory \\ \cline{3-11} 
+ &
+  \multicolumn{1}{c|}{Gaming} &
+  Avalon &
+  \begin{tabular}[c]{@{}c@{}} {\hspace{-10pt} \scriptsize \cite{light2023avalonbench} \hspace{-10pt} } \\ {\hspace{-10pt} \scriptsize \cite{wang2023avalon} \hspace{-10pt} } \end{tabular} &
+  Sandbox &
+  \multicolumn{1}{c|}{Pre-defined} &
+  \begin{tabular}[c]{@{}c@{}}Servant,\\ Merlin,\\  Assassin\end{tabular} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Cooperative, \\ Debate,\\ Competitive\end{tabular}} &
+  Decentralized &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  Memory \\ \cline{3-11} 
+ &
+  \multicolumn{1}{c|}{} &
+  Welfare Diplomacy &
+ {\hspace{-10pt}  \scriptsize \cite{mukobi2023welfare} \hspace{-10pt}} &
+  Sandbox &
+  \multicolumn{1}{c|}{Pre-defined} &
+  Countries &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Cooperative,\\ Competitive\end{tabular}} &
+  Decentralized &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  Memory \\ \cline{2-11} 
+ &
+  \multicolumn{1}{c|}{} &
+    \begin{tabular}[c]{@{}c@{}}  Human behavior \\ Simulation\end{tabular} &
+%  Human behavior Simulation &
+{\hspace{-10pt}  \scriptsize  \cite{aher2023using} } &
+  Sandbox &
+  \multicolumn{1}{c|}{Pre-defined} &
+  Humans &
+  \multicolumn{1}{c|}{-} &
+  - &
+  \multicolumn{1}{c|}{Agent interaction} &
+  Memory \\ \cline{3-11} 
+\multirow{-18}{*}{\begin{tabular}[c]{@{}c@{}}World \\ \hspace{-10pt} Simulation \hspace{-10pt} \end{tabular}} 
+ &
+  \multicolumn{1}{c|}{\multirow{-2}{*}{Psychology}} &
+  \begin{tabular}[c]{@{}c@{}}Collaboration\\ Exploring \end{tabular} &
+%  Collaboration Exploring &
+  {\hspace{-10pt} \scriptsize \cite{zhang2023exploring} \hspace{-10pt} } &
+  None &
+  \multicolumn{1}{c|}{Pre-defined} &
+  Agents &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Cooperative,\\ Debate\end{tabular}} &
+  Decentralized &
+  \multicolumn{1}{c|}{Agent interaction} &
+  Memory \\ \cline{2-11} 
+ &
+  \multicolumn{1}{c|}{} &
+    \begin{tabular}[c]{@{}c@{}}Macroeconomic \\ simulation \end{tabular} &
+%  Macroeconomic simulation &
+  {\hspace{-10pt}  \scriptsize \cite{li2023large}} &
+  None &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Pre-defined,\\ Model-generated\end{tabular}} &
+  Labor &
+  \multicolumn{1}{c|}{Cooperative} &
+  Decentralized &
+  \multicolumn{1}{c|}{Agent interaction} &
+  Memory \\ \cline{3-11} 
+ &
+  \multicolumn{1}{c|}{Economy} &
+  \begin{tabular}[c]{@{}c@{}}Information \\ Marketplaces \end{tabular} &
+ % Information Marketplaces &
+ {\hspace{-10pt}  \scriptsize \cite{anonymous2023rethinking} \hspace{-10pt} } &
+  Sandbox &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Pre-defined, \\ Data-Derived\end{tabular}} &
+  Buyer &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Cooperative, \\ Competitive\end{tabular}} &
+  Decentralized &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  Memory \\ \cline{3-11} 
+ &
+  \multicolumn{1}{c|}{} &
+    \begin{tabular}[c]{@{}c@{}}Improving \\ financial trading \end{tabular} &
+
+%  Improving financial trading &
+  {\hspace{-10pt}  \scriptsize \cite{li2023tradinggpt}} &
+  Physical &
+  \multicolumn{1}{c|}{Pre-defined} &
+  Trader &
+  \multicolumn{1}{c|}{Debate} &
+  Decentralized &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  Memory \\ \cline{3-11} 
+ &
+  \multicolumn{1}{c|}{} &
+  Economic theories &
+  {\hspace{-10pt}  \scriptsize \cite{zhao2023competeai}} &
+  Sandbox &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Pre-defined, \\ Model-Generated\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}}Restaurant,\\  Customer\end{tabular} &
+  \multicolumn{1}{c|}{Competitive} &
+  Decentralized &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}}Memory,\\ Self-Evolution\end{tabular} \\ \cline{2-11} 
+ &
+  \multicolumn{1}{c|}{\multirow{2}{*}{ \begin{tabular}[c]{@{}c@{}} \hspace{-7pt} Recommender \hspace{-5pt}  \\ Systems \end{tabular}}} &
+  \begin{tabular}[c]{@{}c@{}}Simulating \\ user behaviors\end{tabular} &
+  %Simulating  user behaviors &
+  {\hspace{-15pt} \scriptsize \cite{zhang2023generative} \hspace{-10pt}} &
+  Sandbox &
+  \multicolumn{1}{c|}{Data-Derived} &
+  \begin{tabular}[c]{@{}c@{}}Users  from \\ MovieLens-1M\end{tabular} &
+  \multicolumn{1}{c|}{-} &
+  - &
+  \multicolumn{1}{c|}{Environment} &
+  Memory \\ \cline{3-11} 
+ &
+  \multicolumn{1}{c|}{ } &
+    \begin{tabular}[c]{@{}c@{}}\hspace{-10pt} Simulating user-item \hspace{-10pt} \\ interactions \end{tabular} &
+%  Simulating user-item interactions &
+  { \hspace{-15pt} \scriptsize \cite{zhang2023agentcf} \hspace{-10pt}} &
+  Sandbox &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Pre-defined, \\ Data-Derived\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}}User Agents\\ Item Agents\end{tabular} &
+  \multicolumn{1}{c|}{Cooperative} &
+  Decentralized &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  Memory \\ \cline{2-11} 
+ &
+  \multicolumn{1}{c|}{\multirow{2}{*}{ \begin{tabular}[c]{@{}c@{}} Policy \\ Making \end{tabular}}} &
+  \begin{tabular}[c]{@{}c@{}}Public \\ Administration \end{tabular} &
+%  Public Administration &
+  {\hspace{-10pt}  \scriptsize \cite{xiao2023simulating}} &
+  None &
+  \multicolumn{1}{c|}{Pre-defined} &
+  Residents &
+  \multicolumn{1}{c|}{Cooperative} &
+  Decentralized &
+  \multicolumn{1}{c|}{Agent interaction} &
+  Memory \\ \cline{3-11}  
+ &
+  \multicolumn{1}{c|}{} &
+    War Simulation &
+  {\hspace{-10pt}  \scriptsize \cite{hua2023war}} &
+  None &
+  \multicolumn{1}{c|}{Pre-defined} &
+  Countries &
+  \multicolumn{1}{c|}{Competitive} &
+  Decentralized &
+  \multicolumn{1}{c|}{Agent interaction} &
+  Memory \\ \cline{2-11} 
+  & \multicolumn{1}{c|}{\multirow{2}{*}{ \begin{tabular}[c]{@{}c@{}} Disease \end{tabular}}} &
+   \begin{tabular}[c]{@{}c@{}}Human Behaviors  \\ to epidemics\end{tabular} &
+ % Human Behaviors to epidemics &
+ {\hspace{-6pt} \scriptsize \begin{tabular}[c]{@{}c@{}} [Ghaffarzadegan \\ \emph{et al.}, 2023] \end{tabular}}    &
+% \cite{ghaffarzadegan2023generative}   &
+  Sandbox &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Pre-defined, \\ Model-Generated\end{tabular}} &
+ \begin{tabular}[c]{@{}c@{}}Conformity   \\ traits \end{tabular} &
+  \multicolumn{1}{c|}{Cooperative} &
+  Decentralized &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  Memory  \\ \cline{3-11}  \vspace{1pt} 
+  & \multicolumn{1}{c|}{} &
+  Public health &
+  { \scriptsize \begin{tabular}[c]{@{}c@{}} [Williams \\ \emph{et al.}, 2023] \end{tabular}} &
+ % \cite{williams2023epidemic}} &
+  Sandbox &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Pre-defined, \\ Model-Generated\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}} Adults aged  \\ 18 to 64\end{tabular} &
+  \multicolumn{1}{c|}{Cooperative} &
+  Decentralized &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}Environment,\\ Agent interaction\end{tabular}} &
+  \begin{tabular}[c]{@{}c@{}}Memory,\\ Dynamic \\ Generation\end{tabular} \\ \bottomrule
+\end{tabular}
+}
+\caption{Summary of the LLM-MA studies. We categorize current work according to their motivation, research domains and goals, and detail each work from different aspects regarding %four key LLM-based Multi-Agents elements: 
+Agents-Environment Interface, Agents Profiling, Agents Communication and Agents Capability Acquisition. 
+``-" denotes that a particular element is not specifically mentioned in this work.}
+\label{summary}
+\end{table*}

@@ -1,0 +1,173 @@
+\section{Experimental Setup}
+\label{sec:experiment_setup}
+
+% \dn{Please take a look and leave feedback}
+% \rr{did a pass. please see my edits / comments}
+
+\subsection{Agent and Models}
+For our experiments, we utilize a SWE-Agent based model adapted specifically for the MLGYM environment.
+%
+SWE-Agent follows a simple ReAct-style \textit{thought and action} loop~\citep{yao2023react}, where the agent is prompted with the ACI documentation, the task and dataset description, as well as lightweight generic instructions to act as a ML researcher.
+%
+The agent is configured to use a single command per step, and is not allowed to use any interactive session commands (e.g., python REPL, vim).
+
+We use a set of 5 state-of-the-art models for our experiments, OpenAI O1-preview, Gemini 1.5 Pro, Claude-3.5-sonnet-20241022 (refered to as Claude-3.5-sonnet in the paper), Llama-3-405b-instruct, and GPT-4o.
+%
+All the models are used with \texttt{temperature=0.0} and \texttt{top-p=0.95}, with the exception for OpenAI O1-preview, which doesn't support changing the decoding parameters and has a default \texttt{temperature=1.0}.
+
+\subsection{Environment Configuration}
+The MLGYM environment is configured with several key parameters to facilitate effective interaction between the agent and the tasks:
+
+\begin{itemize}
+    \item \ibold{Window Configuration}: The environment uses a window size of 1000 lines with an overlap of 2 lines, allowing the agent to effectively navigate and edit large files while maintaining context.
+
+    \item \ibold{Context Management}: A processor maintains a rolling window with the five most recent interactions (action and observation), helping the agent maintain context about the most recent interactions while keeping the input size manageable.
+
+    \item \ibold{Command Interface}: The environment provides a set of specialized commands beyond standard bash operations, including file navigation commands (\texttt{goto}, \texttt{scroll\_up}, \texttt{scroll\_down}), file editing commands (\texttt{edit}, \texttt{insert}) with linting support,  file and directory search commands (\texttt{search\_file}, \texttt{search\_dir}, \texttt{find\_file}), and evaluation commands (\texttt{validate}, \texttt{submit}).
+\end{itemize}
+
+A single agent run is limited to 50 steps (i.e. interactions with the environment), after which the agent is terminated and the last codebase state is autosubmitted.
+%
+Moreover, to control the runtime of the agent and prevent it from simply increasing the number of parameters in the model, we set a task specific timeout for the training commands.
+
+In the next section, we discuss the evaluation metrics used in our experiments.
+
+\section{Evaluation}
+\label{sec:evaluation}
+
+%\dn{BEWARE: This content is AI generated and will be updated. Expect a lot of corny language and jargon in this section for now.}
+% \nr{@Deepak see updates and TODOs I left}
+%\todo[inline]{@nick: revise this section, all modification are listed here.}
+
+
+In order to compare agents on \mlgym, we aggregate the scores of each method---an agent architecture paired with a backbone model---across our tasks. 
+%
+There are many ways one can aggregate scores. 
+%
+Common options include computing the average score across tasks for each method or by computing the average ranking of each method across tasks. 
+%
+While simple, these approaches can weight metrics in undesirable ways and disproportionately penalize certain methods. 
+%
+Averaging across different metrics may unfairly weight the metrics differently based on their relative scales, and averaging ranks can disproportionately penalize methods that effectively solve a task but are tied with other methods that also solve the task. 
+%
+Rather than naive averaging of scores or rankings, we employ performance profile curves~\citep{dolanBenchmarkingOptimizationSoftware2002}, which allow us to compare relative performance gains across both methods and tasks. 
+%
+Performance profiles were originally developed to compare optimization techniques across a set of optimization problems. 
+%
+Since then, they have been used by the AutoML community to compare AutoML methods across diverse domains, each with their own domain-specific metrics~\citep{nasbench360,autowsbench101}. 
+
+One challenge when using performance profiles is that they produce a curve for each method (where a higher curve is better), rather than a direct ranking of methods. 
+%
+To address this, the AutoML Decathlon~\citep{automldecathlon} competition introduced the AUP score, which computes the area under the performance profile curve for each method, where a higher value constitutes better performance. 
+%
+Variants of the AUP score have since been used to score the AutoML Cup\footnote{\url{https://2023.automl.cc/competitions/automl-cup/}} and MLCommons AlgoPerf~\citep{algoperf} competitions. 
+%
+Next, we define performance profiles, the AUP score, and the details of their usage within \mlgym. 
+
+\subsection{Performance Profiles and the AUP Score}
+
+For a given method $m$, its performance profile curve is defined as 
+\begin{align}
+\rho_m(\tau) = \frac{1}{|T|} \left|\left\{t \in T: \log_{10}{r_{t,m}} \leq \tau \right\}\right| 
+&& 
+r_{t,m} = \frac{\ell_{t,m}}{\min\{\ell_{t,m}: m \in M\}}
+\end{align}
+where $M$ is the set of all methods, $P$ is the set of tasks,
+%\dm{Shall we use $T$ for the set of tasks instead, since $P$ is used in $P(ratio \leq T)$ from the performance profile comparison figure }
+$\ell_{t,m}$ is the performance metric for a method $m$ on task $t$, and $r_{t,m}$ is a quantity called the \textit{performance ratio}. 
+
+% The performance ratio is then defined as 
+% \begin{equation}
+%     .
+% \end{equation}
+
+%\dm{Given that $r_{p,m}$ is used in the definition of $\rho_m(\tau)$, would it be more readable to first define $r_{p,m}$ and then $\rho_m(\tau)$ ?  }
+%
+Importantly, this definition assumes that the performance metric for each task, $\ell_{p,\cdot}$, must be defined such that lower scores are better---we discuss our modification to this definition to support other scores in~\autoref{sec:aup_in_mlgym}. 
+%
+Performance profiles are parameterized by a threshold, $\tau$, on the distance between the method $m$ and the best scoring methods on each of the tasks. 
+%
+At a given threshold $\tau$, performance profiles compute the proportion of tasks for which the method $m$ is within $\tau$ of the best method for each task. 
+
+In order to derive a final score for each method $m \in M$, we compute the AUP score as
+\begin{equation}
+    \text{AUP}_m = \int_{1}^{\tau_\text{max}} \rho_{m}(\tau) d{\tau},
+\end{equation}
+where $\tau_\text{max}$ is the minimum $\tau$ for which $\rho_{m}(\tau) = 1$ for all $m \in M$.  
+
+% For a given method $s$ and task $p$, the performance ratio $r_{p,s}$ is computed as:
+
+% \begin{equation}
+%     r_{p,s} = 
+% \end{equation}
+
+% where $t_{p,s}$ is the performance metric for a method $s$ on task $p$, and $S$ is the set of all methods. 
+%
+% The performance profile curve, $\rho_s(\tau)$ is then defined as:
+
+% \begin{equation}
+%     \rho_s(\tau) = \frac{1}{|P|} \left|\{p \in P: r_{p,s} \leq \tau\}\right|
+% \end{equation}
+
+% where $P$ is the set of problems and $\tau$ is the performance ratio threshold.
+
+% \subsection{AUP Score}
+% TODO
+
+\subsection{Usage in \mlgym}
+\label{sec:aup_in_mlgym}
+
+%In our benchmark framework, we adapt this methodology to handle multiple metrics and different optimization directions:
+In the context of \mlgym, a method is defined as a combination of an agent scaffolding and a backbone model.
+%
+Since, in this work we use a single agent scaffolding (SWE-Agent), we are comparing the performance of different backbone models.
+%
+Moreover, we adapt performance profiles and AUP scores to handle various edge cases introduced by our \mlgym tasks.
+%
+
+\begin{itemize}
+    \item \ibold{Metric Direction Handling.} For metrics where higher values are better (e.g., accuracy, R2), we invert the performance ratio calculation and use the maximum score instead of the minimum: 
+
+          \begin{equation}
+              r_{t,m} = \frac{\max\{\ell_{t,m}: m \in M\}}{\ell_{t,m}}.
+          \end{equation}
+
+    \item \ibold{Infeasible Method} In order to be counted as a feasible method, an agent should produce at least one valid solution and beat the baseline, methods must outperform the baseline.
+    %
+    Methods that don't produce any valid solution or underperform are marked as \textit{Infeasible}. 
+    The score of an infeasible method is set to $(1 + \varepsilon) \times r_{t, m_{\text{baseline}}}$, where $r_{t, m_{\text{baseline}}}$ is the score obtained by the baseline method on task $t$. 
+    %
+    We set the value of $\varepsilon = 0.05$.
+    %To handle undefined values, we manually set the performance ratio to maximum value of tau.
+    %\item \ibold{Performance Ratio Threshold.} We found that the performance ratio ($r_{t,m}$) for some models was too high, and would have resulted in a performance profile that was too steep. We therefore clip the performance ratio at 4.
+    %\item \ibold{Setting of $\tau_\text{max}$}. We set $\tau_\text{max}=2$ because we found that the performance ratios for all the tasks were below 2.
+    %\nr{@Deepak These last two bullets seem to be at odds? }
+\end{itemize}
+
+We report the metrics across \ul{4 independent runs} for each model on each task.
+%
+Finally, since the LM agent can use the \texttt{validate} command to check the performance without ending the run, we maintain two separate sets of performance profiles and AUP scores for each model.
+\begin{enumerate}
+    \item \ibold{Best Submission Profiles, $\rho^{\text{bs}}_m(\tau)@4$,} are computed using the best final submission across 4 runs. A submission is classified as a final submission in two cases: if the agent uses the \texttt{submit} command, or if the agent terminates without submitting and the last codebase state is used to evaluate the performance.
+    \item \ibold{Best Attempt Profiles, $\rho^{\text{ba}}_m(\tau)@4$,} which are computed using the best attempt observed across 4 runs. Any valid call to the \texttt{validate} command is considered an attempt.
+\end{enumerate}
+%
+% The Area Under Performance curve (AUP) is then calculated for both profiles:
+%
+% \begin{equation}
+%     \text{AUP} = \sum_{i=1}^{n} \rho_{s}(\tau_i) \cdot (\tau_{i+1} - \tau_i)
+% \end{equation}
+%
+%where $\tau_{\max}$ is set to $2$ in our implementation. 
+% \newpage
+The resulting AUP scores provide complementary information:
+\begin{itemize}
+    \item \ibold{$\text{AUP}^{\text{bs}}_m@4$} indicates the model's ability to consistently submit its best attempt as the final solution. Note that to do this, the LM agent has to be able to keep an internal state of the best attempt and recover from any mistakes made after the best attempt was made.
+    \item \ibold{$\text{AUP}^{\text{ba}}_m@4$} captures the model's exploration capability and is an indicator of the ceiling of the model's performance.
+\end{itemize}
+
+Apart from the AUP scores and performance profiles, we also report the raw performance scores for each model on each task.
+%
+Similar to performance profiles, we categorize the raw scores in two sets: Best Submission@4 and Best Attempt@4.
+
+%\nr{@Deepak, I think BS and BA profiles can be clarified a bit more here}

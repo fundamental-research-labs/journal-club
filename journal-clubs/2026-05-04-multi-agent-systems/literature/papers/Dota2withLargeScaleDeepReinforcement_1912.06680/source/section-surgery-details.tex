@@ -1,0 +1,180 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+\section{Surgery}\label{appendix:surgery}
+\begin{table}
+\centering
+\begin{tabular}{cccp{9cm}}
+\label{allsurgeries} 
+Date & Iteration & \# params & Change\\
+\hline
+% (jie) Data pulled from big experiment log spreadsheet. I decided to leave out experiments which did not change parameter sizes or have an interesting explanation - they are commented out here for reference.
+6/30/2018 & 1 & 43,436,520 & Experiment started \\ % dota-5a
+%7/4/2018 & 5,651 & 43,436,520 &  \\ % dota-5b
+%7/27/2018 & 50,061 & 43,519,866 &  \\ % dota-5c
+%8/2/2018 & 61,211 & 43,519,866 &  \\ % dota-5d OR dota-5d-v2 ??
+%8/9/2018 & 72,401 & 43,519,866 &  \\ % dota-5d-v3
+%8/14/2018 & 78,001 & 43,519,866 &  \\ % dota-5d-v4
+8/17/2018 & 81,821 & 43,559,322 & \dota version 7.19 adds new items, abilities, etc.\\ % dota-5d-719-fp16-a
+8/18/2018 & 84,432 & 43,805,274 & Change environment to single courier;\newline remove ``cheating'' observations \\ % courier-2
+%8/19/2018 & 86,811 & 43,805,274 &  \\ % courier-3
+%8/20/2018 & 89,151 & 43,805,274 &  \\ % five
+8/26/2018 & 91,471 & 156,737,674 & Double LSTM size \\ % five-2
+9/27/2018 & 123,821 & 156,809,485 & Support for more heroes \\ % babel-2, added all of babel.
+10/3/2018 & 130,921 & 156,809,501 & Obs: Roshan spawn timing \\ % babel-3
+%10/5/2018 & 132,051 & 156,809,501 &  \\ % babel-4
+10/12/2018 & 140,402 & 156,811,805 & Item: Bottle\\ % babel-8
+10/19/2018 & 144,121 & 156,286,925 & Obs: Stock counts;\newline Obs: Remove some obsolete obs \\ % babel-12 removed multiple horizons & scripted consumable observations
+10/24/2018 & 150,111 & 156,286,867 & Obs: Neutral creep \& rune spawn timers \\ % babel-13
+%11/6/2018 & 156,862 & 156,286,867 &  \\ % babel-17
+11/7/2018 & 161,482 & 156,221,309 & Obs: Item swap cooldown;\newline Obs: Remove some obsolete obs\\ % babel-18 also removed obsolete observations
+%11/9/2018 & 167,840 & 156,221,309 &  \\ % afk-1b
+11/28/2018 & 185,749 & 156,221,669 & Item: Divine rapier;\newline Obs: Improve observation of stale enemy heroes \\ % afk-2
+%11/30/2018 & 187,591 & 156,221,669 &  \\ % afk-3
+12/10/2018 & 193,701 & 157,378,165 & Obs: Modifiers on nonhero units. \\ % afk-4d
+12/14/2018 & 196,800 & 157,650,795 & Action: Consumables on allies;\newline Obs: Line of sight information;\newline Obs: next item this hero will purchase;\newline Action: buyback \\ % afk-5b
+12/20/2018 & 203,241 & 157,679,655 & \dota version 7.20 adds new items, new item slot, changes map, etc;\newline Obs: number of empty inventory slots \\ % afk-6b
+%1/4/2019 & 208,501 & 157,679,655 &  \\ % afk-7
+%1/7/2019 & 210,701 & 157,679,655 &  \\ % afk-8
+1/23/2019 & 211,191 & 158,495,991 & Obs: Improve observations of area of effects;\newline Obs: improve observation of modifiers' duration;\newline Obs: Improve observations about item Power Treads. \\ % jan-2
+%1/24/2019 & 211,953 & 158,495,991 &  \\ % jan-3
+%1/29/2019 & 212,596 & 158,495,991 &  \\ % jan-29
+4/5/2019 & 220,076 & 158,502,815 & \dota version 7.21 adds new items, abilities, etc. \\ % apr-5
+%4/8/2019 & 223,713 & 158,502,815 &  \\ % apr-8
+%4/10/2019 & 224,921 & 158,502,815 &  \\ % apr-10
+% 4/15/2019 & \todo{??} & \todo{??} & Add auxiliary prediction of networth. \\ % apr-15
+\end{tabular}
+\caption{All successful surgeries and major environment changes performed during the training of \openaifive. This table does not include surgeries which were ultimately reverted due to training failures, nor minor environment changes (such as improvements to partial reward weights or scripted logic). ``Obs'' indicates than a new observation was added as an input to the model or an existing one was changed. ``Action'' indicates that a new game action was made available, along with appropriate observations about the state of that action. ``Item'' indicates that a new item was introduced, including observation of the item and the action to use the item. The \dota version updates (7.19, 7.20 and 7.21) include many new items, actions, and observations.}
+\label{table:list-surgeries}
+\end{table}
+
+As discussed in \ref{sec:surgery}, we designed ``surgery'' tools for continuing to train a single set of paramters across changes to the environment, model architecture, observation space, and action space. 
+The goal in each case is to resume training after the change without the agent losing any skill from the change. 
+% While other methods exist which are more general, they require more retraining each time ... ?
+\autoref{table:list-surgeries} lists the major surgeries we performed in the lifetime of the \openaifive experiment.
+
+For changes which add parameters, one of the key questions to ask is how to initialize the new parameters. If we initialize the parameters randomly and continue optimization, then noise will flow into other parts of the model, causing the model to play badly and causing large gradients which destroy the learned behaviors. 
+
+In the rest of this appendix we provide details of the tools we used to continue training across each type of change. 
+In general we had a high-skill model $\pi_\theta$ trained to act in one environment, and due to a change to the problem design we need to begin training a newly-shaped model $\hat{\pi}_{\hat\theta}$ in a new environment. 
+Ultimately the goal is for the \trueskillname of agent $\hat{\pi}_{\hat\theta}$ to match that of $\pi_\theta$.
+
+\paragraph{Changing the architecture}
+In the most straightforward situation, the observation space, action space, and environment do not change.
+In this case, per \autoref{eqn:surgery}, we can insist that the new policy $\hat\pi_{\hat\theta}$ implement exactly the same mathematical function from observations to actions as the old policy.
+
+A simple example here would be adding more units to an internal fully-connected layer of the model. Suppose that before the change, some part of the interior of the model contained an input vector $x$ (dimension $d_x$), which is transformed to an activation vector $y=W_1x+B_1$ (dimension $d_y$), which is then consumed by another fully-connected layer $z=W_2y+B_2$ (dimension $d_z$). We desire to increase the dimension of of $y$ from $d_y$ to $\hat{d}_y$. This causes the shapes of three parameter arrays to change: $W_1$ (from $[d_x, d_y]$ to $[d_x, \hat{d}_y]$), $B_1$ (from $[d_y]$ to $[\hat{d}_y]$), and $W_2$ (from $[d_y, d_z]$ to $[\hat{d}_y, d_z]$).
+
+In this case we initialize the new variables in the first layer as:
+\begin{equation}\label{eqn:surgery-example}
+\hat{W}_1 = \left[
+\begin{array}{c}
+W_1 \\ R()
+\end{array}
+\right]
+\hspace{2cm}
+\hat{B}_1 = \left[
+\begin{array}{c}
+B_1 \\ R()
+\end{array}
+\right]
+\hspace{2cm}
+\hat{W}_2 = \left[
+\begin{array}{cc}
+W_2 & 0
+\end{array}
+\right]
+\end{equation}
+
+Where $R()$ indicates a random initialization. 
+The initializations of $\hat{W}_1$ and $\hat{B}_1$ ensure that the first $d_y$ dimensions of activations $\hat{y}$ will be the same data as the old activations $y$, and the remained will be randomized. 
+The randomization ensures that symmetry is broken among the new dimensions.
+The initialization of $\hat{W}_2$, on the other hand, ensures that the next layer will ignore the new random activations, and the next layer's activations will be the same as in the old model; $\hat{z}=z$.
+The weights which are initialized to zero will move away from zero due to the gradients, if the corresponding new dimensions in $y$ are useful to the downstream function.
+
+Initializing neural network weights to zero is a dangerous business, because it can introduce undesired symmetries between the indices of the output vector. 
+However we found that in most cases of interest, this was easy to avoid by only zero-ing the minimal set of weights. 
+In the example above, the symmetry is broken by the randomization of $\hat{W}_1$ and $\hat{B}_1$.
+
+A more advanced version of this surgery was required when we wanted to increase the model capacity dramatically, by increasing the hidden dimension of our LSTM from 2048 units to 4096 units.
+Because the LSTM state is recurrent, there was no way to achieve the separation present in \autoref{eqn:surgery-example}; if we randomize the new weights they will impact performance, but if we set them to zero then the new hidden dimensions will be symmetric and gradient updates will never differentiate them. 
+In practice we set the new weights to random small values --- rather than randomize new weight values on the same order of magnitude as the existing weights, we randomized new weights significantly smaller. 
+The scale of randomization was set empirically by choosing the highest scale which did not noticeably decrease the agent's \trueskillname.
+
+\paragraph{Changing the Observation Space}
+Most of our surgeries caused the observation space changes, for example when we added 3 new float observations encoding the time until neutral creeps, bounties, and runes would spawn.
+In these cases it is impossible to insist that the new policy implement the same function from observation space to action space, as the input domain has changed.
+However, in some sense the input domain has {\it not} changed; the game state is still the same.
+In reality our system is not only a function $\pi:o\to a$; before the policy sees the observation arrays, an ``encoder'' function $E$ has turned a game state $s$ into an input array $o$:
+\begin{equation}
+    \left(
+    \textrm{Game State Protobuf } s
+    \right)
+    \xrightarrow{E}
+    \left(
+    \textrm{Observation Arrays } o
+    \right)
+    \xrightarrow{\pi}
+    \left(
+    \textrm{Action } a
+    \right)
+\end{equation}
+
+By adding new observations we are enhancing the encoder function $E$, making it take the same game state and simply output richer arrays for the model to consume.
+Thus in this case while we cannot ensure that $\hat\pi_{\hat\theta} = \pi_\theta$, we can ensure the functions are identical if we go one step back:
+\begin{equation}
+    \forall s \hspace{1em}
+    \hat\pi_{\hat\theta}(\hat{E}(s))
+    = \pi_\theta(E(s))
+\end{equation}
+
+When the change is simply additive, this can then be enforced as in the previous section. Suppose the new observations extend a vector $x$ from dimension $d_x$ to dimension $\hat{d}_x$, and the input vector $x$ is consumed by a weight matrix $W$ via $y=Wx$ (and $y$ is then processed by the rest of the model downstream). Then we initialize the new weights $\hat W$ as:
+
+\begin{equation}
+\hat{W} = \left[
+\begin{array}{cc}
+W & 0
+\end{array}
+\right]
+\end{equation}
+
+As before, this ensures that the rest of the model is unchanged, as the output is unchanged ($\hat y=y$). 
+The weights which are initialized to zero will move away from zero due to the gradients, if the corresponding observations are found to be useful.
+
+\paragraph{Changing the Environment or Action Space}
+The second broad class of changes are those which change the environment itself, either by making new actions available to the policy (e.g. when we replaced scripted logic for the Buyback action with model-controlled logic) or by simply changing the \dota rules (for example when we moved to \dota version 7.21, or when we added new items). For some of these changes, such as upgrading \dota version, we found simply making the change on the rollout workers to be relatively stable; the old policy played well enough in the new environment that it was able to smoothly adapt.
+
+Even so, whenever possible, we attempted to ``anneal'' in these new features, starting with 0\% of rollout games played with the new environment or actions, and slowly ramping up to 100\%.
+This prevents a common problem where a change in one part of the agent's behavior could force unnecessary relearning large portions of the strategy. 
+For example, when we attempted to give the model control of the Buyback action without annealing, the model-based control of the action was (at first) worse than the scripted version had been, causing the agent to adapt its overall strategies to games where allies and enemies alike often misuse this action.
+This would cause the agent to significantly drop in overall skill; while it would likely eventually recover, it may require ``repeating" the investment of a large amount of compute.
+By annealing the new action in gradually, we ensure that the model never loses overall skill due to a sudden change of one part of the environment; when we observe the model losing \trueskillname during the annealing process, we revert and attempt the anneal at a slower rate.
+This annealing process makes sense even if the environment is becoming fundamentally ``harder" because our agent's skill is measured through winrates against other models; the opponent also has to play in the new environment.
+
+\paragraph{Removing Model Parts}
+Requiring exact policy equivalence after the surgery outlaws many types of surgery. 
+For example, most surgeries which remove parameters are not possible in this framework. 
+For this reason our model continued to observe some ``deprecated'' observations, which were simply always set to constants.
+Further work such as \cite{unpublishedrobotics} has already begun to explore alternate methods of surgery which avoid this constraint.
+
+\paragraph{Smooth Training Restart}
+The gradient moments stored by the Adam optimizer present a nuisance when restarting training with new parameter shape. 
+To ensure that the moments have enough time to properly adjust, we use a learning rate of 0 for the first several hours of training after surgery. 
+This also ensures that the distribution of rollout games has entered steady state by the time we begin training in earnest.
+
+One additional nuisance when changing the shape of the model is the entire history of parameters which are stored (in the past opponent manager, see \autoref{sec:selfplay}), and used as opponents in rollouts. 
+Because the rollout GPUs will be running the newest code, all of these past versions must be updated in the same way as the current version to ensure compatibility. 
+If the surgery operation fails to exactly preserve the policy function, these frozen past agents will forever play worse, reducing the quality of the opponent pool.
+Therefore it is crucial to ensure agent behavior is unchanged after surgery. 
+% (Before settling on this method of surgery, we attempted to initialize the new parameters randomly but train for some time only updating those new parameters, keeping all old parameters fixed. 
+% In this way the model begins playing at a low level (because the new parameters pass noise into the rest of the model), but ought to quickly learn to recover. 
+% We ultimately dropped this approach because determining when to remove the mask was error-prone and non-rigorous, and because the past opponents would never recover.)
+
+
+% We moved to a different approach where we guarantee that the post-surgery model's is implementing mathematically the same function as the pre-surgery model. 
+% This way the new model behaves exactly the same as the old model on all inputs. 
+% Future gradient updates can change this behavior to the extent the new observations/architecture are useful.
+
+\paragraph{Benefits of Surgery}
+These surgeries primarily permitted us to have a tighter iteration loop for these features. When we added a new game feature which we expect to only matter at high skill, it would simply be impossible to test and iterate on it by training from scratch. Using surgery from the current \openaifive, we could have a more feasible process, which allowed us to safely include many minor features and improvements that otherwise would have been impossible to verify, such as adding long-tail items (Bottle, Rapier), minor improvements to the observation space (stock counts, modifiers on nonheroes), and others.
+
+\end{document}

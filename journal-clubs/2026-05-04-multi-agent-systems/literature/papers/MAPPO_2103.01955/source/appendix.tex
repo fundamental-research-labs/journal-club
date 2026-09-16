@@ -1,0 +1,1035 @@
+
+
+\section{MAPPO Details}
+\label{app:mappo-details}
+
+\begin{algorithm}
+    \caption{Recurrent-MAPPO}
+    \label{algo:mappo}
+\begin{algorithmic}
+    \STATE  Initialize $\theta$, the parameters for policy $\pi$ and $\phi$, the parameters for critic $V$, using Orthogonal initialization (Hu et al., 2020) \; %\citep{hu2020provable}\;
+    \STATE Set learning rate $\alpha$
+    \WHILE{$step \leq step_{\text{max}}$}
+    \STATE set data buffer $D = \{\}$
+    \FOR{$i = 1$ {\bfseries to} $batch\_size$}
+    \STATE $\tau = []$ empty list
+    \STATE initialize $h_{0, \pi}^{(1)}, \dots h_{0, \pi}^{(n)}$ actor RNN states
+    \STATE initialize $h_{0, V}^{(1)}, \dots h_{0, V}^{(n)}$ critic RNN states
+    \FOR{$t = 1$ {\bfseries to} $T$}
+    \FORALL{agents $a$}
+    \STATE $p_t^{(a)}, h_{t, \pi}^{(a)} = \pi(o_t^{(a)}, h_{t-1, \pi}^{(a)}; \theta)$
+    \STATE $u_t^{(a)} \sim p_t^{(a)}$
+    \STATE $v_t^{(a)}, h_{t, V}^{(a)} = V(s_t^{(a)},h_{t-1, V}^{(a)}; \phi) $
+    \ENDFOR 
+    \STATE Execute actions $\boldsymbol{u_t}$, observe $r_t, s_{t+1}, \boldsymbol{o_{t+1}}$
+    % \STATE $\tau \pluseq [s_t, \boldsymbol{o_t}, \boldsymbol{h_{t, \pi}}, \boldsymbol{h_{t, V}}, \boldsymbol{u_t}, r_t, s_{t+1}, \boldsymbol{o_{t+1}}]$
+    \STATE $\tau += [s_t, \boldsymbol{o_t}, \boldsymbol{h_{t, \pi}}, \boldsymbol{h_{t, V}}, \boldsymbol{u_t}, r_t, s_{t+1}, \boldsymbol{o_{t+1}}]$
+    \ENDFOR
+    \STATE Compute advantage estimate $\hat{A}$ via GAE on $\tau$, using PopArt
+    \STATE Compute reward-to-go $\hat{R}$ on $\tau$ and normalize with PopArt
+    \STATE Split trajectory $\tau$ into chunks of length L
+    \FOR{l = 0, 1, .., T//L}
+    \STATE $D = D \cup (\tau[l : l + T, \hat{A}[l : l + L], \hat{R}[l : l + L])$
+    \ENDFOR 
+    \ENDFOR 
+    \FOR{mini-batch $k=1,\dots,K$}
+    \STATE $b \leftarrow$ random mini-batch from D with all agent data
+    \FOR{each data chunk $c$ in the mini-batch $b$}
+    \STATE update RNN hidden states for $\pi$ and $V$ from first hidden state in data chunk
+    \ENDFOR
+    \ENDFOR
+    \STATE Adam update $\theta$ on $L(\theta)$ with data $b$
+    \STATE Adam update $\phi$ on $L(\phi)$ with data $b$
+    \ENDWHILE
+\end{algorithmic}
+\end{algorithm}
+
+MAPPO trains two separate neural networks: an actor network with parameters $\theta$, and a value function network (referred to as a critic) with parameters $\phi$. These networks can be shared amongst all agents if the agents are homogeneous, but each agent can also have its own pair of actor and critic networks. We assume here that all agents share critic and actor networks, for notational convenience.  Specifically, the critic network, denoted as $V_{\phi}$, performs the following mapping: $S \rightarrow \mathbb{R}$. The global state can be agent-specific or agent-agnostic.
+
+
+
+The actor network, denoted as $\pi_{\theta}$, maps agent observations $o^{(a)}_t$ to a categorical distribution over actions in discrete action spaces, or to the mean and standard deviation vectors of a Multivariate Gaussian Distribution, from which an action is sampled, in continuous action spaces. 
+
+The actor network is trained to maximize the objective
+\newline $L(\theta)\hspace{-3pt} = [\frac{1}{Bn} \sum\limits_{i = 1}^{B} \sum\limits_{k = 1}^n \text{min}( r_{\theta, i}^{(k)}A_i^{(k)}, \text{clip}( r_{\theta, i}^{(k)}, 1 - \epsilon, 1 + \epsilon) A_i^{(k)})] + \sigma \frac{1}{Bn} \sum\limits_{i = 1}^{B} \sum\limits_{k = 1}^n \hspace{-2pt} S[\pi_{\theta}(o_i^{(k)}))]$,
+where $r_{\theta, i}^{(k)} = \frac{\pi_{\theta}(a_i^{(k)}|o_i^{(k)})}{\pi_{\theta_{old}}(a_i^{(k)}|o_i^{(k)})}$. $A_i^{(k)}$ is computed using the GAE method, $S$ is the policy entropy, and $\sigma$ is the entropy coefficient hyperparameter. 
+
+The critic network is trained to minimize the loss function
+\newline $L(\phi) = \frac{1}{Bn}\sum\limits_{i = 1}^{B} \sum\limits_{k = 1}^n(\text{max}\lbrack(V_\phi(s_i^{(k)})-\hat{R_i})^2,(\text{clip}(V_\phi(s_i^{(k)}),V_{\phi_{old}}(s_i^{(k)})-\varepsilon,V_{\phi_{old}}(s_i^{(k)})+\varepsilon)-\hat{R_i})^2\rbrack$, where $\hat{R_i}$ is the discounted reward-to-go.
+
+In the loss functions above, $B$ refers to the batch size and $n$ refers to the number of agents. 
+
+If the critic and actor networks are RNNs, then the loss functions additionally sum over time, and the networks are trained via Backpropagation Through Time (BPTT). Pseudocode for recurrent-MAPPO is shown in Alg. \ref{algo:mappo}.
+
+\begin{figure*}[bt!]
+\vspace{-2mm}
+	\centering
+    \subfigure[MPE scenarios]{ \label{fig:MPE} 
+		\includegraphics[width=0.48\textwidth]{figures/env/MPE.png}
+	}
+	\subfigure[4-player Hanabi-Full]{ \label{fig:HanabiPic} 
+		\includegraphics[width=0.46\textwidth]{figures/env/Hanabi.png}
+	}
+	\subfigure[SMAC corridor]
+	{
+	\label{fig:app-SMAC-1}
+    \includegraphics[width=0.28\textwidth]{figures/env/corridor.jpg}
+    }
+    \subfigure[SMAC 2c\_vs\_64zg]
+	{\label{fig:app-SMAC-2}
+    \includegraphics[width=0.28\textwidth]{figures/env/2c_vs_64zg.jpg}
+    }
+    \subfigure[GRF academy 3 vs 1 with keeper]
+	{\label{fig:app-GRF}
+    \includegraphics[width=0.31\textwidth]{figures/env/3v1.jpg}
+    }
+
+	\caption{Task visualizations. (a) The MPE domain. \emph{Spread} (left): agents need to cover all the landmarks and do not have a color preference for the landmark they navigate to; \emph{Comm} (middle): the listener needs to navigate to a specific landmarks following the instruction from the speaker; \emph{Reference} (right): both agents only know the other's goal landmark and needs to communicate to ensure both agents move to the desired target.
+	(b) The Hanabi domain:  4-player \emph{Hanabi-Full} - figure obtained from (Bard et al., 2020). %\cite{bard2020hanabi} 
+	(c) The \emph{corridor} map in the SMAC domain. 
+	(d) The \emph{2c vs. 64zg} map in the SMAC domain.
+	(e) The \emph{academy 3 vs 1 with keeper} scenario in the GRF domain.}
+
+\end{figure*}
+
+\section{Testing domains}
+
+
+\label{app:env}
+\textbf{Multi-agent Particle-World Environment (MPE)} was introduced in (Lowe et al., 2017).
+%\cite{lowe2017multi}. 
+MPE consist of various multi-agent games in a 2D world with small particles navigating within a square box. We consider the 3 fully cooperative tasks from the original set shown in Fig.~\ref{fig:MPE}: \emph{Spread}, \emph{Comm}, and \emph{Reference}. Note that since the two agents in \emph{speaker-listener} have different observation and action spaces, this is the only setting in this paper where we do not share parameters but train separate policies for each agent. 
+
+
+\textbf{StarCraftII Micromanagement Challenge (SMAC)} tasks were introduced in (Rashid et al., 2019).
+%\cite{starcraft}.
+In these tasks, decentralized agents must cooperate to defeat adversarial bots in various scenarios with a wide range of agent numbers (from 2 to 27). We use a global game state to train our centralized critics or Q-functions.
+Fig. \ref{fig:app-SMAC-1} and \ref{fig:app-SMAC-2} show two example StarCraftII environments. 
+
+As described in Sec. 5.2, we utilize an agent-specific global state as input to the global state. This agent-specific global state augments the original global state provided by the SMAC environment by adding relevant agent-specific features. 
+
+Specifically, the original global state of SMAC contains information about all agents and enemies - this includes information such as the distance from each agent/enemy to the map center, the health of each agent/enemy, the shield status of each agent/enemy, and the weapon cooldown state of each agent. However, when compared to the local observation of each agent, the global state does not contain agent-specific information including agent id, agent movement options, agent attack options, relative distance to allies/enemies. Note that the local observation contains information only about allies/enemies within a sight radius of the agent. To address the lack of critical local information in the environment provided global state, we create several other global inputs which are specific to each agent, and combine local and global features. The first, which we call \emph{agent-specific (AS)}, uses the concatenation of the environment provided global state and agent \emph{i}'s observation, $o_i$, as the global input to MAPPO's critic during gradient updates for agent \emph{i}. However, since the global state and local agent observations have overlapping features, we additionally create a feature-pruned global state (\emph{FP}) which removes the overlapping features in the $\emph{AS}$ global state. 
+
+\textbf{Hanabi} is a turn-based card game, introduced as a MARL challenge in (Bard et al., 2020) 
+%\citet{bard2020hanabi}
+, where each agent observes other players' cards except their own cards. A visualization of the game is shown in Fig.~\ref{fig:HanabiPic}. The goal of the game is to send information tokens to others and cooperatively take actions to stack as many cards as possible in ascending order to collect points.
+
+The turn-based nature of Hanabi presents a challenge when computing the reward for an agent during it's turn. We utilize the forward accumulated reward as one turn reward $R_i$; specifically, if there are 4 players and players 0, 1, 2, and 3 execute their respective actions at timesteps \textit{k, k+1, k+2, k+3} respectively, resulting in rewards of $r_k^{(0)}, r_{k+1}^{(1)}, r_{k+2}^{(2)}, r_{k+3}^{(3)}$, then the reward assigned to player 0 will be $R_0 = r_k^{(0)} + r_{k+1}^{(1)} + r_{k+2}^{(2)} + r_{k+3}^{(3)}$ and similarly, the reward assigned to player 1 will be $R_1 = r_{k+1}^{(1)} + r_{k+2}^{(2)} + r_{k+3}^{(3)} + r_{k+4}^{(0)}$. Here, $r_{t}^i$ denotes the reward received at timestep $t$ when agent $i$ is executes a move.
+
+\textbf{Google Research Football (GRF)}, introduced in \cite{kurach2020google}, contains a set of cooperative multi-agent challenges in which a team of agents play a team of bots in various football scenarios. In the scenarios we consider, the goal of the agents is to score a goal against the opposing team. Fig. \ref{fig:app-GRF} shows the example academy scenario. 
+
+The agents' local observations contain a complete description of the environment state at any given time; hence, both the policy and value-function take as input the same observation. At each step, agents share the same reward $R_t$, which is computed as the sum of per-agent rewards $r^{(i)}_t$ which represents the progress made by agent $i$.
+
+\section{Training details} \label{app:training}
+\label{app:training-details}
+\subsection{Implementation}
+\label{app:imple}
+
+% \subsubsection{MAPPO}
+\label{app:mappo-imple}
+All algorithms utilize parameter sharing - i.e., all agents share the same networks - in all environments except for the \textit{Comm} scenario in the MPE. Furthermore, we tune the architecture and hyperparameters of MADDPG and QMix, and thus use different hyperparameters than the original implementations. However, we ensure that the performance of the algorithms in the baselines matches or exceeds the results reported in their original papers. 
+
+For each algorithm, certain hyperparameters are kept constant across all environments; these are listed in Tables~\ref{tab:MAPPO-common-parameters} and~\ref{tab:QMixMADDPG-common-parameters} for MAPPO, QMix, and MADDPG, respectively. These values are obtained either from the PPO baselines implementation in the case of MAPPO, or from the original implementations for QMix and MADDPG. Note that since we use parameter sharing and combine all agents' data, the actual batch-sizes will be larger with more agents. 
+
+In these tables, ``recurrent data chunk length'' refers to the length of chunks that a trajectory is split into before being used for training via BPTT (only applicable for RNN policies). ``Max clipped value loss'' refers to the value-clipping term in the value loss. ``Gamma'' refers to the discount factor, and ``huber delta'' specifies the delta parameter in the Huber loss function. ``Epsilon'' describes the starting and ending value of $\epsilon$ for $\epsilon$-greedy exploration, and ``epsilon anneal time'' refers to the number of environment steps over which $\epsilon$ will be annealed from the starting to the ending value, in a linear manner. ``Use feature normalization'' refers to whether the feature normalization is applied to the network input.
+
+\subsection{Parameter Sharing}\label{app:sharing}
+In the main results which are presented, we utilize parameter sharing - a technique which has been shown to be beneficial in a variety of state-of-the-art methods ~\cite{christianos2021scaling, terry2021revisiting} in all algorithms for a fair comparison. Specifically, both the policy and value network parameters are shared across all agents. In this appendix section, we include results which demonstrate the benefit of parameter sharing. Table~\ref{tab:share-smac} shows median evaluation win rate (with standard deviation in parantheses) on selected SMAC maps over 6 random seeds. MAPPO-Ind is MAPPO denotes MAPPO without parameter sharing - e.g., each agent has a separate policy and value function network. We observe that MAPPO with parameter sharing outperforms MAPPO without parameter sharing by a clear margin, supporting our decision to adopt parameter sharing in all PPO experiments and all baselines used in our results. A more theoretical analysis of the effect of parameter sharing can be found in ~\cite{https://doi.org/10.48550/arxiv.2206.07505}.
+
+
+% \rebuttal{We follow the state-of-the-art parameter-sharing convention~\citep{christianos2021scaling, terry2021revisiting} to implement all algorithms for a fair comparison. That is, the policy network of each agent shares the same parameters and so does the value network. Table~\ref{tab:share-smac} shows median evaluation win rate (standard deviation) on selected SMAC maps over 6 random seeds. MAPPO-Ind is MAPPO without parameter sharing, that is, each network has its own parameters. As shown in Table~\ref{tab:share-smac}, parameter-sharing outperforms individual parameters with a clear margin, thus we adopt the parameter sharing in all baseline algorithms and PPO. More theoretical analysis on parameter sharing can be found in~\cite{https://doi.org/10.48550/arxiv.2206.07505}}
+
+% \begin{table}
+% \centering
+% \label{tab:smac}
+% \begin{scriptsize}
+% \begin{tabular}{ccccc}
+% \toprule
+% Map & MAPPO & MAPPO w.o ID & MAPPO w.o sharing & RODE\\
+% \midrule
+%       1c3s5z & \textbf{100.0(0.0)} &   97.4(1.0) &     99.1(0.7)  & \textbf{100.0(0.0)}\\
+%          2s3z & \textbf{100.0(0.7)} &   99.0(0.5) &     99.1(0.9)  & \textbf{100.0(0.0)}\\
+%     %  3s\_vs\_4z &    100.0(1.3) &   98.6(1.0) &     98.6(1.0)  & \\
+%      3s\_vs\_5z & \textbf{100.0(0.6)} &   96.7(1.8) &     93.8(1.8) & 78.9(4.2)\\
+%          3s5z & \textbf{96.9(0.7)} &   95.2(1.5) &     80.4(3.3) & 93.8(2.0)\\
+%  3s5z\_vs\_3s6z & 84.4(34.0) &   42.3(4.0) &     37.8(5.6) & \textbf{96.8(25.1)}\\
+%      5m\_vs\_6m & \textbf{89.1(2.5)} &   35.3(2.1) &     44.4(2.9) & 71.1(9.2)\\
+%      6h\_vs\_8z & \textbf{88.3(3.7)} &   79.9(4.8) &     11.4(2.5) & 78.1(37.0) \\
+%     %  8m\_vs\_9m & 96.9(0.6) &   53.44(8.4) &     58.02(3.5) \\
+%   10m\_vs\_11m & \textbf{96.9(4.8)} &   86.5(2.3) &     78.4(2.7) & 95.3(2.2) \\
+%      corridor & \textbf{100.0(1.2)} &   92.6(2.4) &     82.2(1.8) & 65.6(32.1)\\
+%          MMM2 & 90.6(2.8) &   \textbf{92.3(1.9)} &     13.0(3.7) & 89.8(6.7)\\
+% \bottomrule
+% \end{tabular}
+% \caption{Median evaluation winning rate (standard deviation) on selected SMAC maps over 6 random seeds. \label{tab:share-smac}}
+% \end{scriptsize}
+% \end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{ccccc}
+\toprule
+Map & MAPPO & MAPPO-Ind\\
+\midrule
+      1c3s5z & \textbf{100.0(0.0)} & 99.1(0.7)\\
+         2s3z & \textbf{100.0(0.7)} &     99.1(0.9) \\
+    %  3s\_vs\_4z &    100.0(1.3) &   98.6(1.0) &     98.6(1.0)  & \\
+     3s\_vs\_5z & \textbf{100.0(0.6)} &    93.8(1.8)\\
+         3s5z & \textbf{96.9(0.7)} &     80.4(3.3) \\
+ 3s5z\_vs\_3s6z & 84.4(34.0) &   37.8(5.6)\\
+     5m\_vs\_6m & \textbf{89.1(2.5)} &    44.4(2.9)\\
+     6h\_vs\_8z & \textbf{88.3(3.7)} &   11.4(2.5)\\
+    %  8m\_vs\_9m & 96.9(0.6) &   53.44(8.4) &     58.02(3.5) \\
+  10m\_vs\_11m & \textbf{96.9(4.8)} & 78.4(2.7) \\
+     corridor & \textbf{100.0(1.2)} &   82.2(1.8)\\
+         MMM2 & 90.6(2.8) &     13.0(3.7)\\
+\bottomrule
+\end{tabular}
+\caption{Median evaluation win rate (standard deviation) on selected SMAC maps over 6 random seeds.}
+\label{tab:share-smac}
+\end{table}
+
+% \begin{table}
+% \centering
+% \begin{tabular}{ccccc}
+% \toprule
+% Scenario & MAPPO & MAPPO-Ind \\
+% \midrule
+%           3v.1 & \textbf{90.7(1.5)} & \textbf{90.2(1.7)}\\
+%      CA(Easy) & 79.5(6.7) & \textbf{92.4(2.6)}\\
+%      CA(Hard) & \textbf{68.2(2.0)} & \textbf{67.8(3.4)} \\
+%       Corner & \textbf{27.3(1.3)} & 21.6(2.4)  \\
+%           PS & 43.4(8.8) & 53.3(3.5) \\
+%           RPS & 66.6(3.1) & \textbf{78.8(1.5)}\\
+% \bottomrule
+% \end{tabular}
+% \caption{Average evaluation success rate (standard deviation) in GRF academy scenarios over 6 random seeds. (CA = counter attack; PS = pass and shoot; RSP = run, pass and shoot).}
+% \label{tab:share-football}
+% \end{table}
+
+% \subsection{Episode Length}
+
+\subsection{Death Masking}
+\begin{figure*}[h]
+	\centering
+% 	\vspace{-1mm}
+    \includegraphics[width=1.0\textwidth]{figures/state_subplot.png}
+	\centering \caption{The effect of death mask on MAPPO's performance in SMAC.}
+\label{fig:Abaltion-deathmask}
+\vspace{-2mm}
+\end{figure*}
+In SMAC, it is possible through the course of an episode for certain agents to become inactive, or ``die'' while other agents remain active in the environment. In this setting, while the local observation for a dead agent becomes all zeros except for the agent's ID, the value-state still contains other nonzero features about the environment. When computing the GAE for an agent during training, it is unclear how to handle timesteps in which the agent is dead. We consider four options: (1) in which we replace the value state for a dead agent with a zero state containing the agent ID (similar to it's local observation). We refer to this as ``death masking''; (2) MAPPO without death masking, i.e., still using the nonzero global state as value input; (3) completely drop the transition samples after an agent dies (note that we still need to accumulate rewards after the agent dies to correctly estimate episode returns); and (4) replacing the global state with a pure zero-state which does not include the agent ID.
+ Fig.~\ref{fig:Abaltion-deathmask} demonstrates that variant (1) significantly outperforms variants (2) and (3), and consistently achieves overall strong performance. Including the agent id in the death mask, as is done in variant (1), is particularly important in maps which agents may take on different roles, as demonstrated by the superior performance of variant (1) compared to variant (4), which does not contain the agent ID in the death-mask zero-state, in the 3s5z vs. 3s6z map.
+
+\textbf{Justification of Death Masking}
+\label{app:math}
+Let $\boldsymbol{0}_a$ be a zero vector with agent \emph{a}'s agent ID appended to the end. 
+The use of agent ID leads to an agent-specific value function depending on an agent's type or role. It has been empirically justified that such an agent-specific feature is particularly helpful when the environment contains heterogeneous agents. 
+
+We now provide some intuition as to why using $\boldsymbol{0_a}$ as the critic input when agents are dead appears to be a better alternative to using the usual agent-specific global state as the input to the value function. Note that our global state to the value network has agent-specific information, such as available actions and relative distances to other agents. When an agent dies, these agent-specific features become zero, while the remaining agent-agnostic features remain nonzero - this leads to a drastic distribution shift in the critic input compared to states in which the agent is alive. In most SMAC maps, an agent is dead in only a small fraction of the timesteps in a batch (about 20\%); due to their relative infrequency in the training data the states in which an agent is dead will likely have large value prediction error. 
+% This contributes to larger bias in the value prediction which is further accumulated during computation of the GAE, ultimately hindering policy learning.
+Moreover, it is also possible that training on these out of distribution inputs harms the feature representation of the value network.
+
+
+Although replacing the states at which an agent is dead with a fixed vector $\boldsymbol{0_a}$ also results in a distribution shift, the replacement results in there being only 1 vector which captures the state at which an agent is dead - thus, the critic is more likely to be able to fit the average post-death reward for agent $a$ to the input $\boldsymbol{0_a}$. Our ablation on the value function fitting error provide some weight to this hypothesis.
+
+
+Another possible mechanism of handling agent deaths is to completely skip value learning in states in which an agent is dead, by essentially terminating an agent's episode when it dies. Suppose the game episode is $T$ and the agent dies at timestep $d$. If we are not learning on dead state then, in order to correctly accumulate the episode return, we need to replace the reward $r_d$ at timestep $d$ by the total return $R_d$ at time $d$, i.e., $r_d\gets R_d=\sum_{t=d}^T \gamma^{t-d}r_t$. We would then need to compute the GAE only on those states in which the agent is alive. While this approach is theoretically correct (we are simply treating the state where the agent died as a terminal state and assigning the accumulated discounted reward as a terminal reward), it can have negative ramifications in the policy learning process, as outlined below.
+
+The GAE is an exponentially weighted average of $k$-step returns intended to trade off between bias and variance. Large $k$ values result in a low bias, but high variance return estimate, whereas small $k$ values result in a high bias, low variance return estimate. However, since the entire post death return $R_d$ replaces the single timestep reward $r_d$ at timestep $d$, computing the 1-step return estimate at timestep $d$ essentially becomes a ($T-d$)-step estimate, eliminating potential benefits of value function truncation of the trajectory and potentially leading to higher variance. This potentially dampens the benefit that could come from using the GAE at the timesteps in which an agent is dead. 
+
+We analyze the impact of the death masking by comparing different ways of handling dead agents, including: (1) our death masking, (2) using global states without death masking and (3) ignoring dead states in value learning and in the GAE computation. We first examine the median win rate with these different options in Fig. \ref{fig:app-Ablation-death} and ~\ref{fig:app-Ablation-ignore}. It is evident that our method of death masking, which uses $\boldsymbol{0_a}$ as the input to the critic when an agent is dead, results in superior performance compared to other options. 
+
+Fig.~\ref{fig:app-Ablation-ignore_valueloss} also demonstrates that using the death mask results in a lower values loss in the vast majority of SMAC maps, demonstrating that the accuracy of the value predictions improve when using the death mask. While the arguments here are intuitive the clear experimental benefits suggest that theoretically characterizing the effect of this method would be valuable. 
+
+
+\subsection{Hyperparameters}
+\
+Tables 4-16 describe the common hyperparameters, hyperparameter grid search values, and chosen hyperparmeters for MAPPO, QMix, and MADDPG in all testing domains. Tables~\ref{tab:typical-MPE}, \ref{tab:typical-SMAC}, \ref{tab:typical-Hanabi}, and \ref{tab:typical-GRF} describe common hyperparameters for different algorithms in each domain. Tables \ref{tab:MAPPO-tune-hyper}, \ref{tab:QMix-tune-hyper}, and \ref{tab:MADDPG-tune-hyper} describe the hyperparameter grid search procedure for the MAPPO, QMix, and MADDPG algorithms, respectively. Lastly, Tables~\ref{tab:diff-MPE},~\ref{tab:diff-SMAC},~\ref{tab:diff-Hanabi} and~\ref{tab:diff-Football} describe the final chosen hyperparameters among fine-tuned parameters for different algorithms in MPE, SMAC, Hanabi, and GRF, respectively. 
+
+For MAPPO, ``Batch Size'' refers to the number of environment steps collected before updating the policy via gradient descent. Since agents do not share a policy only in the MPE speaker-listener, the batch size does not depend on the number of agents in the speaker-listener environment. ``Mini-batch'' refers to the number of mini-batches a batch of data is split into, ``gain'' refers to the weight initialization gain of the last network layer for the actor network. ``Entropy coef'' is the entropy coefficient $\sigma$ in the policy loss. ``Tau'' corresponds to the rate of the polyak average technique used to update the target networks, and if the target networks are not updated in a ``soft'' manner, the ``hard interval'' hyperparameter specifies the number of gradient updates which must elapse before the target network parameters are updated to equal the live network parameters. ``Clip'' refers to the $\epsilon$ hyperparameter in the policy objective and value loss which controls the extent to which large policy and value function changes are penalized. 
+
+MLP network architectures are as follows:
+all MLP networks use ``num fc'' linear  layers, whose dimensions are specified by the ``fc layer dim'' hyperparameter. When using MLP networks, ``stacked frames'' refers to the number of previous observations which are concatenated to form the network input: for instance, if ``stacked frames'' equals 1, then only the current observation is used as input, and if ``stacked frames'' is 2, then the current and previous observations are concatenated to form the input. For RNN networks, the network architecture is ``num fc'' fully connected linear layers of dimension ``fc layer dim'', followed by ``num GRU layers'' GRU layers, finally followed by ``num fc after''  linear layers. 
+
+\section{Additional Results}
+\label{app:add-details}
+
+
+\subsection{Additional SMAC Results}
+\label{app:SMAC-allresults}
+
+Results of all algorithms in all SMAC maps can be found in Tab. \ref{tab:app-SMAC-results-all} and \ref{tab:app-SMAC-results-cut}.
+
+As MAPPO does not converge within 10M environment steps in the 3s5z vs. 3s6z map, Fig. \ref{fig:app-longrun} shows the performance of MAPPO in 3s5z vs. 3s6z when run until convergence. Fig.~\ref{fig:app-win-rate} presents the evaluation win of MAPPO with different value inputs (\emph{FP} and \emph{AS}), decentralized PPO (IPPO), QMix, and QMix with a modified global state input to the mixer network, which we call QMix (MG). Specifically, QMix(MG) uses a concatenation of the default environment global state, as well as \emph{all} agents' local observations, as the mixer network input. 
+
+
+Fig. \ref{fig:app-rode} compares the results of MAPPO(FP) to various off-policy baselines, including QMix(MG), RODE, QPLEX, CWQMix, and AIQMix, in many SMAC maps. Both QMIX and RODE utilize both the agent-agnostic global state and agent-specific local observations as input. Specifically, for agent $i$, the local Q-network (which computes actions at execution) takes in only the local agent-specific observation $o_i$ as input while the global mixer network takes in the agent-agnostic global state $s$ as input.  This is also the case for the other value-decomposition methods presented in Appendix Table 1 (QPLEX, CWQMix, and AIQMix).
+
+\addtolength{\tabcolsep}{-4pt}    
+\begin{sidewaystable*}[t!]
+\centering
+\vspace{-1mm}
+\captionsetup{justification=centering}
+\begin{tabular}{ccccccccccc}
+\toprule
+             Map & Map Difficulty &  MAPPO(FP) &  MAPPO(AS) &       IPPO &       QMix &   QMix(MG) &        RODE &      QPLEX &     CWQMix &     AIQMix \\
+\midrule
+        2m\_vs\_1z &           Easy & 100.0(0.0) & 100.0(0.0) & 100.0(0.0) &  95.3(5.2) &  96.9(4.5) &           / &          / &          / &          / \\
+              3m &           Easy & 100.0(0.0) & 100.0(1.5) & 100.0(0.0) &  96.9(1.3) &  96.9(1.7) &           / &          / &          / &          / \\
+       2s\_vs\_1sc &           Easy & 100.0(0.0) & 100.0(0.0) & 100.0(1.5) &  96.9(2.9) & 100.0(1.4) &    100(0.0) &  98.4(1.6) &   100(0.0) &   100(0.0) \\
+            2s3z &           Easy & 100.0(0.7) & 100.0(1.5) & 100.0(0.0) &  95.3(2.5) &  96.1(2.1) &    100(0.0) &   100(4.3) &  93.7(2.2) &  96.9(0.7) \\
+        3s\_vs\_3z &           Easy & 100.0(0.0) & 100.0(0.0) & 100.0(0.0) & 96.9(12.5) &  96.9(3.7) &           / &          / &          / &          / \\
+        3s\_vs\_4z &           Easy & 100.0(1.3) &  98.4(1.6) &  99.2(1.5) &  97.7(1.9) &  97.7(1.4) &           / &          / &          / &          / \\
+so\_many\_baneling &           Easy & 100.0(0.0) & 100.0(0.7) & 100.0(1.5) &  96.9(2.3) &  92.2(5.8) &           / &          / &          / &          / \\
+              8m &           Easy & 100.0(0.0) & 100.0(0.0) & 100.0(0.7) &  97.7(1.9) &  96.9(2.0) &           / &          / &          / &          / \\
+             MMM &           Easy &  96.9(2.6) &  93.8(1.5) &  96.9(0.0) &  95.3(2.5) & 100.0(0.0) &           / &          / &          / &          / \\
+          1c3s5z &           Easy & 100.0(0.0) &  96.9(2.6) & 100.0(0.0) &  96.1(1.7) & 100.0(0.5) &    100(0.0) &  96.8(1.6) &  96.9(1.4) & 92.2(10.4) \\
+    bane\_vs\_bane &           Easy & 100.0(0.0) & 100.0(0.0) & 100.0(0.0) & 100.0(0.9) & 100.0(2.1) &   100(46.4) &   100(2.9) &   100(0.0) & 85.9(34.7) \\
+        3s\_vs\_5z &           Hard & 100.0(0.6) &  99.2(1.4) & 100.0(0.0) &  98.4(2.4) &  98.4(1.6) &   78.9(4.2) &  98.4(1.4) &  34.4(6.5) & 82.8(10.6) \\
+      2c\_vs\_64zg &           Hard & 100.0(0.0) & 100.0(0.0) &  98.4(1.3) &  92.2(4.0) &  95.3(1.5) &    100(0.0) &  90.6(7.3) &  85.9(3.3) &  97.6(2.3) \\
+        8m\_vs\_9m &           Hard &  96.9(0.6) &  96.9(0.6) &  96.9(0.7) &  92.2(2.0) &  93.8(2.7) &           / &          / &          / &          / \\
+             25m &           Hard & 100.0(1.5) & 100.0(4.0) & 100.0(0.0) &  85.9(7.1) &  96.9(3.8) &           / &          / &          / &          / \\
+        5m\_vs\_6m &           Hard &  89.1(2.5) &  88.3(1.2) &  87.5(2.3) &  75.8(3.7) &  76.6(2.6) &   71.1(9.2) &  70.3(3.2) &  57.8(9.1) &  64.1(5.5) \\
+            3s5z &           Hard &  96.9(0.7) &  96.9(1.9) &  96.9(1.5) &  88.3(2.9) &  92.2(1.8) & 93.75(1.95) &  96.8(2.2) & 70.3(20.3) &  96.9(2.9) \\
+      10m\_vs\_11m &           Hard &  96.9(4.8) &  96.9(1.2) &  93.0(7.4) &  95.3(1.0) &  92.2(2.0) &   95.3(2.2) &  96.1(8.7) &  75.0(3.3) &  96.9(1.4) \\
+            MMM2 &     Super Hard &  90.6(2.8) &  87.5(5.1) &  86.7(7.3) &  87.5(2.6) &  88.3(2.2) &   89.8(6.7) & 82.8(20.8) &   0.0(0.0) & 67.2(12.4) \\
+    3s5z\_vs\_3s6z &     Super Hard & 84.4(34.0) & 63.3(19.2) & 82.8(19.1) &  82.8(5.3) &  82.0(4.4) & 96.8(25.11) & 10.2(11.0) & 53.1(12.9) &   0.0(0.0) \\
+      27m\_vs\_30m &     Super Hard &  93.8(2.4) &  85.9(3.8) & 69.5(11.8) &  39.1(9.8) &  39.1(9.8) &   96.8(1.5) & 43.7(18.7) &  82.8(7.8) & 62.5(34.3) \\
+        6h\_vs\_8z &     Super Hard &  88.3(3.7) & 85.9(30.9) & 84.4(33.3) &   9.4(2.0) &  39.8(4.0) &  78.1(37.0) &  1.5(31.0) & 49.2(14.8) &   0.0(0.0) \\
+        corridor &     Super Hard & 100.0(1.2) &  98.4(0.8) &  98.4(3.1) &  84.4(2.5) &  81.2(5.9) &  65.6(32.1) &   0.0(0.0) &   0.0(0.0) &  12.5(7.6) \\
+\bottomrule
+\end{tabular}
+\centering
+\caption{Median evaluation win rate and standard deviation on all the SMAC maps for different methods, using at most 10M training timesteps.
+} 
+\label{tab:app-SMAC-results-all}
+\vspace{-4mm}
+%\yc{will bold best performance later. just in case we might change the metric.} \yc{use "vs." instead of \_ at the last end.}
+%\yc{mark here, just in case i forget how we deal with 27m, to calculate 27m at 7M.}
+\end{sidewaystable*}
+
+\begin{sidewaystable*}[t!]
+\centering
+\vspace{-1mm}
+\captionsetup{justification=centering}
+\begin{tabular}{ccccccccccc}
+\toprule
+             Map & Map Difficulty & MAPPO(FP)* & MAPPO(AS)* &     IPPO* &     QMix* & QMix(MG)* &        RODE &      QPLEX &     CWQMix &     AIQMix \\
+\midrule
+        2m\_vs\_1z &           Easy &  100.0(0.0) &  100.0(0.0) & 100.0(0.0) &  96.9(2.8) &  96.9(4.7) &           / &          / &          / &          / \\
+              3m &           Easy &  100.0(0.0) &  100.0(1.5) & 100.0(0.0) &  92.2(2.7) &  96.9(2.1) &           / &          / &          / &          / \\
+       2s\_vs\_1sc &           Easy &  100.0(0.0) &  100.0(0.0) & 100.0(0.0) &  96.9(1.2) &  96.9(4.6) &    100(0.0) &  98.4(1.6) &   100(0.0) &   100(0.0) \\
+            2s3z &           Easy &   96.9(1.5) &   96.9(1.5) & 100.0(0.0) &  95.3(3.9) &  92.2(2.3) &    100(0.0) &   100(4.3) &  93.7(2.2) &  96.9(0.7) \\
+        3s\_vs\_3z &           Easy &  100.0(0.0) &  100.0(0.0) & 100.0(0.0) & 100.0(1.5) & 100.0(1.5) &           / &          / &          / &          / \\
+        3s\_vs\_4z &           Easy &  100.0(2.1) &  100.0(1.5) & 100.0(1.4) &  87.5(3.2) &  98.4(0.8) &           / &          / &          / &          / \\
+so\_many\_baneling &           Easy &  100.0(1.5) &   96.9(1.5) &  96.9(1.5) &  81.2(7.2) &  78.1(6.7) &           / &          / &          / &          / \\
+              8m &           Easy &  100.0(0.0) &  100.0(0.0) & 100.0(1.5) &  93.8(5.1) &  93.8(2.7) &           / &          / &          / &          / \\
+             MMM &           Easy &   93.8(2.6) &   96.9(1.5) &  96.9(1.5) &  95.3(3.9) & 100.0(1.2) &           / &          / &          / &          / \\
+          1c3s5z &           Easy &  100.0(0.0) &   96.9(2.6) &  93.8(5.1) &  95.3(1.2) &  98.4(1.4) &    100(0.0) &  96.8(1.6) &  96.9(1.4) & 92.2(10.4) \\
+    bane\_vs\_bane &           Easy &  100.0(0.0) &  100.0(0.0) & 100.0(0.0) & 100.0(0.0) & 100.0(0.0) &   100(46.4) &   100(2.9) &   100(0.0) & 85.9(34.7) \\
+        3s\_vs\_5z &           Hard &   98.4(5.5) &  100.0(1.2) & 100.0(2.4) &  56.2(8.8) &  90.6(2.2) &   78.9(4.2) &  98.4(1.4) &  34.4(6.5) & 82.8(10.6) \\
+      2c\_vs\_64zg &           Hard &   96.9(3.1) &   95.3(3.5) &  93.8(9.2) &  70.3(3.8) &  84.4(3.7) &    100(0.0) &  90.6(7.3) &  85.9(3.3) &  97.6(2.3) \\
+        8m\_vs\_9m &           Hard &   84.4(5.1) &   87.5(2.1) &  76.6(5.6) &  85.9(2.9) &  85.9(4.7) &           / &          / &          / &          / \\
+             25m &           Hard &   96.9(3.1) &   93.8(2.9) &  93.8(5.0) &  96.9(4.0) &  93.8(5.7) &           / &          / &          / &          / \\
+        5m\_vs\_6m &           Hard &  65.6(14.1) &   68.8(8.2) &  64.1(7.7) &  54.7(3.5) &  56.2(2.1) &   71.1(9.2) &  70.3(3.2) &  57.8(9.1) &  64.1(5.5) \\
+            3s5z &           Hard &  71.9(11.8) &  53.1(15.4) & 84.4(12.1) &  85.9(4.6) &  89.1(2.6) & 93.75(1.95) &  96.8(2.2) & 70.3(20.3) &  96.9(2.9) \\
+      10m\_vs\_11m &           Hard &   81.2(8.3) &   89.1(5.5) & 87.5(17.5) &  82.8(4.1) &  85.9(2.3) &   95.3(2.2) &  96.1(8.7) &  75.0(3.3) &  96.9(1.4) \\
+            MMM2 &     Super Hard &  51.6(21.9) &  28.1(29.6) & 26.6(27.8) &  82.8(4.0) &  79.7(3.4) &   89.8(6.7) & 82.8(20.8) &   0.0(0.0) & 67.2(12.4) \\
+    3s5z\_vs\_3s6z &     Super Hard &  75.0(36.3) &  18.8(37.4) & 65.6(25.9) & 56.2(11.3) &  39.1(4.7) & 96.8(25.11) & 10.2(11.0) & 53.1(12.9) &   0.0(0.0) \\
+      27m\_vs\_30m &     Super Hard &   93.8(3.8) &   89.1(6.5) & 73.4(11.5) &  34.4(5.4) &  34.4(5.4) &   96.8(1.5) & 43.7(18.7) &  82.8(7.8) & 62.5(34.3) \\
+        6h\_vs\_8z &     Super Hard &   78.1(5.6) &  81.2(31.8) & 78.1(33.1) &   3.1(1.5) &  29.7(6.3) &  78.1(37.0) &  1.5(31.0) & 49.2(14.8) &   0.0(0.0) \\
+        corridor &     Super Hard &   93.8(3.5) &   93.8(2.8) &  89.1(9.1) & 64.1(14.3) &  81.2(1.5) &  65.6(32.1) &   0.0(0.0) &   0.0(0.0) &  12.5(7.6) \\
+\bottomrule
+\end{tabular}
+\centering
+\caption{Median evaluation win rate and standard deviation on all the SMAC maps for different methods, Columns with ``*'' display results using the same number of timesteps as RODE. %, computed using the final 5 evaluations.
+} 
+\label{tab:app-SMAC-results-cut}
+\vspace{-4mm}
+%\yc{will bold best performance later. just in case we might change the metric.} \yc{use "vs." instead of \_ at the last end.}
+%\yc{mark here, just in case i forget how we deal with 27m, to calculate 27m at 7M.}
+\end{sidewaystable*}
+
+\begin{figure*}[ht]
+\captionsetup{justification=centering}
+\centering
+\includegraphics[width=0.35\textwidth]{figures/mappo_ippo_other/smac/3s5z_vs_3s6z_win_rate_long.png}
+\centering
+\caption{Median win rate of 3s5z vs. 3s6z map after 40M environment steps.}
+\label{fig:app-longrun}
+\end{figure*}
+
+\begin{figure*}[ht]
+	\centering
+	\subfigure
+	{
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/10m_vs_11m_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/1c3s5z_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/25m_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/27m_vs_30m_win_rate.png}
+    }
+    \subfigure
+    {
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/5m_vs_6m_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/2c_vs_64zg_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/2m_vs_1z_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/2s3z_win_rate.png}
+    }
+    \subfigure
+    {
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/3m_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/3s_vs_3z_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/3s_vs_4z_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/3s_vs_5z_win_rate.png}
+    	
+    }
+    \subfigure
+    {
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/6h_vs_8z_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/8m_vs_9m_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/8m_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/bane_vs_bane_win_rate.png}
+    }
+    \subfigure
+    {
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/MMM_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/MMM2_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/so_many_baneling_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/corridor_win_rate.png}
+    
+    }
+    \subfigure
+    {
+         
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/3s5z_win_rate.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/smac/3s5z_vs_3s6z_win_rate.png}
+        
+        
+    }
+	\centering \caption{Median evaluation win rate of 23 maps in the SMAC domain.  }
+\label{fig:app-win-rate}
+\end{figure*}
+
+\begin{figure*}[ht]
+	\centering
+	\subfigure
+	{
+        {
+        \includegraphics[width=0.25\textwidth]{figures/RODE/10m_vs_11m_mappo_qmix_rode.png}
+        \includegraphics[width=0.25\textwidth]{figures/RODE/1c3s5z_mappo_qmix_rode.png}
+        \includegraphics[width=0.25\textwidth]{figures/RODE/27m_vs_30m_mappo_qmix_rode.png}
+        \includegraphics[width=0.25\textwidth]{figures/RODE/2c_vs_64zg_mappo_qmix_rode.png}
+    	}
+    }
+    \subfigure
+    {
+        \includegraphics[width=0.25\textwidth]{figures/RODE/MMM2_mappo_qmix_rode.png}
+        \includegraphics[width=0.25\textwidth]{figures/RODE/2s3z_mappo_qmix_rode.png}
+        \includegraphics[width=0.25\textwidth]{figures/RODE/3s_vs_5z_mappo_qmix_rode.png}
+        \includegraphics[width=0.25\textwidth]{figures/RODE/3s5z_mappo_qmix_rode.png}
+    	
+    }
+    \subfigure
+    {
+        \includegraphics[width=0.25\textwidth]{figures/RODE/3s5z_vs_3s6z_mappo_qmix_rode.png}
+        \includegraphics[width=0.25\textwidth]{figures/RODE/5m_vs_6m_mappo_qmix_rode.png}
+        \includegraphics[width=0.25\textwidth]{figures/RODE/6h_vs_8z_mappo_qmix_rode.png}
+        \includegraphics[width=0.25\textwidth]{figures/RODE/bane_vs_bane_mappo_qmix_rode.png}
+    	
+    }
+    \subfigure
+    {
+        \includegraphics[width=0.25\textwidth]{figures/RODE/corridor_mappo_qmix_rode.png}
+        \includegraphics[width=0.25\textwidth]{figures/RODE/2s_vs_1sc_mappo_qmix_rode.png}
+        
+    }
+	\centering \caption{Median evaluation win rate of MAPPO(FP), QMix(MG), RODE, QPlEX, CWQMix and AIQMix in the SMAC domain.}
+\label{fig:app-rode}
+\end{figure*}
+
+
+\subsection{Additional GRF Results}
+
+Fig. \ref{fig:app-football} compares the results of MAPPO to various baselines, including QMix, CDS, and TiKick, in 6 academy scenarios.
+
+\begin{figure*}[ht]
+	\centering
+	\subfigure
+	{
+        {
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/football/academy_3_vs_1_with_keeper.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/football/academy_corner.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/football/academy_counterattack_easy.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/football/academy_counterattack_hard.png}
+    	}
+    }
+    \subfigure
+    {
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/football/academy_pass_and_shoot_with_keeper.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/football/academy_run_pass_and_shoot_with_keeper.png}
+        
+    }
+	\centering \caption{Mean evaluation win rate of MAPPO, QMix, CDS, TiKick in the GRF domain.}
+\label{fig:app-football}
+\end{figure*}
+
+
+\section{Ablation Studies}
+\label{app:ablation-studies}
+% \subsection{Value Normalization}
+
+% Fig.~\ref{fig:app-Ablation-popart}
+
+% \begin{figure*}[bt!]
+% \vspace{-2mm}
+% 	\centering
+%     \subfigure[MPE scenarios]{ \label{fig:MPE} 
+% 		\includegraphics[width=0.48\textwidth]{figures/env/MPE.pdf}
+% 	}
+% 	\subfigure[4-player Hanabi-Full]{ \label{fig:HanabiPic} 
+% 		\includegraphics[width=0.46\textwidth]{figures/env/Hanabi.pdf}
+% 	}
+% 	\subfigure[SMAC corridor]
+% 	{
+% 	\label{fig:app-SMAC-1}
+%     \includegraphics[width=0.3\textwidth]{figures/env/corridor.jpg}
+%     }
+%     \subfigure[SMAC 2c\_vs\_64zg]
+% 	{\label{fig:app-SMAC-2}
+%     \includegraphics[width=0.3\textwidth]{figures/env/2c_vs_64zg.jpg}
+%     }
+
+% 	\caption{Task visualizations. (a) The MPE domain. \emph{Spread} (left): agents need to cover all the landmarks and do not have a color preference for the landmark they navigate to; \emph{Comm} (middle): the listener needs to navigate to a specific landmarks following the instruction from the speaker; \emph{Reference} (right): both agents only know the other's goal landmark and needs to communicate to ensure both agents move to the desired target.
+% 	(b) The Hanabi domain:  4-player \emph{Hanabi-Full} - figure obtained from (Bard et al., 2020). %\cite{bard2020hanabi} 
+% 	(c) The \emph{corridor} map in the SMAC domain. 
+% 	(d) The \emph{2c vs. 64zg} map in the SMAC domain.}
+
+% \end{figure*}
+
+We present the learning curves for all ablation studies performed. Fig.~\ref{fig:app-Ablation-popart} demonstrates the impact of value normalization on MAPPO's performance. Fig. \ref{fig:app-Ablation-state} shows the effect of global state information on MAPPO's performance in SMAC. Fig. \ref{fig:app-Ablation-epoch} studies the influence of training epochs on MAPPO's performance. Fig. \ref{fig:app-Ablation-clip} studies the influence of clipping term on MAPPO's performance.
+Fig. \ref{fig:app-Ablation-death} and Fig. \ref{fig:app-Ablation-death-new} illustrates the influence of the death mask on MAPPO(FP)'s and MAPPO(AS)'s performance. Similarly, Fig. \ref{fig:app-Ablation-ignore} compares the performance of MAPPO when ignoring states in which an agent is dead when computing GAE to using the death mask when computing the GAE. Fig.~\ref{fig:app-Ablation-ignore_valueloss} illustrates the effect of death mask on MAPPO's value loss in the SMAC domain. Lastly, Fig.~\ref{fig:app-Ablation-agentid} shows the influence of including the agent-id in the agent-specific global state. 
+
+
+
+\begin{table*}[bt]
+\centering
+\begin{tabular}{cc}
+\toprule
+common hyperparameters      & value  \\
+\midrule
+recurrent data chunk length & 10   \\
+gradient clip norm          & 10.0 \\
+gae lamda                   & 0.95    \\              
+gamma                       & 0.99 \\
+value loss                        & huber loss \\
+huber delta                 & 10.0   \\
+batch size                   & num envs $\times$ buffer length $\times$ num agents  \\
+mini batch size           & batch size {/} mini-batch  \\
+optimizer                & Adam       \\
+optimizer epsilon            & 1e-5       \\
+weight decay             & 0          \\
+network initialization  & Orthogonal \\
+use reward normalization   &True \\
+use feature normalization   &True \\
+
+\bottomrule
+\end{tabular}
+\caption{Common hyperparameters used in MAPPO across all domains.}
+\label{tab:MAPPO-common-parameters}
+\end{table*}
+
+\begin{table*}[bt]
+\centering
+\begin{tabular}{cc}
+\toprule
+common hyperparameters      & value  \\
+\midrule
+% parallel envs               & 1 \\
+gradient clip norm          & 10.0 \\ 
+random episodes             & 5 \\
+epsilon                     & $1.0 \rightarrow 0.05$ \\
+epsilon anneal time         & 50000 timesteps \\
+train interval              & 1 episode\\
+gamma                       & 0.99 \\
+critic loss                        & mse loss \\
+buffer size                 & 5000 episodes   \\
+batch size                  & 32 episodes  \\
+optimizer                & Adam       \\
+optimizer eps            & 1e-5       \\
+weight decay             & 0          \\
+network initialization  & Orthogonal \\ 
+use reward normalization   &True \\
+use feature normalization   &True \\
+
+\bottomrule
+\end{tabular}
+\caption{Common hyperparameters used in QMix and MADDPG across all domains.}
+\label{tab:QMixMADDPG-common-parameters}
+\end{table*}
+
+
+
+\begin{table*}[t!]
+\centering
+\begin{tabular}{@{}cc@{}}
+\toprule
+hyperparameters        & value      \\
+\midrule
+num envs         & \begin{tabular}[c]{@{}c@{}}MAPPO: 128 \end{tabular} \\
+buffer length            & MAPPO: 25 \\
+num GRU layers            & 1          \\
+RNN hidden state dim      & 64         \\
+fc layer dim             & 64         \\
+num fc            & 2          \\
+num fc after             & 1          \\
+\bottomrule
+\end{tabular}
+\caption{Common hyperparameters used in the MPE domain for MAPPO, MADDPG, and QMix.}
+\label{tab:typical-MPE}
+\end{table*}
+
+\begin{table*}[h!]
+\centering
+\begin{tabular}{@{}cc@{}}
+\toprule
+hyperparameters        & value      \\
+\midrule
+num envs          & \begin{tabular}[c]{@{}c@{}}MAPPO:8\end{tabular}  \\
+buffer length            & \begin{tabular}[c]{@{}c@{}}MAPPO: 400 \end{tabular} \\
+num GRU layers            & 1          \\
+RNN hidden state dim      & 64         \\
+fc layer dim             & 64         \\
+num fc            & 2          \\
+num fc after             & 1          \\
+\bottomrule
+\end{tabular}
+\caption{Common hyperparameters used in the SMAC domain for MAPPO and QMix.}
+\label{tab:typical-SMAC}
+\end{table*}
+
+\begin{table*}[h!]
+\centering
+\begin{tabular}{cc}
+\toprule
+hyperparameters        & value      \\
+\midrule
+num envs          & 1000 \\
+buffer length          & 100 \\
+fc layer dim             & 512         \\
+num fc            & 2          \\
+\bottomrule
+\end{tabular}
+\caption{Common hyperparameters used in the Hanabi domain for MAPPO.}
+\label{tab:typical-Hanabi}
+\end{table*}
+
+\begin{table*}[h!]
+\centering
+\begin{tabular}{@{}cc@{}}
+\toprule
+hyperparameters        & value      \\
+\midrule
+parallel envs          & \begin{tabular}[c]{@{}c@{}}MAPPO: 50 \\ QMix: 1\end{tabular}  \\
+horizon length            & 199        \\
+num GRU layers            & 1          \\
+RNN hidden state dim      & 64         \\
+fc layer dim             & 64         \\
+num fc            & 2          \\
+num fc after             & 1          \\
+\bottomrule
+\end{tabular}
+\caption{Common hyperparameters used in the GRF domain for MAPPO and QMix.}
+\label{tab:typical-GRF}
+\end{table*}
+
+ 
+
+\begin{table*}[]
+\centering
+\begin{adjustwidth}{-.98in}{-.5in}
+\begin{tabular}{ccccccccc}
+\toprule
+Domains & lr                        & epoch        & mini-batch & activation      & clip & gain         & entropy coef & network     \\ \midrule
+MPE     & {[}1e-4,5e-4,7e-4,1e-3{]} & {[}5,10,15,20{]} & {[}1,2,4{]}       & {[}ReLU,Tanh{]} & {[}0.05,0.1,0.15,0.2,0.3,0.5{]} & {[}0.01,1{]} & /  & {[}mlp,rnn{]}               \\ 
+SMAC    & {[}1e-4,5e-4,7e-4,1e-3{]} & {[}5,10,15{]}    & {[}1,2,4{]}       & {[}ReLU,Tanh{]} & {[}0.05,0.1,0.15,0.2,0.3,0.5{]} & {[}0.01,1{]} & /   & {[}mlp,rnn{]}               \\
+Hanabi  & {[}1e-4,5e-4,7e-4,1e-3{]} & {[}5,10,15{]}    & {[}1,2,4{]}       & {[}ReLU,Tanh{]} &{[}0.05,0.1,0.15,0.2,0.3,0.5{]}& {[}0.01,1{]} & {[}0.01, 0.015{]} & {[}mlp,rnn{]} \\
+Football  & {[}1e-4,5e-4,7e-4,1e-3{]} & {[}5,10,15{]}    & {[}1,2,4{]}       & {[}ReLU,Tanh{]} & {[}0.01,1{]} & {[}0.01, 0.015{]} & {[}mlp,rnn{]} \\
+\bottomrule
+\end{tabular}
+\end{adjustwidth}
+\caption{Sweeping procedure of MAPPO cross all domains.}
+\label{tab:MAPPO-tune-hyper}
+\end{table*}
+
+
+\begin{table*}[]
+\centering
+\begin{tabular}{cccccc}
+\toprule
+Domains & lr                        & tau                   & hard interval & activation      & gain         \\\midrule
+MPE     & {[}1e-4,5e-4,7e-4,1e-3{]} & {[}0.001,0.005,0.01{]} & {[}100,200,500{]} & {[}ReLU,Tanh{]} & {[}0.01,1{]} \\ 
+SMAC    & {[}1e-4,5e-4,7e-4,1e-3{]} & {[}0.001,0.005,0.01{]} & {[}100,200,500{]} & {[}ReLU,Tanh{]} & {[}0.01,1{]} \\ \bottomrule
+\end{tabular}
+\caption{Sweeping procedure of QMix in the MPE and SMAC domains.}
+\label{tab:QMix-tune-hyper}
+\end{table*}
+
+\begin{table*}[]
+\centering
+\begin{tabular}{cccccc}
+\toprule
+Domains & lr                        & tau                    & activation      & gain  & network       \\\midrule
+MPE     & {[}1e-4,5e-4,7e-4,1e-3{]} & {[}0.001,0.005,0.01{]} & {[}ReLU,Tanh{]} & {[}0.01,1{]}  & {[}mlp,rnn{]}\\ \bottomrule
+\end{tabular}
+\caption{Sweeping procedure of MADDPG in the MPE domain.}
+\label{tab:MADDPG-tune-hyper}
+\end{table*}
+
+
+
+\begin{table*}[]
+\centering
+\begin{adjustwidth}{-.3in}{-.5in}
+\begin{tabular}{cccccccccccc}
+\toprule
+\multirow{2}{*}{Scenarios} & \multirow{2}{*}{lr} & \multirow{2}{*}{gain} &   \multirow{2}{*}{network} & \multicolumn{3}{c}{MAPPO}                    & \multicolumn{2}{c}{MADDPG} & \multicolumn{3}{c}{QMix}          \\ \cmidrule{5-12} 
+ &      &       &     & epoch & mini-batch & activation & tau        & activation     & tau   & hard interval & activation \\ \midrule
+Spread                     & 7e-4                & 0.01      & rnn            & 10        & 1          & Tanh          & 0.005      & ReLU           & /     & 100           & ReLU       \\ 
+Reference                  & 7e-4                & 0.01        & rnn          & 15        & 1          & ReLU          & 0.005      & ReLU           & 0.005 & /             & ReLU       \\ 
+Comm                       & 7e-4                & 0.01     & rnn             & 15        & 1          & Tanh          & 0.005      & ReLU           & 0.005 & /             & ReLU       \\ \bottomrule
+\end{tabular}
+\end{adjustwidth}
+\caption{Adopted hyperparameters used for MAPPO, MADDPG and QMix in the MPE domain.}
+\label{tab:diff-MPE}
+\end{table*}
+
+
+
+
+\begin{table*}[]
+\centering
+\begin{adjustwidth}{-.2in}{-.5in}
+\begin{tabular}{ccccccccc|cc}
+\toprule
+\multirow{2}{*}{Maps} & \multirow{2}{*}{lr} & \multirow{2}{*}{activation} & \multicolumn{6}{c}{MAPPO}                                         & \multicolumn{2}{c}{QMix} \\ \cmidrule{4-11} 
+                      &                     &                             & epoch & mini-batch & clip & gain & network & stacked frames & hard interval    & gain   \\ \midrule
+2m vs. 1z        & 5e-4 & ReLU & 15 & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+3m               & 5e-4 & ReLU & 15 & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+2s vs. 1sc       & 5e-4 & ReLU & 15 & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+3s vs. 3z        & 5e-4 & ReLU & 15 & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+3s vs. 4z        & 5e-4 & ReLU & 15 & 1 & 0.2  & 0.01 & mlp & 4 & 200 & 0.01 \\
+3s vs. 5z        & 5e-4 & ReLU & 15 & 1 & 0.05  & 0.01 & mlp & 4 & 200 & 0.01 \\
+2c vs. 64zg      & 5e-4 & ReLU & 5  & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+so many baneling & 5e-4 & ReLU & 15 & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+8m               & 5e-4 & ReLU & 15 & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+MMM              & 5e-4 & ReLU & 15 & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+1c3s5z           & 5e-4 & ReLU & 15 & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+8m vs. 9m        & 5e-4 & ReLU & 15 & 1 & 0.05  & 0.01 & rnn & 1 & 200 & 0.01 \\
+bane vs. bane    & 5e-4 & ReLU & 15 & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+25m              & 5e-4 & ReLU & 10 & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+5m vs. 6m        & 5e-4 & ReLU & 10 & 1 & 0.05 & 0.01 & rnn & 1 & 200 & 0.01 \\
+3s5z             & 5e-4 & ReLU & 5  & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+MMM2             & 5e-4 & ReLU & 5  & 2 & 0.2  & 1    & rnn & 1 & 200 & 0.01 \\
+10m vs. 11m      & 5e-4 & ReLU & 10 & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 0.01 \\
+3s5z vs. 3s6z    & 5e-4 & ReLU & 5  & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 1    \\
+27m vs. 30m      & 5e-4 & ReLU & 5  & 1 & 0.2  & 0.01 & rnn & 1 & 200 & 1    \\
+6h vs. 8z        & 5e-4 & ReLU & 5  & 1 & 0.2  & 0.01 & mlp & 1 & 200 & 1    \\
+corridor         & 5e-4 & ReLU & 5  & 1 & 0.2  & 0.01 & mlp & 1 & 200 & 1    \\ 
+\bottomrule
+\end{tabular}
+\end{adjustwidth}
+\caption{Adopted hyperparameters used for MAPPO and QMix in the SMAC domain.}
+\label{tab:diff-SMAC}
+\end{table*}
+
+\begin{table*}[]
+\centering
+\begin{tabular}{cccccccc}
+\toprule
+\multirow{2}{*}{Tasks} & \multicolumn{7}{c}{MAPPO}                                                                                                                          \\ \cmidrule{2-8} 
+                       & lr                                                               & epoch & mini-batch & activation & gain & entropy coef & network \\ \midrule
+2-player                 & \begin{tabular}[c]{@{}c@{}}actor:7e-4\\ critic:1e-3\end{tabular} & 15    & 1          & ReLU       & 0.01 & 0.015        & mlp                   \\ \bottomrule
+\end{tabular}
+\caption{Adopted hyperparameters used for MAPPO in the Hanabi domain.}
+\label{tab:diff-Hanabi}
+\end{table*}
+
+
+\begin{table*}[]
+\centering
+\begin{tabular}{cccccccc|cc}
+\toprule
+\multirow{2}{*}{Scenarios} & \multirow{2}{*}{lr} & \multirow{2}{*}{activation} & \multirow{2}{*}{buffer length} & \multicolumn{4}{c}{MAPPO}                             & \multicolumn{2}{c}{QMix} \\ \cmidrule{5-10}
+                      &                     &             &                & epoch & mini-batch & gain & network  & hard interval   & gain   \\
+\midrule
+3v.1             & 5e-4                & ReLU        & 200                & 15    & 2          & 0.01 & rnn                   & 200             & 0.01   \\
+Corner                    & 5e-4                & ReLU    & 1000                    & 15    & 2          & 0.01 & rnn                   & 200             & 0.01   \\
+CA(easy)            & 5e-4                & ReLU     & 200                    & 15    & 2          & 0.01 & rnn                 & 200             & 0.01   \\
+CA(hard)            & 5e-4                & ReLU      & 1000                  & 15    & 2          & 0.01 & rnn                  & 200             & 0.01   \\
+PS             & 5e-4                & ReLU        & 200                 & 15    & 2          & 0.01 & rnn                  & 200             & 0.01   \\
+RPS             & 5e-4                & ReLU       & 200                  & 15    & 2          & 0.01 & rnn                 & 200             & 0.01   \\
+\bottomrule
+\end{tabular}
+\caption{Adopted hyperparameters used for MAPPO and QMix in the Football domain.}
+\label{tab:diff-Football}
+\end{table*}
+
+
+\begin{figure*}[ht]
+\captionsetup{justification=centering}
+
+	\centering
+    \subfigure
+	{\centering
+        {\includegraphics[width=0.25\textwidth]{figures/popart/smac/10m_vs_11m_popart.png}
+        \includegraphics[width=0.25\textwidth]{figures/popart/smac/27m_vs_30m_popart.png}
+        \includegraphics[width=0.25\textwidth]{figures/popart/smac/3s5z_vs_3s6z_popart.png}
+        \includegraphics[width=0.25\textwidth]{figures/popart/smac/5m_vs_6m_popart.png}
+        
+    	}
+    }
+    \subfigure
+	{\centering
+	    \includegraphics[width=0.25\textwidth]{figures/popart/smac/MMM2_popart.png}
+        \includegraphics[width=0.25\textwidth]{figures/popart/mpe/spread_popart.png}
+        \includegraphics[width=0.25\textwidth]{figures/popart/mpe/reference_popart.png}
+        \includegraphics[width=0.25\textwidth]{figures/popart/mpe/speaker_listener_popart.png}}
+    \subfigure
+    {\centering
+        \includegraphics[width=0.25\textwidth]{figures/popart/football/academy_3_vs_1_with_keeper_popart.png}
+        \includegraphics[width=0.25\textwidth]{figures/popart/football/academy_corner_popart.png}
+        \includegraphics[width=0.25\textwidth]{figures/popart/football/academy_counterattack_easy_popart.png}
+        \includegraphics[width=0.25\textwidth]{figures/popart/football/academy_counterattack_hard_popart.png}
+        }
+    \subfigure
+    {
+        \includegraphics[width=0.25\textwidth]{figures/popart/football/academy_pass_and_shoot_with_keeper_popart.png}
+        \includegraphics[width=0.25\textwidth]{figures/popart/football/academy_run_pass_and_shoot_with_keeper_popart.png}
+    }
+	\centering \caption{Ablation studies demonstrating the effect of Value Normalization(VN) on MAPPO's performance in the MPE, SMAC, and GRF domains.}
+\label{fig:app-Ablation-popart}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+\captionsetup{justification=centering}
+
+	\centering
+    \subfigure
+	{
+        \includegraphics[width=0.25\textwidth]{figures/global_state/10m_vs_11m_global_state.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/3s5z_vs_3s6z_global_state.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/5m_vs_6m_global_state.png}
+    	\includegraphics[width=0.25\textwidth]{figures/global_state/6h_vs_8z_global_state.png}
+    }
+    \subfigure
+	{
+        \includegraphics[width=0.25\textwidth]{figures/global_state/corridor_global_state.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/MMM2_global_state.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/8m_vs_9m_global_state.png}
+    }
+	\centering 
+	\caption{Ablation studies demonstrating the effect of different global state on MAPPO's performance in the SMAC domain.}
+\label{fig:app-Ablation-state}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+\captionsetup{justification=centering}
+
+	\centering
+	\subfigure
+	{
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/smac/10m_vs_11m_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/smac/25m_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/smac/2c_vs_64zg_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/smac/3s5z_vs_3s6z_ppo_epoch.png}
+    }
+    \subfigure
+    { 
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/smac/5m_vs_6m_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/smac/6h_vs_8z_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/smac/8m_vs_9m_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/smac/corridor_ppo_epoch.png}
+     }
+    \subfigure
+	{\centering
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/smac/MMM2_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/mpe/spread_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/mpe/reference_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/mpe/speaker_listener_ppo_epoch.png}
+    }
+    \subfigure
+	{\centering
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/football/academy_3_vs_1_with_keeper_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/football/academy_corner_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/football/academy_counterattack_easy_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/football/academy_counterattack_hard_ppo_epoch.png}
+    }
+    \subfigure
+	{\centering
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/football/academy_pass_and_shoot_with_keeper_ppo_epoch.png}
+        \includegraphics[width=0.25\textwidth]{figures/ppo_epoch/football/academy_run_pass_and_shoot_with_keeper_ppo_epoch.png}
+    }
+	\centering \caption{Ablation studies demonstrating the effect of training epochs on MAPPO's performance in the MPE, SMAC, and GRF domains.}
+\label{fig:app-Ablation-epoch}
+\end{figure*}
+
+\begin{figure*}[ht]
+\captionsetup{justification=centering}
+
+	\centering
+	\subfigure
+	{
+        \includegraphics[width=0.25\textwidth]{figures/clip/3s_vs_5z_clip.png}
+        \includegraphics[width=0.25\textwidth]{figures/clip/3s5z_vs_3s6z_clip.png}
+        \includegraphics[width=0.25\textwidth]{figures/clip/5m_vs_6m_clip.png}
+        \includegraphics[width=0.25\textwidth]{figures/clip/6h_vs_8z_clip.png}
+    }
+    \subfigure
+    { 
+        \includegraphics[width=0.25\textwidth]{figures/clip/8m_vs_9m_clip.png}
+        \includegraphics[width=0.25\textwidth]{figures/clip/10m_vs_11m_clip.png}
+        \includegraphics[width=0.25\textwidth]{figures/clip/MMM2_clip.png}
+        \includegraphics[width=0.25\textwidth]{figures/clip/corridor_clip.png}
+     }
+     \subfigure
+     { 
+        \includegraphics[width=0.25\textwidth]{figures/clip/football/academy_3_vs_1_with_keeper_clip.png}
+        \includegraphics[width=0.25\textwidth]{figures/clip/football/academy_corner_clip.png}
+        \includegraphics[width=0.25\textwidth]{figures/clip/football/academy_counterattack_easy_clip.png}
+        \includegraphics[width=0.25\textwidth]{figures/clip/football/academy_counterattack_hard_clip.png}
+     }
+     \subfigure
+    { 
+        \includegraphics[width=0.25\textwidth]{figures/clip/football/academy_pass_and_shoot_with_keeper_clip.png}
+        \includegraphics[width=0.25\textwidth]{figures/clip/football/academy_run_pass_and_shoot_with_keeper_clip.png}
+     }
+	\centering \caption{Ablation studies demonstrating the effect of clip term on MAPPO's performance in the SMAC and GRF domain.}
+\label{fig:app-Ablation-clip}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+    \captionsetup{justification=centering}
+	\centering
+    \subfigure
+	{\centering
+        {\includegraphics[width=0.25\textwidth]{figures/global_state/10m_vs_11m_global_state_mask.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/3s5z_vs_3s6z_global_state_mask.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/5m_vs_6m_global_state_mask.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/6h_vs_8z_global_state_mask.png}
+    	}
+    }
+    \subfigure
+	{\centering
+        {
+        \includegraphics[width=0.25\textwidth]{figures/global_state/8m_vs_9m_global_state_mask.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/corridor_global_state_mask.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/MMM2_global_state_mask.png}
+    	}
+    }
+	\centering \caption{Ablation studies demonstrating the effect of death mask on MAPPO(FP)'s performance in the SMAC doamin.}
+\label{fig:app-Ablation-death}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \captionsetup{justification=centering}
+	\centering
+    \subfigure
+	{\centering
+        {\includegraphics[width=0.25\textwidth]{figures/global_state/10m_vs_11m_new_global_state_mask.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/3s5z_vs_3s6z_new_global_state_mask.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/5m_vs_6m_new_global_state_mask.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/6h_vs_8z_new_global_state_mask.png}
+    	}
+    }
+    \subfigure
+	{\centering
+        {
+        \includegraphics[width=0.25\textwidth]{figures/global_state/8m_vs_9m_new_global_state_mask.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/corridor_new_global_state_mask.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/MMM2_new_global_state_mask.png}
+    	}
+    }
+	\centering \caption{Ablation studies demonstrating the effect of death mask on MAPPO(AS)'s performance in the SMAC domain.}
+\label{fig:app-Ablation-death-new}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \captionsetup{justification=centering}
+	\centering
+    \subfigure
+	{\centering
+        {\includegraphics[width=0.25\textwidth]{figures/ignore_dead/10m_vs_11m_ignore_dead.png}
+        \includegraphics[width=0.25\textwidth]{figures/ignore_dead/27m_vs_30m_ignore_dead.png}
+        \includegraphics[width=0.25\textwidth]{figures/ignore_dead/3s_vs_4z_ignore_dead.png}
+        \includegraphics[width=0.25\textwidth]{figures/ignore_dead/3s_vs_5z_ignore_dead.png}
+    	}
+    }
+    \subfigure
+	{\centering
+        \includegraphics[width=0.25\textwidth]{figures/ignore_dead/3s5z_vs_3s6z_ignore_dead.png}
+        \includegraphics[width=0.25\textwidth]{figures/ignore_dead/5m_vs_6m_ignore_dead.png}
+        \includegraphics[width=0.25\textwidth]{figures/ignore_dead/6h_vs_8z_ignore_dead.png}
+    	\includegraphics[width=0.25\textwidth]{figures/ignore_dead/corridor_ignore_dead.png}
+    }
+    \subfigure
+	{\centering
+    	\includegraphics[width=0.25\textwidth]{figures/ignore_dead/MMM2_ignore_dead.png}
+    }
+	\centering \caption{Ablation studies demonstrating the effect of death mask on MAPPO's performance in the SMAC domain.}
+\label{fig:app-Ablation-ignore}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \captionsetup{justification=centering}
+	\centering
+    \subfigure
+	{\centering
+        {\includegraphics[width=0.25\textwidth]{figures/ignore_dead/10m_vs_11m_ignore_dead_valueloss.png}
+        \includegraphics[width=0.25\textwidth]{figures/ignore_dead/27m_vs_30m_ignore_dead_valueloss.png}
+        \includegraphics[width=0.25\textwidth]{figures/ignore_dead/3s_vs_4z_ignore_dead_valueloss.png}
+        \includegraphics[width=0.25\textwidth]{figures/ignore_dead/3s_vs_5z_ignore_dead_valueloss.png}
+    	}
+    }
+    \subfigure
+	{\centering
+        \includegraphics[width=0.25\textwidth]{figures/ignore_dead/3s5z_vs_3s6z_ignore_dead_valueloss.png}
+        \includegraphics[width=0.25\textwidth]{figures/ignore_dead/5m_vs_6m_ignore_dead_valueloss.png}
+        \includegraphics[width=0.25\textwidth]{figures/ignore_dead/6h_vs_8z_ignore_dead_valueloss.png}
+    	\includegraphics[width=0.25\textwidth]{figures/ignore_dead/corridor_ignore_dead_valueloss.png}
+    }
+    \subfigure
+	{\centering
+    	\includegraphics[width=0.25\textwidth]{figures/ignore_dead/MMM2_ignore_dead_valueloss.png}
+    }
+	\centering \caption{Effect of death mask on MAPPO's value loss in the SMAC domain.}
+\label{fig:app-Ablation-ignore_valueloss}
+\end{figure*}
+
+\begin{figure*}[ht]
+    \captionsetup{justification=centering}
+	\centering
+    \subfigure
+	{\centering
+        {\includegraphics[width=0.25\textwidth]{figures/global_state/10m_vs_11m_agentid.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/3s5z_vs_3s6z_agentid.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/5m_vs_6m_agentid.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/6h_vs_8z_agentid.png}
+        }
+    }
+    \subfigure
+	{\centering
+        {
+        \includegraphics[width=0.25\textwidth]{figures/global_state/8m_vs_9m_agentid.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/corridor_agentid.png}
+        \includegraphics[width=0.25\textwidth]{figures/global_state/MMM2_agentid.png}
+    	}
+    }
+	\centering \caption{Ablation studies demonstrating the effect of agent id on MAPPO's performance in the SMAC domain. }
+\label{fig:app-Ablation-agentid}
+\end{figure*}
+
+

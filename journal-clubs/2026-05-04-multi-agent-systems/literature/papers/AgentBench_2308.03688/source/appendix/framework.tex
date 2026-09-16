@@ -1,0 +1,75 @@
+\section{Framework}
+
+\label{app:framework}
+
+\subsection{Traditional Evaluation Frameworks}
+
+Traditional evaluation frameworks can be categorized into two types:
+
+\textbf{Traditional Tasks (e.g., single-round generation, classification, etc.).} 
+These frameworks are designed for specific tasks and may not be suitable for more complex tasks involving multi-round interactions.
+
+\textbf{Agent-based Tasks (tasks with multi-round interactions).}
+These frameworks are typically tailored to a specific task by the creators of the dataset. They often suffer from several limitations:
+
+\begin{itemize}
+    \item They are designed for a specific task, limiting their applicability to other tasks.
+    \item Communication between components (Task, Agent, and Evaluation) usually occurs within a single process or through the creation of child processes, necessitating evaluation on the same device.
+    \item They can only evaluate one task with one agent at a time.
+\end{itemize}
+
+\subsection{Our Designed Evaluation Framework}
+
+To address the limitations of traditional agent-based evaluation frameworks, we have designed a novel framework with the following features:
+
+\textbf{Decoupled S/C Architecture.} Our framework decouples the Task Server, Agent Server, and Evaluation Client components, enabling separate deployments. They can communicate via HTTP interactions, allowing them to run on different devices, thus eliminating the need for co-location to satisfy the requirements of both Task and Agent.
+
+\textbf{Agent-Task Collaborative Evaluation.} Our framework supports collaborative evaluation of multiple agents and tasks in various combinations simultaneously. This flexibility enables more comprehensive testing scenarios.
+
+\textbf{Network Flow Algorithms.} We have incorporated network flow algorithms into the Evaluation Client, maximizing evaluation efficiency. This optimization ensures that both Agent and Task Workers are utilized to their fullest potential.
+
+\textbf{Resumable Evaluation.} Our framework includes a resumable evaluation feature, making it easy to recover and continue interrupted evaluations seamlessly.
+
+With these advancements, our evaluation framework overcomes the limitations of traditional approaches and provides a more versatile, efficient, and scalable solution for evaluating intelligent agents in multi-round tasks.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figs/framework.png}
+    \caption{The toolkit of \model is meticulously crafted for the seamless deployment of tasks and agents, coupled with an efficient evaluation assignment system. Agent servers (left) manifest in diverse forms, enabling us to deploy a model server and expose an accessible API through the HTTP protocol. Task servers (right) are composed of a task controller and several task workers, whose environment is within an isolated environment, ensuring freedom from conflicts and optimal task execution. Evaluation client (center) establishes an agent-task graph and employs the max-flow algorithm to optimize interactions. This optimization results in client workers seamlessly engaging with agent and task servers, facilitating the smooth execution of tasks and evaluations. }
+    \label{fig:devtools}
+    \vspace{-5mm}
+    % \vspace{3mm}
+\end{figure}
+
+The overall structure of our framework can be described in Figure \ref{fig:devtools}.
+
+
+\subsection{Implementation of Max-Flow Algorithm}
+
+In our evaluation process, we employ the Edmonds–Karp algorithm~\citep{edmonds1972theoretical} as a practical implementation of the Ford–Fulkerson method~\citep{ford1962flows} designed to compute the maximum flow in a network with a time complexity of $O(|V||E|^2)$.
+
+To formalize the problem, consider a scenario with $n$ agents, denoted as $A_1, A_2, \cdots, A_n$, and $m$ tasks, denoted as $T_1, T_2, \cdots, T_m$. Our objective is to conduct evaluations in $l$ different groups, each focusing on the pair $(A_{x_k}, T_{y_k})$, where $1 \leq k \leq l$. Additionally, for every such pair $(A_{x_k}, T_{y_k})$, we should evaluate $s_k$ samples. The number of workers for agent $A_k$ and task $T_k$ is denoted as $w(A_k)$ and $w(T_k)$ respectively.
+
+The flow graph we construct can be described as $G=<V,E>$, where the vertex set $V$ is defined as
+
+\begin{equation}
+\begin{split}
+    V = & \{A_k|1\le k \le n\} \\
+        & \cup \{T_k|1\le k \le m\} \\
+        & \cup \{S, D\},
+\end{split}
+\end{equation}
+
+And the weighted edge set $E$ is denoted as
+
+\begin{equation}
+\begin{split}
+    E = & \{(A_{x_k}, T_{y_k}, s_k)|1\le k \le l\} \\
+        & \cup \{(S, A_k, w(A_k)|1\le k \le n\} \\
+        & \cup \{(T_k, D, w(T_k)|1\le k \le m\}.
+\end{split}
+\end{equation}
+
+We apply max-flow algorithm from source vertex $S$ to destination vertex $D$. For each flow edge $(A_i, T_j, f_{(i,j)})$, we allocate $f_{(i,j)}$ samples for agent $A_i$ and task $T_j$. After allocation, the weight of the edges should be reduced by the value of flow. Upon completion of an evaluation, the weight of edge connected to either $S$ or $D$ should be increased by $1$.
+
+We also establish a periodic interval for applying the algorithm to the network for newly available evaluation triples.

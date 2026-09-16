@@ -1,0 +1,89 @@
+\section{Actor-based Distributed Framework}
+\label{sec:distribute}
+
+Efficiency and extensibility are essential when building industry-level applications on multi-agent systems.
+The inference speed of the agents in multi-agent applications may vary dramatically. 
+For example, suppose an agent in a multi-modal application employs a text-to-video model. In that case, its response time may be significantly longer than that of an agent designed to fill in details of stories.
+\emph{Parallelization}, as a classic idea, should be introduced to boost efficiency.
+Besides, multi-agent applications can comprise agents physically distributed on different machines.
+A typical use case is that a company can wrap its patented techniques or private knowledge bases into an agent on their local machines connected to the internet and provide autonomous services to other entities via agent interactions.
+
+However, when it comes to multi-agent systems, a challenge is that developers need to make decisions between the following two pairs of technology roadmaps.
+As there is no free lunch, any combinations have their benefits and drawbacks. 
+
+\begin{itemize}
+    \item 
+    \textit{Centralized v.s. decentralized coordination.}
+    In the context of the distributed system, centralized coordination means multiple computation nodes being managed by a central node, such as the server-client model.
+    A multi-agent mechanism with centralized coordination means the execution of the agents is scheduled by, and the messages between agents are forwarded by a central coordination component.
+    On the contrary, decentralized coordination does not rely on any central component to schedule or forward messages, but the agents in such a system can be invoked automatically and send messages directly to the downstream agents for further processing.
+
+    While centralized coordination is a straightforward style that can be understood and is easy to debug, its disadvantages include vulnerability to central node failures, imposing heavy traffic on the central node, and difficulty in scaling or extending to complicated applications.
+    In contrast, decentralized coordination may require extra effort to develop and maintain but has a higher robustness against failure of any single node.
+
+    \item 
+    \textit{Static vs. dynamic workflow design.}
+    A similar comparison can be found between the static computational graph employed in early versions of TensorFlow~\citep{abadi2016tensorflow} and the dynamic computation graph used in PyTorch~\cite{paszke2019pytorch}.
+    In the context of multi-agent applications, the choice between a static and dynamic workflow is akin to choosing between pre-compiled and interpreted execution.
+    The static workflow design can enable the optimization of the workflow graph level for running time and resource allocation.
+    However, static workflow design requires the workflow graph to be known before execution, which limits the adaptation into applications, especially the ones with loop structures in the design.
+    In contrast, dynamic workflows offer greater flexibility at the expense of optimization potential. This is particularly relevant when dealing with large language models where execution paths can change based on the input data or model inference results.
+\end{itemize}
+
+\begin{figure}[th]
+    \centering
+    \includegraphics[width=0.65\linewidth]{figures/distribute.png}
+    \caption{An example of a distributed application in \ours, illustrating various processes as denoted by different colors.}
+    \label{fig:actor}
+\end{figure}
+
+\paragraph{Distributed mode in \ours.}
+\ours balances these technology roadmaps by implementing an actor-based distributed mode that is mindful of the unique needs of multi-agent LLM systems, with the following important features:
+
+\begin{itemize}
+    \item \textit{Automatic parallel optimization without static graphs.}
+\ours leverages the actor model to enable automatic parallel optimization, allowing developers to circumvent the intricacies of static graph programming. This approach seamlessly aligns with the dynamic and often unpredictable nature of LLMs, where the computational graph can alter based on evolving contexts and dialogue states.
+    \item \textit{Programming workflows with minimal complexity.}
+In contrast to traditional actor models and peer-to-peer (P2P) implementations that require intricate execution ordering for distributed agents, \ours simplifies workflow programming to a single procedural style within a Python function. This design significantly flattens the learning curve for developers, making the construction of sophisticated multi-agent LLMs more accessible.
+    \item \textit{Hybrid local and distributed agent support.}
+\ours's flexibility extends to supporting a hybrid mode where some agents operate locally while others are distributed. This feature is particularly beneficial when integrating LLMs with varying computational requirements, allowing for resource-intensive models to be distributed while less demanding agents remain local, all without the developer needing to differentiate between the two during implementation.
+\end{itemize}
+
+Specifically, we can concisely describe how \ours incorporates the actor model as the following. 
+In this conceptual framework, an ``actor'' acts as a stand-alone entity that processes computation upon receipt of all necessary messages. This paradigm ensures that each agent, corresponding to an actor, only engages in computation once the required input messages are ready, thus achieving automatic parallel optimization.
+
+However, the actor-model-based workflow presents a programming challenge: the variable (i.e., messages) passing between actors (i.e., agents) may be placeholders without any practical meaning at the beginning. 
+To alleviate this, \ours introduces the ``placeholder'' message, a novel data structure that allows the main process to continue without blocking, while preserving the necessary information to retrieve real values later (\figref{fig:actor}). This mechanism is particularly advantageous for multi-agent LLM systems, where execution flow must adapt to the variable output of language models.
+
+\begin{lstlisting}[language=Python, float=h, caption={ Demonstrating the use of placeholders in control flow within \ours.}, label={lst:control_flow}]
+# set up distributed agent: agent1
+...
+
+input_msg = Msg("system", "Which agent should respond next, agent2 or agent3?")
+
+# the variable choice is a placeholder
+choice: placeholder = host_agent(input_msg)
+
+if choice["content"] == "agent2":
+    response = agent2()
+elif choice["content"] == "agent3":
+    response = agent3()
+\end{lstlisting}
+
+Another series of challenges arise when placeholders are used within control flow statements (e.g., if-else, loops) without their real values. 
+An example is shown in \lstlistingname~\ref{lst:control_flow}, where a placeholder is required to make decisions.
+In these circumstances, \ours temporarily blocks the process to retrieve its actual value, thus ensuring the continuity of the control flow.
+
+The actor-based distributed mode in \ours not only provides automatic parallel optimization and simplifies the developer experience but also demonstrates high efficiency for distributed multi-agent LLM applications. It enables developers to focus on implementing agent logic, particularly the ``reply'' function, without concern for underlying distributed complexities. This streamlined approach to distributed multi-agent systems can advance the field of LLMs by making it easier to develop, run, and debug sophisticated and scalable multi-agent architectures.
+
+\textbf{One-click deployment in \ours.}
+% server 
+To further ease the distributed deployment, \ours provides \textit{agent server} and a unified message center, named \textit{\ours Studio}. 
+
+Specifically, the agent server is hold in remote machines, which receives requests from \ours applications, and initialize their required agents in the deployed machine automatically. 
+That means, developers can set up agent instances remotely, without programming in different machines. 
+Such feature provides high flexibility, especially for large-scale simulations, where a large number of agent instances will be set up in remote machines. 
+
+For \ours Studio, it provides a unified display interface for distributed multi-agent applications, where messages from all distributed agents will be gathered and displayed in this studio, and allows developers to forward these messages to their own display interface. 
+Besides, \ours studio supports agent servers management, that is, in this studio developers can check the deployment of distributed agents, open or close agent servers remotely. 
+With this studio, developers can manage their applications much more easily.

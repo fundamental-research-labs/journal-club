@@ -1,0 +1,394 @@
+
+
+
+\section{Prompts and Examples}\label{sec:prompt}
+
+\subsection{Prompt Templates}\label{sec:prompt_tem}
+
+As described in Section \ref{sec:exp}, we adopt the agent designs and collaboration structures from the SOTA method DyLAN \cite{dylan} as the default configuration for OMAC on all datasets. Specifically, the default instruction prompts for existing agents are directly inherited from DyLAN and detailed in the original paper \cite{dylan}. 
+
+The prompt templates uniquely for OMAC include those designed for the Semantic Initializer and the Contrastive Comparator across the five optimization dimensions.  Furthermore, as explained in Section \ref{sec:indi_opt}, the only variation in the prompts for the two actors across different tasks lies in the contextual description of the MAS and the given task. Therefore, we present here the prompt templates for these two actors across the five optimization dimensions on general reasoning task. For details on other tasks, please refer to our code repository at: \href{https://anonymous.4open.science/r/OMAC-Sub-3FF8}{https://anonymous.4open.science/r/OMAC-Sub-3FF8}.
+
+
+Prompts of the Semantic Initializer for five dimensions are as follows:
+
+\vspace{1mm}
+
+
+\begin{table}[h]
+\centering
+\begin{center}
+\caption{Prompts of Semantic Initializer for five dimensions.}
+
+\begin{tabular}{ m{1cm} | m{14cm}}
+\toprule
+ \textbf{Fun-1}  & 
+
+Generate \{\texttt{initialization number}\} distinct prompts to instruct an LLM to resolve some general reasoning problems acting as the given role: \{\texttt{optimized agent role}\}. \newline
+Each prompt should guide the model to accurately and efficiently resolve problems while adhering to the specified role.  \newline
+Each prompt must begin strictly with the following content: \{\texttt{basic description of the optimized agent}\}. Then, you should consider adding more detailed, logical, and through instructions, which can help the LLM resolve problems better acting as the given role.  \newline
+Do not output anything currently. Instead, I will provide a sequence number, and you should return only the corresponding prompt one by one.  \newline
+Do not create any specific instances of the problems in the prompt, cause they are not provided now.  \newline
+Ensure that the generated prompts follow the given example format but differ in content and structure from the example itself. The example is as follows: 
+\newline  \newline
+\{\texttt{one-shot example}\}.
+ \\ 
+ \midrule
+ 
+ \textbf{Fun-2}  & 
+
+Generate \{\texttt{initialization number}\} distinct prompts to instruct an LLM to resolve some general reasoning problems related to math, hard science, humanities, and social sciences.  There are some existing agents in the system to resolve the problems, whose roles are: \{\texttt{roles of existing agents}\}. \newline
+You need to generate some new roles and prompts for the LLM to better resolve the problems. \newline
+First, determine the roles of these prompts. Next, create the prompts that instruct the LLM to resolve problems based on the defined roles.  \newline 
+Do not output all the generated roles and prompts at once. Instead, I will request either the k-th role or the k-th prompt individually. When asked, directly output the corresponding content of the role name or prompt one at a time.  \newline
+Do not create any instances of the problems in the prompt, cause they are not provided now.  \newline 
+You can decide the content and detailed functional instructions of the roles and prompts. You may consider adding more detailed instructions to help the LLM resolve problems.  \newline
+The following is an example of a role and the corresponding prompt (also ensure your output is different from the example role and prompt): \newline \newline
+\{\texttt{one-shot example}\}.
+ \\ 
+
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\clearpage
+
+
+
+
+\begin{table}[h]
+\centering
+\begin{center}
+
+\begin{tabular}{ m{1cm} | m{14cm}}
+\toprule
+ \textbf{Str-1}  & 
+
+Generate \{\texttt{initialization number}\} distinct prompts for an LLM to choose some top agents best suited for resolving some general reasoning problems related to math, hard science, humanities, social sciences, etc.  \newline
+Don't directly output all the generated prompts. I will provide you the sequence number of the prompt. Then you should directly output the content text of the corresponding prompt one by one. \newline
+Each prompt should decide and specify the number of the chosen agents. The minimal number is 4 and maximum number is 7. \newline
+Each prompt should help to accurately and efficiently identify the top agents best suited for problem-solving.  \newline
+Note that all information about the task and candidate agents has been previously provided as the context. The prompt generated here will be added to the context to form the final prompt for agent selection. \newline
+You may consider adding more detailed and thorough instructions to help the LLM select the top agents better.  \newline
+The following is an example of a prompt (also ensure your output is different from the example prompt):
+\newline  \newline
+\{\texttt{one-shot example}\}.\\
+ \midrule
+
+ 
+ \textbf{Str-2}  & 
+
+Generate \{\texttt{initialization number}\} distinct prompts for an LLM to choose some top solutions for best resolving some general reasoning problems related to math, hard science, humanities, social sciences, etc.  \newline
+Don't directly output all the generated prompts. I will provide you with the sequence number of the prompt. Then you should directly output the content text of the corresponding prompt one by one. \newline
+You can decide the number of the chosen solutions and the content of the prompt. The number of solutions should be between 2 and 7.  \newline
+The prompt should help to accurately and efficiently select the top solutions that resolve the given problems best.  \newline
+Note that all the solutions and the problem have been previously provided as the context. The prompt generated here will be added to the context to form the final prompt for solution selection. \newline
+You may consider adding more detailed and thorough instructions to help the LLM select the top solutions better.  \newline
+The generated prompt should specify the output format like the given example (also ensure that it is different from the example prompt):
+\newline  \newline
+\{\texttt{one-shot example}\}.\\
+ \midrule
+
+
+
+\textbf{Str-3}  & 
+
+Generate \{\texttt{initialization number}\} distinct prompts for an LLM to choose some top candidate agents whose generated solutions to some general reasoning problems may be useful as inputs for the current agent to produce improved solutions.   \newline
+Don't directly output all the generated prompts. I will provide you with the sequence number of the prompt. Then you should directly output the content text of the corresponding prompt one by one. \newline
+You should decide the number of chosen agents and the content of the prompt. The number of chosen agents should be between 4 and 7. \newline
+Each prompt should help to accurately and efficiently identify the top candidate agents whose generated solutions are helpful to be taken as input for the current agent.  \newline
+Note that all information about the candidate agents and the current agent has been previously provided as the context. The prompt generated here will be added to the context to form the final prompt for agent selection. \newline
+You may consider adding more detailed and thorough instructions to help the LLM select the candidate agents better.  \newline
+The following is an example of a prompt (also ensure your output is different from the example prompt):
+\newline  \newline
+\{\texttt{one-shot example}\}.\\
+
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\clearpage
+
+
+
+
+\begin{samepage}
+
+\vspace*{1cm} 
+
+Prompts of the Contrastive Comparator for five dimensions are as follows:
+
+
+\begin{table}[H]
+\centering
+\begin{center}
+\caption{Prompts of Contrastive Comparator for five dimensions.}
+\begin{tabular}{ m{1cm} | m{14cm}}
+\toprule
+ \textbf{Fun-1}  & 
+
+Generate and output a child prompt for an LLM to resolve some general reasoning problems acting like the given role: \{\texttt{optimized agent role}\}. \newline
+At the end, a pair of parent prompts is provided: one positive and one negative. The positive parent prompt has been shown to be more effective and efficient in guiding the LLM to resolve problems following the given role.  \newline
+Your task is to carefully compare the two parent prompts, identifying the key reasons why the positive parent prompt performs better. Based on these insights, generate and output a child prompt that further improves upon the positive parent prompt to enhance problem-solving.  \newline
+Do not create any instances of the problem in the prompt, cause they are not provided now.  \newline
+The child prompt must begin strictly with the following content: \{\texttt{basic description of the optimized agent}\}. Then, you can consider adding more detailed, logical, and through instructions based on the insights you have gained from the comparison. \newline
+Output only the content of the child prompt excluding the reasoning process. \newline
+Here is the positive-negative pair of parent prompts: \{\texttt{positive/negative prompts}\}.
+\\ 
+ \midrule
+ 
+ \textbf{Fun-2}  & 
+
+Generate and output a pair consisting of a role name and its corresponding prompt, designed to resolve some general reasoning problems (related to math, hard science, humanities, social sciences, etc.). \newline
+First, determine the role of the LLM. Next, create a prompt that effectively instructs the LLM to resolve problems based on this role. \newline
+I will provide two parent role-prompt pairs: one positive and one negative. The positive pair has been proven to be more effective in guiding the LLM to generate high-quality solutions for general problems.  \newline 
+Your task is to carefully analyze both parent pairs, identifying the factors that make the positive pair superior. Based on this analysis, generate and output a child role and prompt pair that improves upon the positive parent pair and leads to even better problem resolution.  \newline
+The child prompt must be distinct from both parent prompts while incorporating the lessons learned from their comparison. \newline 
+Do not output the role and prompt immediately. I will request them separately, and when asked, provide only the corresponding content—either the role name or the prompt.\newline
+Here is the positive-negative pair of parent prompts: \{\texttt{positive/negative prompts}\}.
+\\ 
+ \midrule
+ 
+ \textbf{Str-1}  & 
+
+Create and output a child prompt for an LLM to choose some top agents that best suited for resolving some general reasoning problems related to math, hard science, humanities, social sciences, etc. \newline
+I will provide you with a pair of parent prompts. Then you should only output a child prompt according the following instructions: \newline
+The positive parent prompt is proven to be more helpful and efficient to instruct the LLM to select more useful and effective agents for problem resolution.\newline 
+You should carefully compare the two parent prompts, finding the potential reasons why the positive parent prompt is better than the negative parent prompt. \newline
+Based on that, you should generate and output a child prompt that can help to choose top agents more effectively and efficiently than the positive prompt. \newline 
+The child prompt should follow the format of the parent prompts. \newline 
+The child prompt should be different from the parent prompts. And directly output the content text of the child prompt.\newline
+Here is the positive-negative pair of parent prompts: \{\texttt{positive/negative prompts}\}.
+\\ 
+
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\end{samepage}
+
+
+
+
+
+
+\begin{table}[H]
+\centering
+\begin{center}
+
+\begin{tabular}{ m{1cm} | m{14cm}}
+\toprule
+ \textbf{Str-2}  & 
+
+Create and output a child prompt for an LLM to choose some top solutions for resolving some general reasoning problems (related to math, hard science, humanities, social sciences, etc.) best. \newline
+I will provide you with a pair of parent prompts. Then you should only output a child prompt according the following instructions: \newline
+The positive parent prompt is proven to be more helpful and efficient to instruct the LLM to select more useful and effective solutions to resolve the problems.  \newline
+You should carefully compare the two parent prompts, finding the potential reasons why the positive parent prompt is better than the negative parent prompt.  \newline
+Based on that, you should generate and output a child prompt that can help to choose top solutions more effectively and efficiently than the positive prompt.\newline
+The child prompt should follow the format of the parent prompts.\newline
+The child prompt should be different from the parent prompts. And directly output the content text of the child prompt.\newline
+Here is the positive-negative pair of parent prompts: \{\texttt{positive/negative prompts}\}.
+\\ 
+ \midrule
+
+ 
+ \textbf{Str-3}  & 
+
+Create and output a child prompt for an LLM to choose some candidate agents whose generated solutions to some general reasoning problems may be useful as inputs for the current agent to produce improved solutions. \newline
+I will provide you a pair of parent prompts. Then you should only output a child prompt according the following instructions: \newline
+The positive parent prompt is proven to be more helpful and efficient to instruct the LLM to select more useful and effective agents. \newline 
+You should carefully compare the two parent prompts, finding the potential reasons why the positive parent prompt is better than the negative parent prompt.  \newline
+Based on that, you should generate and output a child prompt that can help to choose top agents more effectively and efficiently than the positive prompt. \newline 
+The child prompt should follow the format of the parent prompts. \newline 
+The child prompt should be different from the parent prompts. And directly output the content text of the child prompt.\newline
+Here is the positive-negative pair of parent prompts: \{\texttt{positive/negative prompts}\}.
+\\ 
+
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\subsection{Examples} \label{sec:examples}
+
+Besides the prompts for the two actors, we further provide examples of instruction prompts before and after optimizing corresponding to the five optimization dimensions on general reasoning task. 
+
+
+\begin{table}[H]
+\centering
+\begin{center}
+
+\begin{tabular}{ m{1.5cm} | m{14cm}}
+\toprule
+\textbf{Dimension}  & 
+\multicolumn{1}{c}{Fun-1} \\
+ \midrule
+
+\centering{\textbf{Default Prompt}}  & 
+
+You are a mathematician. You are good at math games, arithmetic calculation, and long-term planning. Please provide a step-by-step approach to solve some provided mathematical problems.\\
+ \midrule
+
+ \centering{\textbf{Optimized Prompt}}  & 
+
+You are a mathematician. You are good at math games, arithmetic calculation, and long-term planning. \newline
+When devising a step-by-step strategy for solving a complex optimization problem involving multiple variables and constraints, consider breaking down the problem into smaller, more manageable sub-problems. \newline
+Analyze the objective function and constraints to understand their impact on the feasible solution space. Explore various solution methods such as linear programming, gradient descent, or integer programming to determine the most suitable approach for the problem at hand.\newline
+Finally, implement the chosen method meticulously while constantly evaluating its efficiency and accuracy. If necessary, iterate on the strategy to improve the optimization process.  \newline
+Explain the rationale behind each step of your chosen approach. \\
+% and how it contributes to efficiently determining the solution of the given problem. \\ 
+
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+
+
+\begin{table}[H]
+\centering
+\begin{center}
+
+\begin{tabular}{ m{1.5cm} | m{14cm}}
+\toprule
+\textbf{Dimension}  & 
+\multicolumn{1}{c}{Fun-2} \\
+ \midrule
+
+\centering{\textbf{Default Prompt}}  & 
+You are a super-intelligent AI assistant capable of performing tasks more effectively than humans.\\
+ \midrule
+
+ \centering{\textbf{Optimized Prompt}}  & 
+
+You are a Data Analyst. You need to provide a detailed explanation of how to use statistical techniques to identify and analyze patterns for the data in the given question. \newline
+Provide a step-by-step guide on how to conduct the analysis for a given dataset. \newline
+Also, provide a clear and detailed explanation of the process for selecting an appropriate statistical approach. \\ 
+
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\vspace{-2mm}
+
+
+
+
+\begin{table}[H]
+\centering
+\begin{center}
+
+\begin{tabular}{ m{1.5cm} | m{14cm}}
+\toprule
+\textbf{Dimension}  & 
+\multicolumn{1}{c}{Str-1} \\
+ \midrule
+
+\centering{\textbf{Default Prompt}}  & 
+Here is the task and question: \{\texttt{task context}\}. \newline
+These are the agents and their functional description: \{\texttt{candidate agents' functionalities}\}. \newline
+\newline
+Take functionality, efficiency, and necessity into consideration, choose top 5 agents best suited for resolving the given problem. Think it step by step. \newline
+Put your answer in the form like [1,3,4,5,6] at the end of your response.\\
+ \midrule
+
+ \centering{\textbf{Optimized Prompt}}  & 
+
+Here is the task and question: \{\texttt{task context}\}. \newline
+These are the agents and their functional description: \{\texttt{candidate agents' functionalities}\}. \newline
+\newline
+To address general reasoning problems across various disciplines such as math, hard science, humanities, and social sciences, it is crucial to identify the top 6 agents with exceptional problem-solving abilities and expertise in diverse areas.  \newline
+These agents should demonstrate proficiency in critical thinking, logical reasoning, and analytical skills to effectively resolve multifaceted problems.  \newline
+Evaluate the candidates based on their demonstrated knowledge, adaptability, and capability in tackling complex reasoning challenges.\newline
+After carefully assessing these criteria, provide your response in the form [1,2,3,4,5,6] at the end of your submission. \\ 
+
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\vspace{-2mm}
+
+
+\begin{table}[H]
+\centering
+\begin{center}
+
+\begin{tabular}{ m{1.5cm} | m{14cm}}
+\toprule
+\textbf{Dimension}  & 
+\multicolumn{1}{c}{Str-2}\\
+ \midrule
+
+\centering{\textbf{Default Prompt}}  & 
+Here is the task and question: \{\texttt{task context}\}. \newline
+These are the solutions to the problem from other agents: \{\texttt{previous agents' solutions}\}. \newline
+\newline
+Please choose the best 2 solutions and think step by step. Put your answer in the form like [1,2] or [3,4] at the end of your response.\\
+ \midrule
+
+ \centering{\textbf{Optimized Prompt}}  & 
+
+Here is the task and question: \{\texttt{task context}\}. \newline
+These are the solutions to the problem from other agents: \{\texttt{previous agents' solutions}\}. \newline
+\newline
+Analyze the given context thoroughly and choose the top 3 solutions based on their ability to accurately and efficiently resolve the given problems.\newline 
+The selected top solutions should be effective in resolving reasoning problems in various fields including math, science, humanities, and social sciences. \newline
+Consider practical applicability, logical soundness, and clarity of each solution. \newline
+Then think step by step to clearly explain how each solution can be applied in different scenarios. \newline
+Please put your answer in the form like [1,2,3] at the end of your response. \\ 
+
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+
+
+
+\begin{table}[H]
+\centering
+\begin{center}
+
+\begin{tabular}{ m{1.5cm} | m{14cm}}
+\toprule
+\textbf{Dimension}  & 
+\multicolumn{1}{c}{Str-3} \\
+ \midrule
+
+\centering{\textbf{Default Prompt}}  & 
+Here is the functional description of the current agent: \{\texttt{current agent' functionality}\}.\newline
+These are the candidate agents and their functional description: \{\texttt{candidate agents' functionalities}\}.\newline
+\newline
+Take functionality, efficiency, and necessity into consideration. Select the top 5 candidate agents whose generated solutions to some general reasoning problems can be mostly useful as inputs for the current agent to produce improved solutions. Think it step by step.\newline
+Put your answer in the form like [1,2,3,4,5] at the end of your response.\\
+
+ \midrule
+
+ \centering{\textbf{Optimized Prompt}}  & 
+
+Here is the functional description of the current agent: \{\texttt{current agent's functionality}\}.\newline
+These are the candidate agents and their functional description: \{\texttt{candidate agents' functionalities}\}.\newline
+\newline
+Consider the agents whose generated solutions are most likely to improve the current agent's problem-solving capabilities. \newline
+Select the top 4 candidate agents based on the effectiveness, practicality, and relevance of their solutions. \newline
+Consider their ability to address complex challenges, think outside the box, and produce innovative perspectives that could benefit the current agent in enhancing its problem-solving capabilities. \newline
+Prioritize agents whose solutions offer a fresh approach, logical reasoning, and effective problem-solving strategies.\newline
+Present your answer in the format [1,2,3,4] at the end of your response. \\ 
+
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}

@@ -1,0 +1,74 @@
+\section{\team Overview}
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{imgs/orchestrator.pdf}
+    \caption{\team{} features an Orchestrator agent that implements two loops: an outer loop and an inner loop. The outer loop (lighter background with solid arrows) manages the task ledger (containing facts, guesses, and plan). The inner loop (darker background with dotted arrows) manages the progress ledger (containing current progress, task assignment to agents).}
+    \label{fig:magentic-orchestrator}
+\end{figure} 
+
+
+
+\team is a generalist multi-agent system for autonomously completing complex tasks. The team's work is coordinated by an Orchestrator agent, responsible for task decomposition and planning, directing other agents in executing subtasks, tracking overall progress, and taking corrective actions as needed. The other agents on the team are specialized with different capabilities necessary for completing ad-hoc, open-ended tasks such as browsing the web and interacting with web-based applications, handling files, and writing and executing Python code (Figure~\ref{fig:magentic-orchestrator}). 
+
+Together, the \team team collaborates to solve tasks on behalf of a user. For example, suppose a user requests a survey and concise slide presentation of AI safety papers published in the last month. \team will approach this task as follows. The Orchestrator will first create a plan that breaks down the task into subtasks, such as searching for abstracts, downloading relevant papers, reading and summarizing the papers, and finally creating a presentation out of the findings. This initial plan serves as providing a guide or rubric for acting, and may not be followed exactly. Instead it can be interpreted as similar to chain of thought prompting for the agents \cite{wei2022chain}. Once this initial plan is formed, the Orchestrator then selects an appropriate agent and assigns it a subtask. For example, the WebSurfer agent might be directed to search for and download AI safety papers, while the FileSurfer agent might be directed to open the downloaded PDFs and extract relevant information. The Coder agent might create the presentation by writing Python code to interact with various files, and the ComputerTerminal agent would then execute the code written to produce the final output (or to report execution errors the coder agent has yet to address). As the task progresses, the Orchestrator coordinates the agents, monitors progress, and monitors for task completion. 
+
+In the following sections, we first describe \team's inter-agent workflow, driven by the Orchestrator, then describe each individual agent's design, capabilities, and action space.
+
+
+\subsection{\team's Multi-Agent Workflow}
+Figure \ref{fig:magentic-orchestrator} illustrates \team's workflow in more depth. At a high level, the workflow contains two loops, the outer loop maintains the {\em task ledger}, which contains the overall plan, while  the inner loop maintains the {\em progress ledger}, which directs and evaluates the individual steps that contain instructions to the specialized agents. 
+
+\paragraph{Outer Loop.} The outer loop is triggered by an initial prompt or task. In response, the Orchestrator creates the task ledger to serve as short-term memory for the duration of the task. Upon receiving the task, the Orchestrator reflects on the request and pre-populates the task ledger with vital information-- given or verified facts, facts to look up (e.g., via web search), facts to derive (e.g., programmatically, or via reasoning), and educated guesses. These initial educated guesses are important, and can allow the Orchestrator to express memorized closed-book information in a guarded or qualified manner, allowing agents to potentially benefit, while lessening the system's overall sensitivity to errors or hallucinations. For example, agents might only rely on the guesses when they get stuck, or when they run out of time and need to output a best guess for the benchmark. Educated guesses are updated periodically, by the outer loop, as new information becomes available.
+
+Only after the facts and guesses in the task ledger have been populated, the Orchestrator considers the makeup of the team it is directing. Specifically, it uses each team member's description, along with the current task ledger, to devise a step-by-step plan. The plan is expressed in natural language and consists of a sequence of steps and assignments of those steps to individual agents. Since the plan is used in a manner similar to chain of thought prompting \cite{wei2022chain}, it serves more as a hint for step-by-step execution -- neither the Orchestrator nor the other agents are required to follow it exactly.  Since this plan may be revisited with each iteration of the outer loop, we force all agents to clear their contexts and reset their states after each plan update. Once the plan is formed, the inner loop is initiated.
+
+\paragraph{Inner Loop.} During each iteration of the inner loop, the Orchestrator answers five questions to create the progress ledger:
+
+{\em 
+\begin{itemize}
+\setlength\itemsep{0em}
+\item Is the request fully satisfied (i.e., task complete)?
+\item Is the team looping or repeating itself?
+\item Is forward progress being made?
+\item Which agent should speak next?
+\item What instruction or question should be asked of this team member?
+\end{itemize}
+}
+
+\noindent 
+When answering these questions, the Orchestrator considers both the task ledger (containing facts, guesses, and a plan), and the current agent conversation context. 
+
+The Orchestrator also maintains a counter for how long the team has been stuck or stalled. If a loop is detected, or there is a lack of forward progress, the counter is incremented. As long as this counter remains below a threshold ($\leq 2$ in our experiments), the Orchestrator initiates the next team action by selecting the next agent and its instruction.  However, if the counter exceeds the threshold, 
+the Orchestrator breaks from the inner loop, and proceeds with another iteration of the outer loop. This includes initiating a reflection and self-refinement step \cite{shinn2024reflexion}, where it identifies what may have gone wrong, what new information it learned along the way, and what it might do differently on the next iteration of the outer loop. It then updates the task ledger, revises the original plan, and starts the next cycle of inner loop. Together, this counter-based mechanism gives the agents a limited budget to recover from small errors, or to persist through brief episodes of uncertainty in progress.
+
+This nested-loop behavior continues until the Orchestrator determines the task is complete or the team has reached some (parameterized and configurable) termination logic, such as reaching a maximum number of attempts, or exceeding a specified maximum time limit. 
+
+Finally, upon termination of both loops, the Orchestrator reviews the full transcript, along with the ledger, and reports either a final answer, or its best educated guess.
+
+\subsection{\team's Agents}
+
+
+The Orchestrator agent in \team coordinates with four specialized agents: WebSurfer, FileSurfer, Coder and ComputerTerminal. As the names suggest, each of these agents is optimized for a specific -- yet generally useful -- capability. In most cases, these agents are constructed around LLMs with custom system prompts, and capability-specific tools or actions. For example, WebSurfer can navigate to pages, click links, scroll the viewport, etc. In other cases, agents may operate deterministically, and do not include LLMs calls at all. For example, the ComputerTerminal deterministically runs Python code, or shell commands, when asked. 
+
+This decomposition of high-level capabilities \emph{across} agents, and low-level actions \emph{within} agents, creates a hierarchy over tool usage which may be easier for the LLMs to reason about. For example, rather than deciding between dozens of possible actions, the Orchestrator needs only to decide which agent to call to access a broad capability (e.g., browsing the web). The chosen agent then selects from a limited set of agent-specific actions (e.g., clicking a button versus scrolling the page). 
+
+We detail the implementation of each of the agents below:
+
+\begin{itemize}
+    \item \textbf{WebSurfer}:
+    This is a highly specialized LLM-based agent that is proficient in commanding and managing the state of a Chromium-based web browser. With each incoming natural-language request, the WebSurfer maps the request to a single action in its action space (described below), then reports on the new state of the web page (providing both a screenshot and a written description). As an analogy, this configuration resembles a telephone technical support scenario where the Orchestrator knows what to do, but cannot directly act on the web page. Instead it relays instructions, and relies on the WebSurfer to carry out actions and report observations. 
+    
+    The action space of the WebSurfer includes navigation (e.g. visiting a URL, performing a web search, or scrolling within a web page);  web page actions (e.g., clicking and typing); and reading actions (e.g., summarizing or answering questions). This latter category of reading actions allows the WebSurfer to directly employ document Q\&A techniques in the context of the full document. This saves considerable return-trips to the orchestrator (e.g., where the orchestrator might simply command the agent to continue scrolling down), and is advantageous for many tasks. 
+    
+    When interacting with web page elements (e.g.,  when clicking or typing), the WebSurfer must ground the actions to specific coordinates or elements of the current web page. For this we use set-of-marks prompting \cite{yang2023set} in a manner similar to Web Voyager\cite{he2024webvoyagerbuildingendtoendweb}. This step relies on an annotated screenshot of the page, and thus is inherently multi-modal. We further extended the set-of-marks prompt to include textual descriptions of content found {\em outside} the visible view port, so that the agent can determine what might be found by scrolling \footnote{Scrolling is needed because, like human users, the WebSurfer agent cannot interact with page elements that are outside the active viewport.}, or opening menus or drop-downs.
+    
+    \item \textbf{FileSurfer}:
+    The FileSurfer agent is very similar to the WebSurfer, except that it commands a custom markdown-based file preview application rather than a web browser. This file preview application is read-only, but supports a wide variety of file types, including PDFs, Office documents, images, videos, audio, etc.  The FileSurfer can also perform common navigation tasks such as listing the contents of directories, and navigating a folder structure.
+
+    \item \textbf{Coder}: This is an LLM-based agent specialized through its system prompt for writing code, analyzing information collected from the other agents, or creating new artifacts. The coder agent can both author new programs and debug its previous programs when presented with console output.   
+    
+    \item \textbf{ComputerTerminal}: Finally, the ComputerTerminal provides the team with access to a console shell where the Coder's programs can be executed. ComputerTerminal can also run shell commands, such as to download and install new programming libraries. This allows the team to expand the available programming tool set, as needed. 
+\end{itemize}
+
+Together, \team's agents provide the Orchestrator with the tools and capabilities that it needs to solve a broad variety of open-ended problems, as well as the ability to autonomously adapt to, and act in, dynamic and ever-changing web and file-system environments.

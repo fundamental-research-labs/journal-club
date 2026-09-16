@@ -1,0 +1,123 @@
+\vspace{-8pt}
+\section{Experiments}
+\vspace{-3pt}
+
+In our experiments, we evaluate our multiagent debate procedure and answer the following questions: \textbf{(1)} To what extent does multiagent debate improve reasoning? \textbf{(2)} To what extent does multiagent debate improve factual validity? \textbf{(3)}  What design choices enable multiagent debate to improve language generation performance? 
+
+
+\input{figText/math_overview}
+\input{figText/reasoning_overview}
+\input{tables/reason}
+
+
+
+\vspace{-5pt}
+\subsection{Improving Reasoning with Multiagent Debate}
+\label{sect:reasoning}
+
+We first evaluate the extent to which multiagent debate improves the underlying reasoning process in language models.
+
+\myparagraph{Tasks.} We evaluate our approach on three reasoning tasks of increasing difficulty:
+\vspace{-3pt}
+\begin{itemize}[leftmargin=*, nosep]
+    \item \texttt{Arithmetic.} We first evaluate the ability of models to correctly evaluate an arithmetic expression (containing addition, multiplication, and subtraction) consisting of six different two-digit numbers. For example: {\it What is the result of 12+15*21+0-3*27?} 
+    \item \texttt{GSM8K.} Next, we consider harder mathematical reasoning tasks. Using the GSM8K dataset~\cite{verifier}, the models must correctly solve grade school mathematical reasoning tasks. 
+    \item \texttt{Chess Move Prediction.} Finally, we consider the strategic reasoning of the ability of models, and ask models to predict the best next move in a game of chess, given the first 14 moves of a chess game between two chess grand-masters described in PGN notation~\cite{Fsmosca}. 
+\end{itemize}
+We report the accuracy of final answers in arithmetic and GSM8K tasks and report the pawn score (advantage) of predicted moves, as estimated by Stockfish in the Chess move prediction tasks. Additional details may be found in the Appendix.
+
+
+\input{figText/prompt_ablation} 
+\input{figText/validity_overview}
+\input{figText/mmlu_result}
+
+
+\myparagraph{Baselines.} We compare our approach to three alternative approaches to generate responses for reasoning problems. First, we ask agents to directly generate responses (single agent). Next, we consider asking language models to generate and then "self-reflect" on the responses generated~\cite{reflexion, madaan2023self}. Finally, we consider generating responses using multiple agents and performing majority voting~\cite{alphacode,verifier}. As the focus of our experiments is to verify the effectiveness of multiagent agent debate, we run both baselines and our approach, using the identical starting prompt and language model across all evaluations. We evaluate models in a zero-shot setting, with prompts found in the Appendix of the paper. We use chatGPT-based language model ~\cite{chatgpt2022} in all our experiments except those in \fig{fig:chatgpt_bard} where we compare multiple language models.
+
+Due to computational expense, we evaluate our approach across benchmarks mainly using three agents with two rounds of debates, although we found further gains with both more agents and rounds of debate (\fig{fig:round_agents}). Additional evaluation details are found in the Appendix.
+
+
+
+\myparagraph{Quantitative Results.} In \tbl{tbl:reasoning}, we report the results of each approach on arithmetic, grade school math, and chess reasoning task. In each task, we observe that utilizing multiple different agents to generate solutions improves performance over using a single language model agent to generate a solution. Simultaneously, we also see that reflection, where a language model is asked to critique its early generation, generally gives a modest boost in performance. Multiagent debate, which may be seen as a combination of both reflection and multiagent generation, gives a substantial boost in reasoning across each of the tasks.  
+
+
+
+\myparagraph{Qualitative Results.} In Figure ~\ref{fig:math_overview}, \ref{fig:reasoning_overview}, we provide qualitative illustrations of the debate procedure between models. Interestingly, we find cases in which all models initially give an incorrect response, yet the result of debate still obtains the correct answer as agents critique each others' reasoning. Thus, the purpose of our debate isn't just to amplify a correct answer -- all models can initially be wrong but arrive at the correct answer through the debate process.
+
+
+\myparagraph{Compatibility with other reasoning methods.} Our multiagent generation procedure operates orthogonally approach to other prompting methods which focus on single-agent generation. In \fig{fig:prompt_ablation}, we illustrate the performance of multi-agent debate with and without zero-shot chain-of-thought prompting~\cite{kojima2022large} on GSM8K. In both settings, multiagent generation is beneficial.
+
+
+\input{tables/accuracy}
+
+
+\input{figText/uncertainty_generation}
+\input{figText/debate_agents}
+
+\vspace{-3pt}
+\subsection{Extracting Factual Information from Multiagent Debate}
+
+We next evaluate the extent to which multiagent debate improves the underlying factuality in language models.
+
+\myparagraph{Tasks.} We evaluate the factuality of language models in three different settings:
+
+\begin{itemize}[leftmargin=*,nosep]
+    \item \texttt{Biographies.} To evaluate the factuality of language models, we introduce a novel task of accurately generating historical biographies of people. In preliminary testing, we found that existing language models had a tendency to hallucinate many facts on this task. We constructed ground truth bullet point biographies of 524 well-known computer scientists. We then asked language models to generate bullet point biographies for each person, and evaluated the accuracy at which each ground truth bullet point agreed with generated bullets. We report additional evaluation details in the Appendix.
+    \item \texttt{MMLU.} Next, we assess the factuality of language models in responding to different factual knowledge questions typically learned and assessed in different exams. We utilize the existing MMLU dataset~\cite{hendrycks2020measuring}  to benchmark the accuracy of responses. 
+    \item \texttt{Chess Move Validity.} Lastly, we study the hallucinations in language models when planning under to the given rules of an existing environment or game. Specifically, we measure the validity of possible moves in a game of Chess given by BIG-Bench Chess-State Tracking Benchmark ~\cite{srivastava2022beyond} task of chess-move prediction. In this task, an agent is given a set of next moves, and must make a valid next move of a piece on a board.
+\end{itemize}
+
+\myparagraph{Baselines.} We use the same baselines as in \sect{sect:reasoning}. The multiagent (majority) is not directly applicable in this setting as individual responses are not easily comparable, and so we omit baseline comparison with the majority voting in this setting.
+
+
+
+\myparagraph{Results.} We analyze the performance of each method in \tbl{tbl:accuracy}. We found that approaches based on reflection led to poor performance in the factuality setting. In contrast, debate gives the best performance in this setting also, and significantly outperforms each baseline. We illustrate a debate between agents on the biography task in \fig{fig:validity_overview} and on MMLU in \fig{fig:mmlu_result}. We found that multiagent debate improved and settled on bullets that were more consistent across agents. 
+
+We found that different language agents tended to give different answers when the underlying language model was uncertain about the question. However, directly asking each agent about their confidence ~\cite{kadavath2022language} of the answer led to high confidence assessments on each answer. However, when these different language agents were asked to communicate with each other, each agent would quickly change their opinion to a consensus answer which was more accurate.  We illustrate this in \fig{fig:uncertainty_generation}. Interestingly, we found that on facts that the language model was confident in (i.e. many instances of the same model all gave the same answer), it was very difficult to convince an agent to change their opinion, suggesting that ``ease of persuasion'' may be a method to assess factual confidence.   
+
+
+
+
+
+
+
+\input{figText/debate_between_models}
+
+\vspace{-5pt}
+\subsection{Analysis: Understanding Multiagent Debate}
+
+
+
+Finally, we analyze how multiagent debate improves the underlying language generation procedure in language models.
+
+
+
+\myparagraph{Number of Agents.} First, we analyze the impact of agents number in debate. In \fig{fig:round_agents}(a), we increase the number of agents used in debate, while fixing the debate length to be two. On arithmetic, performance monotonically increases with the increased number of agents. For larger number of agents, we first summarize all agent responses with chatGPT instead of directly concatenating responses due to context length error. 
+
+
+
+\myparagraph{Rounds of Debate} Next, we analyze the impact of the number of rounds of debate in multiagent debate. In \fig{fig:round_agents}(b), we increase the debate length between agents, while fixing the number of agents to three. We find that on the arithmetic task, the performance also monotonically increases with debate length. However, we found that additional debate rounds above four led to a similar final performance to 4 rounds of debate.
+
+\input{figText/convergence_analysis}
+
+
+
+
+
+
+\myparagraph{Effect of Debate Length on Accuracy} As discussed in \sect{sect:consensus}, the underlying convergence time in the debate between agents can be controlled by the extent to which agents are encouraged to maintain their opinions. 
+In \fig{fig:convergence}, we consider the effect of short and long-form prompts discussed in \fig{tbl:prompt}. We find that debates using longer prompts lead to slower convergence to correct answers, but also lead to a better final consensus on the correct answer. We provide an analysis of consensus between agents in \fig{fig:consensus}.
+
+
+
+\myparagraph{Using Different Initialization Prompts} In our experiments we use the same prompts for all agents. We also consider the effect of using different questions, where we first instruct each language model to behave like a different persona (professor, doctor, mathematician) on the MMLU dataset. We found that improved performance on MMLU from 71.1 to 74.2 with different agents, suggesting further gains can be obtained with different initialization prompts.
+\input{figText/summarize}
+
+
+
+
+\myparagraph{Summarization.} While in the majority of experiments in the paper we directly concatenate the responses of other agents as context for an agent to generate a new response, this is expensive when the number of agents involved in debate gets large. We may alternatively first summarize the responses from all other agents into a single response that we provide to agent at each round for more efficient debate. We apply this strategy in \fig{fig:round_agents} to enable the use of five or more agents in debate. In \fig{fig:summarize}, we analyze the effect compared to directly concatenating the responses of other agents. We find this improves the performance of debate, suggesting that summarization is another tool that can further improve multiagent debate.
+
+
+\myparagraph{Utilizing Different Language Models} Our existing debate results are reported using multiple instances of a chatGPT language model. We further assess the impact of using two different language models, where we ask chatGPT and Bard ~\cite{Pichai_2023} language models to debate with each other on a set of 20 GSM8K math problems.  In this set, we find that multi-agent debate improves the performance of both agents, with Bard solving 11 problems, chatGPT solving 14 problems, and joint multi-agent debate solving 17 problems. We qualitatively illustrate a debate between agents in \fig{fig:chatgpt_bard}. While both agents initially provide incorrect answers to the problem, chatGPT is able to utilize the incorrect response given by Bard to generate the final correct answer.
+

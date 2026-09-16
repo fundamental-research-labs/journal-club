@@ -1,0 +1,142 @@
+\begin{figure}[t]
+\vspace{-5pt}
+    \centering
+    \includegraphics[width=\linewidth]{Figures/InternAgent_pipeline_new.pdf}
+    \vspace{-10pt}\caption{\textbf{InternAgent} covers three main capabilities: 1) Self-evolving Idea Generation with Human-interactive Feedback, 2) Idea-to-Methodology Construction, and 3) Evolutionary Experimental Planning and Execution.}
+    \label{fig:framework}
+\end{figure}
+
+
+
+\section{InternAgent}
+\label{sec:framwork}
+As a unified closed-loop multi-agent framework for ASR, InternAgent is designed to facilitate innovative research across diverse scientific domains, as illustrated in Fig.~\ref{fig:framework}. It incorporates three primary capabilities: self-evolving idea generation with human-interactive feedback (Sec.~\ref{sec:idea_gen}), comprehensive idea-to-methodology construction (Sec.~\ref{sec:idea_to_method}), and multi-round automated experiment execution (Sec.~\ref{sec:exp_excu}). Each capability is realized through the collaboration of specialized agents, allowing for seamless integration of different processes to enhance scientific discoveries.
+
+\subsection{Self-Evolving Idea Generation with Human-interactive Feedback}
+\label{sec:idea_gen} 
+The self-evolving idea generation capability is central to InternAgent, enabling the framework to autonomously generate and refine innovative research ideas. This process involves several specialized agents, each contributing to different stages of idea development and refinement.
+
+\noindent \textbf{Survey Agent.} 
+\label{sec:survey_agent}
+The Survey Agent is designed to meet the diverse needs of various scientific research tasks by adaptively aligning with user-specified requirements and the necessary depth of detail for exploring existing methodologies. This adaptability is crucial for effectively generating new ideas across different research contexts, and the primary responsibility of the Survey Agent is to search for scientific papers, offering two distinct modes to address the varying needs for depth and breadth in literature research during the scientific discovery process: 1)~\underline{the literature review mode} and 2)~\underline{the deep research mode}.
+
+In the literature review mode, the Survey Agent deconstructs the research task into multiple keyword combinations, enabling a broad search across various academic databases. It collects scientific literature from these sources and evaluates the relevance of each document by analyzing abstracts in relation to the task at hand. Denote the keyword generation process by the function $ P: \mathcal{T} \rightarrow \mathcal{K} $, where $\mathcal{T}$ represents the descriptions of research tasks and $\mathcal{K}$ is the set of generated keyword combinations. The relevance evaluation of each document can be represented by the function:
+\begin{equation}
+    R: \mathcal{L}_{abs} \times \mathcal{T} \rightarrow [0, 1],
+\end{equation}
+where $\mathcal{L}_{abs}$ is the abstract of retrieved literature $\mathcal{L}$, and $R(r, t)$ measures the relevance of literature $l$ to the task $t$ as a floating-point score between 0 and 1, with higher scores indicating greater relevance.
+
+In the deep research mode, following the initial literature survey, the Survey Agent downloads and thoroughly examines the full texts of relevant scientific papers. This deeper analysis allows it to generate new keyword combinations, facilitating further rounds of literature exploration. The process of generating new keywords can be denoted by the function:
+\begin{equation}
+    P: \mathcal{L} \rightarrow \mathcal{K}',
+\end{equation}
+where $\mathcal{K}'$ is the expanded set of keyword combinations generated from the detailed analysis of full texts. 
+
+By dynamically adjusting its search strategies based on the context of the research stage, the Survey Agent ensures a comprehensive and nuanced understanding of the research landscape. This capability not only supports the generation of innovative ideas but also ensures that the InternAgent framework remains at the cutting edge of scientific discovery.
+
+\noindent \textbf{Code Review Agent.} 
+\label{sec:code_review_agent}
+The Code Review Agent is crucial for understanding baseline codes for different research tasks, serving as a foundation for innovation by identifying improvements and developing new methodologies. It provides detailed analyses of code structures, dependencies, and functionalities, enabling InternAgent to fully comprehend existing code-bases and identify potential enhancements to advance research objectives. Moreover, the agent's ability to document and summarize complex code-bases ensures efficient navigation and utilization of existing methods. The agent manages two scenarios: 1)~\underline{reviewing user-provided code} or 2)~\underline{searching for relevant code-bases}. For user-uploaded code, it conducts a comprehensive review of the structure, logic, and functionality. Alternatively, in the absence of user-uploaded code, it searches public repositories like GitHub to find relevant code-bases, performing thorough analyses at both the repository and file levels to understand inter-dependencies and assess logic, efficiency, and correctness. Furthermore, the agent employs static code analysis using Python's `ast` module to parse and understand code structure without execution, while the LLM generates human-readable descriptions and summaries, transforming technical details into structured documentation. By using parallel processing with Python's `multiprocessing` module, the agent enhances efficiency and scalability for large code-bases. Overall, the Code Review Agent offers detailed documentation that deepens the understanding of code repositories and supports innovation in scientific research.
+
+\noindent \textbf{Idea Innovation Agent.}
+\label{sec:idea_innovation_agent}
+The Idea Innovation Agent is an integral part of InternAgent, designed to enhance the creative and iterative processes of scientific research. This agent plays a crucial role by automating the generation and evolution of ideas, thereby addressing the limitations of traditional research works~\citep{yuan2025dolphin, yamada2025ai, lu2024ai}, which often rely on time-consuming manual efforts and are constrained by human cognitive biases. The agent's dual responsibilities, idea generation and idea evolution, are specifically designed to address the diverse needs of various scientific disciplines.
+
+In the context of idea generation, the agent utilizes a general LLM configured with a higher temperature setting. This configuration encourages the generation of more diverse and creative outputs. This enables the agent to identify patterns and insights that might be overlooked in traditional research, generating novel hypotheses and strategies based on task definitions, baseline methods, and current scientific knowledge. The process can be represented by the function:
+\begin{equation}
+    G: (\mathcal{T}, \mathcal{B}, \mathcal{L}) \rightarrow \mathcal{I},
+\end{equation}
+where $\mathcal{B}$ denotes analysis of baseline methods and $\mathcal{I}$ is the set of generated ideas. The LLM facilitates the exploration of a broader spectrum of possibilities, accelerating the pace of discovery and innovation by leveraging its comprehensive understanding of language and context.
+
+Idea evolution leverages the capabilities of an LLM to improve existing ideas. The process involves analyzing the content of these ideas, incorporating reflections, which include evaluations of novelty, feasibility, and scientific validity, and integrating insights from related literature. This approach enables the generation of refined and innovative ideas by addressing the inherent limitations of initial concepts. The process can be represented by the same function:
+\begin{equation}
+    G: (\mathcal{I}, \mathcal{C}, \mathcal{L}) \rightarrow \mathcal{I}',
+\end{equation}
+where $\mathcal{I}$ is the initial set of ideas, $\mathcal{C}$ denotes the critique, and $\mathcal{I}'$ is the set of evolved ideas. 
+
+Overall, the Idea Innovation Agent enhances scientific ideas into viable and creative solutions by synthesizing and contextualizing information. It critically examines current ideas and employs feedback loops with human experts and other InternAgent agents for continuous improvement. This iterative process balances novelty, feasibility, and ethical considerations, producing impactful and well-rounded ideas.
+
+\noindent \textbf{Assessment Agent.}
+\label{sec:assessment_agent}
+The Assessment Agent is a vital component of InternAgent, designed to ensure the quality and viability of generated ideas through a rigorous evaluation process. In the rapidly evolving landscape of scientific research, the systematic and objective assessment of ideas is essential. Traditional methods often suffer from subjectivity and lack comprehensive coverage of all relevant dimensions, which can lead to promising ideas being overlooked\citep{qiu2025ai, si2024can}. Therefore, the Assessment Agent addresses these challenges by providing a structured and multidimensional evaluation process, which in turn enhances the reliability and effectiveness of idea selection.
+
+The primary responsibility of the Assessment Agent is to critically evaluate ideas using multidimensional scoring. Each idea is analyzed across key dimensions: coherence, credibility, verifiability, novelty, and alignment. Coherence checks the logical consistency and structure of the idea, while credibility assesses its trustworthiness based on existing knowledge. Verifiability examines the idea's testability through empirical methods. Novelty measures originality, and alignment ensures consistency with research goals.
+
+Moreover, for each dimension, the Assessment Agent provides a detailed evaluation narrative to explain its reasoning. It assigns scores from 0 to 10, which are combined using a weighted summation to produce an overall score for each idea, aiding in the ranking process. By utilizing advanced LLMs, the agent can accurately process and evaluate complex scientific concepts. This capability allows a comprehensive assessment that includes both qualitative and quantitative aspects, ensuring the evaluation is thorough and well-rounded.
+
+Furthermore, the Assessment Agent possesses the ability to ensure diversity among top-ranked ideas. This capability prevents high-scoring ideas from being overly similar or derived from the same original concept. By promoting a varied pool of ideas, the agent encourages the exploration of diverse pathways in the research process. This is crucial for maintaining a balance between innovation and practicality, ensuring that the most promising ideas are both high-quality and distinct from each other.
+
+In summary, by employing LLMs for multidimensional scoring and leveraging its ability to promote diversity among ideas, the Assessment Agent ensures that only the most viable and innovative concepts are selected for further development. This process not only enhances the efficiency of the research cycle but also fosters a more dynamic and diverse research environment.
+
+\noindent \textbf{Human-interactive Feedback.}
+\label{sec:human_feedback}
+%\subsubsection{Human-interactive Feedback}
+In the context of multi-agent systems, human-interactive feedback is a crucial component for effectively managing and solving complex tasks. This integration of human insights enables agents to navigate dynamic environments more effectively, aligning their outputs with complex user requirements and ensuring practical applicability. 
+
+The human-interactive feedback mechanism of InternAgent is categorized into two primary types: 1)~\underline{feedback directly provided by humans} and 2)~\underline{feedback automatically generated by agent}. Human-provided feedback can address one or multiple ideas, offering insights and critiques that lead to further refinement and adjustment of these ideas based on the feedback received. This iterative process facilitates the continuous improvement of ideas, ensuring they are honed to meet specific objectives and challenges.
+
+For example, in a scenario involving medical image segmentation, an LLM multi-agent system might initially propose a broad idea focused on developing more advanced segmentation algorithms. However, human feedback can refine this idea by directing attention specifically to the medical domain. Human experts can provide insights that encourage the development of adaptive solutions tailored to the unique challenges of medical imaging, such as handling diverse tissue types and ensuring high accuracy in identifying critical structures. This targeted feedback not only sharpens the focus of the idea but also ensures it aligns with the specific needs and priorities of medical research, enhancing its practical applicability and impact.
+
+\noindent \textbf{Orchestration Agent.}
+\label{sec:orchestration_agent}
+The Orchestration Agent coordinates all other agents within the system, facilitating collaboration by synchronizing tasks and managing data flow. This ensures the process remains efficient, coherent, and aligned with research objectives, allowing the framework to function as an effective research tool. 
+
+Central to the Orchestration Agent's role is designing and managing workflows among agents like the Survey Agent, Code Review Agent, Idea Innovation Agent, and Assessment Agent. It also oversees the timing of human feedback, especially for high-scoring ideas. This requires understanding each agent's capabilities and their interactions to optimize task execution and completion. For example, the Survey Agent conducts adaptive literature exploration, providing insights that the Idea Innovation Agent uses to generate novel hypotheses. The Orchestration Agent ensures these findings are communicated effectively. Similarly, it synchronizes the Code Review Agent's analyses to enhance idea evaluation and development. Furthermore, the Orchestration Agent manages the Assessment Agent’s evaluation process, ensuring timely and relevant outputs. This helps guide the development of diverse top ideas. Additionally, it determines optimal points for human feedback, integrating expert insights after identifying high-scoring ideas to refine and adapt them, aligning outputs with user requirements.
+
+In summary, as illustrated in Fig.~\ref{fig:idea_evol}, by managing multi-agent collaboration and integrating human feedback, the Orchestration Agent enables InternAgent to operate as a cohesive and innovative research tool, driving scientific discovery forward.
+
+
+\begin{figure}[t]
+\vspace{-10pt}
+    \centering
+    \includegraphics[width=\linewidth]{Figures/idea_evo.pdf}
+    \vspace{-10pt}\caption{InternAgent Self-evolutionary path of ideas for reaction yield prediction task.}
+    \label{fig:idea_evol}
+\end{figure}
+
+
+\subsection{Comprehensive Idea-to-Methodology Construction}
+\label{sec:idea_to_method}
+
+The idea-to-methodology construction process systematically bridges the gap between concise research ideas and concrete, implementable methodologies, ensuring that the AI-generated ideas could be realized and their validity verified. This process is orchestrated by the Methodology Development Agent, which collaborates closely with other agents and integrates both automated processes and human-interactive feedback loops to ensure that methodological development is rigorous, traceable, and practically relevant. Specifically, to develop a comprehensive method corresponding to the concise research idea, the Method Development Agent possesses two core capabilities: 1)~\underline{Methodology Initialization}: which involves constructing the basic structure and content of a method by integrating the idea with baseline codes and the methodology content of relevant literature; 2)~\underline{Methodology Refinement}: which iteratively enhances the basic method structure for the purpose of rigor and completeness, ensuring a more detailed and robust methodology.
+
+\subsubsection{Methodology Initialization}
+
+To convert concise research ideas into detailed methodological frameworks, the Method Development Agent uses its Methodology Initialization capability. The process begins by extracting core objectives and hypotheses from research ideas, identifying key variables, and understanding their interrelationships to construct a coherent framework. The agent uses multiple resources: task descriptions $\mathcal{T}$ provide context and constraints; baseline implementations $\mathcal{B}$ offer adaptable methods; and relevant literature $\mathcal{L}$ integrates existing knowledge and ensures that the framework aligns with current research.
+
+By formalizing mechanisms that require empirical investigation, the agent details processes and conditions for conducting research and specifies methods for data collection and analysis. The outcome is a methodological framework that is both theoretically sound and practically executable. The transformation function is represented as:
+\begin{equation}
+    T: \mathcal{I} \times \mathcal{T} \times \mathcal{B} \times \mathcal{L} \rightarrow \mathcal{M},
+\end{equation}
+where $\mathcal{I}$ denotes research ideas, $\mathcal{T}$ includes task descriptions, $\mathcal{B}$ represents baseline methods, $\mathcal{L}$ is the literature corpus, and $\mathcal{M}$ is the resulting methodological framework.
+Overall, through Methodology Initialization, the Method Development Agent effectively turns initial ideas into detailed, actionable methods, ready for further refinement.
+
+\subsubsection{Methodology Refinement}
+
+After the initialization, the Methodology Development Agent leverages its refinement capability to critically evaluate and iteratively improve the methodological framework. The agent conducts a comprehensive analysis of the initial methodology $\mathcal{M}$, incorporating structured critiques $\mathcal{C}$, which include both automated assessments and expert human feedback. Additionally, it synthesizes insights from the latest scientific literature $\mathcal{L}$. The refinement process is formally defined as:
+\begin{equation}
+    R: \mathcal{M} \times \mathcal{C} \times \mathcal{L} \rightarrow \mathcal{M}',
+\end{equation}
+where $\mathcal{M}$ represents the initial methodology, $\mathcal{C}$ denotes the critique space, potentially including human feedback and automated assessments, $\mathcal{L}$ is the literature corpus, and $\mathcal{M}'$ is the refined methodological framework.
+
+During both initialization and refinement, the Methodology Development Agent collaborates closely with other agents, such as the Assessment Agent for multidimensional evaluation and the Orchestration Agent for workflow coordination. This collaboration ensures that each methodological step benefits from comprehensive feedback and current domain knowledge. The integrated, multi-agent approach guarantees that the transformation from idea to methodology is systematic and adaptable, supporting the continuous evolution and optimization of scientific research within the InternAgent framework.
+
+
+\subsection{Evolutionary Experimental Planning and Execution} 
+\label{sec:exp_excu}
+
+\subsubsection{Exception-Guided Debugging Framework} Converting theoretical concepts into functional code is challenging. To this end, we developed an exception-guided debugging framework that systematically converts abstract methodological text descriptions into executable implementation codes. This framework operates by systematically capturing runtime exceptions during execution attempts, analyzing error contexts, and formulating targeted fixes through reasoning of the large language model.
+
+Our coder module employs a dual-strategy approach according to the complexity of given baseline code. For single-file or limited-scope implementation tasks, we use the Aider coding assistant~\citep{aider}, which facilitates localized code modifications with minimal overhead. For complex repository-level codes requiring comprehensive structural understanding across different functions, we deploy OpenHands framework~\citep{openhands}, which enables thorough codebase analysis and coordinated multi-file modifications while maintaining the integrity of the overall code architecture.
+
+Once the initial code implementation is completed, the framework transitions to a systematic debugging phase to ensure functionality and robustness. The debugging process follows a systematic cycle: (1) execution attempt, (2) exception capture and traceback analysis, (3) contextual code structure understanding, (4) debugging strategy formulation, and (5) targeted implementation. This cycle continues iteratively until successful execution or reaching a predefined iteration threshold.
+
+
+\subsubsection{Experimental Planning and Adaptive Evolution} 
+\label{exp_evo}
+
+After establishing basic functionality through debugging, we transition to implementation planning focused on identifying critical structures and integration points. Our planning process first determines which core modules require modification, then develops a step-by-step implementation strategy with clear priorities and dependencies.
+
+Implementation planning operates at multiple abstraction levels: architectural modifications for methodological alignment, algorithmic transformations for core functionality, and optimization adjustments for performance characteristics. This approach aims to provide structure when implementing methodological improvements across interconnected components in AI systems, which helps guide development efforts.
+
+Rather than employing a single-pass implementation strategy, we designed an adaptive evolution approach for our implementation process. This approach involves structured iterations where each implementation attempt is followed by performance assessment and potential refinement. We maintain records of implementation decisions across iterations, which helps track changes and their corresponding effects. This directed adaptation process enables the gradual refinement of complex implementations based on empirical results rather than theoretical assumptions alone.

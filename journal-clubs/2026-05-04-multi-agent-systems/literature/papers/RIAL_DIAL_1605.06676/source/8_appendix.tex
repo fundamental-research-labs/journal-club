@@ -1,0 +1,114 @@
+\section{\dic Details}
+\label{app:a}
+\begin{algorithm}[tb]
+   \caption{Differentiable Communication (\dic)}
+   \label{alg:dic}
+   \hskip -2em
+\begin{algorithmic} %[1]
+\State Initialise $\theta_1$ and $\theta^-_1$
+\For{each episode $e$}
+    \State $s_1 = $ initial state, $t = 0$, $h^a_0 = \mathbf{0}$ for each agent $a$
+    \While{$s_t \ne$ terminal {\bfseries and} $t < T$}
+        \State $t = t + 1$
+        \For{each agent $a$}
+            \State Get messages ${\hat{m}}^{a'}_{t-1}$ of previous time-steps from agents $m'$ and evaluate \dicnet:
+            \State $Q(\cdot), {m}^{a}_{t} = \text{\dicnet}\left(o^a_t,{\hat{m}}^{a'}_{t-1},h^a_{t-1},u^a_{t-1},a; \theta_{i} \right)$
+             \State With probability $\epsilon$ pick random $u^a_t$, else  $u^a_t = \max_a Q\left(o^a_t,{\hat{m}}^{a'}_{t-1},h^a_{t-1}, u^a_{t-1},a,u; \theta_{i} \right)$ 
+            \State Set message $\hat{m}^a_t =  \text{\magicbox}(m)$, where $\text{\magicbox}( m) =  $  \hspace{-0.2em} \Big\{ \hspace{-0.6em}\begin{tabular}{ll} $\text{Logistic}(\mathcal{N}(m^a_t, \sigma))$,  if training,  else \\  $\mathbbm{1}{\{  {m}^{a}_{t} > 0 \}} $ \end{tabular}
+        \EndFor
+        \State Get reward $r_t$ and next state $s_{t+1}$    \EndWhile
+    \State Reset gradients $\nabla \theta = 0$ %\Comment{reset gradient}
+    \For{$t=T$ {\bfseries to} $1$, $-1$}
+        \For{each agent $a$}
+            \State  $y^a_t = $ \hspace{-0.2em} \Big\{ \hspace{-0.6em}\begin{tabular}{ll} $r_t$,  if $s_t$ terminal,  else \\  $r_t  + \gamma \max_{u} Q\left(o^a_{t+1},{\hat{m}}^{a'}_{t},h^a_{t},u^a_{t}, a,u; \theta^-_{i}\right) $ \end{tabular}
+
+             \State Accumulate gradients for action:
+            \State $ \Delta Q^a_t  = y^a_t - Q\left( o^a_j,h^a_{t-1},{\hat{m}}^{a'}_{t-1},u^a_{t-1},a,u^a_t; \theta_{i} \right) $
+            
+            \State  $\nabla \theta = \nabla \theta + \frac{\partial}{\partial \theta} (\Delta Q^a_t)^2 $
+            
+             \State Update gradient chain for differentiable communication:
+            \State $\mu^a_j=\mathbbm{1}{\{  t<T-1 \}} \sum_{m' \neq m}\frac{\partial }{\partial \hat{m}^a_t}  \left(\Delta Q^{a'}_{t+1} \right)^2 +\mu^{a'}_{t+1}  \frac{\partial \hat{m}^{a'}_{t+1}}{\partial \hat{m}^a_t} $
+             \State Accumulate gradients for differentiable communication:
+            \State  $\nabla \theta = \nabla \theta + \mu ^a_t   \frac{\partial}{\partial m^a_t}\text{\magicbox}(m^a_t) \frac{\partial m^a_t}{\partial \theta} $
+            
+            \State 
+        \EndFor
+    \EndFor
+    \State  $\theta_{i+1} = \theta_i + \alpha \nabla \theta$ %\Comment{update parameters}
+    \State Every $C$ steps reset $\theta^{-}_{i} = \theta_{i}$
+    %\State  $\theta^{-}_{i+1} =  \theta^-_i  +  \alpha^{-} ( \theta_{i+1} - \theta^-_i)$ $\triangleright$ update target network
+\EndFor
+\end{algorithmic}
+%\end{adjustwidth}
+\end{algorithm}
+
+Algorithm~\ref{alg:dic} formally describes \dic. At each time-step, we pick an action for each agent $\epsilon$-greedily with respect to the Q-function and assign an outgoing message 
+\begin{equation}
+    Q(\cdot), {m}^{a}_{t} = \text{\dicnet}\left(o^a_t,{\hat{m}}^{a'}_{t-1},h^a_{t-1},u^a_{t-1},a; \theta_{i} \right).
+\end{equation}
+We feed in the previous action, $u^a_{t-1}$, the agent index, $a$, along with the observation $o^a_t$, the previous internal state, $h^a_{t-1}$ and the incoming messages $\hat m^{a'}_{t-1}$ from other agents. After all agents have taken their actions, we query the environment for a state update and reward information. 
+
+When we reach the final time-step or a terminal state, we proceed to the backwards pass. Here, for each agent, $a$, and time-step, $j$, we calculate a target Q-value, $y^a_j$, using the observed reward, $r_t$, and the discounted target network. We then accumulate the gradients, $\nabla \theta$, by regressing the Q-value estimate
+\begin{equation}
+Q(o^a_t,{\hat{m}}^{a'}_{t-1},h^a_{t-1},u^a_{t-1},a,u; \theta_{i}),    
+\end{equation}
+against the target Q-value, $y^a_t$, for the action chosen, $u^a_t$. We also update the message gradient chain  $\mu^a_t$ which contains the derivative of the downstream bootstrap error $\sum_{m,  t' > t} \left(\Delta Q^{a'}_{t+1} \right)^2$ with respect to the outgoing message $m^a_t$. 
+
+To allow for efficient calculation, this sum can be broken out into two parts: The first part, $ \sum_{m' \neq m}\frac{\partial }{\partial \hat{m}^a_t}  \left( \Delta Q^{a'}_{t+1} \right)^2 $, captures the impact of the message on the total estimation error of the next step. The impact of the message $m^a_t$ on all other future rewards $t'>t+1$  can be calculated using the partial derivative of the outgoing messages from the agents at time $t+1$ with respect to the incoming message $m^a_t$, multiplied with their message gradients, $\mu^{a'}_{t+1}$. Using the message gradient, we can  calculate the derivative with respect to the parameters,  $\mu ^a_t  \frac{\partial \hat{m}^a_t}{\partial \theta}$. 
+
+Having accumulated all  gradients, we conduct two parameter updates, first $\theta_i$ in the direction of the accumulated gradients, $\nabla \theta$,  and then every C steps  $\theta^-_i  = \theta_i$.  
+During decentralised execution, the outgoing activations in the channel are mapped into a binary vector, $\hat{m} = \mathbbm{1}{\{  {m}^{a}_{t} > 0 \}}$. This ensures that discrete messages are exchanged, as required by the task. 
+
+In order to minimise the discretisation error when mapping from continuous values to discrete encodings, two measures are taken during centralised learning. First, Gaussian noise is added in order to limit the number of bits that can be encoded in a given range of $m$ values. Second, the noisy message is passed through a logistic function to restrict the range available for encoding information. Together, these two measures regularise the information transmitted through the bottleneck. 
+
+Furthermore, the noise also perturbs values in the middle of the range, due to the steeper slope, but leaves the tails of the distribution unchanged. Formally, during centralised learning,  $m$ is mapped to $\hat{m} = \text{Logistic}\left(\mathcal{N}(m, \sigma)\right)$, where $\sigma$ is chosen to be comparable to the width of the logistic function. In Algorithm~\ref{alg:dic}, the mapping logic from $m$ to $\hat{m}$ during training and execution is contained in the  $\text{\magicbox}(m^a_t)$ function.
+
+\section{MNIST Games: Further Analysis}
+\label{app:b}
+Our results show that \dic deals more effectively with stochastic rewards in the \emph{colour-digit MNIST}
+ game than \rec. To better understand why, consider a simpler two-agent problem with a structurally similar reward function $r = (-1)^{(s^1 + s^2 + a^2)}$, which is antisymmetric in the observations and action of the agents. Here random digits $s^1, s^2 \in {0, 1}$ are input to agent 1 and agent 2 and $u^2 \in {1,2}$ is a binary action.  Agent 1 can send a single bit message, $m^1$. Until a protocol has been learned,  the average reward for any action by agent 2 is 0, since averaged over $s_1$ the reward has an equal probability of being $+1$ or $-1$. Equally the TD error for agent 1, the sender,  is zero for any message $m$:
+%
+\begin{equation} 
+\expect{\Delta Q(s^1,m^1)} = Q(s^1,m^1) - \expect{r(s^2, a^2, s^1)}_{s^2,a^2} = 0 - 0,
+\end{equation}
+%
+ 
+By contrast, \dic allows for learning. Unlike the TD error, the gradient is a function of the action and the observation of the receiving agent, so summed across different $+1 / -1$ outcomes the gradient updates for the message $m$ no longer cancel:
+\begin{equation}
+    \expect{\nabla{ \theta}} =  \expect{\left( Q(s^2,m^1,a^2) - r(s^2, a^2, s^1) \right) \frac{\partial}{\partial m}  Q(s^2,m^1,a^2) \frac{\partial}{\partial \theta} m^1(s^1)}_{<s^2,a^2>}.
+\end{equation}
+
+\section{Effect of Noise: Further Analysis}
+\label{app:c}
+
+Given that the amount of noise, $\sigma$, is a hyperparameter that needs to be set, it is useful to understand how it impacts the amount of information that can pass through the channel. A first intuition can be gained by looking at the width of the sigmoid: Taking the decodable range of the logistic function to be $x$ values corresponding to $y$ values between 0.01 and 0.99, an initial estimate for the range is $\approx10$. Thus, requiring distinct $x$ values to be at least six standard deviations apart, with $\sigma=2$, only two bits can be encoded reliably in this range. 
+To get a better understanding of the required $\sigma$ we can visualise the capacity of the channel including the logistic function and the Gaussian noise. To do so, we must first derive an expression for the probability distribution of outgoing messages, $\hat m$, given incoming activations, $m$, $P(\hat m | m)$:
+
+\begin{equation}
+P(\hat m | m) = \frac{1}{ \sqrt{2\pi \sigma} \hat m  (1 - \hat m )} \exp\left(- \frac{ \left(m - \log(\frac{1}{\hat m } - 1) \right)^2}{\sigma^2} \right).
+\end{equation}
+
+For any $m$, this captures the distribution of messages leaving the channel. Two $m$ values $m_1$ and $m_2$ can be distinguished when the outgoing messages have a small probability of overlapping. Given a value $m_1$ we can thus pick a next value $m_2$ to be distinguishable when the highest value $\hat m_1$ that $ m_1$ is likely to produce is less than the lowest value $ \hat m_2$ that $m_2$ is likely to produce. An approximation for when this happens is when $\left( \max_{\hat m} s.t. P(\hat m | m_1) > \epsilon \right) = \left( \min_{\hat m} s.t. P(\hat m | m_2) > \epsilon \right) $. Figure~\ref{fig:sigma_plot} illustrates this for three different values of $\sigma$. For $\sigma > 2$, only two options can be reliably encoded using $\epsilon = 0.1$, resulting in a channel that effectively transmits only one bit of information.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=.75\textwidth]{artwork/new/sigma.pdf}    
+    \caption{Distribution of regularised messages, $P(\hat m | m)$ for different noise levels. Shading indicates $P(\hat m | m) > 0.1$. Blue bars show a division of the $x$-range into intervals s.t.\ the resulting $y$-values have a small probability of overlap, leading to decodable values.}
+    \label{fig:sigma_plot}
+\end{figure}
+
+
+Interestingly, the amount of noise required to regularise the channel depends greatly on the benefits of over-encoding information. More specifically, as illustrated in Figure~\ref{fig:sigma_sweep}, in tasks where sending more bits does not lead to higher rewards, small amounts of noise are sufficient to encourage discretisation, as the network can maximise reward by pushing activations to the tails of the sigmoid, where the noise is minimised. The figure illustrates the final average evaluation performance normalised by the training performance of three runs after $50$K of the multi-step MNIST game, under different noise regularisation levels $\sigma \in \{0, 0.5, 1, 1.5, 2\}$, and different numbers of steps $step \in [2,\dots,5]$. 
+When the lines exceed``Regularised'', the test reward, after discretisation, is higher than the training reward, i.e., the channel is properly regularised and getting used as a single bit at the end of learning. Given that there are 10 digits to encode, four bits are required to get full rewards. Reducing the number of steps directly reduces the number of bits that can be communicated, $\#bits = steps -1$, and thus creates an incentive for the network to ``over-encode'' information in the channel, which leads to greater discretisation error. 
+This is confirmed by the normalised performance for $\sigma = 0.5$, which is around 0.7 for 2 steps (1 bit) and then goes up to > 1 for 5 steps (4 bits). Note also that, without noise, regularisation is not possible and that with enough noise the channel is always regularised, even if it would yield higher training rewards to over-encode information.
+
+
+\begin{figure}[t!]
+    \centering
+    \includegraphics[width=.75\textwidth]{artwork/new/sweep.pdf}    
+    \caption{Final evaluation performance on multi-step MNIST of \dic normalised by training performance after $50$K epochs, under different noise regularisation levels $\sigma \in \{0, 0.5, 1, 1.5, 2\}$, and different numbers of steps $step \in [2,\ldots,5]$.}
+    \label{fig:sigma_sweep}
+\end{figure}
+
+

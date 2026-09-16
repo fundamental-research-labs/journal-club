@@ -1,0 +1,102 @@
+\section{\tech{}}
+\label{section:approach}
+
+To prepare the initial dataset for RL, we extract 273k high-quality PR seeds from the raw PR dataset we collected from GitHub.
+These seeds are selected based on specific heuristics. For example, a PR instance should include at least one linked issue, the issue should describe a bug-fixing request, and the code changes should involve programming files.
+For each seed, we extract the issue descriptions and code context, including all changed files and some relevant but unchanged files.
+These are converted to input prompts for the policy LLM.
+We also take the oracle patch from each seed, which will be used for reward calculation.
+More details are explained in \Cref{sec:apd:raw-data}.
+
+
+\subsection{Reward modeling}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{plots/DevLlama-prompt.pdf}
+\caption{\textbf{Prompt template used to train \ours with \tech.}
+Given an issue description and the corresponding code context, the policy LLM needs to generate search/replace edits~\cite{agentless} to fix this issue through reasoning.
+This is the only subtask we incorporate in the RL training.
+During inference, the LLM can generalize to tasks outside the training domain (e.g, file-level localization and test generation).
+For conciseness, we exclude certain prompt details, with the complete prompt template available in \Cref{sec:apd:fullprompt}.}
+\label{fig:prompt}
+\end{figure}
+
+{
+\newcommand\seed{\mathcal D_\mathsf{seed}}
+\newcommand\formprompt{\mathsf{form\mbox{-}prompt}}
+\newcommand\question{q}
+\newcommand\issue{\mathsf{issue}}
+\newcommand\context{\mathsf{ctx}}
+\newcommand\predpatch{\mathsf{patch_{pred}}}
+\newcommand\oracle{\mathsf{patch_{gt}}}
+\newcommand\prob[1]{\mathbf P(#1)}
+\newcommand\oldpolicy{\mathit{\pi_{\theta_{\mathrm{old}}}}}
+\newcommand\policy{\mathit{\pi_{\theta}}}
+\newcommand\refpolicy{\mathit{\pi_{\mathrm{ref}}}}
+\newcommand\ratio{\frac {\policy(o_i \mid \question)} {\oldpolicy(o_i \mid \question)}}
+\newcommand\clip{\mathrm{clip}}
+\newcommand\kldiv{D_{\mathrm{KL}}}
+We bootstrap the policy LLM with the prompt template shown in \Cref{fig:prompt}.
+Assuming that the LLM has generated a rollout $o$ given an issue and its code context,
+the reward function is defined as follows:
+\begin{equation}
+\mathcal R(o) = \begin{cases}
+    -1, & \text{if}\ o\ \text{has wrong format},\\
+    \mathit{compare}(\predpatch, \oracle), & \text{otherwise}.
+\end{cases}
+\label{eq:reward}
+\end{equation}
+Here, $\predpatch$ is the patch extracted from the LLM generation $o$ if it is correctly formatted, and $\oracle$ means the oracle patch for this issue.
+
+In the implementation, we use Python's \texttt{difflib.SequenceMatcher} as the $\mathit{compare}$ function, which returns a floating point between 0 and 1 indicating the sequence similarity, and adopt \grpofull (\grpo)~\cite{deepseekmath} for policy optimization.
+
+Given a seed RL dataset $\seed{}$ where each item contains
+(1) $\issue{}$, the issue description,
+(2) $\context$, the code context required to solve this issue, including both files to repair and relevant files not intended for editing,
+and (3) $\oracle{}$, which is the oracle patch.
+The input prompt for each data item is formed by instantiating the prompt template in \Cref{fig:prompt} with the issue description and code context, which we denote as $\question = \formprompt(\issue, \context)$.
+The policy LLM $\policy$ tries to solve the issue by generating code changes through reasoning, and produces multiple outputs $o_i$ for each input prompt $\question$ given the group size $G$.
+Then, the policy LLM aims to maximize the following \grpo objective:
+\begin{equation}
+\small
+\label{eq:grpo}
+\begin{gathered}
+\mathcal J(\theta) =
+    {\mathbb E}\left[
+         \frac1G\sum_{i=1}^G\left(
+             \min\left(\ratio A_i, \clip\left(\ratio, 1-\epsilon, 1 + \epsilon\right)A_i\right)
+             - \beta\kldiv(\policy\,\|\,\refpolicy)
+         \right)
+    \right],\\
+    \text{where }(\issue, \context, \oracle)\sim\seed\text{, }
+    q = \formprompt(\issue, \context)
+    \text{, and }\{o_i\}_{i=1}^G \sim \oldpolicy(\cdot \mid \question).
+\end{gathered}
+\end{equation}
+$\epsilon$ and $\beta$ are hyperparameters, and $\oldpolicy$ and $\refpolicy$ are the old and reference policy.
+The rewards $r_i = \mathcal{R}(o_i)$ and advantages $A_i = \frac{r_i - \operatorname{mean}(r_1, \ldots, r_G)}{\operatorname{std}(r_1, \ldots, r_G)}$ are calculated using the normalized rewards within each group following \grpo. $\kldiv$ denotes the estimated KL-divergence~\cite{klapprox}.
+
+Our training approach conditions the model on the complete context of each file, implicitly forcing it to identify detailed fault locations before generating repair edits. This process inherently teaches the model both bug diagnosis and repair generation.
+However, during the evaluation on \swebench, \ouragentless requires capabilities beyond generating repair edits, such as file-level fault localization, reproduction test generation, and regression test selection.
+Remarkably, even without explicit training on these subtasks, \ours can generalize to them through the RL process.
+
+\subsection{Aha moments and generalized reasoning capabilities}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{plots/DevLlama-aha.pdf}
+\caption{\textbf{Reasoning skills emerged from \ours[70] following the application of \tech{}.}
+RL helps the model develop reasoning skills like self-reflection, exploring alternatives, and divide-and-conquer strategies, for both in-domain (e.g., issue-solving) and out-of-domain tasks (e.g., function implementation and mathematics).
+}
+\label{fig:case}
+\end{figure}
+
+\textbf{``Aha moments'' on software engineering.}
+With the application of \tech, we observe ``aha moments''~\cite{deepseekr1} where \ours exhibits emergent reasoning skills.
+To our knowledge, this is the first study demonstrating the existence of such aha moments in the realm of real-world software engineering tasks, confirming the findings of \dpsk-R1~\cite{deepseekr1}, which mainly focuses on competition coding and math.
+As shown in \Cref{fig:case}, through RL, \ours[70] can allocate more thinking time to reflect on its initial assumptions during the issue-solving process.
+This behavior emerges naturally from the model's interaction with RL, rather than being explicitly programmed.
+
+\textbf{General reasoning capabilities.}
+Surprisingly, we have identified additional aha moments where \ours acquires general reasoning abilities that are transferrable to various out-of-domain tasks, such as function-level code generation and mathematics, although RL is applied exclusively to software issue solving.
+\Cref{fig:case} demonstrates that \ours is capable of reasoning through self-reflection, exploring alternative approaches, and solving complex problems by breaking them down into smaller subtasks.
+In \Cref{subsec:generalizability}, we demonstrate that \ours improves over even more out-of-domain tasks, including library use, code reasoning, and general language understanding.

@@ -1,0 +1,41 @@
+\section{Experimental Setup}
+
+\parabf{Datasets.}
+We evaluate \tech and baselines using the popular \swebench{} dataset~\cite{swebench} to test the ability to solve real-world software engineering issues. 
+Each problem in \swebench requires submitting a patch to solve the underlying issue described in the input issue description. 
+In particular, we focus on the widely used  \swebenchlite{} version~\cite{swebenchlite}, containing 300 self-contained problems with better quality.
+Furthermore, we also conduct a detailed study (Section~\ref{sec:benchmark_analysis}) on the \swebenchlite{} benchmark to not only demonstrate potential issues and biases, but also produce a more rigorous filtered set of problems for better evaluation. %
+
+\parabf{Implementation.}
+We implement \tech using \gptfouro{} (\CodeIn{gpt-4o-2024-05-13})~\cite{gpt4o}.
+By default, we query the \llm with greedy decoding. 
+During sampling, we use a sampling temperature of $0.8$.
+For the embedding-based retrieval method, we implement our approach using LlamaIndex~\cite{llamaindex}. 
+We use OpenAI's \CodeIn{text-embedding-3-small}~\cite{openaiembedding} model to compute the embedding with chunk size of 512 and chunk overlap of 0.
+For each issue, we first localize to the top three suspicious files, and then localize to an unrestricted number of suspicious classes and functions within these files, all using greedy decoding.
+Next, to maximize the chances of finding the correct edit locations, we draw four samples of edit locations per issue (i.e., the third step in the localization phase).
+This gives us 4 separate sets of edit locations per issue.
+For each set, we adopt a context window of $\pm$ 10 lines around each edit location, and generate 10 patches (1 greedy and 9 samples).
+This results in a total of 40 patches per bug.
+We adopt the same Search/Replace edit format from prior work~\cite{aidar}, and use the built-in Python \CodeIn{ast} library~\cite{ast} to perform parsing in our normalization step.
+To generate the \reproduction tests, we also generate 40 samples (1 greedy and 39 samples) in total prior to patch selection (described in Section~\ref{sec:reproduction_test_generation}).
+%
+The regression tests are obtained by first running all the tests to obtain a set of passing tests that successfully pass in the original repository and then use the \llm to identify any non-regression tests (described in Section~\ref{sec:patch_filtering}). 
+We do not directly use the provided list of regression tests already identified in the \CodeIn{PASS\_TO\_PASS} field of \swebench as requested by the \swebench maintainers\footnote{If we directly use the \CodeIn{PASS\_TO\_PASS} tests the performance on \swebenchlite{} will be 98.}. 
+We modify the official \swebench evaluation setup to be able to freely execute arbitrary regression and \reproduction tests.
+
+
+\parabf{Baselines.} 
+We compare \tech against \totalbaselines agent-based approaches. 
+These baseline tools represent the state-of-the-art performance on \swebench{}. 
+We include state-of-the-art open-source as well as commercial or closed-source baselines (indicated via a \lock{}). 
+We note here that the majority of the closed-source baselines do not provide any trajectories, just the submission patches. Therefore, we cannot verify the steps taken to arrive at the final patches.
+Moreover, we also include a simple agentless baseline using retrieval-augmented generation (RAG) proposed as part of \swebench~\cite{swebench} for comparison.
+In this case, the agentless baseline uses the \llm to directly generate a patch file by providing it with the file content of the most relevant files, retrieved using BM25~\cite{robertson2009probabilistic}. 
+
+\parabf{Metrics.}
+Following prior work~\cite{autocoderover}, we report \textbf{1) \% Resolved}: the percentage of resolved problems in the benchmark, \textbf{2) Avg. \$ Cost}: average inference cost of running the tool, and \textbf{3) Avg. \# Tokens}: average number of input and output tokens used to query to \llm. 
+Additionally, we also report the \textbf{\% Correct Location}: the percent of problems where the patch produced by the tool covers the edit location(s) of the ground truth developer patch.
+We compute this metric over three granularities: file, function, and line. 
+We report that a patch contains the correct location if it edits a superset of all locations in the ground truth patch.
+For baseline tools, we directly use the reported results either from the official leaderboard~\cite{swebenchleaderboard} or from the tool's official paper/repository. 

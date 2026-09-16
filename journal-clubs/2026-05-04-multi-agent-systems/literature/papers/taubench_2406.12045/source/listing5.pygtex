@@ -1,0 +1,106 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{import} \PYG{n+nn}{json}
+\PYG{k+kn}{from} \PYG{n+nn}{typing} \PYG{k+kn}{import} \PYG{n}{Any}\PYG{p}{,} \PYG{n}{Dict}\PYG{p}{,} \PYG{n}{List}
+
+
+\PYG{k}{def} \PYG{n+nf}{exchange\PYGZus{}delivered\PYGZus{}order\PYGZus{}items}\PYG{p}{(}
+    \PYG{n}{data}\PYG{p}{:} \PYG{n}{Dict}\PYG{p}{[}\PYG{n+nb}{str}\PYG{p}{,} \PYG{n}{Any}\PYG{p}{],}
+    \PYG{n}{order\PYGZus{}id}\PYG{p}{:} \PYG{n+nb}{str}\PYG{p}{,}
+    \PYG{n}{item\PYGZus{}ids}\PYG{p}{:} \PYG{n}{List}\PYG{p}{[}\PYG{n+nb}{str}\PYG{p}{],}
+    \PYG{n}{new\PYGZus{}item\PYGZus{}ids}\PYG{p}{:} \PYG{n}{List}\PYG{p}{[}\PYG{n+nb}{str}\PYG{p}{],}
+    \PYG{n}{payment\PYGZus{}method\PYGZus{}id}\PYG{p}{:} \PYG{n+nb}{str}\PYG{p}{,}
+\PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n+nb}{str}\PYG{p}{:}
+    \PYG{n}{products}\PYG{p}{,} \PYG{n}{orders}\PYG{p}{,} \PYG{n}{users} \PYG{o}{=} \PYG{n}{data}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}products\PYGZdq{}}\PYG{p}{],} \PYG{n}{data}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}orders\PYGZdq{}}\PYG{p}{],} \PYG{n}{data}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}users\PYGZdq{}}\PYG{p}{]}
+
+    \PYG{c+c1}{\PYGZsh{} check order exists and is delivered}
+    \PYG{k}{if} \PYG{n}{order\PYGZus{}id} \PYG{o+ow}{not} \PYG{o+ow}{in} \PYG{n}{orders}\PYG{p}{:}
+        \PYG{k}{return} \PYG{l+s+s2}{\PYGZdq{}Error: order not found\PYGZdq{}}
+    \PYG{n}{order} \PYG{o}{=} \PYG{n}{orders}\PYG{p}{[}\PYG{n}{order\PYGZus{}id}\PYG{p}{]}
+    \PYG{k}{if} \PYG{n}{order}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}status\PYGZdq{}}\PYG{p}{]} \PYG{o}{!=} \PYG{l+s+s2}{\PYGZdq{}delivered\PYGZdq{}}\PYG{p}{:}
+        \PYG{k}{return} \PYG{l+s+s2}{\PYGZdq{}Error: non\PYGZhy{}delivered order cannot be exchanged\PYGZdq{}}
+
+    \PYG{c+c1}{\PYGZsh{} check the items to be exchanged exist}
+    \PYG{n}{all\PYGZus{}item\PYGZus{}ids} \PYG{o}{=} \PYG{p}{[}\PYG{n}{item}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}item\PYGZus{}id\PYGZdq{}}\PYG{p}{]} \PYG{k}{for} \PYG{n}{item} \PYG{o+ow}{in} \PYG{n}{order}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}items\PYGZdq{}}\PYG{p}{]]}
+    \PYG{k}{for} \PYG{n}{item\PYGZus{}id} \PYG{o+ow}{in} \PYG{n}{item\PYGZus{}ids}\PYG{p}{:}
+        \PYG{k}{if} \PYG{n}{item\PYGZus{}ids}\PYG{o}{.}\PYG{n}{count}\PYG{p}{(}\PYG{n}{item\PYGZus{}id}\PYG{p}{)} \PYG{o}{\PYGZgt{}} \PYG{n}{all\PYGZus{}item\PYGZus{}ids}\PYG{o}{.}\PYG{n}{count}\PYG{p}{(}\PYG{n}{item\PYGZus{}id}\PYG{p}{):}
+            \PYG{k}{return} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Error: }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{item\PYGZus{}id}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ not found\PYGZdq{}}
+
+    \PYG{c+c1}{\PYGZsh{} check new items exist and match old items and are available}
+    \PYG{k}{if} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{item\PYGZus{}ids}\PYG{p}{)} \PYG{o}{!=} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{new\PYGZus{}item\PYGZus{}ids}\PYG{p}{):}
+        \PYG{k}{return} \PYG{l+s+s2}{\PYGZdq{}Error: the number of items to be exchanged should match\PYGZdq{}}
+
+    \PYG{n}{diff\PYGZus{}price} \PYG{o}{=} \PYG{l+m+mi}{0}
+    \PYG{k}{for} \PYG{n}{item\PYGZus{}id}\PYG{p}{,} \PYG{n}{new\PYGZus{}item\PYGZus{}id} \PYG{o+ow}{in} \PYG{n+nb}{zip}\PYG{p}{(}\PYG{n}{item\PYGZus{}ids}\PYG{p}{,} \PYG{n}{new\PYGZus{}item\PYGZus{}ids}\PYG{p}{):}
+        \PYG{n}{item} \PYG{o}{=} \PYG{p}{[}\PYG{n}{item} \PYG{k}{for} \PYG{n}{item} \PYG{o+ow}{in} \PYG{n}{order}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}items\PYGZdq{}}\PYG{p}{]} \PYG{k}{if} \PYG{n}{item}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}item\PYGZus{}id\PYGZdq{}}\PYG{p}{]} \PYG{o}{==} \PYG{n}{item\PYGZus{}id}\PYG{p}{][}\PYG{l+m+mi}{0}\PYG{p}{]}
+        \PYG{n}{product\PYGZus{}id} \PYG{o}{=} \PYG{n}{item}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}product\PYGZus{}id\PYGZdq{}}\PYG{p}{]}
+        \PYG{k}{if} \PYG{o+ow}{not} \PYG{p}{(}
+            \PYG{n}{new\PYGZus{}item\PYGZus{}id} \PYG{o+ow}{in} \PYG{n}{products}\PYG{p}{[}\PYG{n}{product\PYGZus{}id}\PYG{p}{][}\PYG{l+s+s2}{\PYGZdq{}variants\PYGZdq{}}\PYG{p}{]}
+            \PYG{o+ow}{and} \PYG{n}{products}\PYG{p}{[}\PYG{n}{product\PYGZus{}id}\PYG{p}{][}\PYG{l+s+s2}{\PYGZdq{}variants\PYGZdq{}}\PYG{p}{][}\PYG{n}{new\PYGZus{}item\PYGZus{}id}\PYG{p}{][}\PYG{l+s+s2}{\PYGZdq{}available\PYGZdq{}}\PYG{p}{]}
+        \PYG{p}{):}
+            \PYG{k}{return} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Error: new item }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{new\PYGZus{}item\PYGZus{}id}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ not found or available\PYGZdq{}}
+
+        \PYG{n}{old\PYGZus{}price} \PYG{o}{=} \PYG{n}{item}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}price\PYGZdq{}}\PYG{p}{]}
+        \PYG{n}{new\PYGZus{}price} \PYG{o}{=} \PYG{n}{products}\PYG{p}{[}\PYG{n}{product\PYGZus{}id}\PYG{p}{][}\PYG{l+s+s2}{\PYGZdq{}variants\PYGZdq{}}\PYG{p}{][}\PYG{n}{new\PYGZus{}item\PYGZus{}id}\PYG{p}{][}\PYG{l+s+s2}{\PYGZdq{}price\PYGZdq{}}\PYG{p}{]}
+        \PYG{n}{diff\PYGZus{}price} \PYG{o}{+=} \PYG{n}{new\PYGZus{}price} \PYG{o}{\PYGZhy{}} \PYG{n}{old\PYGZus{}price}
+
+    \PYG{n}{diff\PYGZus{}price} \PYG{o}{=} \PYG{n+nb}{round}\PYG{p}{(}\PYG{n}{diff\PYGZus{}price}\PYG{p}{,} \PYG{l+m+mi}{2}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} check payment method exists and can cover the price difference if gift card}
+    \PYG{k}{if} \PYG{n}{payment\PYGZus{}method\PYGZus{}id} \PYG{o+ow}{not} \PYG{o+ow}{in} \PYG{n}{users}\PYG{p}{[}\PYG{n}{order}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}user\PYGZus{}id\PYGZdq{}}\PYG{p}{]][}\PYG{l+s+s2}{\PYGZdq{}payment\PYGZus{}methods\PYGZdq{}}\PYG{p}{]:}
+        \PYG{k}{return} \PYG{l+s+s2}{\PYGZdq{}Error: payment method not found\PYGZdq{}}
+
+    \PYG{n}{payment\PYGZus{}method} \PYG{o}{=} \PYG{n}{users}\PYG{p}{[}\PYG{n}{order}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}user\PYGZus{}id\PYGZdq{}}\PYG{p}{]][}\PYG{l+s+s2}{\PYGZdq{}payment\PYGZus{}methods\PYGZdq{}}\PYG{p}{][}\PYG{n}{payment\PYGZus{}method\PYGZus{}id}\PYG{p}{]}
+    \PYG{k}{if} \PYG{n}{payment\PYGZus{}method}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}source\PYGZdq{}}\PYG{p}{]} \PYG{o}{==} \PYG{l+s+s2}{\PYGZdq{}gift\PYGZus{}card\PYGZdq{}} \PYG{o+ow}{and} \PYG{n}{payment\PYGZus{}method}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}balance\PYGZdq{}}\PYG{p}{]} \PYG{o}{\PYGZlt{}} \PYG{n}{diff\PYGZus{}price}\PYG{p}{:}
+        \PYG{k}{return} \PYG{l+s+s2}{\PYGZdq{}Error: insufficient gift card balance to pay for the price difference\PYGZdq{}}
+
+    \PYG{c+c1}{\PYGZsh{} modify the order}
+    \PYG{n}{order}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}status\PYGZdq{}}\PYG{p}{]} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}exchange requested\PYGZdq{}}
+    \PYG{n}{order}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}exchange\PYGZus{}items\PYGZdq{}}\PYG{p}{]} \PYG{o}{=} \PYG{n+nb}{sorted}\PYG{p}{(}\PYG{n}{item\PYGZus{}ids}\PYG{p}{)}
+    \PYG{n}{order}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}exchange\PYGZus{}new\PYGZus{}items\PYGZdq{}}\PYG{p}{]} \PYG{o}{=} \PYG{n+nb}{sorted}\PYG{p}{(}\PYG{n}{new\PYGZus{}item\PYGZus{}ids}\PYG{p}{)}
+    \PYG{n}{order}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}exchange\PYGZus{}payment\PYGZus{}method\PYGZus{}id\PYGZdq{}}\PYG{p}{]} \PYG{o}{=} \PYG{n}{payment\PYGZus{}method\PYGZus{}id}
+    \PYG{n}{order}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}exchange\PYGZus{}price\PYGZus{}difference\PYGZdq{}}\PYG{p}{]} \PYG{o}{=} \PYG{n}{diff\PYGZus{}price}
+
+    \PYG{k}{return} \PYG{n}{json}\PYG{o}{.}\PYG{n}{dumps}\PYG{p}{(}\PYG{n}{order}\PYG{p}{)}
+
+
+\PYG{n}{exchange\PYGZus{}delivered\PYGZus{}order\PYGZus{}items}\PYG{o}{.}\PYG{n}{\PYGZus{}\PYGZus{}info\PYGZus{}\PYGZus{}} \PYG{o}{=} \PYG{p}{\PYGZob{}}
+    \PYG{l+s+s2}{\PYGZdq{}type\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}function\PYGZdq{}}\PYG{p}{,}
+    \PYG{l+s+s2}{\PYGZdq{}function\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+        \PYG{l+s+s2}{\PYGZdq{}name\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}exchange\PYGZus{}delivered\PYGZus{}order\PYGZus{}items\PYGZdq{}}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}description\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}Exchange items in a delivered order to new items of the same product type. For a delivered order, return or exchange can be only done once by the agent. The agent needs to explain the exchange detail and ask for explicit user confirmation (yes/no) to proceed.\PYGZdq{}}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}parameters\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+            \PYG{l+s+s2}{\PYGZdq{}type\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}object\PYGZdq{}}\PYG{p}{,}
+            \PYG{l+s+s2}{\PYGZdq{}properties\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+                \PYG{l+s+s2}{\PYGZdq{}order\PYGZus{}id\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+                    \PYG{l+s+s2}{\PYGZdq{}type\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}string\PYGZdq{}}\PYG{p}{,}
+                    \PYG{l+s+s2}{\PYGZdq{}description\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}The order id, such as \PYGZsq{}\PYGZsh{}W0000000\PYGZsq{}. Be careful there is a \PYGZsq{}\PYGZsh{}\PYGZsq{} symbol at the beginning of the order id.\PYGZdq{}}\PYG{p}{,}
+                \PYG{p}{\PYGZcb{},}
+                \PYG{l+s+s2}{\PYGZdq{}item\PYGZus{}ids\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+                    \PYG{l+s+s2}{\PYGZdq{}type\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}array\PYGZdq{}}\PYG{p}{,}
+                    \PYG{l+s+s2}{\PYGZdq{}items\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+                        \PYG{l+s+s2}{\PYGZdq{}type\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}string\PYGZdq{}}\PYG{p}{,}
+                    \PYG{p}{\PYGZcb{},}
+                    \PYG{l+s+s2}{\PYGZdq{}description\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}The item ids to be exchanged, each such as \PYGZsq{}1008292230\PYGZsq{}. There could be duplicate items in the list.\PYGZdq{}}\PYG{p}{,}
+                \PYG{p}{\PYGZcb{},}
+                \PYG{l+s+s2}{\PYGZdq{}new\PYGZus{}item\PYGZus{}ids\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+                    \PYG{l+s+s2}{\PYGZdq{}type\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}array\PYGZdq{}}\PYG{p}{,}
+                    \PYG{l+s+s2}{\PYGZdq{}items\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+                        \PYG{l+s+s2}{\PYGZdq{}type\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}string\PYGZdq{}}\PYG{p}{,}
+                    \PYG{p}{\PYGZcb{},}
+                    \PYG{l+s+s2}{\PYGZdq{}description\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}The item ids to be exchanged for, each such as \PYGZsq{}1008292230\PYGZsq{}. There could be duplicate items in the list. Each new item id should match the item id in the same position and be of the same product.\PYGZdq{}}\PYG{p}{,}
+                \PYG{p}{\PYGZcb{},}
+                \PYG{l+s+s2}{\PYGZdq{}payment\PYGZus{}method\PYGZus{}id\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+                    \PYG{l+s+s2}{\PYGZdq{}type\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}string\PYGZdq{}}\PYG{p}{,}
+                    \PYG{l+s+s2}{\PYGZdq{}description\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}The payment method id to pay or receive refund for the item price difference, such as \PYGZsq{}gift\PYGZus{}card\PYGZus{}0000000\PYGZsq{} or \PYGZsq{}credit\PYGZus{}card\PYGZus{}0000000\PYGZsq{}. These can be looked up from the user or order details.\PYGZdq{}}\PYG{p}{,}
+                \PYG{p}{\PYGZcb{},}
+            \PYG{p}{\PYGZcb{},}
+            \PYG{l+s+s2}{\PYGZdq{}required\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+                \PYG{l+s+s2}{\PYGZdq{}order\PYGZus{}id\PYGZdq{}}\PYG{p}{,}
+                \PYG{l+s+s2}{\PYGZdq{}item\PYGZus{}ids\PYGZdq{}}\PYG{p}{,}
+                \PYG{l+s+s2}{\PYGZdq{}new\PYGZus{}item\PYGZus{}ids\PYGZdq{}}\PYG{p}{,}
+                \PYG{l+s+s2}{\PYGZdq{}payment\PYGZus{}method\PYGZus{}id\PYGZdq{}}\PYG{p}{,}
+            \PYG{p}{],}
+        \PYG{p}{\PYGZcb{},}
+    \PYG{p}{\PYGZcb{},}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

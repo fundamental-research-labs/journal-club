@@ -1,0 +1,790 @@
+\documentclass{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+\PassOptionsToPackage{numbers}{natbib}
+% before loading neurips_2025
+
+
+% ready for submission
+% \usepackage{neurips_2025}
+
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+    \usepackage[preprint]{neurips_2025}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2025}
+
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2025}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+
+
+\usepackage{multirow}
+\usepackage{pifont}
+\usepackage{bbding}
+\usepackage{array}
+\usepackage{tikz}
+\usepackage{colortbl}   % for table
+\usepackage{epigraph}
+\usepackage{wrapfig}
+
+\newcommand{\circlednumber}[1]{%
+  \tikz[baseline=(char.base)]{%
+    \node[
+      shape=circle,
+      draw,
+      inner sep=0pt,
+      minimum width=0em,
+      text width=0.9em,
+      align=center,
+      line width=0.6pt, % 圆圈线条粗细
+      font=\small % 字体大小和粗细
+    ] (char) {#1};
+  }%
+}
+
+
+\title{MASLab: A Unified and Comprehensive Codebase \\for LLM-based Multi-Agent Systems}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+\author{%
+  \textbf{Rui Ye\textsuperscript{1}} \quad \textbf{Keduan Huang\textsuperscript{1}} \quad  \textbf{Qimin Wu\textsuperscript{1}}\\
+  \textbf{Yuzhu Cai\textsuperscript{1}} \quad \textbf{Tian Jin\textsuperscript{1}} \quad \textbf{Xianghe Pang\textsuperscript{1}} \quad \textbf{Xiangrui Liu\textsuperscript{1}} \quad \textbf{Jiaqi Su\textsuperscript{1}} \\
+  \textbf{Chen Qian\textsuperscript{1}} \quad \textbf{Bohan Tang\textsuperscript{3}} \quad \textbf{Kaiqu Liang\textsuperscript{4}} \quad \textbf{Jiaao Chen\textsuperscript{5}} \quad \textbf{Yue Hu\textsuperscript{6}} \quad \textbf{Zhenfei Yin\textsuperscript{3,7}} \\
+  \textbf{Rongye Shi\textsuperscript{8}} \quad \textbf{Bo An\textsuperscript{9}} \quad \textbf{Yang Gao\textsuperscript{10}} \quad \textbf{Wenjun Wu\textsuperscript{8}} \quad \textbf{Lei Bai\textsuperscript{2,†}} \quad \textbf{Siheng Chen\textsuperscript{1,†}} \\
+  \textsuperscript{1} Shanghai Jiao Tong University \quad \textsuperscript{2} Shanghai AI Laboratory \quad \textsuperscript{3} University of Oxford\\
+  \textsuperscript{4} Princeton University \quad \textsuperscript{5} Meta \quad \textsuperscript{6} University of Michigan \quad \textsuperscript{7} The University of Sydney\\
+  \textsuperscript{8} Beihang University \quad \textsuperscript{9} Nanyang Technological University \quad \textsuperscript{10} Nanjing University \\
+  \textcolor{blue}{MASLab: \href{https://github.com/MASWorks/MASLab}{https://github.com/MASWorks/MASLab}}
+}
+
+
+\begin{document}
+
+
+\maketitle
+
+
+\begin{abstract}
+LLM-based multi-agent systems (MAS) have demonstrated significant potential in enhancing single LLMs to address complex and diverse tasks in practical applications.
+Despite considerable advancements, the field lacks a unified codebase that consolidates existing methods, resulting in redundant re-implementation efforts, unfair comparisons, and high entry barriers for researchers. 
+To address these challenges, we introduce MASLab, a unified, comprehensive, and research-friendly codebase for LLM-based MAS.
+(1) MASLab integrates over 20 established methods across multiple domains, each rigorously validated by comparing step-by-step outputs with its official implementation.
+(2) MASLab provides a unified environment with various benchmarks for fair comparisons among methods, ensuring consistent inputs and standardized evaluation protocols.
+(3) MASLab implements methods within a shared streamlined structure, lowering the barriers for understanding and extension.
+Building on MASLab, we conduct extensive experiments covering 10+ benchmarks and 8 models, offering researchers a clear and comprehensive view of the current landscape of MAS methods.
+MASLab will continue to evolve, tracking the latest developments in the field, and invite contributions from the broader open-source community.
+\end{abstract}
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figs/main_figure_2.pdf}
+    \vspace{-3mm}
+    \caption{MASLab: A unified, comprehensive, and research-friendly codebase for LLM-based MAS. We support fairly comparing over 20 methods, whose correctness are manually verified.}
+    \label{fig:teaser}
+\end{figure}
+
+\section{Introduction}
+Large language models (LLMs)~\cite{openai2023gpt4,claude3.5,guo2025deepseek,dubey2024llama,yang2024qwen2} have achieved remarkable success and are being increasingly applied across various domains~\cite{chen2021evaluating,park2023generative,tu2024towards,wu2023bloomberggpt}.
+However, despite their continuous advancements, a single LLM inherently faces limitations such as unreliable and random generation~\cite{zhou2024larger,wolf2024fundamental}, hallucinations~\cite{zhang2023siren,min2023factscore}, and difficulty handling complex, multi-step tasks~\cite{dziri2023faith,hadi2023large}.
+These limitations hinder their ability to effectively tackle the full spectrum of real-world applications on their own.
+
+The limitations of single LLMs have driven emerging research towards the development of LLM-based multi-agent systems (MAS)~\cite{qian2024chatdev,li2023camel,adas,masgpt}, where multiple agents, each with distinct roles, contexts, and tools, collaborate to address complex tasks more effectively.
+This paradigm has shown great promise across a range of applications, including code generation~\cite{qian2024chatdev,hongmetagpt}, mathematical problem-solving~\cite{leimacm,mathprompter}, academic research~\cite{aiscientists,agentlab}, and data synthesis~\cite{matrix,matrix2}.
+Over the past year, this field has seen rapid development, evolving from early MAS approaches that rely on manually designed, fixed systems~\cite{qian2024chatdev,debate1,hongmetagpt,debate2,chen2023agentverse,leimacm} to more dynamic systems where the roles and behaviors of the agents are adaptable~\cite{adas,masgpt,aflow,dylan,zhugegptswarm}.
+This ongoing evolution is steering the field towards greater automation and generalization, with the potential to create more intelligent systems.
+
+Despite the rapid progress in LLM-based MAS, the field lacks a unified codebase that consolidates the various methods and algorithms.
+This gap results in several critical issues that hinder the field's long-term advancement:
+\textbf{(1) Redundant effort.} Without shared, accessible resources, researchers expend significant time reimplementing existing works, diverting effort from innovative contributions.
+\textbf{(2) Unfair comparison.} Varied implementation designs of individual codebases, such as differing dataset preprocessing and evaluation protocols, complicate fair and reliable comparisons across methods.
+\textbf{(3) High entry barriers.} Newcomers face difficulties navigating through disparate repositories, with no clear starting points.
+Addressing these challenges is crucial to accelerate research and promote cohesive progress in the field.
+However, unifying massive methods—that originally employ distinct codebase styles, architectures, and dependencies—into one codebase poses significant challenges.
+This requires not only substantial efforts for re-implementation and verification, but also a comprehensive understanding of all methods to enable unification.
+
+To bridge this gap, we present \textbf{MASLab}, the first unified codebase for LLM-based MAS, integrating over 20 established methods (e.g., most cited or accepted by recent top-tie venues) with a coherent high-level structure and standardized evaluations; see overview in Table~\ref{tab:maslab_description}.
+\textbf{(1)} MASLab consolidates diverse research spanning multiple domains—including general tasks~\cite{chen2023agentverse}, coding~\cite{qian2024chatdev}, and mathematics~\cite{leimacm}—covering representative advancements from March 2023 through March 2025.
+Each method integrated into MASLab has been rigorously verified by comparing step-by-step outputs with its official implementation, greatly reducing redundant reimplementation efforts for future researchers. 
+\textbf{(2)} MASLab supports unified evaluations across a wide array of benchmarks, ensuring consistent inputs and standardized evaluation protocols.
+This facilitates reliable and fair comparisons, emphasizing core methodological differences rather than implementation disparities.
+\textbf{(3)} All methods are implemented within a streamlined, high-level structure, where each is encapsulated as a core inference function that processes a query and delivers the MAS response.
+This transparent structure explicitly highlights key methodological components, significantly lowering entry barriers and enabling researchers to easily understand, extend, and innovate upon existing approaches.
+
+Based on MASLab, we conduct comprehensive experiments to benchmark the implemented methods, offering the research community a clear understanding of the current landscape of LLM-based MAS.
+Our evaluation spans 10+ benchmarks spanning diverse domains—including general question answering, mathematics, coding, science, and medicine—using 8 LLM backbones including Llama-3.3-70B-Instruct, Qwen-2.5-7/14/32/72B-Instruct, and GPT-4o-mini/4.1-mini/4.1 models.
+Our analysis examines the impact of varying evaluation protocols adopted by prior studies, the scaling behavior with respect to method configuration and model size, and failure cases.
+Notably, we demonstrate that discrepancies in evaluation protocols can lead to substantial variation in performance rankings, underscoring the importance of a unified codebase for fair and reproducible comparisons.
+
+\newcounter{rowcounter}
+\begin{table}[t!]
+\caption{Descriptions of 24 methods that MAS-Lab currently support. We show several critical perspectives of MAS methods. (1) Role: whether agents' roles in the method is fixed or dynamic. (2) Topo.: whether the topology in the method is fixed or dynamic. (3) Tool: whether the method includes tool usage. (4) Optim.: whether the method is optimizable. (5) Generalization: whether the method can generalize to handle diverse tasks.}
+\label{tab:maslab_description}
+    \centering
+    \resizebox{\textwidth}{!}{
+    \small
+    \begin{tabular}{>{\stepcounter{rowcounter}\circlednumber{\arabic{rowcounter}}}llcccccc}
+    \toprule
+        \multicolumn{1}{c}{No.} & Methodology & Venue & Role & Topo. & Tool & Optim. & Generalization \\
+    \midrule
+        \multicolumn{4}{l}{Single-Agent Baselines} \\
+        & Vanilla LLM & - & Fixed & Fixed & No & No & Yes\\
+        & CoT~\cite{wei2022chain} & NeurIPS 2022 & Fixed & Fixed & No & No & Yes \\
+    \midrule
+        \multicolumn{4}{l}{Multi-Agent Systems for General Tasks} \\
+        & CAMEL~\cite{li2023camel} & NeurIPS 2023 & Fixed & Fixed & No & No & Yes \\
+        & AutoGen~\cite{wu2024autogen} & ICLR-W 2024 & Fixed & Fixed & Yes & No & Yes\\
+        & Self-Consistency~\cite{sc} & ICLR 2024 & Fixed & Fixed & No & No & Yes \\
+        & AgentVerse~\cite{chen2023agentverse} & ICLR 2024 & Dynamic & Fixed & No & No & Yes\\
+        & LLM Debate~\cite{debate1} & ICML 2024 & Fixed & Fixed & No & No & Pre-defined Roles\\
+        & GPTSwarm~\cite{zhugegptswarm} & ICML 2024 & Fixed & Dynamic & Yes & Yes & Validation-Required\\
+        & DyLAN~\cite{dylan} & COLM 2024 & Fixed & Dynamic & No & No & Pre-defined Roles\\
+        & MAD~\cite{debate2} & EMNLP 2024 & Fixed & Fixed & No & No & Pre-defined Roles\\
+        & Self-Refine~\cite{Self-refine} & NeurIPS 2024 & Fixed & Fixed & No & No & Yes \\
+        & MacNet~\cite{macnet} & ICLR 2025 & Fixed & Fixed & No & No & Pre-defined Roles\\
+        & ADAS~\cite{adas} & ICLR 2025 & Fixed & Fixed & Yes & Yes & Validation-Required\\
+        & AFlow~\cite{aflow} & ICLR 2025 & Fixed & Fixed & Yes & Yes & Validation-Required\\
+        & MAV~\cite{mav} & ICLR-W 2025 & Fixed & Fixed & No & No & Yes\\
+        & MAS-GPT~\cite{masgpt} & ICML 2025 & Dynamic & Dynamic & Yes & Yes & Yes\\
+    \midrule
+        \multicolumn{4}{l}{Multi-Agent Systems for Coding Tasks} \\
+        & MetaGPT~\cite{hongmetagpt} & ICLR 2024 & Fixed & Fixed & Yes & No & Coding-Specific\\
+        & ChatDev~\cite{qian2024chatdev} & ACL 2024 & Fixed & Fixed & Yes & No & Coding-Specific\\
+        & MapCoder~\cite{islam2024mapcoder} & ACL 2024 & Fixed & Fixed & Yes & No & Coding-Specific\\
+        & EvoMAC~\cite{hu2025selfevolving} & ICLR 2025 & Dynamic & Dynamic & Yes & No & Coding-Specific\\
+    \midrule
+        \multicolumn{4}{l}{Multi-Agent Systems for Mathematical Tasks} \\
+        & MACM~\cite{leimacm} & NeurIPS 2024 & Fixed & Fixed & No & No & Math-Specific\\
+    \midrule
+        \multicolumn{4}{l}{Multi-Agent Systems for Scientific Tasks} \\
+        & MedAgents~\cite{tang2024medagents} & ACL-F 2024 & Fixed & Fixed & No & No & Medicine-Specific\\
+    \midrule
+        \multicolumn{4}{l}{Multi-Agent Systems for Tool-Required Tasks} \\
+        & OWL-Roleplaying~\cite{owl2025} & GitHub 2025 & Fixed & Fixed & Yes & No & Yes (with Proper Tools)\\
+        & ReAct-MASLab~\cite{react} & ICLR 2023 & Fixed & Fixed & Yes & No & Yes (with Proper Tools)\\
+    \bottomrule
+    \end{tabular}
+    }
+\end{table}
+\vspace{-3mm}
+
+\section{Related Work}
+
+\textbf{LLM-based MAS.}
+LLM-based multi-agent systems (MAS) extend the capabilities of LLMs by enabling collaborative interactions among multiple agents.
+CAMEL~\cite{li2023camel} and AutoGen~\cite{wu2024autogen} primarily focus on two-agent (user–assistant) role-playing, while MetaGPT~\cite{hongmetagpt} and ChatDev~\cite{qian2024chatdev} assign multiple specialized roles (e.g., coder, reviewer) for fixed software development pipeline.
+Debate-style systems~\cite{debate1,debate2,subramaniam2025multiagent} employ multiple agents to propose and criticize solutions. 
+AgentVerse~\cite{chen2023agentverse} and DyLAN~\cite{dylan} allow iterative adjustment of team configurations during task execution.
+
+While these fixed-role architectures demonstrate the potential of MAS, they rely heavily on manually defined roles and workflows, limiting generalizability across tasks.
+To address this, recent works explore automatic workflow generation~\cite{masgpt,adas,gdesigner,agentprune,zhang2025gnns}.
+GPTSwarm~\cite{zhugegptswarm} models agents as an optimizable graph of LLM operations refined via validation feedback.
+Similarly, ADAS~\cite{adas} and AFlow~\cite{aflow} leverage a strong meta-agent to iteratively design agentic workflows.
+MAS-GPT~\cite{masgpt} trains an LLM that generates an executable MAS based on each user query.
+
+However, these methods are implemented in isolated codebases, leading to redundant efforts, inconsistent evaluations, and steep entry barriers. 
+MASLab resolves these issues by providing a unified and comprehensive codebase that supports all of the above methods within an extensible framework.
+
+\textbf{LLM-agent codebase.}
+In parallel with algorithmic advances, several open-source frameworks have emerged to facilitate the development of LLM-based agents.
+CAMEL~\cite{li2023camel} and AutoGen~\cite{wu2024autogen} introduce conversational agent frameworks based on role-playing.
+LangChain~\cite{langchain}, LangGraph~\cite{langgraph}, and OpenAgents~\cite{xie2024openagents} provide low-code environments for constructing LLM-driven applications and workflows.
+However, none of these frameworks are designed specifically for research purposes: they lack implementations of representative multi-agent methods from the existing literature and offer limited support for systematic evaluation.
+In contrast, our MASLab offers the first all-in-one research-friendly codebase that integrates the community’s collective progress in LLM-based MAS.
+
+\section{MASLab}
+
+MASLab is a unified, comprehensive, research-oriented codebase for LLM-based multi-agent systems (MAS).
+It consolidates over 20 published MAS methods with consistent inference basic configurations and unified evaluation protocols, facilitating researchers for fast and fair algorithmic comparisons.
+All methods are verified by comparing their intermediate outputs with the official implementations.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/codebase_intro.pdf}
+    \caption{Overview of MASLab codebase. MASLab incorporates and unifies the whole pipeline from data pre-processing to evaluation, ensuring that inputs to all methods are aligned, non-algorithmic configurations are standardized, and the evaluation protocols are consistent and accurate. All 20+ methods are represented by a similar streamlined structure of python class.}
+    \label{fig:codebase_intro}
+\end{figure}
+
+\subsection{Inference of MAS}
+
+In order to unify and streamline the diverse MAS codebases in the field, MASLab focuses on four key aspects during inference that ensure consistency and fairness across different methods: representation of MAS, inputs, configurations, and accessible resources.
+These aspects are designed to eliminate the disparities that have traditionally hindered cross-method comparisons and replication of results.
+
+\textbf{Streamlined representation of MAS.}
+Each MAS method within MASLab is abstracted into a Python class, all of which inherit from a common base class.
+This base class provides shared functionality across methods, such as making LLM requests and tracking LLM token consumptions.
+The core of each method is the \textit{inference} function, which takes a data sample (e.g., a mathematical problem) as input and outputs the solution generated by the MAS.
+By standardizing the representation in this manner, the structure of each MAS approach is simplified, allowing researchers to gain a clear understanding of the key steps involved by merely inspecting the inference function.
+In many cases, the inference process is further modularized, with specific components encapsulated as additional functions to highlight the different stages of task-solving, such as team recruitment and code execution.
+This design ensures that the complexity inherent in different MAS methods is handled in a consistent, easily interpretable manner, while preserving the unique features of each individual approach.
+For optimization-based methods~\cite{adas,zhugegptswarm,aflow}, another core \textit{optimization} function will process a validation set to produce an optimized MAS.
+See re-implementation notes in Section~\ref{sec:reimplementation_notes}.
+
+\textbf{Consistent inputs.}
+MASLab standardizes input preprocessing for all MAS methods, ensuring fair comparisons by eliminating discrepancies.
+For instance, prior implementations of MapCoder~\cite{islam2024mapcoder}, Reflexion~\cite{shinn2023reflexion}, and EvoMAC~\cite{hu2025selfevolving} use different preprocessing on the MBPP dataset, making performance differences hard to interpret.
+MASLab's unified preprocessing pipeline ensures that all methods operate on identical data, relieving researchers of the need to manually prepare datasets.
+
+\textbf{Shared resources.}
+MASLab unifies the underlying resources required by MAS methods, including LLMs and external tools. 
+It supports both externally hosted APIs and locally deployed models, covering a wide range of widely used LLMs. 
+The integrated toolkit provides common utilities such as code execution (secured via sandboxing~\cite{SandboxFusion}), web search, and image analysis—capabilities frequently required across MAS designs. 
+These shared components eliminate redundant engineering effort and facilitate reproducibility. 
+Moreover, MASLab is designed to be extensible and compatible with ongoing open-source developments (e.g., MCP~\cite{mcp}), ensuring long-term adaptability.
+
+\textbf{Unified configurations.}
+MASLab standardizes non-algorithmic configurations across all methods to ensure fair and consistent comparisons. 
+This includes aligning LLM settings (e.g., maximum token limits) and tool parameters (e.g., timeout durations for code execution).
+Such uniformity eliminates confounding factors introduced by implementation-level differences, allowing performance comparisons to reflect true methodological distinctions.
+
+\subsection{Evaluation of MAS}
+
+Accurate, automated, and scalable evaluation protocols are always essential for all AI fields.
+However, existing MAS works often adopt inconsistent evaluation procedures, introducing confounding variables that hinder fair comparison.
+For example, certain methods may be tailored to specific evaluation heuristics (e.g., rule-based string matching) which can be gamed by emphasizing format-specific prompts for agents, thereby inflating performance without reflecting true intelligence gains.
+These issues underscore the need for standardized, robust evaluation protocols that reflect genuine task-solving capabilities rather than formatting tricks.
+
+\textbf{Evaluating responses with ground-truth answers.}
+To address this, MASLab adopts a unified evaluation framework centered on LLM-based evaluation methods grounded in ground-truth answers, designed to assess semantic correctness rather than superficial formatting.
+We support two primary variants: 
+(1) A two-step pipeline using general-purpose LLMs, which first extracts a final answer from the MAS-generated output based on the query, and then compares it against the ground-truth to determine correctness;
+(2) A direct scoring approach using task-specific evaluators (e.g., xVerify~\cite{chen2025xverify}), which are fine-tuned to assess correctness across various domains.
+In addition, MASLab includes three commonly used rule-based evaluation strategies from the MAS literature.
+
+\begin{wrapfigure}{R}{0.6\textwidth}
+  \begin{center}
+  \vspace{-5mm}
+\includegraphics[width=0.6\textwidth]{figs/compare_evaluation.png}
+  \end{center}
+  \vspace{-3mm}
+  \caption{Evaluation (5 different protocols) of methods using Llama-3.3-70B-Instruct as the backend on MATH. The rankings of methods could be significantly different under different evaluation protocols, emphasizing the need for accurate and unified evaluation protocols.}
+  \vspace{-2mm}
+   \label{fig:compare_evaluation}
+\end{wrapfigure}
+Surprisingly, our empirical results on MATH~\cite{hendrycksmath2021} benchmark (Figure~\ref{fig:compare_evaluation}) show that evaluation protocol choice significantly affects both absolute scores and method rankings.
+For instance, under the LLM-based two-step evaluation, MAV~\cite{mav} ranks 1st, but drops to 10th under DyLAN’s rule-based scheme~\cite{dylan}.
+Conversely, DyLAN itself rises from 5th to 3rd. 
+Similarly, AgentVerse's accuracy drops from 79.0 to 25.6 when switching from the LLM-based two-step evaluation to the Hendrycks-style rule-based metric~\cite{hendrycksmath2021}.
+Manual inspection (Table~\ref{tab:evaluation_acc}) confirms the higher reliability of LLM-based evaluations, with both the two-step and xVerify approaches achieving over 98\% agreement with human judgments, whereas the best-performing rule-based method reaches only 65\%. 
+Considering performance-cost trade-off, MASLab defaults to using xVerify, while remaining open to improvements as evaluation methodologies evolve.
+
+
+\textbf{Evaluating coding tasks with test cases.}
+For coding tasks, where ground-truth labels are often unavailable, MASLab similarly promotes LLM-assisted evaluation.
+Since tools like xVerify are inapplicable in this setting, we employ a two-step approach: (1) an LLM extracts executable code from the MAS output given the original query, and (2) the extracted code is executed against the provided set of test cases to determine correctness.
+This process ensures that evaluation focuses on functional validity and abstracts away from inconsistencies in format or verbosity.
+All executions are sandboxed~\cite{SandboxFusion} to guarantee safety and consistency.
+
+\begin{table}[t]
+    \centering
+    \setlength{\tabcolsep}{3pt}
+    \caption{Results of general methods on diverse domains (\colorbox{blue!8}{mathematics}, \colorbox{purple!10}{science}, \colorbox{orange!10}{knowledge}, \colorbox{yellow!10}{medicine}, \colorbox{pink!10}{coding}). \colorbox{red!10}{Avg-V} and \colorbox{red!10}{Avg-R} denotes averaged accuracy value ($\uparrow$) and rank ($\downarrow$) across benchmarks. \textbf{Best} and \underline{second-best} numbers are highlighted.}
+    \label{tab:main}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{>{\columncolor{gray!10}}l>{\columncolor{blue!8}}c>{\columncolor{blue!8}}c>{\columncolor{blue!8}}c>{\columncolor{blue!8}}c>{\columncolor{purple!10}}c>{\columncolor{purple!10}}c>{\columncolor{orange!10}}c>{\columncolor{yellow!10}}c>{\columncolor{pink!10}}c>{\columncolor{pink!10}}c>{\columncolor{red!10}}c>{\columncolor{red!10}}c}
+    \toprule
+        Method & MATH & GSM-H & AQUA & AIME & SciBe & GPQA & MMLUP & MedMC & HEval & MBPP & Avg-V & Avg-R \\
+    \midrule
+    \midrule\multicolumn{13}{c}{Llama-3.3-70B-Instruct} \\
+Single~\cite{dubey2024llama} & 72.8 & 52.8 & 76.0 & 23.3 & 25.5 & 48.0 & 66.8 & 70.4 & 85.4 & 67.9 & 58.9 & 8.1 \small{$\pm$ 2.5} \\
+CoT~\cite{wei2022chain} & 74.4 & 57.0 & 76.8 & 26.7 & 24.7 & \underline{53.0} & 69.8 & \underline{73.8} & 85.4 & 69.7 & 61.1 & 5.5 \small{$\pm$ 2.8} \\
+SC~\cite{sc} & 76.2 & 53.4 & \underline{80.3} & \underline{30.0} & \textbf{27.9} & 52.5 & 70.6 & 72.6 & 82.3 & 69.7 & 61.6 & 4.8 \small{$\pm$ 2.8} \\
+AutoGen~\cite{wu2024autogen} & 72.8 & 53.0 & 79.5 & 20.0 & 21.9 & 41.9 & 66.0 & 69.2 & 51.2 & 62.9 & 53.8 & 9.9 \small{$\pm$ 2.5} \\
+Debate~\cite{debate1} & 78.4 & 53.6 & \underline{80.3} & \underline{30.0} & \textbf{27.9} & 51.0 & \textbf{73.6} & \textbf{75.0} & 84.8 & 69.7 & \underline{62.4} & \underline{3.5} \small{$\pm$ 1.9} \\
+MAD~\cite{debate2} & 76.2 & 52.6 & 78.3 & \textbf{33.3} & 23.7 & 50.0 & 69.8 & 71.0 & 75.0 & 56.9 & 58.7 & 8.1 \small{$\pm$ 3.1} \\
+AgentVerse~\cite{chen2023agentverse} & 78.6 & 51.2 & 79.5 & 23.3 & 25.7 & 51.0 & 70.4 & 72.6 & \textbf{87.8} & \textbf{71.3} & 61.2 & 4.4 \small{$\pm$ 3.2} \\
+DyLAN~\cite{dylan} & 77.6 & 53.6 & 78.3 & \textbf{33.3} & 26.7 & \textbf{54.0} & 70.4 & 72.6 & 82.9 & 70.1 & 62.0 & 4.7 \small{$\pm$ 2.8} \\
+MacNet~\cite{macnet} & 75.2 & 56.6 & 77.2 & 26.7 & 23.5 & 51.0 & 64.0 & 69.8 & \underline{86.6} & 67.1 & 59.8 & 7.2 \small{$\pm$ 3.0} \\
+MAV~\cite{mav} & 79.4 & 35.6 & 65.8 & \underline{30.0} & 24.3 & 45.0 & 61.0 & 68.6 & 78.0 & 69.1 & 55.7 & 9.3 \small{$\pm$ 3.0} \\
+AFlow-Math~\cite{aflow} & \textbf{82.2} & \underline{59.8} & 77.2 & 26.7 & 25.3 & 48.0 & 68.6 & 69.2 & 84.2 & 69.7 & 61.1 & 5.9 \small{$\pm$ 3.0} \\
+MAS-GPT~\cite{masgpt} & \underline{79.8} & \textbf{67.0} & \textbf{80.7} & \textbf{33.3} & \underline{26.9} & 48.5 & \underline{71.2} & 72.0 & \underline{86.6} & \underline{70.3} & \textbf{63.6} & \textbf{3.3} \small{$\pm$ 2.6} \\
+    \midrule\multicolumn{13}{c}{Qwen-2.5-72B-Instruct} \\
+Single~\cite{qwen2.5} & 82.4 & 63.2 & 79.5 & \underline{20.0} & \underline{28.1} & 45.0 & 69.8 & 67.6 & 88.4 & 76.5 & 62.1 & 6.2 \small{$\pm$ 2.4} \\
+CoT~\cite{wei2022chain} & 83.0 & 64.2 & 80.3 & 16.7 & 26.3 & 47.0 & 71.2 & 67.8 & \textbf{93.9} & 75.8 & 62.6 & 5.1 \small{$\pm$ 2.1} \\
+SC~\cite{sc} & \underline{86.0} & 63.2 & \textbf{83.5} & \underline{20.0} & \textbf{28.3} & \textbf{49.0} & \underline{73.0} & 69.0 & \underline{90.2} & 75.8 & \textbf{63.8} & \textbf{2.8} \small{$\pm$ 1.8} \\
+AutoGen~\cite{wu2024autogen} & 81.4 & 63.2 & 78.3 & 13.3 & 26.5 & 44.4 & 70.2 & 68.4 & 75.6 & 54.9 & 57.6 & 8.8 \small{$\pm$ 2.6} \\
+Debate~\cite{debate1} & 85.4 & 62.0 & 80.3 & \underline{20.0} & 26.9 & \textbf{49.0} & \textbf{74.0} & \underline{71.0} & \underline{90.2} & \underline{77.6} & \underline{63.6} & \underline{3.2} \small{$\pm$ 2.2} \\
+MAD~\cite{debate2} & 83.8 & 61.6 & 80.3 & \underline{20.0} & 26.9 & 47.0 & 65.6 & 67.4 & 72.0 & 66.3 & 59.1 & 7.6 \small{$\pm$ 3.4} \\
+AgentVerse~\cite{chen2023agentverse} & 82.8 & 57.6 & 79.5 & 13.3 & 25.9 & 46.0 & 72.0 & \textbf{71.2} & 86.6 & \underline{77.6} & 61.2 & 6.4 \small{$\pm$ 3.1} \\
+DyLAN~\cite{dylan} & 84.2 & 62.4 & \underline{82.3} & \underline{20.0} & 24.7 & 43.4 & 71.2 & 70.0 & 79.9 & 76.8 & 61.5 & 6.1 \small{$\pm$ 3.2} \\
+MacNet~\cite{macnet} & 82.2 & 63.0 & 80.3 & 10.0 & 25.1 & 42.4 & 65.4 & 63.8 & 87.2 & 75.5 & 59.5 & 8.5 \small{$\pm$ 3.3} \\
+MAV~\cite{mav} & 82.2 & 20.4 & 48.0 & 0.0 & 14.5 & 46.5 & 61.2 & 65.4 & 76.2 & 74.0 & 48.8 & 9.9 \small{$\pm$ 3.2} \\
+AFlow-Math~\cite{aflow} & 84.8 & \textbf{68.4} & 78.7 & \textbf{23.3} & \textbf{28.3} & \underline{47.5} & 69.2 & 66.2 & 87.8 & 75.5 & 63.0 & 5.7 \small{$\pm$ 3.5} \\
+MAS-GPT~\cite{masgpt} & \textbf{87.0} & \underline{65.4} & 78.3 & \underline{20.0} & \underline{28.1} & \textbf{49.0} & 72.6 & 66.2 & 89.0 & \textbf{78.0} & 63.4 & 4.0 \small{$\pm$ 3.2} \\
+    \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/size_acc_cost_xverify.png}
+    \caption{Trade-off between performance and cost. For fair comparisons, we only plot methods that do not involve tool usage. Methods above the fitted line are more cost-effective.}
+    \label{fig:acc_cost}
+\end{figure}
+
+\section{Empirical Study}
+
+\textbf{Experimental setups.}
+Our experiments cover Llama (Llama-3.3-70B-Instruct~\cite{dubey2024llama}), Qwen (Qwen-2.5-7/14/32/72B-Instruct~\cite{qwen2.5}), and GPT (GPT-4omini/4.1mini/4.1~\cite{gpt-4o-mini,gpt-4o,gpt-4.1}) LLMs.
+We set the default max token limit as 2048 with a temperature of 0.5.
+Our datasets cover domains including mathematics (MATH~\cite{hendrycksmath2021}, GSM-Hard~\cite{gsm-hard}, AQUA-RAT~\cite{aqua-rat}, AIME-2024), science (SciBench~\cite{wangscibench}, GPQA~\cite{rein2023gpqa}), knowledge (MMLU-Pro~\cite{wang2024mmlupro}), medicine (MedMCQA~\cite{pal2022medmcqa}), coding (HumanEval~\cite{humaneval}, MBPP~\cite{mbpp}), and AI-assistant (GAIA~\cite{mialon2024gaia}).
+
+\subsection{Current Landscape of MAS Methods}
+
+\textbf{Comparisons of general MAS on diverse domains.}
+We show the current landscape of MAS methods (those for general tasks) by comparing them on diverse domains, including mathematics, science, knowledge, medicine, and coding in Table~\ref{tab:main}.
+From the table, we observe that 
+(1) no method rules on all domains, suggesting that there is large room for future methods that could generalize well on more domains.
+(2) Using different backend models may result in different landscapes.
+For example, both AgentVerse~\cite{chen2023agentverse} and DyLAN~\cite{dylan} achieve better performance than Single using Llama-3.3-70B-Instruct while worse using Qwen-2.5-72B-Instruct.
+One hypothesis is that Llama-3.3-70B-Instruct has better collaboration capability than Qwen-2.5-72B-Instruct as we see that the gap between best-performing MAS and Single reduce from 4.7\% to 1.7\%.
+This suggests an interesting future direction of exploring the most suitable LLM for MAS or training more appropriate ones.
+(3) Generally, MAS-GPT~\cite{masgpt} and LLM-Debate~\cite{debate1} are two methods that achieve the best performance across domains and LLMs, mainly due to their dataset-agnostic designs.
+
+In addition to performance comparison, we compare performance-cost trade-offs among methods in Figure~\ref{fig:acc_cost} and Figure~\ref{fig:acc_cost_full}.
+From the Figure, we see that generally methods with better performances incur more token consumptions, where methods above the fitted line are more cost-effective.
+
+\textbf{Examining coding-specific methods.}
+We compare two coding-specific methods, MapCoder~\cite{islam2024mapcoder} and EvoMAC~\cite{hu2025selfevolving}, on HumanEval and MBPP, using GPT-4o-mini and LLama-3.3-70B-Instruct as backends.
+Results in Figure~\ref{fig:coding} show that the performance is closely tied to the underlying LLM.
+Specifically, EvoMAC~\cite{hu2025selfevolving} consistently outperforms others when paired with GPT-4o-mini, whereas MapCoder~\cite{islam2024mapcoder} achieves the best results with LLaMA-3.3-70B-Instruct, especially on MBPP.
+This discrepancy may be attributed to backend-specific prompt optimization: e.g., EvoMAC~\cite{hu2025selfevolving} was primarily developed and tuned on GPT-4o-mini in its original work.
+
+\textbf{Examining optimization-based methods.}
+We compare two optimization-based methods, AFlow~\cite{aflow} and GPTSwarm~\cite{zhugegptswarm}, on the MATH~\cite{hendrycksmath2021} dataset.
+Following AFlow's~\cite{aflow} original setup, we apply Claude-3.5-Sonnet~\cite{claude3.5} as the optimizer and GPT-4o-mini~\cite{gpt-4o-mini} as the executor.
+The evaluation protocol during testing matches that used in the optimization process (AFlow’s rule-based evaluation).
+Figure~\ref{fig:optimization} reports the required cost for optimization and the achieved performance.
+We see that AFlow~\cite{aflow} incurs the most optimization cost while also achieving the best performance;
+while GPTSwarm~\cite{zhugegptswarm} experiences performance drop after optimization in this setup.
+This discrepancy likely stems from AFlow’s LLM-based optimization being more effective than GPTSwarm’s numerical approach, suggesting that the strategy of optimization should be carefully considered to ensure effectiveness.
+
+
+\begin{figure*}[t]
+  \centering
+  \begin{minipage}{0.64\textwidth}
+    \includegraphics[width=\linewidth]{figs/coding.png}
+    % \vskip -0.15in
+    \vspace{-6mm}
+    \caption{Examining coding-specific methods (MapCoder~\cite{islam2024mapcoder} and EvoMAC~\cite{hu2025selfevolving}). Using GPT-4o-mini, EvoMAC performs best; with Llama-3.3-70B-Instruct, MapCoder leads.}
+    \label{fig:coding}
+  \end{minipage}
+  \hspace{2mm}
+  \begin{minipage}{0.31\textwidth}
+    \includegraphics[width=\linewidth]{figs/optimization_based.png}
+    \vspace{-4mm}
+    \caption{Optimization-based methods (GPTSwarm~\cite{zhugegptswarm} and AFlow~\cite{aflow}) on MATH dataset.}
+    \label{fig:optimization}
+  \end{minipage}
+% \vskip -0.2in
+\end{figure*}
+
+\begin{figure}[t]
+    \centering
+    \vspace{-2mm}
+    \includegraphics[width=1.0\linewidth]{figs/gaia.png}
+    \vspace{-4mm}
+    \caption{Examining MAS as AI assistants on GAIA~\cite{mialon2024gaia}. (1) Equipping agents with tools (OWL-Roleplaying and MASLab-ReAct) significantly improves MAS performance. (2) The performance gains are more significant using stronger LLMs. (3) Our MASLab-ReAct performs the best.}
+    \vspace{-3mm}
+    \label{fig:gaia}
+\end{figure}
+
+\textbf{Examining MAS as AI assistants.}
+While our earlier experiments primarily focus on standard LLM benchmarks—where improvements from MAS may sometimes appear marginal—this is due to the current lack of benchmarks specifically tailored to MAS.
+Nevertheless, such evaluations help establish a broad understanding of MAS performance across diverse scenarios.
+
+Here, we evaluate MAS on a more suitable benchmark: GAIA~\cite{mialon2024gaia}, which is designed to assess tool-augmented AI assistants.
+In this experiment, we provide agents with a suite of tools including a code executor, web search engine, document reader, and image/audio/video analysis utilities (see details in Section~\ref{sec:gaia_details}).
+We consider two representative MAS methods with iterative planning and action: OWL-Roleplaying~\cite{owl2025}, and our implemented MASLab-ReAct, inspired by the ReAct paradigm~\cite{react}.
+We run experiments using two recent OpenAI models—GPT-4.1-mini and GPT-4.1~\cite{gpt-4.1}.
+As shown in Figure~\ref{fig:gaia}, our findings are as follows:
+(1) Equipping agents with tools significantly improves MAS performance, surpassing both single-agent baselines and tool-less MAS methods.
+(2) The performance gains from tools are more pronounced when stronger LLM backends are used. 
+For example, MASLab-ReAct achieves a 91\% relative improvement over the single-LLM baseline when using GPT-4.1-mini, and an impressive 171\% improvement with GPT-4.1.
+(3) Table~\ref{tab:gaia} presents the performance–cost trade-off. MASLab-ReAct not only achieves the best performance but also consumes less than half the tokens compared to the second-best method, OWL-Roleplaying.
+We provide a failure analysis in Figure~\ref{fig:error_gaia}.
+
+\subsection{Scaling Properties}
+
+\begin{figure*}[t]
+  \centering
+  \begin{minipage}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{figs/method_scaling_GPQA-Diamond.png}
+    % \vskip -0.15in
+    \vspace{-5mm}
+    \caption{Examining compute-scaling properties on GPQA-Diamond. MASLab offers a platform for readily examining and choosing methods. Here, we see Self-Consistency and AgentVerse achieve better cost-performance trade-off.}
+    \vspace{-3mm}
+    \label{fig:method_scaling}
+  \end{minipage}
+  \hspace{2mm}
+  \begin{minipage}{0.492\textwidth}
+    \includegraphics[width=\linewidth]{figs/model_size_scaling.png}
+    % \vskip -0.15in
+    \caption{Examining size-scaling proprieties on GPQA-Diamond and MMLU-Pro. LLM-Debate performs the best overall. Some methods (e.g., AgentVerse) require the model to attain sufficient capability before MAS can be effective.}
+    \vspace{-3mm}
+    \label{fig:size_scaling}
+  \end{minipage}
+% \vskip -0.2in
+\end{figure*}
+
+
+As a unified codebase, our MASLab offers a platform for researchers and practitioners to readily examine, explore, and choose different methods.
+For example, we could use MASLab to explore the scaling properties of different methods by simply modifying some of the configurations.
+
+\textbf{Scaling compute / inference times.}
+As examples, we compare three configurable methods on the GPQA-Diamond~\cite{rein2023gpqa} benchmark using Llama-3.3-70B-Instruct~\cite{dubey2024llama} as the backend, including Self-Consistency~\cite{sc}, LLM-Debate~\cite{debate1}, and AgentVerse~\cite{chen2023agentverse}, to examine which method has the best compute-scaling property.
+The configurable parameters are:
+the number of parallel solutions for Self-Consistency~\cite{sc};
+the number of debate agents and debate rounds for LLM-Debate~\cite{debate1};
+the number of recruiting agents, loop turns, and criticizing rounds for AgentVerse~\cite{chen2023agentverse}.
+We plot the comparisons in Figure~\ref{fig:method_scaling}.
+We see that
+(1) Self-Consistency and AgentVerse achieve the best performance-cost trade-off as their dots are mostly on the upper left.
+(2) Scaling the compute can generally enhance the performance of these examined methods.
+For AgentVerse, increasing the number of loop turns from 3 to 5 brings the most performance improvement.
+For LLM-Debate, increasing the number of agents is more effective than increasing the number of rounds in this case.
+
+\textbf{Scaling backend model size.}
+We evaluate the impact of scaling backend model size by comparing three representative MAS methods and a single-agent baseline on GPQA-Diamond~\cite{rein2023gpqa} and MMLU-Pro~\cite{wang2024mmlupro}.
+To this end, we adopt the Qwen-2.5 instruct series, which provides a family of models with varying sizes—7B, 14B, 32B, and 72B—enabling controlled scaling experiments.
+As shown in Figure~\ref{fig:size_scaling}, we observe the following:
+(1) Overall, the performance of all methods improves with increasing model size, suggesting that stronger LLM backends generally benefit both MAS and single-agent approaches.
+Notably, LLM-Debate achieves particularly strong gains on GPQA-Diamond.
+
+(2) On MMLU-Pro, two outliers emerge: AgentVerse with 7B and 14B backends shows significantly degraded performance compared to other methods.
+Manual inspection reveals that these smaller models often fail to follow instruction formats correctly, causing outputs to deviate from the expected response schema (see Section~\ref{sec:failure} for details).
+(3) These observations indicate that MAS methods relying on precise formatting, intermediate reasoning steps, or structured inter-agent communication, such as role assignment, voting, or sequential planning, may require a minimum threshold of language competency from the backend model.
+Below this threshold, the benefits of MAS design may be overshadowed by failures in basic task adherence.
+This highlights an interesting future direction: designing MAS methods that are more robust to backend model limitations, or adapting interaction protocols to better accommodate smaller, less capable LLMs.
+
+\subsection{Failure Analysis}
+\label{sec:failure}
+
+Here, we explore the reasons why MAS methods fail by analyzing the error logs.
+
+\begin{wraptable}{R}{0.42\textwidth}
+  \centering
+  \setlength\tabcolsep{3pt}
+  \vspace{-5mm}
+  \caption{Error analysis of AgentVerse~\cite{chen2023agentverse} using Qwen-2.5-14B-Instruct as the backend. Expect for that answers are wrong, all errors are caused by format errors.}
+    \label{tab:error_agentverse}
+  \centering
+  \begin{tabular}{l|c>{\columncolor{gray!10}}cc}
+    \toprule
+    Dataset     &   Wrong & Format & Others \\
+    \midrule
+    GPQA-D  &   79.66\% &   22.34\% &   0.00\% \\
+    MMLU-Pro&   47.11\% &   52.89\% &   0.00\% \\
+    MATH    &   42.56\% &   57.44\% &   0.00\% \\
+    \bottomrule
+  \end{tabular}
+    \vspace{-2mm}
+\end{wraptable}
+\textbf{Format errors.}
+Format error is a common type of failure in many MAS methods, where LLMs fail to produce responses in the required format.
+A notable example occurs during the recruiting step in AgentVerse~\cite{chen2023agentverse}, where LLMs are tasked with outputting a predefined number of agents in a specific format.
+To investigate this, we analyze an outlier case from Figure~\ref{fig:size_scaling} using Qwen-2.5-14B-Instruct as the model backend.
+We classify incorrect outputs into three categories: wrong answers (i.e., the MAS produces an incorrect final answer), format errors (i.e., the MAS fails to produce a final answer due to formatting issues), and others.
+As shown in Table~\ref{tab:error_agentverse}, format errors account for a significant portion of failures.
+Similar issues are observed in other methods like MAD~\cite{debate2} and DyLAN~\cite{dylan}.
+These findings underscore a critical challenge in LLM-based MAS: success hinges not only on reasoning or task comprehension but also on the model’s ability to meet strict formatting requirements.
+Improving format adherence or relaxing these constraints could significantly enhance system reliability.
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+   \centering
+   \vspace{-3mm}
+    \includegraphics[width=0.5\textwidth]{figs/gaia_error_analysis.png}
+    \vspace{-3mm}
+    \caption{Error analysis of OWL-Roleplaying on GAIA~\cite{mialon2024gaia} using GPT-4.1 as the model backend.}
+    \vspace{-3mm}
+    \label{fig:error_gaia}
+\end{wrapfigure}
+\textbf{Error analysis in tool-augmented scenario.}
+We investigate the performance of OWL-Roleplaying on the GAIA benchmark, which encompasses the most diverse components during task-solving, making it an ideal case study for comprehensive failure analysis.
+Our analysis reveals that, in this context, failure cases account for 66\% of all samples.
+However, only 36.7\% of these failures stem from incorrect final answers, while 45.0\% are attributed to errors in tool usage.
+These findings suggest that future research should focus not only on enhancing agents' tool-handling capabilities but also on improving the quality of tools themselves—particularly their stability and efficiency—to create more robust and effective MAS.
+We believe that advancements in MCP tools within the open-source community could significantly contribute to the development of MAS.
+
+\section{Conclusions}
+
+This paper introduces MASLab, a unified, comprehensive, research-friendly codebase for LLM-based multi-agent systems (MAS).
+(1) MASLab integrates 20+ established methods across multiple domains, each rigorously validated by comparing step-wise outputs with its official implementation.
+(2) MASLab unifies the whole pipeline from data pre-processing to evaluation, ensuring that all non-algorithmic factors are well aligned for fair comparisons.
+(3) MASLab implements methods in a shared streamlined structure, lowing entry barriers and simplifying secondary development.
+Extensive experiments covering 10+ benchmarks and 8 LLMs comprehensively showcase the current landscape of MAS methods.
+We also provide several analysis, such as exploring the effects of different evaluation protocols in existing works, the compute- and size-scaling properties.
+Notably, we demonstrate that the discrepancies in evaluation protocols can lead to substantial variation in performance rankings, directly underscoring the importance of such as unified codebase.
+MASLab will continue to evolve, tracking the latest developments in the field and incorporating advanced benchmarks, and welcome diverse contributions from the broader open-source community.
+
+
+
+\medskip
+{
+\small
+\bibliographystyle{unsrt}
+\bibliography{ref}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\appendix
+
+\begin{table}[t]
+    \centering
+    \begin{tabular}{c|ccccc}
+        \toprule
+        Protocol & LLM-2step & LLM-xVerify & Rule-HF & Rule-DyLAN & Rule-Hendry. \\
+        \midrule
+        Accuracy & \textbf{98.59} & \textbf{98.35} & 41.65 & 65.65 & 27.29 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Accuracy comparisons of 5 different evaluation protocols by human's manual check. This measurement is based on MATH dataset. The two LLM-based evaluation protocols achieve significantly higher agreement with human evaluation. LLM-2step is based on two-time inference of Llama-3.3-70B-Instruct while LLM-xVerify is based on one-time inference of a 9B-sized LLM. Generally, LLM-xVerify achieves the best effectiveness-efficiency trade-off.}
+    \label{tab:evaluation_acc}
+\end{table}
+
+
+\begin{table}[t]
+    \centering
+    \begin{tabular}{lcccccccc}
+    \toprule
+    \multirow{2}{*}{Method} & \multicolumn{2}{c}{Level 1} & \multicolumn{2}{c}{Level 2} & \multicolumn{2}{c}{Level 3} & \multicolumn{2}{c}{All} \\
+    & Acc & Cost & Acc & Cost & Acc & Cost & Acc & Cost \\
+    \midrule
+    \multicolumn{9}{c}{GPT-4.1-mini}\\
+    Single & 16.98 & 663 & 16.28 & 353 & 0.0 & 1529 & 13.94 & 638\\
+    SC & 22.64 & 4504 & 15.12 & 2412 & 0.0 & 8484 & 15.15 & 4041\\
+    Debate & 24.53 & 4388 & 16.28 & 4870 & 7.69 & 12972 & 17.58 & 5992\\
+    AgentVerse & 32.08 & 7174 & 15.12 & 7368 & 7.69 & 15753 & 19.39 & 8627\\
+    OWL-Roleplaying & 35.85 & 51543 & 25.58 & 58881 & 11.54 & 107635 & 26.67 & 64206\\
+    ReAct-MASLab & 33.96 & 19866 & 26.74 & 41768 & 11.54 & 55743 & 26.67 & 36935\\
+    \midrule
+    \multicolumn{9}{c}{GPT-4.1}\\
+    Single & 24.53 & 394 & 16.28 & 470 & 3.85 & 1378 & 16.97 & 589\\
+    SC & 20.75 & 3037 & 16.28 & 3362 & 11.54 & 11786 & 16.97 & 4585\\
+    Debate & 32.08 & 4103 & 24.42 & 4339 & 11.54 & 11564 & 24.85 & 5402\\
+    AgentVerse & 28.30 & 6876 & 18.60 & 5995 & 3.85 & 11034 & 19.39 & 7072\\
+    OWL-Roleplaying & 43.40 & 48073 & 30.23 & 101827 & 26.92 & 101986 & 33.94 & 84586\\
+    ReAct-MASLab & 56.60 & 18278 & 47.67 & 35636 & 19.23 & 43525 & 46.06 & 31303\\
+
+    \bottomrule
+    \end{tabular}
+    \caption{Comparisons of performance and cost on GAIA. The performance is evaluated by accuracy while the cost is evaluated by the number of costed text tokens per query.}
+    \label{tab:gaia}
+\end{table}
+
+\begin{table}[t]
+    \centering
+    \begin{tabular}{c|ccc|cc}
+    \toprule
+        \multirow{2}{*}{Run} & \multicolumn{3}{c|}{Optimization} & \multicolumn{2}{c}{Inference}\\
+        & Optimizer Cost & Executor Cost & Val Acc & Test Acc & Cost \\
+    \midrule
+        MASLab & 0.58251\$ & 19.05964\$ & 54.52 & 65.20 & 1.489\$\\ 
+        Official & - & 19.52409\$ & 53.27 & 65.06 & 2.231\$ \\
+    \bottomrule
+    \end{tabular}
+    \caption{Comparisons of our implementation of AFlow~\cite{aflow} and the official one. The optimizer is Claude-3.5-Sonnet while the executor is GPT-4o-mini. The official code does not record the optimizer cost. This table verifies the effectiveness of our re-implementation.}
+    \label{tab:repeat_aflow}
+\end{table}
+
+\section{Limitations}
+\label{sec:limitation}
+
+Despite being the most comprehensive codebase in LLM-based MAS, there are still methods that have not been incorporated yet.
+Secondly, despite that most of the benchmarks in this paper are commonly used in MAS literature, they are not specifically designed for the field of MAS.
+However, this is not a unique limitation of this paper.
+We will continually working on this codebase to support more methods and benchmarks.
+We also plan to design new benchmarks specifically for MAS in the future.
+
+
+
+\section{Broader Impacts}
+\label{sec:broader_impacts}
+
+This paper introduces a unified, comprehensive, and research-friendly codebase for the community of LLM-based MAS.
+This resource alleviates the burden of reproduction for researchers, enabling them to allocate more effort to innovative algorithm design. 
+It fosters fair comparisons across studies, lowers the entry barrier for newcomers, and facilitates secondary development, thereby accelerating progress in the field.
+
+While potential negative impacts of our approach mirror those associated with large language models—such as ethical concerns and risks of misuse—these issues are intrinsic to LLM usage in general and do not necessitate further elaboration here.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/size_acc_cost_xverify_full.png}
+    \caption{Examinations of trade-offs of performance and cost of nine MAS methods across 10 benchmarks.}
+    \label{fig:acc_cost_full}
+\end{figure}
+
+\section{Implementation Details}
+\label{sec:implementation_details}
+
+\subsection{Computational Resources}
+\label{sec:computation}
+
+For open-source LLMs, we leverage the vLLM~\cite{vllm} library launch LLM service.
+For 32B-, 70B-, and 72B-sized LLMs, we use 4 NVIDIA A100 GPUs;
+for 14B-sized LLMs, we use 2 NVIDIA A100 GPUs;
+for 7B-sized LLMs, we use 1 NVIDIA A100 GPU.
+
+\subsection{GAIA}
+\label{sec:gaia_details}
+
+GAIA is a challenging benchmark for general AI assistants. 
+In our experiments, we utilize the validation set of GAIA, which contains a total of 165 samples categorized into three levels of difficulty. 
+It requires the MAS to engage in multi-turn collaboration to solve the tasks. 
+Both the OWL-Roleplaying and React-MASLab methods are constrained to a maximum of 12 turns per task.
+
+\textbf{Toolkits.} All methods share a common set of toolkits, including a web interaction tool, a document processing tool, a video analysis tool, an audio analysis tool, a code execution tool, an image analysis tool, a search tool, and an Excel tool.
+Several of these tools incorporate multimodal large language models. 
+Except for the audio analysis tool, all such tools utilize the same model version as the one configured in the main experimental pipeline.
+The web interaction tool employs the Playwright library to simulate browser behavior.
+However, we observe occasional instability during experimentation. 
+To reduce both runtime and token consumption, we impose strict operational constraints: a 30,000 ms timeout for website navigation, a 20,000 ms timeout for page loading, and a hard cap of 10 web interaction turns per task. 
+Tasks exceeding this limit are forcibly terminated.
+The document processing tool supports parsing a wide range of document formats. 
+For web content extraction and parsing specifically, we employ an external tool called Firecrawl.
+The video analysis tool extracts 28 evenly spaced frames from each video and uses OpenAI’s Whisper-1 model to transcribe the audio into text. 
+These frames, along with the transcribed text, are jointly input into a vision-language model for multimodal analysis.
+The audio analysis tool processes audio files by encoding them in Base64 format and feeding them into the GPT-4o-mini-audio-preview model for analysis.
+The code execution tool operates by spawning a subprocess that simulates the writing and execution of Python code in a sandboxed environment.
+The search tool integrates multiple retrieval backends such as Google, DuckDuckGo, Wikipedia, and Archive.org, allowing agents to gather information from diverse sources.
+
+\textbf{Memory.} We simplify the process of memory storage and retrieval for the model. 
+To strike a balance between performance and token efficiency during memory retrieval, we impose a maximum limit of 51,200 tokens on the retrieved content. 
+Similarly, we cap the maximum token length for model output at 12,800 tokens.
+
+\textbf{Failure analysis.} Throughout the experiments, we log MAS outputs and failure cases. 
+After the experiments, we select results from the OWL-Roleplaying method running on the GPT-4.1 model and perform a detailed categorization and statistical analysis of the errors encountered.
+
+\section{Re-Implementation Notes}
+\label{sec:reimplementation_notes}
+
+\subsection{MAS for General Tasks}
+
+\textbf{AutoGen~\cite{wu2024autogen}.}
+Based on the examples proposed in the paper of AutoGen~\cite{wu2024autogen} and the guidelines provided in its official documentation (\url{https://microsoft.github.io/autogen/0.2/}), we have developed a foundational workflow that embodies its conversational characteristics, tailored to solve basic text-level problems with code execution and memory retention.
+
+\textbf{AgentVerse~\cite{chen2023agentverse}.}
+AgentVerse provides several dataset-specific versions including those for MGSM and HumanEval.
+we have replicated workflows corresponding to datasets such as HumanEval and MGSM, aligning with those presented in the original AgentVerse repository (\url{https://github.com/OpenBMB/AgentVerse}) and its paper.
+Additionally, we develop a general workflow capable of solving common problems.
+
+\textbf{LLM-Debate~\cite{debate1}.}
+We notice that the official code in \url{https://github.com/composable-models/llm_multiagent_debate} is not readily executable and that the code relies on an string operation for extracting answers from responses, which frequently causes errors.
+Therefore, we slightly modify the code by making it bug-free and rely on LLM for aggregating final answers.
+This significantly enhance the performance of LLM-Debate as it no longer encounter errors during execution.
+
+\textbf{GPTSwarm~\cite{zhugegptswarm}.}  
+The official code of GPTSwarm \url{https://github.com/metauto-ai/GPTSwarm/tree/main/experiments} contains versions for MMLU, HumanEval, GAIA, Crosswords. We implement the version of HumanEval and MMLU, and based on the logic of MMLU, we develop a version for general problem-solving.
+
+\textbf{DyLAN~\cite{dylan}.}  
+The official code in \url{https://github.com/SALT-NLP/DyLAN} uses a custom answer extraction function to return final mathematical results.
+To ensure fair comparison across evaluation protocols, we modify the return logic of the original code while preserving the task-specific initialization parameters as defined in the original implementation.
+
+\textbf{Self-Refine~\cite{Self-refine}.}  
+The official implementation in \url{https://github.com/madaan/self-refine} provides dataset-specific prompt examples.
+Following its logic for solving mathematical problems, we develop code for general problem-solving. Additionally, since the original code’s extraction logic for mathematical problems is not robust and often results in syntactically incorrect code, we redesign the extraction function to more effectively extract executable code from raw LLM responses.
+
+\textbf{MacNet~\cite{macnet}.}  
+We simplify the structure of waiting.py in \url{https://github.com/OpenBMB/ChatDev/tree/macnet} when reproducing MacNet, but keep its functionality consistent, mainly in terms of high maintainability and memory safety. 
+In addition to this, we develop a version for general cases according to their implementation for SRDD.
+
+\textbf{Reflexion~\cite{shinn2023reflexion}.}  
+For the method in \url{https://github.com/noahshinn/reflexion}, we implement the HumanEval and MBPP modes for programming tasks.
+Additionally, based on the logic of the programming tasks, we develop a version for general problem-solving.
+
+\textbf{ADAS~\cite{adas}.}
+ We notice that the official code in \url{https://github.com/ShengranHu/ADAS} does not support flexible selection of execution models, which makes it difficult to evaluate the effect of the MAS module and to develop a heterogeneous MAS version.
+ Therefore, we slightly modify the code to fix existing bugs and to allow users to specify both the meta LLM and the execution LLM during optimization, as well as choose the execution model during inference.
+ We also set the temperature to zero and ensure that when using GPT-3.5 as the execution model (same as in the original repo), the output remains exactly the same.
+ These improvements significantly enhance the compatibility and extensibility of ADAS.
+
+\textbf{AFlow~\cite{aflow}.}  
+The official code in \url{https://github.com/FoundationAgents/MetaGPT/tree/main/examples/aflow} and \url{https://github.com/FoundationAgents/AFlow} is very complex and even buggy, we simplify the format and make sure that the core parts are fully aligned and bug free. 
+In addition we use AsyncOpenAI when reproducing AFlow to speed up the optimization.
+
+\textbf{MAV~\cite{mav}.}  
+We reproduce the MATH and MMLU versions of MAV and develope a general version based on the MATH version.
+
+\subsection{MAS for Coding Tasks}
+
+\textbf{MetaGPT~\cite{hongmetagpt}.}  
+MetaGPT is an intricate system that presents a considerable challenge to analysis.
+Our research reveals that the efficacy of its communication infrastructure on the entire system is negligible, and its practical impact is confined to modest-scale projects.
+To facilitate comprehension, we streamline it into a linear framework, aligning it with the structure of the original paper.
+In fact, we find that the existing structure cannot be applied to datasets such as HumanEval and MBPP.
+
+\textbf{ChatDev~\cite{qian2024chatdev}.}
+ChatDev primarily focuses on the domain of software development.
+By leveraging natural language processing techniques, ChatDev enables seamless automation of the entire software development lifecycle, including the generation of GUIs (graphical user interfaces). 
+The complexity of the resulting software is closely tied to the specificity of user-defined requirements.
+Based on the official ChatDev paper (\cite{qian2024chatdev})  and its official repository (\url{https://github.com/OpenBMB/ChatDev}), we adapted a ChatDev workflow within the MAS-Lab framework tailored to SRDD (Software Requirement Description Dataset), aligning with the design principles and capabilities demonstrated in the original ChatDev system.
+
+\textbf{MapCoder~\cite{islam2024mapcoder}.}
+Our implementation follows the official codebase from \url{https://github.com/Md-Ashraful-Pramanik/MapCoder}, preserving its core methodology.
+However, we note that the original implementation uses a pre-processed version of the HumanEval dataset, which includes example test cases.
+To ensure a fair comparison across different methods, we do not use this pre-processed version.
+Instead, we augment the framework with a function that dynamically extracts test cases from the original HumanEval prompts.
+This modification does not affect MapCoder's core logic but ensures all baselines are evaluated under identical conditions.
+
+\textbf{EvoMAC~\cite{hu2025selfevolving}.}
+We collaborate with the authors of EvoMAC, who provide their official implementation to be integrated into our framework.
+The method remains unchanged. Together with the authors, we release this joint implementation as part of our open-source framework, maintaining full transparency and reproducibility.
+
+\subsection{MAS for Mathematical Tasks}
+
+\textbf{MACM~\cite{leimacm}.}  
+MACM is an MAS method specialized in solving mathematical problems using the code interpreter tool to assist problem solving.
+Since their official code is specifically designed for the usage of OpenAI's Assistants interface, we follow the same LLM usage for this particular case.
+In the future, we plan to extend it to support OpenAI's chat mode.
+
+\subsection{MAS for Scientific Tasks}
+
+\textbf{MedAgents~\cite{tang2024medagents}.}  
+The official code in \url{https://github.com/gersteinlab/MedAgents} supports multiple working modes.
+We fully reproduce all modes and set the default mode to match the original repository's default configuration, keeping all other external parameters consistent with the original defaults.
+
+\subsection{MAS for Tool-Required Tasks}
+
+\textbf{OWL-Roleplaying~\cite{owl2025}.}
+OWL (\url{https://github.com/camel-ai/owl}) is a framework for multi-agent collaboration.
+This framework includes OWL-Roleplaying as a MAS method specifically designed for the GAIA benchmark~\cite{mialon2024gaia}.
+This framework may introduce massive token consumption for each specific task/query.
+Considering the research-friendly nature of the our MASLab framework, several trade-offs and simplifications are made during the adaptation of this method to MASLab, with a focus on enhancing code readability and reducing computational costs.
+Overall, the main process of OWL is maintained during the adaptation while we limit the maximum retrying times considering economy.
+For example, we set stricter limitations on the use of the web tool to mitigate the substantial token costs associated with frequent web interactions.
+
+\textbf{ReAct-MASLab~\cite{react}.}
+Building upon the toolkits from OWL, we propose a method ReAct-MASLab inspired by the ReAct~\cite{react} method.
+This method achieves better performance with lower cost compared to OWL-Roleplaying.
+
+
+\end{document}

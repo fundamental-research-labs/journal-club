@@ -1,0 +1,197 @@
+\vspace{-5pt}
+\section{\ours Benchmark}\label{sec:method}
+\vspace{-5pt}
+
+We introduce the \ours benchmark, which encompasses \numexamples real computing tasks defined and executed on Ubuntu. 
+Additionally, we provide a set of \numexampleswindows tasks for Windows built on the \ours environment.~\footnote{Due to copyright issues, these Windows tasks require further activation by the user.}
+The environment preparation, annotation process, data statistics, and human performance are described in this section.
+
+
+\vspace{-5pt}
+\subsection{Operating System and Software Environments}
+
+\ours supports real operating systems, including Windows, macOS, and Ubuntu, for the development of automated computer agents. 
+For development purposes, we offer an extensive set of examples on Ubuntu and its open-source applications, leveraging their open-source nature and more accessible APIs for task setting and evaluation. 
+We also provide annotated testing examples for Windows, focusing on applications with similar functionalities.
+For the first time, our real OS environments enable us to define all kinds of computer tasks, including those that involve interacting with multiple applications (e.g., Chrome and file manager) and interfaces (GUIs and CLIs).
+Considering availability, the strength of the user community, and diversity, we mainly focus on eight representative applications as well as the basic ones system provide: 
+Chrome for web browsing, VLC for media playback, Thunderbird for email management, VS Code as a coding IDE, and LibreOffice (Calc, Writer, and Impress) for handling spreadsheets, documents, and presentations respectively, GIMP for image editing, and other basic OS apps like terminal, file manager, image viewer, and PDF viewer.
+Each example drawn from these applications separate or in combination showcases distinct operational logic and necessitates skills including commonsense knowledge, high-resolution perception, mastery of software shortcuts, and the precise controlling of mouse and keyboard movements.
+For more details, check App.~\ref{app:os_selection} and~\ref{app:software_selection}.
+
+
+\subsection{Tasks}
+\vspace{-5pt}
+We create a benchmark suite of \numexamples real-world computer tasks on Ubuntu environment collected from authors and diverse sources such as forums, tutorials, guidelines, \textit{etc.}, to show the capability for open-ended task creation within \ours.
+Each example is carefully annotated with a natural language instruction, 
+a setup configuration with corresponding files and setup actions for initialization of initial states upon our provided VM image, 
+and a manually crafted evaluation script to check if the task is successfully executed.
+We also adapt 43 tasks from the Ubuntu set for analytic usage on Windows.
+Overall, it takes 9 computer science students (all student authors) over 3 months, consuming approximately 1800 man-hours (650 hours on single-app tasks, 750 hours on workflow tasks and 400 hours for double-checking).
+
+\paragraph{Task instructions and scenarios}
+
+To draw the most diverse and close-to-reality usage cases, we explore several types of resources, including official guidelines \& tutorials, video pieces giving tips and tutorials on the Internet (\textit{e.g.}, TikTok and YouTube), how-to websites (\textit{e.g.}, WikiHow), Q\&A forums (\textit{e.g.},
+Reddit, Quora, Superuser, \& StackOverflow), formal video courses (\textit{e.g.}, Coursera and Udemy), and publicly-available personal blogs \& guidelines.
+The detailed resources used in our benchmark are listed in 
+App.~\ref{sub:task_exam_srcs}.
+The examples are selected by judging their popularity, helpfulness, and diversity, revealed by the views and votes.
+Meanwhile, we notice that it is challenging to find enough examples on the internet for tasks that involve the collaboration of multiple software applications. 
+Therefore, the authors conducted extensive brainstorming, combining some existing examples or drawing inspiration from daily-life scenarios, to compile the tasks.
+The instructions and task-related files are then crafted from these real-world guidelines and questions by the authors.
+After the selection, each example will be cross-checked by the other two authors on the feasibility, ambiguity, and alignment with the source.
+We not only collect tasks that can be finished, but also collect the infeasible ones that are inherently impossible to be completed due to deprecated features or hallucinated features raised by real users, which results in 30 infeasible examples in our benchmark.
+Additionally, to demonstrate the unification ability of \ours environment for the creation of open-ended computer tasks, we also integrate 84 examples from other benchmarks focusing on single-application or domain-specific environments such as NL2Bash~\citep{lin2018nl2bash}, Mind2Web~\citep{deng2023mind2web}, SheetCopilot~\citep{li2023sheetcopilot}, PPTC~\citep{guo2023pptc}, and GAIA~\citep{mialon2023gaia}.
+Refer to App.~\ref{app:examples_collection} for more details and~\ref{app:representitive_examples} for sampled examples for the showcase.
+A total of about 400 man-hours were spent to collect these examples.
+
+\paragraph{Initial state setup configs} 
+To construct the initial state, we prepare the files required for the task and set up the initial state. 
+For the files, we try to obtain them from the sources of the tasks we found, or, in cases where the files are not publicly available, we recreate them as realistically as possible based on scenarios. 
+For the initial state setup, we also developed some functions based on the APIs of software and OS to control the opening and resizing of software windows and reimplement some functions that are difficult to achieve with APIs using \textit{pyautogui}. 
+For different tasks, we write configs to set the files and initial steps in the virtual machine and verify them in the environment. 
+For example, the setup stage (highlighted in red color, keyed as ``\verb|config|'') in 
+Figure~\ref{fig:arch_figure} involves downloading files into the virtual machine
+to prepare a close-to-reality initial environment, and then opening the
+file of interest with the corresponding application.
+The setup steps for each example take about 1 man-hours to construct.
+
+
+\paragraph{Execution-based evaluation}
+For each task, we select the appropriate getter functions, evaluator function, and parameters to compose the configuration file. 
+The getter function is used to extract key components (\textit{e.g.}, the modified file, the text contents displayed in a window element) from the final state of the environment, and the evaluator function assesses success based on the extracted key components.
+If a function does not exist, we will construct it and add it to the function library of the environment.
+After completing each evaluation, the annotator conducts initial tests with self-designed test cases. 
+Then, in the human evaluation and experiment running phases, each example is further scrutinized and iterated upon by different individuals three times from the perspective of alignment with the instruction and correctness under different solutions. 
+As a result, we implement nearly sample-specific executable evaluation scripts, resulting in a total of \numevals unique evaluation functions for assessing functional correctness—significantly more than the previous benchmarks.
+The average time spent on developing the evaluation for an example and its examination amounts to approximately 2 man-hours from graduate students.
+
+\paragraph{Quality control}
+Once annotation is finished, each example is attempted by two authors who did not participate in annotating that specific example, acting as agents to complete the task. 
+This process evaluates the current example's quality and provides feedback to the annotators (such as unclear instructions or inability to complete the task, crashes in corner cases, serious instances of false positives and negatives, \textit{etc}.), and involves joint revisions and supplements. 
+During experiments for human performance and baselines, we further fixed examples found to have issues, dedicating over 400 man-hours for four rounds of checks.
+Further investment of time and a more red teaming could further reduce false positives and negatives, which we will leave to future work.
+
+\subsection{Data Statistics}
+\vspace{-5pt}
+
+\begin{figure}[ht]
+\vspace{-25pt}
+    \centering
+    \begin{minipage}{0.4\textwidth}
+        \centering
+        \captionof{table}{
+        Key statistics in \ours. 
+        The ``Supp. tasks'' refers to the Windows-based tasks, that could only be used after activation due to copyright restrictions.
+        }
+        \small
+        \begin{tabular}{lc}
+            \toprule
+            \textbf{Statistic} & \textbf{Number} \\
+            \midrule
+            Total tasks (Ubuntu) & 369 (100\%) \\
+            - Multi-App Workflow & 101 (27.4\%)\\
+            - Single-App & 268 (72.6\%) \\
+            - Integrated & 84 (22.8\%)\\
+            - Infeasible  &30 (8.1\%)\\
+            Supp. tasks (Windows) & \numexampleswindows \\
+            \midrule
+            Initial States & \numinitstates \\
+            Eval. Scripts & \numevals \\
+            \bottomrule
+        \end{tabular}
+        \label{tab:key_statistics}
+    \end{minipage}
+    \hspace{5mm}
+    \begin{minipage}{0.50\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{images/instructions_pie_chart.pdf}
+        \caption{Distribution of task instructions in \ours based on the app domains and operation types to showcase the content intuitively.
+        }
+        \label{fig:instruction_pie_chart}
+    \end{minipage}
+    \vspace{-20pt}
+\end{figure}
+
+\paragraph{Statistics}
+To facilitate the analysis and comprehension of the agent's capabilities, we cluster the examples into the software categories. 
+Specifically, these categories include OS, Office (LibreOffice Calc, Impress, Writer), Daily (Chrome, VLC Player, Thunderbird), Professional (VS Code and GIMP), and Workflow (tasks involving multiple apps).
+The main statistics of \ours are presented in Tab.~\ref{tab:key_statistics} and Fig.~\ref{fig:instruction_pie_chart}, showcasing the outline and a broad spectrum of tasks.
+Specifically, \ours contains a total of 369 tasks (and an additional 43 tasks on Windows for analysis), with the majority (268 tasks or 72.6\%) aiming at single application functionalities and a remarkable section of workflow-related tasks (101 tasks or 27.4\%). 
+The dataset's diversity is further affirmed by the inclusion of tasks considered infeasible, totaling 30 tasks or 8.1\% of the dataset.
+Additionally, a total of 84 tasks (22.8\%) are integrated from related datasets, highlighting the dataset's applicability in universal modeling.
+Remarkably, the dataset incorporates \numinitstates distinct initial states and \numevals different 
+evaluation scripts, underscoring the comprehensive approach towards evaluating the tasks' complexity and requirements.
+More statistic details are available in App.~\ref{app:examples_collection}.
+
+
+\begin{table}[ht]
+\centering
+\caption{
+Comparison of different environments for benchmarking digital agents. 
+The columns indicate: 
+the number of task instances and templates (if applicable) where the task instantiated from templates through configurations (\# Instances (\# Templates)), 
+whether they provide a \emph{controllable} executable environment (Control. Exec. Env.), 
+the ease of adding new tasks involving arbitrary applications in open domains  (Environment Scalability), support for multimodal agent evaluation (Multimodal Support), support for and inclusion of cross-app tasks (Cross-App), capability to start tasks from an intermediate initial state (Intermediate Init. State), and the number of execution-based evaluation functions (\# Exec.-based Eval. Func.).
+}
+\label{tab:benchmark_comparsion}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lccccccccc@{}}
+\toprule
+& \shortstack{\# Instances\\ (\# Templates)} & \shortstack{Control. \\ Exec. Env.?} & \shortstack{Environment\\Scalability?}  & \shortstack{Multimodal\\Support?} & \shortstack{Cross-\\App?} & \shortstack{Intermediate\\Init. State?} & \shortstack{\# Exec.-based\\ Eval. Func. } \\ \midrule
+\textsc{GAIA}~\citep{mialon2023gaia} & 466 & \xmark & - & \xmark & \xmark & \xmark & 0 \\
+\textsc{Mind2Web}~\citep{deng2023mind2web} & 2350 & \xmark & - & \cmark & \xmark & \cmark & 0 \\
+\textsc{WebLINX}~\citep{lu2024weblinx} & 2337 & \xmark & - & \cmark & \xmark & \cmark & 0 \\
+\textsc{PixelHelp}~\citep{li2020mapping} & 187 & \xmark & - & \cmark & \xmark & \xmark & 0 \\
+\textsc{MetaGUI}~\citep{sun2022meta} & 1125 & \xmark & - & \cmark & \xmark & \xmark & 0 \\
+\textsc{AitW}~\citep{rawles2023android} & 30$k$ & \xmark & - & \cmark & \xmark & \cmark & 0 \\
+\textsc{OmniAct}~\citep{Kapoor2024OmniACTAD} & 9802 & \xmark & - & \cmark & \xmark  & \cmark & 0 \\
+\midrule
+\textsc{AgentBench}~\citep{liu2023agentbench} & 1091 & \small Multi-isolated & \xmark & \xmark & \xmark & \xmark & 7 \\
+\textsc{InterCode}~\citep{yang2023intercode} & 1350 (3) & Code & \xmark & \xmark & \xmark & \xmark & 3 \\
+\textsc{MiniWoB++}~\citep{liu2018reinforcement} & 125 & Web & \xmark & \cmark & \xmark & \xmark & 125 \\
+\textsc{WebShop}~\citep{yao2022webshop} & 12$k$ (1) & Web & \xmark & \cmark & \xmark & \xmark & 1  \\
+\textsc{WebArena}~\citep{zhou2023webarena} & 812 (241) & Web & \xmark & \cmark & \xmark & \xmark & 5 \\
+\textsc{VWebArena}~\citep{Koh2024VisualWebArenaEM} & 910 (314) & Web & \xmark & \cmark & \xmark & \xmark & 6 \\
+\textsc{WorkArena}~\citep{drouin2024workarena} & 23$k$ (29) & Web & \xmark & \cmark & \xmark & \cmark & 7 \\
+\textsc{WikiHow}~\citep{zhang2023mobile} & 150 (16) & Mobile & \xmark & \cmark & \xmark & \xmark & 16 \\
+\textsc{AssistGUI}~\citep{gao2023assistgui} & 100 & \xmark & \xmark & \cmark & \xmark & \cmark & 2 \\
+\midrule
+\ours & 369 & Computer & \cmark & \cmark & \cmark & \cmark & \textbf{\numevals} \\ \bottomrule
+\end{tabular}
+}
+\vspace{-20pt}
+\end{table}
+
+\paragraph{Comparison with existing benchmarks}
+\ours is compared with a number of existing benchmarks in Table~\ref{tab:benchmark_comparsion}.
+\ours take utilizes raw mouse and keyboard actions that is universal to the computer environment, rather than focusing on specific computer applications~(\textit{e.g.,} a browser~\cite{zhou2023webarena, deng2023mind2web}), with multimodal observation including screenshot~(Multimodal Support column).
+This universal action space enables the constructed agents to handle general tasks in the digital world. 
+Our executable environment allows agents to freely explore during both the learning and evaluation phases, rather than providing only static demonstrations to evaluate an agent's prediction of the next step (Executable Env. column). 
+Moreover, it does not solely focus on interactions within a single app but also considers interactions across multiple apps and the overall task (Cross-App column).
+Unlike many evaluations that offer the same evaluation script or a few scripts for a certain type of task, the \ours benchmark provides example-wise, execution-based evaluation for tasks. 
+Specifically, the total of \numevals unique execution-based evaluation functions in our benchmark is significantly more than previous work, demonstrating the complexity, diversity, and evaluation challenges of tasks in our benchmark (\# Exec.-based Eval. Func. column).
+It also allow us to freely choose open-ended tasks and scale to new environments, rather than struggling in crafting new ones.
+Constructing intermediate initial states as task setup increases realism and poses challenges to the agents' exploration capabilities (Intermediate Init. State column).
+
+
+\subsection{Human Performance}
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/humaneval.pdf}
+    \vspace{-15pt}
+    \caption{Human operation time and accuracy on \ours and WebArena. 
+    }
+    \label{fig:human_eval}
+    \vspace{-15pt}
+\end{wrapfigure}
+
+We conduct human evaluations on each example in our dataset, with annotators being computer science major college students who possess basic software usage skills but have not been exposed to the samples or software before. 
+We recorded the time required to complete each example and whether their completion of the example was correct. 
+For comparison, we also sampled 100 examples from WebArena~\citep{zhou2023webarena} under the same evaluation setup.
+
+As illustrated, tasks from our dataset generally required more time to complete, with a median completion time of 111.94 seconds (compared to 35.38 seconds in WebArena), and a significant number of examples distributed at 900 seconds or even more. 
+In terms of accuracy, the human performance on our tasks was approximately 72.36\%, significantly lower than the 88\% observed on the pure web task dataset.
+These findings highlight the complexity and challenge of tasks in our dataset, which demand more time and effort. 
+The lower accuracy rate further indicates that our tasks require a higher level of understanding and proficiency, underscoring the need for advanced models and techniques to tackle them effectively.

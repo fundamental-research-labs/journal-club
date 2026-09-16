@@ -1,0 +1,225 @@
+\documentclass{article}
+
+\usepackage[preprint]{neurips_2026}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue,
+}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[scale=0.95,semibold]{sourcecodepro}
+\usepackage{natbib}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,decorations.pathmorphing,backgrounds}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{wrapfig}
+\usepackage{needspace}
+
+% Boxed environments for Section 2
+\newtcolorbox{principlesbox}{
+  colback=blue!2,
+  colframe=blue!40!black,
+  boxrule=0.4pt,
+  arc=1.5pt,
+  left=6pt, right=6pt, top=4pt, bottom=4pt,
+}
+\newtcolorbox{slopbox}[1][]{
+  colback=red!3,
+  colframe=red!40!black,
+  title={#1},
+  fonttitle=\bfseries\small,
+  boxrule=0.4pt,
+  arc=1.5pt,
+  left=2pt, right=2pt, top=2pt, bottom=2pt,
+}
+\newtcolorbox{cleanbox}[1][]{
+  colback=green!3,
+  colframe=green!40!black,
+  title={#1},
+  fonttitle=\bfseries\small,
+  boxrule=0.4pt,
+  arc=1.5pt,
+  left=2pt, right=2pt, top=2pt, bottom=2pt,
+}
+
+% GitHub-style diff colors
+\definecolor{diffadd}{HTML}{dafbe1}
+\definecolor{diffrem}{HTML}{ffcecb}
+\definecolor{diffaddmark}{HTML}{1a7f37}
+\definecolor{diffremmark}{HTML}{cf222e}
+\definecolor{diffctx}{HTML}{f6f8fa}
+\definecolor{diffborder}{HTML}{d0d7de}
+
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{multirow}
+
+% Diff box environment
+\newtcolorbox{diffbox}[1][]{
+  colback=white,
+  colframe=diffborder,
+  title={#1},
+  fonttitle=\bfseries\small,
+  boxrule=0.5pt,
+  arc=2pt,
+  left=0pt, right=0pt, top=0pt, bottom=0pt,
+  boxsep=0pt,
+}
+
+\definecolor{figyellow}{HTML}{FFD966}
+\definecolor{figred}{HTML}{E06666}
+\definecolor{codebg}{gray}{0.97}
+\definecolor{codeframe}{gray}{0.75}
+\definecolor{codegreen}{rgb}{0.0,0.4,0.0}
+\definecolor{codepurple}{rgb}{0.5,0.0,0.33}
+\definecolor{codenumber}{gray}{0.55}
+
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  keywordstyle=\color{codepurple}\bfseries,
+  stringstyle=\color{codegreen},
+  commentstyle=\color{gray}\itshape,
+  numbers=left,
+  numberstyle=\ttfamily\scriptsize\color{codenumber},
+  numbersep=8pt,
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  frame=l,
+  framerule=1.5pt,
+  rulecolor=\color{codeframe},
+  framesep=6pt,
+  xleftmargin=2em,
+  xrightmargin=0.5em,
+  aboveskip=\medskipamount,
+  belowskip=\medskipamount,
+  showstringspaces=false,
+  captionpos=b,
+  tabsize=4,
+}
+
+\lstdefinestyle{specblock}{
+  basicstyle=\ttfamily\footnotesize,
+  numbers=none,
+  xleftmargin=1em,
+  language={},
+  keywordstyle={},
+  stringstyle={},
+  commentstyle={},
+}
+
+\title{SlopCodeBench: Benchmarking How Coding Agents Degrade Over Long-Horizon Iterative Tasks}
+
+\author{
+  Gabriel Orlanski\textsuperscript{1}\thanks{Corresponding author. Correspondence to \texttt{gorlanski@wisc.edu}.} \And
+  Devjeet Roy\textsuperscript{2} \And
+  Alexander Yun\textsuperscript{1} \And
+  Changho Shin\textsuperscript{1} \And
+  Alex Gu\textsuperscript{3} \And
+  Albert Ge\textsuperscript{1} \And
+  Dyah Adila\textsuperscript{1} \And
+  Frederic Sala\textsuperscript{1} \And
+  Aws Albarghouthi\textsuperscript{1} \AND
+  \normalfont\textsuperscript{1}University of Wisconsin--Madison \quad
+  \textsuperscript{2}Washington State University \quad
+  \textsuperscript{3}MIT
+}
+
+\newcommand{\addcites}{(\textbf{ADDCITATIONS})}
+
+\newcommand{\scb}{SlopCodeBench}
+\newcommand{\problem}{P}
+\newcommand{\ckptlist}{\textbf{C}}
+\newcommand{\ckpt}[1]{C_{#1}}
+\newcommand{\ckptinit}{\ckpt{1}}
+\newcommand{\solution}[1]{y_{#1}}
+\newcommand{\solutioninit}{\solution{0}}
+\newcommand{\testsuite}[1]{v_{#1}}
+\newcommand{\spec}[1]{x_{#1}}
+\newcommand{\agent}{\pi_{\theta}}
+\newcommand{\codesearch}{\texttt{code\_search}}
+\newcommand{\calculatednumber}{\textbf{PLACEHOLDER}}
+\newcommand{\mass}[1]{\mathcal{M}_{#1}}
+\newcommand{\vdef}{\text{vd}}
+\input{sections/generated/overall_stats}
+\input{sections/generated/transition_stats}
+\input{sections/generated/erosion_stats}
+\input{sections/generated/verbosity_findings_stats}
+\input{sections/generated/iterative_stats}
+\input{sections/generated/agent_behavior_stats}
+\input{sections/generated/agent_behavior_fig_stats}
+\input{sections/generated/new_stats}
+\input{sections/generated/agent_vs_human_stats}
+\input{sections/generated/prompt_strategy_stats}
+\definecolor{diffstart}{named}{codebg}
+\definecolor{diffincl}{named}{codegreen}
+\definecolor{diffrem}{named}{red}
+\lstdefinelanguage{diff}{
+  basicstyle=\ttfamily\small,
+  morecomment=[f][\color{diffstart}]{@@},
+  morecomment=[f][\color{diffincl}]{+\ },
+  morecomment=[f][\color{diffrem}]{-\ },
+}
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Software development is iterative, yet agentic coding benchmarks overwhelmingly evaluate single-shot solutions against complete specifications. Code can pass the test suite but become progressively harder to extend.
+%
+Recent iterative benchmarks attempt to close this gap, but constrain the agent's design decisions too tightly to faithfully measure how code quality shapes future extensions.
+%
+We introduce SlopCodeBench, a language-agnostic benchmark comprising 20 problems and 93 checkpoints, in which agents repeatedly extend their own prior solutions under evolving specifications that force architectural decisions without prescribing internal structure.
+%
+We track two trajectory-level quality signals: verbosity, the fraction of redundant or duplicated code, and structural erosion, the share of complexity mass concentrated in high-complexity functions.
+%
+No agent solves any problem end-to-end across 11 models; the highest checkpoint solve rate is 17.2\%.
+%
+Quality degrades steadily: erosion rises in 80\% of trajectories and verbosity in 89.8\%.
+Against 48 open-source Python repositories, agent code is 2.2x more verbose and markedly more eroded.
+%
+Tracking 20 of those repositories over time shows that human code stays flat, while agent code deteriorates with each iteration.
+%
+A prompt-intervention study shows that initial quality can be improved, but it does not halt degradation.
+%
+These results demonstrate that pass-rate benchmarks systematically undermeasure extension robustness, and that current agents lack the design discipline iterative software development demands.
+\end{abstract}
+
+\input{sections/introduction}
+\input{sections/benchmark}
+\input{sections/metrics}
+\input{sections/experiments}
+\input{sections/related_work}
+\input{sections/conclusion}
+
+\begin{ack}
+We thank Abtin Molavi, Amanda Xu, June Cho, Xavier Garcia, Samuel Guo, and Nick Roberts for feedback during the development of this project. We also thank the Terminal Bench team for their inspiration and feedback. This work was supported in part by DARPA, the NSF, and Snorkel AI.
+\end{ack}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+\appendix
+\input{sections/appendix/agent_harness_versions.tex}
+\input{sections/appendix/agent_prompts.tex}
+\input{sections/appendix/harness_sensitivity.tex}
+\input{sections/appendix/code_search_specs.tex}
+\input{sections/appendix/problem_overview.tex}
+\input{sections/appendix/test_pass_rates.tex}
+\input{sections/appendix/erosion_sensitivity.tex}
+\input{sections/appendix/human_repo_panel.tex}
+
+
+\end{document}

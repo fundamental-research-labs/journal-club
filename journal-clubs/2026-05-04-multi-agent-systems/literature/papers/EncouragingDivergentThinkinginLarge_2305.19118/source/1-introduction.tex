@@ -1,0 +1,49 @@
+\section{Introduction}
+\label{sec:introduction}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.8\linewidth]{imgs/DoT.pdf}
+    \vspace{-7pt}
+    \caption{Disagreement between two adjacent iterations with respect to the iteration of debate/self-reflection.}
+    \label{fig:intro}
+    \vspace{-15pt}
+\end{figure}
+
+Large language models~(LLMs) have shown remarkable performance on general language tasks~\citep{jiao2023chatgpt,wu2023chatgpt4gec,bang2023multitask} but still struggle on complex reasoning tasks~\citep{zhu2022core, gou2023critic}, which drives the research on cognitive behaviors of LLMs to explore human-like problem-solving strategies. 
+In particular, \textit{self-reflection}~\citep{madaan2023selfrefine,shinn2023reflexion}, a concept that usually refers to the process of introspection and examination of a person's own thoughts, has been explored to solve intricate tasks that could be challenging for a zero-shot generation or even chain-of-thought~(CoT) prompting~\citep{wei2022CoT}.
+Specifically, self-reflection involves an iterative refinement process such that the LLM generates a new answer based on the answers and feedback in previous iterations and then provides feedback for the new answer. 
+While self-reflection can be effective in creating better answers, it is highly dependent on the self-evaluation capabilities of LLMs, which are not formally guaranteed~\citep{shinn2023reflexion}.  
+
+In this work, we focus on the \textbf{Degeneration-of-Thought}~(DoT) problem in self-reflection, which is proposed and defined by us for the first time. Formally, DoT describes the following scenario: 
+\begin{quote}
+    \it
+    Once the LLM-based agent has established confidence in its answers, it is unable to generate novel thoughts later through self-reflection even if the initial stance is incorrect. 
+\end{quote}
+
+To demonstrate this problem, we force the agents to engage in a debate or self-reflection for 5 rounds before reaching an answer. Next, we manually determine the disagreement as 1 and agreement as 0 between two adjacent iterations. We define the average disagreement in iteration $i$ as the percentage of opposition occurring between two debaters across multiple debates (or self-confliction in self-reflection).
+We show the trends in Figure~\ref{fig:intro}.
+The low disagreement of self-reflection suggests that the LLM sticks to the incorrect answers predicted by CoT and is unable to engage in meaningful self-reflection.
+
+There are various factors~\citep{bortolotti2011does,keestra2017metacognition} that could result in DoT, and we outline three here:
+(1) \textit{Bias and Distorted Perception}. Self-perception can be influenced by biases, preconceived notions, and distorted thinking patterns, which can be learned from the massive amount of data during pretraining. If an LLM's self-reflection is clouded by such biases or distorted thinking, it can lead to inaccurate conclusions instinctively.
+(2) \textit{Rigidity and Resistance to Change}. Self-reflection often involves challenging one's beliefs, assumptions, and behaviors. If an LLM is resistant to change or holds rigid beliefs, it may struggle to engage in meaningful self-reflection that leads to better answers.
+(3) \textit{Limited External Feedback}. Self-reflection is primarily an internal process, but external feedback can provide valuable perspectives and insights. Without considering external feedback, an LLM may miss important blind spots or alternative viewpoints that can enrich its self-reflection.
+
+To address the DoT issue, we leverage another fundamental characteristic of human problem-solving, i.e., debate, to encourage divergent thinking in LLMs.
+Specifically, we propose the \textbf{MAD} framework, short for \textbf{M}ulti-\textbf{A}gent \textbf{D}ebate, where two agents express their own arguments in the state of ``tit for tat'' and a judge monitors and manages the debate process to obtain a final solution.
+The nature of MAD determines that (1) The distorted thinking of one agent can be corrected by the others; (2) The resistance to change of one agent will be complemented by the others; and (3) each agent can obtain external feedback from the others. 
+Therefore, MAD is less susceptible to the factors of DoT, and can explore divergent chain-of-thoughts to achieve accurate answers.
+
+We conducted experiments on both natural language generation and understanding through two challenging tasks, namely, Commonsense Machine Translation~(Common~MT) and Counter-Intuitive Arithmetic Reasoning~(Counter-Intuitive~AR).
+The common characteristic of the two tasks is that our instincts are mostly incorrect based on only the superficial expressions of the questions, and deeper levels of contemplation are required for better answers.
+Experimental results demonstrate that our MAD framework outperforms the baseline methods, especially, \texttt{GPT-3.5-Turbo} with MAD can surpass the performance of \texttt{GPT-4} on Common~MT. 
+
+The contributions of this work are summarized as follows:
+\begin{itemize}[leftmargin=10pt]
+    \item We propose and define the Degeneration-of-Thought (DoT) problem in self-reflection, and address it by proposing the Multi-Agent Debate~(MAD) framework to explore divergent chain-of-thoughts.
+    
+    \item We demonstrate the effectiveness of MAD on two challenging tasks, and find that \texttt{GPT-3.5-Turbo} with MAD can even surpass \texttt{GPT-4} on the Common~MT dataset.
+
+    \item Experimental results show that the adaptive break strategy and the modest level of ``tit for tat'' state are required for performance improvement. In addition, we find that the llm-based judge shows a preference to the side with the same LLM as the backbone.
+\end{itemize}

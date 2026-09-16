@@ -1,0 +1,103 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+\section{Hyperparameters}\label{appendix:hyperparams}
+The optimization algorithm has several important hyperparameters that have different settings throughout the training process. 
+%We modify the step size of gradient descent, PPO clip ratio, the reward decay factor, and team spirit. 
+Over the course of training of \openaifive, these hyperparameters were modified by looking for improvement plateaus.
+Because of compute limitations which prevented us from testing hyperparameter changes in separate experiments, \openaifive's long-running training process included numerous experimental hyperparameter changes. 
+Some of these worked well and were kept, others were reverted as our understanding developed over the course of the 10-month period. 
+As it is impossible for us to scan over any of these hyperparameters when our experiment is so large, we make no claim that the hyperparams used are optimal. 
+
+When we ran \cleanexpname we simplified the hyperparameter schedule based on the lessons we had learned. 
+In the end we made changes to only four key hyperparameters:
+\begin{itemize}
+    \item Learning Rate
+    \item Entropy penalty coefficient (see \autoref{sec:methods:exploration})
+    \item Team Spirit (see \autoref{appendix:rewards})
+    \item GAE time horizon (see \autoref{eqn:horizon})
+\end{itemize}
+
+\begin{figure}
+\centering
+\begin{subfigure}{0.59\linewidth}
+\begin{tabular}{l|lllll}
+Iteration & 0 & 15k & 23k & 43k & 54k \\
+Time (days) & 0 & 13 & 20 & 33 & 42 \\
+\trueskillname & 0 & 210 & 232 & 245 & 258 \\
+\midrule[1pt]
+Team Spirit & 0.3 & \multicolumn{4}{|l}{0.8} \\
+\hline
+GAE Horizon & \multicolumn{2}{l|}{180 secs} & \multicolumn{3}{l}{360 secs}\\
+\hline
+Entropy coefficient & \multicolumn{3}{l|}{0.01} & \multicolumn{2}{l}{0.001} \\
+\hline
+Learning Rate & \multicolumn{4}{l|}{5e-5} & 5e-6
+\end{tabular}
+\end{subfigure}\hfill
+\begin{subfigure}{0.39\linewidth}
+\includegraphics[width=\textwidth]{figures/rerun-trueskill-annotated.pdf}
+\end{subfigure}
+\caption{Hyperparameter changes during \cleanexpname. Changes are displayed in table-form on the left, and called out in the trueskill vs iterations graph of the training run on the right. Each hyperparameter change was applied gradually over the course of 1-2 days, corresponding to several thousand iterations (the reported time in the table is the start of the change). Our pre-planned schedule included further changes to bring the experiment into line with \openaifive's final hyperparameters (Horizon to 840 sec, team spirit to 1.0, and learning rate to 1e-6), but \cleanexpname reached \openaifive's skill level before we reached those hyperparameters.
+}
+\label{table:hyperparams-schedule}
+\label{fig:hyperparams-rerun}
+\end{figure}
+
+This schedule is far from optimized as it was used in only our second iteration of this large experiment. In future work it could likely be significantly improved.
+
+There are many other hyperparams that were not changed during the final \cleanexpname experiment. 
+Their values are listed in \autoref{table:hyperparams}. 
+Some of these were changed in the original \openaifive out of necessity (e.g. batch size changed many times as more or less compute resources became available, or SampleReuse changed as the relative speeds of different machine pools fluctuated), and others were changed experimentally in the original \openaifive run but were ultimately not important as evidenced by \cleanexpname working without those changes (e.g. increasing the time horizon from 360 seconds to 840 seconds).
+
+\begin{table}
+\begin{threeparttable}
+\begin{tabular}{l|cccc}
+Param & \cleanexpname & \openaifive & Baseline\\
+\hline
+Frameskip\tnote{e} & 4 & 4 & 4 \\
+LSTM Unroll length\tnote{e} & 16 & 16 & 16 \\
+Samples Per Segment\tnote{e} & 16 & 16 & 16 \\
+Number of optimizer GPUs & 512 & 480$\leftrightarrow$1,536& 64 \\
+Batch Size/optimizer GPU (samples) & 120 & 120$\leftrightarrow$128 & 120 \\
+Total Batch Size (samples)\tnote{a} & 61,440 & 61,440$\leftrightarrow$196,608 & 7,680 \\
+Total Batch Size (timesteps)\tnote{a} & 983,040 & 983,040$\leftrightarrow$3,145,728 & 122,880\\
+Number of rollout GPUs & 512 & 500$\leftrightarrow$1,440 & 64 \\
+Number of rollout CPUs & 51,200 & 80,000$\leftrightarrow$172,800 & 6,400 \\
+Steps per Iteration & 32 & 32 & 32 \\
+LSTM Size & 4096 & 2048 $\rightarrow$ 4096 & 4096 \\
+Sample Reuse & 1.0 $\leftrightarrow$ 1.1 & 0.8$\leftrightarrow$2.7 & 1.0$\leftrightarrow$1.1 \\
+Team Spirit & 0.3 $\rightarrow$ 0.8 & 0.3 $\rightarrow$ 1.0 & 0.3 \\ 
+GAE Horizon & 180 secs $\rightarrow$ 360 secs & 60 secs $\rightarrow$ 840 secs & 180 secs\\
+GAE $\lambda$ & 0.95 & 0.95 & 0.95 \\
+PPO clipping & 0.2 & 0.2 & 0.2 \\
+Value loss weight\tnote{c} & 1.0 & $0.25\leftrightarrow 1.0$ & 1.0 \\
+Entropy coefficient & 0.01 $\rightarrow$ 0.001 & 0.01 $\rightarrow$ 0.001 & 0.01 \\
+Learning rate & 5e-5 $\rightarrow$ 5e-6 & 5e-5 $\leftrightarrow$ 1e-6 & 5e-5\\
+Adam $\beta_1$ & 0.9 & 0.9 & 0.9 \\
+Adam $\beta_2$ & 0.999 & 0.999 & 0.999 \\
+Past opponents\tnote{b} & 20\% & 20\% & 20\% \\
+Past Opponents Learning Rate\tnote{d} & 0.01 & 0.01 & 0.01\\
+\end{tabular}
+\begin{tablenotes}
+    \item[a] Batch size can be measured in samples (each an unrolled LSTM of 16 frames) or in individual timesteps.
+    \item[b] Fraction of games played against past opponents (as opposed to self-play).
+    \item[c] We normalize rewards using a running estimate of the standard deviation, and the value loss weight is applied post-normalization.
+    \item[d] See \autoref{sec:selfplay}.
+    \item[e] See \autoref{fig:timescales} for definitions of the various timescale subdivisions of a rollout episode.
+\end{tablenotes}
+\end{threeparttable}
+\caption{\textbf{Hyperparameters: } The \openaifive and \cleanexpname columns indicate what was done for those individual experiments. For those which were modified during training, $x\rightarrow y$ indicates a smooth monotonic transition (usually a linear change over one to three days), and $x\leftrightarrow y$ indicates a less controlled variation due to either ongoing experimentation or distributed systems fluctuations. The ``Baseline'' indicates the default values for all the experiments in \autoref{appendix:substudies} (each individual experiment used these hyperparameters other than any it explicitly studied, for example in \autoref{sec:methods:batchsize} the batch size was changed from the baseline in each training run, but all the other hyperparameters were from this table).}
+\label{table:hyperparams}
+\end{table}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/timescales.png}
+    \caption{\textbf{Timescales and Staleness: }The breakdown of a rollout game.
+    Rather than collect an entire game before sending it to the optimizers, rollout machines send data in shorter segments.
+    The segment is further subdivided into samples of 16 policy actions which are optimized together using truncated BPTT.
+    Each policy action bundles together four game engine frames.
+    }
+    \label{fig:timescales}
+\end{figure}
+\end{document}

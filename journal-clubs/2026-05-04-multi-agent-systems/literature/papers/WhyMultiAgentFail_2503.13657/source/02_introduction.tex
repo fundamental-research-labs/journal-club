@@ -1,0 +1,53 @@
+{\small
+\textit{``Happy families are all alike; each unhappy family is unhappy in its own way.''} (\citet{tolstoy1878}) \\
+\textit{``Successful systems all work alike; each failing system has its own problems.''} (Berkeley'25)
+}
+
+ \begin{figure*}[ht]
+     \centering
+    \includegraphics[width=1\linewidth]{figures/taxonomy_neurips_final_10_23_25.pdf}
+    \caption{\taxonomy{}: A \textbf{Taxonomy of MAS Failure Modes}. The inter-agent conversation stages indicate when a failure typically occurs within the end-to-end MAS execution pipeline. A failure mode spanning multiple stages signifies that the underlying issue can manifest or have implications across these different phases of operation. The percentages shown represent the prevalence of each failure mode and category as observed in our analysis of \numTraceInMAD{} MAS execution traces. Detailed definitions for each failure mode and illustrative examples are available in Appendix~\ref{sec:fc-deep-dive}.}
+    \label{fig:taxonomy}
+ \end{figure*}
+
+\section{Introduction}
+\label{sec:intro}
+Recently, Large Language Model (LLM) based agentic systems have gained significant attention in the AI community \cite{patil2023gorillalargelanguagemodel, packer2024memgptllmsoperatingsystems, Wang_2024}.
+Building on this characteristic, multi-agent systems are increasingly explored in various domains, such as software engineering, drug discoveries, scientific simulations, and general-purpose agents \cite{chatdev, wang2024openhandsopenplatformai, gottweis2025aicoscientist, Swanson2024.11.11.623004, park2023generativeagentsinteractivesimulacra, openmanus2025, fourney2024magentic}. 
+In this study, we define an LLM-based \textbf{agent} as an artificial entity with prompt specifications (initial state), conversation trace (state), and ability to interact with the environments such as tool usage (action).
+A \textbf{multi-agent system} (\textbf{MAS}) is then defined as a collection of agents designed to interact through orchestration, enabling collective intelligence. 
+MAS are structured to coordinate efforts, enabling task decomposition, performance parallelization, context isolation, specialized model ensembling, and diverse reasoning discussions \cite{he2024llmbasedmultiagentsystemssoftware, mandi2023rocodialecticmultirobotcollaboration, zhang2024buildingcooperativeembodiedagents, du2023improvingfactualityreasoninglanguage, park2023generative, guo2024large}.
+
+Despite the increasing adoption of MAS, their performance gains often remain minimal compared to single-agent frameworks \cite{xia2024agentlessdemystifyingllmbasedsoftware} or simple baselines like best-of-N sampling \cite{kapoor2024aiagentsmatter}.
+Our empirical analysis reveals 41\% to 86.7\% failure rate on \numMASDomain state-of-the-art (SOTA) open-source MAS detailed in Figure~\ref{fig:mas_failure_rate} (Appendix~\ref{appendix:mas-with-annotated-traces-appendix}).
+Furthermore, there is no clear consensus on how to build robust and reliable MAS.
+This motivates the fundamental question we address: \textit{Why do MAS fail?}
+
+To address this question and systematically understand MAS failures, we introduce \dataset{}, a comprehensive, high-quality collection of \numTraceInMAD{} annotated execution traces. We define failures as instances where the MAS does not achieve its intended task objectives. As shown in Table~\ref{tab:mad}, we collect traces from \numMASDomain popular MAS frameworks run with two main model families (GPT-4 series and Claude series), covering tasks such as coding, math problem-solving, and general agent functionalities. Alongside \dataset{}, we also release \datasetHuman{}, a smaller dataset featuring 21 traces annotated by three human experts each during our inter-annotator agreement studies. We create \dataset{} to outline failure dynamics in MAS and to guide the development of better future systems.
+
+Systematically annotating failures in diverse MAS for a large-scale dataset like \dataset{} presents challenges unique to MAS: the difficulty in verifying ground truth for root cause detection and the absence of standardized failure definitions. To mitigate these challenges in creating \dataset{}, we first develop the \textbf{M}ulti-\textbf{A}gent \textbf{S}ystem Failure \textbf{T}axonomy (\taxonomy{}), illustrated in Figure~\ref{fig:taxonomy}. We build \taxonomy{} using Grounded Theory \citep{glaser1967discovery} from a close analysis of over 150 MAS execution traces (each averaging over 15,000 lines of text). This analysis spans a subset of five open-source MAS frameworks and involves \numAnnotatorBreadth{} expert human annotators. To ensure generalizable definitions in \taxonomy{} for labeling \dataset{}, three annotators independently and iteratively labeled a total of 15 traces until achieving high inter-annotator agreement ($\kappa$  = \cohenskappainterannotatoraverage{}). This comprehensive analysis results in \numFailureMode{} distinct failure modes, clustered into \numFailureArea{} categories. While \taxonomy{} serves as a foundational first step towards unifying the understanding of MAS failures, we do not claim it covers every potential failure pattern. To enable scalable annotation for the full \dataset{}, we then develop an LLM-as-a-judge pipeline (which we term the LLM annotator) \cite{zheng2023judgingllmasajudgemtbenchchatbot} using OpenAI's o1 model. We calibrate the LLM annotator to achieve high agreement with human expert annotations ($\kappa$ = \cohenskappallm{}), and additionally validated applicability on two additional unseen MAS and benchmarks ($\kappa$ = 0.79).
+
+To demonstrate \taxonomy{}'s practical usage, our case studies (Appendix~\ref{sec:case-studies}) highlight its role in guiding MAS development, and in Section \ref{sec:python_library} we describe how to use the \taxonomy{} easily as a python library using \verb|pip install agentdash|. For example, the CPO agent in ChatDev can exhibit `Failure Mode 1.2 - Disobey Role Specification' by terminating conversation without the CEO agent's consensus. We demonstrate that a straightforward system workflow adjustment ensuring the CEO had the final say contributed to a +9.4\% increase in overall task success rate. While such \taxonomy{}-guided interventions demonstrate improvements, achieving robust MAS reliability often requires more than isolated fixes, pointing towards the need for more complex solutions and fundamental MAS redesigns.
+
+% To demonstrate \taxonomy{}'s practical usage in guiding MAS development via failure analysis, we conduct case studies involving interventions on improved role specification and architectural changes. We use our LLM annotator to obtain detailed failure breakdowns before and after these interventions,
+% showcasing how \taxonomy{} provides actionable insights for debugging and development. While interventions yield some improvements (e.g., +15.6\% for ChatDev), the results show that simple fixes are still insufficient for achieving reliable MAS performance. Mitigating identified failures will require more fundamental changes in system design. \melissa{insert a specific example here of failure about CEO vs. CTO here, and that went away with intervention.}
+
+\input{08-mad-tab}
+
+These findings suggest \taxonomy{} reflects fundamental design challenges inherent in current MAS, not just artifacts of specific MAS implementation. By systematically defining failures, \taxonomy{} serves as a framework to guide failure diagnosis and opens concrete research problems for the community. 
+We have released our traces and annotations and open-sourced the LLM annotator pipeline to foster research in the design of more robust and reliable MAS.
+
+% \melissa{I remove the discussion about HRO.}
+% While one could simply attribute these failures to limitations of present-day LLM (e.g., hallucinations, misalignment), we conjecture that improvements in the base model capabilities will be insufficient to address the full \taxnomony.  
+% Instead, we argue that good MAS design requires organizational understanding -- even organizations of sophisticated individuals can fail catastrophically~\citep{perrow1984normal} if the organization structure is flawed. Previous research in high-reliability organizations has shown that well-defined design principles can prevent such failures \cite{roberts1989high, ctx26792789720006532}. 
+% Consistent with these theories, our findings indicate that many MAS failures arise from the challenges in organizational design and agent coordination rather than the limitations of individual agents.
+
+The contributions of this paper are as follows:
+\begin{itemize}[leftmargin=*, nosep]
+% \begin{itemize}[leftmargin=*, itemsep=0.1em, topsep=0.1em]
+    \item We introduce and \textbf{open-source} \dataset{}, the first large-scale MAS failure dataset with consistent annotations from \numMASDomain MAS and four model families. And \datasetHuman{}, a detailed inter-annotator study results with human labels. Together serve to facilitate research into MAS failures.
+    \item We introduce \taxnomony{}, the first empirically grounded \textbf{taxonomy of MAS failures}, providing a structured framework for defining, understanding and annotating failures.
+    \item We develop a scalable LLM-as-a-judge \textbf{annotation pipeline} integrated with \taxonomy{} for efficiently annotating \dataset{} and enabling analysis of MAS performance, diagnosis of failure modes, and understanding of failure breakdowns.
+    \item We demonstrate through \textbf{case studies} that failures identified by \taxonomy{} often stem from system design issues, not just LLM limitations or simple prompt following, and require more than superficial fixes, thereby highlighting the need for structural MAS redesigns.
+\end{itemize}
+

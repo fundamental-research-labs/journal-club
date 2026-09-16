@@ -1,0 +1,292 @@
+\newtcblisting{promptbox}[1]{
+  enhanced,
+  breakable,
+  listing only,
+  colback=white,
+  colframe=black,
+  boxrule=0.8pt,
+  arc=1mm,
+  left=2mm,
+  right=2mm,
+  top=2mm,
+  bottom=2mm,
+  title=\texttt{#1},
+  colbacktitle=black,
+  coltitle=white,
+  fonttitle=\bfseries,
+  boxed title style={
+    colframe=black,
+    colback=black,
+    boxrule=0.8pt,
+    arc=1mm
+  },
+  listing engine=listings,
+  listing options={
+    basicstyle=\ttfamily\scriptsize,
+    breaklines=true,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false
+  }
+}
+
+\subsection{Commit0 Prompts}
+\label{app:commit0-prompt}
+
+\begin{promptbox}{user instruction}
+<uploaded_files>
+/workspace/{{ workspace_dir_name }}
+</uploaded_files>
+I've uploaded a Python code repository in the directory {{ workspace_dir_name }}.
+
+Here is your task:
+  You are a software engineering manager and have {max_agents} engineers in your team.
+  Your responsibility is to maximize the utilization of the engineers by delegating
+  the implementation tasks (i.e., the functions with `pass` statements) to these
+  engineers and guide them to efficiently and effectively complete the implementation
+  and pass ALL the unit tests. Except for the functions with `pass` statements, the
+  repository might also contain some missing functions that are not defined in any
+  files. You need to add them with clear docstrings and `pass` statements into the
+  files for the engineers to implement. Make sure you submit a local commit of
+  your changes. Remember you are NOT allowed to generate any code for the existing
+  functions or classes with `pass` statements. You can only add undefined
+  functions as needed.
+
+  DO NOT change the names of existing variables, functions, or classes, as they may
+  be referenced from other code like unit tests. Do not comment out any existing code.
+
+  When the engineers generate code, you need to make sure they maintain the original
+  formatting of the function stubs (such as whitespaces), otherwise we will not be
+  able to search/replace blocks for code modifications, and therefore your team will
+  receive a score of 0 for the generated code.
+
+Here is the command to run the unit tests:
+<test_command>
+{test_cmd} {test_dir}
+</test_command>
+
+Each engineer is expected to proactively submit a local git commit to you once their
+assigned task is complete. The engineers are responsible for verifying their own
+implementation quality and running tests before submitting. If no commit is submitted,
+you should assume the task may be partially complete. In that case, manually inspect
+the engineer's worktree, determine which parts have already been implemented, sync
+and merge those completed artifacts into the main directory, and make a commit on
+their behalf.
+
+When an engineer has completed their task with a successful commit, you need to
+decide the next task to assign, following these steps:
+  1. Based on the current progress, assign the highest priority file to this engineer.
+  2. Make sure the assigned files do not contain or depend on any missing (undefined) functions; if so, add them with clear docstrings and `pass` statements into the files and submit a local commit of your changes.
+  3. Explain the overall progress of the implementation and provide a detailed explanation of the purpose of the implementation to instruct the engineer
+     to complete the task.
+  4. If no new implementation is needed for now (e.g., the file is already implemented or needs to wait for other engineers to complete the dependencies), you can simply say "Thank you for your work. I will assign a new task to you later."
+  5. You can also assign tasks to idle or inactive engineers if you need more capacity to better utilize the engineers.
+
+Engineers are responsible for verifying their own implementation quality before
+submitting their commits; you do NOT need to review their code quality or run tests
+yourself. Only focus on delegating tasks (i.e., maximizing the utilization of the
+engineers to pass more unit tests).
+
+Make sure you DO NOT iteratively overcheck or fix missing functions.
+Provide a clear and concise response in the JSON format below.
+Please structure your response as JSON:
+
+{
+  "assign_task": {
+    "reasoning": "Explain your decision",
+    "assignments": [
+      {
+        "engineer_id": "engineer_id",
+        "task_id": "task-unique-id or 'fix-<original-task-id>'",
+        "file_path": "path/to/file.py",
+        "functions_to_implement": ["func1", "func2"],
+        "instruction": "Detailed explanation of the purpose of the implementation.",
+        "complexity": "simple|medium|complex"
+      }
+    ]
+  }
+}
+
+If no tasks should be assigned, use an empty assignments array.
+\end{promptbox}
+
+\begin{promptbox}{task delegation}
+Your engineers are waiting for your instructions to start their first implementation tasks. Now you need to:
+
+  1. Check for uncommitted changes and commit if needed:
+     git status
+     git add -A && git commit -m "Add missing stubs from scan phase" || true
+
+  2. Suspend exploration and systematically delegate the implementation work
+     by outputting a delegation JSON based on your current understanding
+     of the repository structure and its dependencies.
+     You have up to {max_agents} engineers available.
+
+Suggestions for effective delegation in the first round:
+
+  - First, divide the overall implementation work into up to {max_agents}
+    major tasks, balancing complexity and estimated effort as evenly as possible. Keep highly interdependent files within the same major task. Prefer splitting at the file level. If one file contains a disproportionately large number of functions with pass statements, you may split by function and assign non-overlapping sets to multiple engineers.
+
+  - For each engineer, assign the highest-priority file within their major task. If two files are circularly dependent, assign them to the same engineer. Engineers are generally more comfortable starting from simpler tasks before moving to more complex ones.
+
+  - Engineers are only responsible for implementing functions with pass
+    statements. Do not assign them to implement missing functions that are not defined in any file. If you previously added undefined functions with pass statements, include them in the assignment instructions.
+
+  - In each assignment, briefly summarize the relevant repository structure and dependencies so engineers do not need to re-explore the codebase. Clearly specify which file and which functions to implement. Explain the purpose and expected behavior of each function. If assigned functions depend on other stub functions not assigned to the same engineer, provide a short description of those dependencies to avoid confusion.
+
+Note: Do NOT provide any code snippets or pseudo-code.
+Output your delegation plan strictly in the following JSON format:
+
+{
+  "delegation_plan": {
+    "first_round": {
+      "num_agents": <integer (1 to {max_agents})>,
+      "reasoning": "Explain why these files are assigned first and why this number of engineers is used.",
+      "tasks": [
+        {
+          "engineer_id": "engineer_id",
+          "task_id": "task-unique-id",
+          "file_path": "path/to/file.py",
+          "functions_to_implement": ["func1", "func2"],
+          "complexity": "simple|medium|complex",
+          "instruction": "Summarize the repository structure and dependencies. Then provide detailed instructions for the implementation, including the expected behavior of the assigned functions and descriptions of any dependent stub functions."
+        }
+      ]
+    },
+    "remaining_tasks": [
+      {
+        "task_id": "task-unique-id",
+        "file_path": "path/to/file.py",
+        "functions_to_implement": ["func1", "func2"],
+        "complexity": "simple|medium|complex",
+        "depends_on": ["file_path_1", "file_path_2"]
+      }
+    ]
+  }
+}
+\end{promptbox}
+
+\subsection{PaperBench Prompts}
+\label{app:paperbench-prompt}
+
+\begin{promptbox}{user instruction}
+You are tasked with reproducing a research paper.
+
+You have been provided with a research paper located at `/workspace/paper`. The directory contains the paper in both PDF and markdown format.
+
+Here is your task:
+You are a software engineering manager for a research team and have {max_agents} engineers in your team. Each engineer has a total of {max_rounds} rounds to complete their assigned tasks. Your responsibility is to delegate the reproduction tasks to these engineers and guide them to efficiently replicate as many of the core contributions and results of this paper as possible. Your team may not be able to complete everything within the allotted time; you should prioritize tasks in order to accomplish as much as possible within limited time. You may prepare the environment for the reproduction, but you are NOT allowed to generate any code for the reproduction. You may only delegate reproduction tasks to your engineers. Do NOT create code scaffolds, skeleton files, or markdown files -- your engineers will create their own implementation files.
+
+Do not worry if your team fails to completely reproduce certain parts of the paper. Partial credit will be assigned. If a specific part of the reproduction is incorrect, only that part will fail to receive credit, while correctly implemented parts will be marked as successful. The partial credit will be weighted by importance to the paper's main contributions and results. Use your judgment to determine which parts of the paper are more important to reproduce. We will check that your results match the general trends of the original paper within a reasonable margin of error.
+
+Experiments introduced only in the Appendix are not considered core contributions and are out of scope, even if referenced in the main text. However, if an experiment is described in the main body but some implementation details (e.g., prompts or long mathematical expressions) are placed in the Appendix, that experiment is still in scope.
+
+RESOURCES
+---
+You may be provided with a rubric file located at `/workspace/paper/rubric.json`. The rubric has a hierarchical tree structure that breaks down the paper into fine-grained tasks. You may receive only a subset of the full hierarchy, or a single root-level task. In that case, use your judgment to decompose the reproduction into appropriate sub-tasks and assign them to your engineers. Do NOT delegate directly at rubric node level; the rubric is only a reference for expected outcomes.
+
+An addendum file may also be available at `/workspace/paper/addendum.md`, providing additional context or clarifications regarding scope.
+
+Your team may browse and use publicly available resources online. However, your team must NOT access the original paper's codebase or any resources listed in `blacklist.txt`.
+
+SUBMISSION
+---
+Your team must produce a git repository located at `/workspace/submission/`. Only source code and necessary scripts should be committed; the total committed size must not exceed 1GB. We will run `git clean -fd` before grading, so any untracked files will be removed.
+
+The submission MUST include a reproduction script at:
+  /workspace/submission/reproduce.sh
+
+We will copy your submission into a fresh Ubuntu 24.04 LTS Docker container and run:
+  bash reproduce.sh
+
+The maximum runtime is 7 days. Do not rely on hardcoded absolute paths. The container will include an NVIDIA A10 GPU with the NVIDIA container toolkit installed.
+
+All graded artifacts must be generated by the reproduction script.
+
+You should regularly update and test your reproduction script throughout development.
+
+Finally, include a README.md file after all reproduction tasks are completed (or when engineers reach their maximum rounds). The README should summarize achieved results, explain the repository structure, and describe expected outputs from running reproduce.sh.
+
+ENGINEER SUBMISSIONS
+---
+Each engineer must submit a local git commit upon completing their assigned task. If no commit is submitted, assume partial completion.
+
+After reviewing a submission:
+  1. Verify whether the expected outputs are produced.
+  2. If incomplete, reassign the same task with corrective guidance.
+  3. If complete, assign the next highest-priority remaining task.
+  4. You may assign tasks to idle engineers to maximize productivity.
+  5. Always summarize overall progress and provide detailed instructions for the next task.
+  6. If onboarding a new engineer, provide a detailed explanation of the paper and current reproduction goals.
+
+Output your response strictly in the following JSON format:
+
+{
+  "assign_task": {
+    "reasoning": "Explain your decision",
+    "tasks": [
+      {
+        "engineer_id": "engineer_id",
+        "task_id": "task-unique-id",
+        "task_node_id": "rubric task node id if available",
+        "requirements": "Specific requirement to implement",
+        "task_category": "Code Development|Experiment Running|Results Analysis|Other",
+        "estimated_complexity": "simple|medium|complex",
+        "instruction": "Provide detailed explanation of current progress and detailed instructions for this task, including expected behavior and outputs, relevant paper details, and required dependencies."
+      }
+    ]
+  }
+}
+
+If no tasks should be assigned, use an empty tasks array.
+\end{promptbox}
+
+\begin{promptbox}{task delegation}
+The engineers on your team are waiting for instructions to begin their first reproduction tasks. You must now delegate the reproduction work systematically by outputting a delegation JSON based on your current understanding of the paper. You have up to {max_agents} engineers available.
+
+Strategies for effective first-round delegation:
+
+- First, divide the overall reproduction effort into up to {max_agents} major task groups based on your understanding of the paper. Balance complexity and estimated effort as evenly as possible. Group related tasks together and carefully consider dependencies between tasks (i.e., which components depend on others). Do NOT delegate directly at the rubric node level; the rubric (if provided) is only a reference for expected outcomes. Remember that reproduction includes not only implementation but also experiment execution needed to generate expected outputs. When forming task groups, consider how experiment orchestration will be structured.
+
+- For each engineer, assign the highest-priority reproduction task within their task group (i.e., the task that reproduces the most important results).
+
+- Since this is the first assignment round, provide engineers with a clear explanation of the overall structure of the paper and a detailed summary of the paper based on your exploration. This ensures they do not need to re-explore the paper independently.
+
+- Provide detailed instructions for each assigned task. Clearly specify which part of the paper is being reproduced and what outputs are expected. Include relevant context from the paper and addendum. Explicitly mention which dependencies are already available and which must be installed. Ensure that each engineer creates and modifies only their own files. Do NOT assign multiple engineers to modify the same file, as this will cause merge conflicts.
+
+- Do not assign the reproduce.sh script to any engineer. You will create it yourself after all engineers have completed their tasks or reached their maximum rounds.
+
+- Reproduction involves both implementation and experiment execution. Engineers must run experiments and generate concrete outputs (e.g., tables, figures, CSV files). Each task group should include both implementation and execution steps necessary to produce measurable results. The objective is to reproduce as many of the paper's core contributions and results as possible within limited time.
+
+Note: Do NOT provide any code snippets or pseudo-code. Output your delegation plan strictly in the following JSON format:
+
+{
+  "delegation_plan": {
+    "first_round": {
+      "num_agents": <integer between 1 and {max_agents}>,
+      "reasoning": "Explain why these tasks are prioritized and why this number of engineers is used.",
+      "tasks": [
+        {
+          "engineer_id": "engineer_id",
+          "task_id": "task-unique-id",
+          "task_node_id": "rubric task node id if available",
+          "requirements": "Specific requirement from the rubric to implement",
+          "task_category": "Code Development|Experiment Running|Results Analysis|Other",
+          "estimated_complexity": "simple|medium|complex",
+          "instruction": "Provide a detailed explanation of the paper and detailed instructions for the current reproduction task. Explain the expected behavior and outputs. Include relevant details from the paper or addendum. Explicitly mention available dependencies and required installations. Provide clear, structured guidance to ensure correct implementation."
+        }
+      ]
+    },
+    "remaining_tasks": [
+      {
+        "task_id": "task-unique-id",
+        "task_node_id": "rubric task node id if available",
+        "requirements": "Specific requirement to implement",
+        "task_category": "Code Development|Experiment Running|Results Analysis|Other",
+        "estimated_complexity": "simple|medium|complex",
+        "depends_on": ["list of task_ids this depends on, or empty"]
+      }
+    ]
+  }
+}
+\end{promptbox}

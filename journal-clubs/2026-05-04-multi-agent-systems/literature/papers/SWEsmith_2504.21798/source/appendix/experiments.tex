@@ -1,0 +1,221 @@
+\section{Experiments}
+\label{appx:experiments}
+In this section, we provide additional details about the configurations and parameters used to generate trajectories with an expert model and run inference on a fine-tuned model.
+We then provide additional ablations and analyses about the \bugs{} dataset and the agents trained on \bugs{}.
+
+\subsection{Training Details}
+\label{appx:experiments:train_details}
+
+\textbf{Rejection sampling fine-tuning.} Our fine-tuning setup heavily inherits from ~\citet{pan_training_2024}'s work.
+We perform full parameter fine tuning using the \texttt{torchtune}~\citep{torchtune} library, with learning rate \texttt{5e-5}, maximum $3$ epochs, and max context length of $32768$.
+Training was carried on Modal~\citep{modal} on $2$-$8$ NVIDIA H100 80G GPUs.
+As discussed in Section~\ref{sec:experiments}, the procedure for rejection sampling fine-tuning (RFT) is as follows.
+We first generate expert demonstrations/trajectories using SWE-agent and a ``strong" model (e.g. Claude 3.7 Sonnet, GPT 4o) on \bugs{} task instances.
+Of these, we then only train a student model on the trajectories corresponding to resolved instances.
+
+\textbf{SWE-agent configuration.}
+We use two different configurations, one for generating trajectories with an expert model, and a separate one for running inference on the fine-tuned Qwen, student models.
+The configurations are generally quite similar, with minor differences around how LMs' responses are elicited, the parsing mechanism for an LM response, constraints around message sizes, and the system prompt.
+
+We will first review the information common to both configurations.
+The prompt template informing an agent of the task's nature and problem statement is included in Figure~\ref{fig:prompt_sweagent_instance}.
+This prompt is very similar to the original SWE-agent prompt used in~\citet{yang_swe-agent_2024}.
+The prompt templates for showing environment feedback are identical as well.
+If there is execution output, the text is simply preceded by \texttt{OBSERVATION: [output]}.
+If there is no output (e.g \texttt{rm -r} succeeds silently), then the agent is informed ``Your command ran successfully and did not produce any output".
+The agent computer interface (ACI) provided is also identical; SWE-agent provides LM with access to three general tools:
+\begin{itemize}[noitemsep]
+    \item \texttt{bash}: Execute a bash command in terminal.
+    \item \texttt{str\_replace\_editor}: A tool for viewing, creating, and editing files.
+    \item \texttt{submit}: A special keyword for the LM to indicate the task is completed or if it is unable to proceed further with the task.
+\end{itemize}
+
+\input{figures/prompt_sweagent_instance_template}
+
+We briefly review the distinctions.
+First, tool invocation works differently for expert versus student models.
+For the Claude and GPT series models that are used as experts, we use function calling for models to invoke the aforementioned tools.
+On the other hand, the student model is asked to generate a response with XML tags to delineate the thought and action.
+Therefore, when fine-tuning on expert trajectories, a key processing step is to convert the expert trajectories' function calling format into the XML style response --- fine-tuning \textit{directly} on the expert trajectories does not work.
+
+We note that we use these particular settings because as of the publication of this paper, this tool setting reflects the absolute state-of-the-art performance achieved with an open source agent system (SWE-agent) and any existing LM (Claude 3.7 Sonnet).
+It is certainly possible to explore more tool designs and experiment with different formatting calls, as many existing prior works, notably \citet{yang_swe-agent_2024}, have performed.
+However, given the focus of our work, we do not bother with repeating such a "hyperparameter sweep" across configurations for the agent system, as this effort is expensive and has already been performed to suggest that the configuration we are using is ideal for expert level performance.
+
+For generating trajectories with expert models, we run with a maximum of $75$ steps and a cost limit of \$$2.00$.
+A run terminates automatically when either of these limits are reached or the context window of the expert model is exceeded.
+The overwhelming majority of automatic terminations are due to the $75$ maximum steps limit.
+
+For running inference with student models, we run with a maximum of $75$ steps or a cost limit\footnote{We include the cost limit in addition the step limit to provide realistic behavior with respect to handling long context. To calculate a cost value for our model, we use the gpt-4o cost function as of April, 2025.} of \$$2.00$, where the run similarly terminates when either the steps, cost or context window limit is reached.
+For the student model, per LM inference call, we truncate the message history to only keep the $5$ most recent tool outputs.
+While we occasionally sample trajectories with the expert model set at various temperatures, for the student model, the temperature is fixed at $0.0$.
+
+\input{appendix/eval_datasets}
+
+\subsection{Trajectory Dataset Breakdown}
+\label{appx:experiments:data_breakdown}
+
+\input{tables/trajectories_breakdown}
+
+\begin{table}[t]
+\centering
+\begin{minipage}[t]{0.38\textwidth}
+    \input{tables/sft_final_bug_types}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.59\textwidth}
+    \input{tables/sft_final_repos}
+\end{minipage}
+\end{table}
+
+We provide a thorough review of the dataset of SWE-agent trajectories released with this work in Table~\ref{tab:trajectories_breakdown}.
+The majority are generated with \texttt{claude-3-7-sonnet-20250219}.
+To compare with prior work, a minority were generated with \texttt{claude-3-5-sonnet-20240620} and \texttt{gpt-4o-2024-08-06}.
+As mentioned in Section~\ref{sec:results}, to guard against the easy data bias phenomenon, we impose a per-instance cap of $3$, meaning for any task instance, we include at most $3$ trajectories successfully resolving that task instance in our fine-tuning dataset.
+From the pool of trajectories reflected in Table~\ref{tab:trajectories_breakdown}, we curate a set of $5000$ trajectories that we then use to train \texttt{SWE-agent-LM-32B}.
+
+Tables~\ref{tab:sft_final_bug_types} and~\ref{tab:sft_final_repos} show what repositories and bug types are represented in the final training dataset.
+In total, $123$ repositories are represented, with at least $10$ trajectories from $91$ repositories.
+Trajectories are on average $58$ turns long, meaning an LM typically takes $29$ actions for a given demonstration trajectory.
+We visualize this distribution in Figure~\ref{fig:num_turns_dist}.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.85\linewidth]{figures/num_turns_dist.pdf}
+    \caption{Distribution of number of turns for trajectories represented in the final dataset.}
+    \label{fig:num_turns_dist}
+\end{figure}
+
+\subsection{Training Analyses}
+\label{appx:experiments:training_analyses}
+We provide additional experiments and discussions around training \texttt{SWE-agent-LM-32B}.
+
+\textbf{Pass@k trend line.} To calculate the Pass@1 score discussed in our main result, we ran SWE-agent with \texttt{SWE-agent-LM-32B} six times.
+In Figure~\ref{fig:pass_at_k}, we observe increasing performance at higher values of \texttt{k}, a phenomenon that reflects observations in prior works across LMs for software engineering, code generation, web navigation, and theorem proving.
+While we do not explore work around inference time scaling and training a separate verifier model to select the best solution candidate generated by multiple roll-outs, as done in~\citet{pan_training_2024} and ~\citet{jain2025r2e-gym}, \texttt{SWE-agent-LM-32B} is fully compatible with the generate-then-select pipelines explored by such works.
+Given its strong Pass@1 performance, \texttt{SWE-agent-LM-32B} would likely be quite competitive for Best@k results as well.
+As mentioned before, all trajectories generated in the course of \bugs{} have been released publicly, which the community might find useful for training better verifiers.
+
+\textbf{Rejection sampling fine-tuning ablation.} To confirm that rejection sampling fine-tuning leads to better performance on the downstream task, we compare against a setting where we randomly sample \texttt{n} training points with no filtering criteria, at \texttt{n = [100, 200, 400, 800, 1600]} and fine-tune the same student model (Qwen $2.5$ Coder Instruct $32$B.
+We then run SWE-agent with each student model on the SWE-bench Verified dataset three times, with the ``\% Resolved" corresponding to the Pass@1 score.
+We show results in Figure~\ref{fig:sft_vs_rft}, which confirms that fine-tuning only on trajectories corresponding to successfully resolved tasks is better than randomly sampling trajectories.
+
+\textbf{SWE-bench Multilingual performance.} To assess how well \texttt{SWE-agent-LM-32B} and existing models generalize to non-Python coding domains, we evaluate the performance of our model, Qwen $2.5$ Coder Instruct 32B, and Claude $3.7$ Sonnet with SWE-agent on our new dataset, which we introduced in Section~\ref{appx:experiments:eval_datasets}.
+Out of $300$ task instances, we found that Claude $3.7$ Sonnet achieved a $43$\% Pass@1 resolve rate, which is significantly better than \texttt{SWE-agent-LM-32B} ($8.4$\%) and Qwen $2.5$ Coder Instruct ($6.5$\%).
+\texttt{SWE-agent-LM-32B} does not demonstrate a significant improvement over the baseline model.
+Through several spot checks of different trajectories, we came to a working hypothesis that while the rejection sampling fine-tuning process had improved its ability to carry out multi-turn interactions in this task setting, there were instances where code edits reflected syntax closer to Python despite code and files viewed in previous steps clearly not being written in Python.
+
+While the result for \texttt{SWE-agent-LM-32B} SWE-bench Multilingual is clearly subpar, we are excited by such a finding, as it motivates future work on top of \bugs{}.
+To elaborate, we expect that the path to open agent coding models capable of generalizing to many repositories and languages will be paved by more data and better training techniques, both of which \bugs{} is very capable of facilitating.
+First, regarding data, although we wrote \bugs{} to be Python centric, the collection methodology and bug generation techniques (especially LM based methods) should be readily transferable to other repositories.
+Second, the negative result on SWE-bench Multilingual provides a clear impetus for exploring whether better training techniques could lead to models that are trained on one code domain (e.g., Python), but can generalize to many languages and repositories.
+
+\begin{figure}[t]
+\centering
+    \begin{minipage}[t]{0.49\textwidth}
+        \includegraphics[width=\linewidth]{figures/pass_at_k.pdf}
+        \caption{
+        \texttt{SWE-agent-LM-32B} Pass@k curve on SWE-bench Verified.
+        We observe higher \% resolved when considering
+        more runs.
+        }
+        \label{fig:pass_at_k}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.49\textwidth}
+        \includegraphics[width=\linewidth]{figures/sft_vs_rft.pdf}
+        \caption{
+        Rejection sampling fine-tuning
+        leads to better performance than random sampling
+        of trajectories for training.
+        }
+        \label{fig:sft_vs_rft}
+    \end{minipage}
+\end{figure}
+
+\subsection{Agent Behavioral Studies}
+\label{appendix:experiments:agentbehavior}
+%
+\subsubsection{Turn counts and cost}
+\label{appendix:experiments:agentbehavior:turncounts}
+While agents are frequently quoted with a singular cost-per-instance number, this can be very misleading in the case of SWE-agent-LM-32B.
+Because most of the failed instances fail due to termination by the cost or turn count limit, the average cost and turn counts depend strongly on these limits (see Fig.~\ref{fig:step_cutoff_vs_avg_steps}).
+
+We can also chart the number of resolved instances vs step limits.
+To avoid reevaluating the agent with multiple step limits, we use one run with step limit 75 and then assume that a successful agent run that terminates after step $n$ would have failed when restricted by a limit smaller than $n$.
+This chart corroborates the point made in section~\ref{sec:experiments}: SWE-agent-LM-32B has a higher resolution rate for very low step limits. 
+%
+\begin{figure}[t]
+    \begin{minipage}[t]{0.49\textwidth}
+        \includegraphics[scale=0.5]{figures/agent_actions/step_cutoff_vs_avg_steps.pdf}
+    \caption{The average step count depends strongly on the prescribed step limit.}
+    \label{fig:step_cutoff_vs_avg_steps}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.49\textwidth}
+        \includegraphics[scale=0.5]{figures/agent_actions/step_cutoff_vs_success.pdf}
+    \caption{Number of successful instances submitted before a given step limit.}
+    \end{minipage}
+\end{figure}
+
+\subsubsection{Analysis of agent action space}
+\textbf{Reduction to \emph{base commands.}} In addition to the dedicated tools provided to the agent as part of the agent computer interface (Section~\ref{appx:experiments:train_details}), the agent can execute arbitrary bash commands.
+This makes quantitative analyses of the agent action space challenging.
+For example, the agent might issue commands like \texttt{PYTHONPATH=/testbed/repo cd /testbed/repo \&\& python3 reproduce.py}.
+We have found the following procedure to determine a \emph{base command} effective to meaningfully describe the action:
+\begin{enumerate}
+    \item Strip any environment variable manipulation from the beginning of the command.
+    \item When multiple commands are chained with \texttt{\&\&} or semicolons, only consider the last command.
+    \item Remove all arguments. Because some commands have subcommands (e.g., \texttt{git checkout}), we apply several basic heuristics to determine whether to keep the first or the first two words.
+\end{enumerate}
+
+\textbf{Repetitive actions.} 
+We determine the longest repetitive sequence of actions by determining the longest sequence of identical base commands within the agent actions.
+Note that this means that e.g., \texttt{str\_replace\_editor view} actions that target different files are considered to be repetitive actions as far as this analysis is concerned. 
+
+\subsubsection{Failure mode analysis}
+
+Categorizing the failure mode proceeds as shown in Figure~\ref{fig:failure_mode_analysis}:
+\begin{enumerate}
+\item \textbf{Error conditions:} If the agent terminates due to an error (environment errors, inability of the LM to correctly format its messages, etc.) or because it exceeded its maximum context window, we return the \textbf{error} or \textbf{context} category.
+\item \textbf{Early termination:} If the agent was terminated because of a step or cost limit, we return one of the \textbf{stuck …} subcategories. Note that the SWE-agent still attempts to extract a submission (list of changes/patch).
+We determine the subcategory based on which part of the workflow agentic loop was terminated:
+\begin{enumerate}
+\item If no source (i.e., non-test) file was modified\footnote{We exclude added files because solving SWE-bench instances always requires \emph{changes} to existing files.} and no attempt at testing was made, we return \textbf{stuck at localization}. If test commands were run (i.e., \texttt{python}, \texttt{pytest}, \dots, or similar commands), we return \textbf{stuck at reproduction}.
+%
+\item If source files \emph{were} modified, we check whether the changes include changes to all source files that are modified in the gold patch. If not, we return \textbf{incorrect localization (stuck)}, else \textbf{incorrect edit (stuck)}.
+\end{enumerate}
+\item \textbf{Successful submission:} If the agent terminated and submitted a solution naturally, we return \textbf{incorrect localization} or \textbf{incorrect edit}, depending on whether the changes from the submitted patch included changes to all files from the SWE-bench gold patch.
+\end{enumerate}
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/agent_actions/failure_analysis_flowchart_vert.pdf}
+    \caption{Categorizing failure modes}
+    \label{fig:failure_mode_analysis}
+\end{figure}
+
+\subsubsection{Mitigating repetitive actions}
+As described in section~\ref{sec:results}, \texttt{SWE-agent-LM-32B} frequently shows highly repetitive actions for unresolved instances.
+In light of this, it seems promising to investigate whether agent scaffolding interventions can be used to mitigate the problem and increase the success rates.
+
+We make the following modification to the agent scaffold:
+%
+\begin{itemize}
+    \item We add warning messages to the observation (command output) if a base command is repeated four (\texttt{str\_replace\_editor view}) or six (any other base command) times. The warning message advises to try different commands, and in particular suggest to locate relevant context using \texttt{find} or \texttt{grep}. 
+    \item If the warning messages do not break the string of repetitive base commands and the repetition length reaches 6 (\texttt{str\_replace\_editor view}) or 8 (any other base command), every following action is resampled up to 10 times, stopping at the first base command that is distinct from the previous ones. 
+    To further increase the likelihood of breaking the cycle, we inject assistant messages or raise the temperature if the repetition length reaches 7 or 9.
+\end{itemize}
+%
+This effectively reduces the number of repetitive actions (see Fig.~\ref{fig:app:repeat_mitigation}).
+However, the overall number of resolved instances drops slightly to 192 ($38.4\%$).
+Variations of the above strategies yield similar outcomes: while repetition is suppressed, success rates do not improve substantially.
+This may suggest that repetitive actions are better understood as \emph{symptoms} of the model’s difficulty in solving an instance (such as when the instance is out-of-distribution or particularly challenging) rather than constituting intrinsic failure modes.
+%
+\begin{figure}[t]
+\centering
+   \includegraphics[width=0.49\textwidth]{figures/agent_actions/repetitive_actions_with_rmitigation.pdf}
+   \caption{Scaffold interventions can drastically reduce the number of repetitive actions.}
+   \label{fig:app:repeat_mitigation}
+\end{figure}

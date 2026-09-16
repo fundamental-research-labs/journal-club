@@ -1,0 +1,35 @@
+\section{Introduction}
+
+Deep reinforcement learning (RL) promises a scalable approach to solving arbitrary sequential decision-making problems, demanding only that a user must specify a reward function that expresses the desired behaviour.
+However, many real-world problems that might be tackled by RL are inherently multi-agent in nature.
+For example, the coordination of self-driving cars, autonomous drones, and other multi-robot systems are becoming increasingly critical. Network traffic routing, distributed sensing, energy distribution, and other logistical problems are also inherently multi-agent. 
+As such, it is essential to develop multi-agent RL (MARL) solutions that can handle decentralisation constraints and deal with the exponentially growing joint action space of many agents.
+
+Partially observable, cooperative, multi-agent learning problems are of particular interest.
+Cooperative problems avoid difficulties in evaluation inherent with general-sum games (e.g., which opponents are evaluated against). Cooperative problems also map well to a large class of critical problems where a single user that manages a distributed system can specify the overall goal, e.g., minimising traffic or other inefficiencies.
+Most real-world problems depend on inputs from noisy or limited sensors, so partial observability must also be dealt with effectively. This often includes limitations on communication that result in a need for decentralised execution of learned policies.
+However, there commonly is access to additional information during training, which may be carried out in controlled conditions or simulation.
+
+A growing number of recent works \cite{foerster_counterfactual_2017, rashid_qmix:_2018, sunehag_value-decomposition_2017, lowe_multi-agent_2017} have begun to address the problems in this space.
+However, there is a clear lack of standardised benchmarks for research and evaluation.
+Instead, researchers often propose one-off environments which can be overly simple or tuned to the proposed algorithms.
+In single-agent RL, standard environments such as the Arcade Learning Environment \cite{bellemare13arcade}, or MuJoCo for continuous control \cite{Plappert2019multigoal}, have enabled great progress.
+In this paper, we aim to follow this successful model by offering challenging standard benchmarks for deep MARL and to facilitate more rigorous experimental methodology across the field.
+
+Some testbeds have emerged for other multi-agent regimes, such as Poker \cite{HeinrichS16}, Pong \cite{tampuu_multiagent_2015}, Keepaway Soccer \cite{stone2005keepaway}, or simple gridworld-like environments \cite{lowe_multi-agent_2017, leibo_multi-agent_2017, yang2018mean, zheng2017magent}.
+Nonetheless, we identify a clear gap in challenging and standardised testbeds for the important set of domains described above.
+
+To fill this gap, we introduce the StarCraft Multi-Agent Challenge (SMAC).
+SMAC is built on the popular real-time strategy game StarCraft II\footnote{StarCraft II is the sequel to the game StarCraft and its expansion set Brood War. StarCraft and StarCraft II are trademarks of Blizzard Entertainment\textsuperscript{TM}.} and makes use of the SC2LE environment \cite{vinyals_starcraft_2017}.
+Instead of tackling the full game of StarCraft with centralised control, we focus on decentralised micromanagement challenges (Figure~\ref{fig:SC2maps_2}).
+In these challenges, each of our units is controlled by an independent, learning agent that has to act based only on local observations, while the opponent's units are controlled by the hand-coded built-in StarCraft II AI.
+We offer a diverse set of scenarios that challenge algorithms to handle high-dimensional 
+inputs and partial observability, and to learn coordinated 
+behaviour even when restricted to fully decentralised execution.
+
+The full games of StarCraft: BroodWar and StarCraft II have already been used as RL environments, due to the many interesting challenges inherent to the games \cite{synnaeve_torchcraft:_2016, vinyals_starcraft_2017}. DeepMind's AlphaStar \cite{alphastar} has recently shown an impressive level of play on a StarCraft II matchup using a centralised controller. In contrast, SMAC is not intended as an environment to train agents for use in full StarCraft II gameplay. Instead, by introducing strict decentralisation and local partial observability, we use the StarCraft II game engine to build a new set of rich cooperative multi-agent problems that bring unique challenges, such as the nonstationarity of learning \cite{foerster_stabilising_2017}, multi-agent credit assignment \cite{foerster_counterfactual_2017}, and the difficulty of representing the value of joint actions \cite{rashid_qmix:_2018}.
+
+To further facilitate research in this field, we also open-source PyMARL, a learning framework that can serve as a starting point for other researchers and includes implementations of several key MARL algorithms. PyMARL is modular, extensible, built on PyTorch, and serves as a template for dealing with some of the unique challenges of deep MARL in practice. We include results on our full set of SMAC environments using QMIX \cite{rashid_qmix:_2018} and several baseline algorithms, and challenge the community to make progress on difficult environments in which good performance has remained out of reach so far. 
+We also offer a set of guidelines for best practices in evaluations using our benchmark, including the reporting of standardised performance metrics, sample efficiency, and computational requirements (see Appendix~\ref{appendix:methodology}).
+
+We hope SMAC will serve as a valuable standard benchmark, enabling systematic and robust progress in deep MARL for years to come.

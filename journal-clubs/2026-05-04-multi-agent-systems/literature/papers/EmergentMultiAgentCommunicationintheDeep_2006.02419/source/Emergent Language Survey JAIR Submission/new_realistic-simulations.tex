@@ -1,0 +1,278 @@
+%\subsection{Language Emergence Simulations and the Advent of Deep Learning}
+%\label{sec:realistic-simulations}
+
+% The focus that generative linguistics has put on language as an abstract
+% structural system  (e.g., \cite{Chomsky:1965,Pinker:1994,Sag:etal:2003}) has
+% long been complemented by research traditions emphasizing how language is also
+% a \emph{tool} for interactively getting things done (e.g.,
+% \cite{Wittgenstein:1953,Austin:1962,Searle:1969,Clark:1996,Allwood:1976,Pickering:Garrod:2004,Linell:2009,Ginzburg:Poesio:2016}).  Within the domain of computational cognitive science, this alternative view
+% triggered a fruitful research line
+% (\cite{Cangelosi:Parisi:2002,Christiansen:Kirby:2003,Steels:2003b,Wagner:etal:2003,Steels:2012,Hurford:2014})
+% designing artificial communicating agents and testing under which conditions core properties of natural language would emerge as the result of communicative pressures.
+
+
+% While this line of research addressed many interesting  questions, technology and data limitations restricted it to experimental simulations involving agents that were largely hand-crafted to address very specific issues in an \emph{ad-hoc} manner.% , making thus these simulations (and their conclusions) somewhat disconnected from the richness and complexity of natural language. 
+
+% The last decade has seen astounding progress in the development of
+% artificial neural networks, under their ``deep learning'' rebranding
+% (\cite{LeCun:etal:2015}).  The most impressive successes in the
+% language domain came from networks that, after being exposed to
+% massive amounts of text, are able to tackle challenges ranging from
+% machine translation to document understanding
+% (\cite{Vaswani:etal:2017,Edunov:etal:2018,Devlin:etal:2019,Radford:etal:2019}). In
+% computer vision, we can now automatically recognize thousands of objects in natural
+% images (\cite{Russakovsky:etal:2014,Krizhevsky:etal:2017}). Deep
+% networks combining vision and language can generate image captions
+% and answer complex questions about scenes
+% (\cite{Anderson:etal:2018,Zhou:etal:2020}).
+
+% Spurred by these innovations, a new wave of language emergence research
+% uses generic ``deep agents'' (Fig.~\ref{fig:agents}), built out of
+% standard deep-learning components, such as convolutional and
+% recurrent networks (\cite{LeCun:etal:1998,Elman:1990,Hochreiter:Schmidhuber:1997,Cho:etal:2014}),  in
+% simulations that go beyond what was conceivable just a few years ago:
+% dealing with complex scenarios involving hundreds of possible
+% referents, that are presented in perceptually realistic formats;
+% engaging in self-paced multi-turn interactions; producing long,
+% language-like utterances (Fig.~\ref{fig:environments},
+% Fig.~\ref{fig:referential-game}).
+
+% \input{figure-agents}
+
+% \input{figure-referential-game}
+
+% \subsection{Representative Experiments}
+%\label{sec:representative-experiments}
+
+In the representative simulations we will describe in this section, the agents are presented with a
+ task, and each agent has a cost or reward function to optimize.
+Agents have perfectly aligned incentives, i.e., they
+ share their reward. Communication comes into play as a means to
+achieve their goal. Learning generally takes place through %
+% ; since the agents are optimizing a shared reward function,
+% cooperation can lead to higher rewards and communication can facilitate
+% exchange of information. Their communication behaviour is thus constantly
+% adjusted to optimize their reward, and this learning takes place through
+reinforcement learning, a set of techniques to train systems in scenarios in which the main teaching signal is \emph{reward} for succeeding or failing at a task, possibly requiring multiple actions in a potentially changing environment \cite{Sutton:Barto:1998,Mnih:etal:2015,Silver:etal:2016}. This setup offers more flexibility than standard \emph{supervised} learning (where the learning signal derives from direct comparison of the system output with the ground-truth), but it is also more challenging. Communication is emergent in the sense that, at the beginning of a simulation, the
+ symbols the agents emit have no \emph{ex-ante} semantics nor pre-specified usage rules. Meaning and syntax emerge through game play. % 
+
+\subsection{Continuous and Discrete Communication}
+\label{sec:discrete-continuous}
+ % box communication here
+ Communication can be of two types:
+  \textit{continuous}, in which agents communicate via a continuous
+  vector, and \textit{discrete}, in which agents
+  communicate by means of single symbols or sequences of symbols.
+An example of the continuous case is the influential DIAL system of \citeA{Foerster:etal:2016}. The agents are given a continuous communication channel, making it easy to back-propagate learning signals through the whole system. A continuous vector connecting two agent networks can equivalently be seen as another activation layer in a larger
+architecture encompassing the two networks, and it effectively gives each agent access to the internal states of the other network. Therefore, continuous communication turns the multi-agent system into a single large network.  
+A ``vanilla'' model of discrete communication commonly used in the language emergence literature and for multi-agent coordination problems is RIAL \cite{Foerster:etal:2016}. In RIAL, communication happens through discrete symbols, thus making it impossible for agents to transmit rich error information via continuous back-propagation through each other. The only learning signal received by each agent is task reward. As such, unlike in the continuous case, and similarly to what happens in human communities, each agent treats the other(s) as part of its environment, with no access to their internal states. It is thus exactly the presence of the discrete bottleneck that makes simulations genuinely ``multi-agent''.  Moreover, communication via discrete symbols provides the symbolic scaffolding for interfacing the agents' emergent code to natural language,  which is universally discrete \cite{Hockett:1960}.
+Tuning the weights of a neural network with an error signal that is back-propagated through a discrete bottleneck is a challenging technical problem. Adopting methods from reinforcement learning, agent training can take place using the REINFORCE update rule \cite{Williams:1992,Lazaridou:etal:2017}, which intuitively increases the weight for actions that resulted in a positive  reward  (proportional to their probability), and decreases them otherwise. Alternatively, discrete representations can be approximated by continuous ones during the training  phase \cite{Havrylov:Titov:2017,Jang:etal:2017,Maddison:etal:2017}.
+
+\subsection{Representative Studies}
+
+Since we initially focus on the comparison of
+emergent codes with natural language,
+we briefly review here work that considers the discrete case, coming back
+to some examples of continuous communication in Section
+\ref{sec:agent-coordination} below.
+
+%\input{figure-referential-game}
+
+% We focus specifically on work that assumes that communication takes
+% place through a \emph{discrete} channel, that is, by means of symbols
+% or sequences of symbols, as this is a universal property of human
+% language (\cite{Hockett:1960}). Moreover, it is exactly the presence
+%On of the first modern simulations in this topic was presented by 
+%Seizing the opportunity afforded by advances in computer vision
+%(\cite{Russakovsky:etal:2014,Krizhevsky:etal:2017}) and
+%\textbf{reinforcement learning}
+%(\cite{Mnih:etal:2015,Silver:etal:2016}),
+% The early 2010s saw enormous progress in computer vision, driven by
+% deep convolutional networks. Systems went from error-prone recognition
+% of just a few categories to a near-human ability to classify thousands
+% of objects in noisy real-life pictures
+% (\cite{Russakovsky:etal:2014,Krizhevsky:etal:2017}). In parallel,
+% successful application of reinforcement learning techniques to deep
+% networks \cite{Mnih:etal:2015,Silver:etal:2016} made it possible to
+% use them in dynamic scenarios involving discrete actions (such as
+% emitting linguistic symbols), and relying on task success as the sole
+% training signal. Seizing
+% the opportunity afforded by these advances,
+One of the first studies of language emergence in deep networks was presented
+by \citeA{Lazaridou:etal:2017}, who used the referential game schematically
+illustrated in Fig.~\ref{fig:referential-game}. %
+%
+% \textbf{AL: 'and to propagate
+%   this signal through discrete bottlenecks' -> This seems a bit weird
+%   here as we had discrete actions, we just didn't have continuous
+%   representations/actions. It's the NN as function approximations that
+%   made the revolution? MB: my point was about advances in general, but
+%   even us, we used REINFORCE, right? It's true that that was possible
+%   since 1992\ldots} Lazaridou and colleagues designed a modern variant
+% of the classic signaling/referential games long employed in the
+% linguistic, philosophical and game-theoretical literatures
+% (\cite{Lewis:1969,Skyrms:2010}). A \emph{sender} agent (built out of
+% various deep network modules) is exposed to a target and a distractor
+% object, both represented by non-curated pictures of instances of about
+% 500 distinct object categories (e.g., dogs and cars). After processing
+% the images with a convolutional neural network module, the sender
+% produces a single-symbol message. A \emph{receiver} agent (with a
+% similar architecture to the sender) gets as input the sender message
+% as well as the two images in random order, and has to point to the
+% intended target. If it points to the right target, both agents receive
+% positive reward, which is the only training signal.
+This paper first
+showed that agents can develop an effective communication protocol to talk about realistic
+images by relying on game success as sole training signal. Still, evidence that the agents were developing human-like words referring to generic concepts such as ``dog'' or ``animal'' was mixed,
+a point will return to in the next section.
+
+While \citeA{Lazaridou:etal:2017} constrained messages to consist of one
+symbol, \citeA{Havrylov:Titov:2017} allowed the sender to emit strings
+of symbols of variable length
+\cite<see also>{Lazaridou:etal:2018}. The resulting emergent language developed
+a prefix-based hierarchical scheme to encode meaning into
+multiple-symbol sequences. For example, the ``word'' for pizza was
+\emph{5261 2250 5211}, where \emph{5261} refers to food, \emph{2250}
+to baked food, and \emph{5211} to pizzas. %However, unlike real words, symbol
+%meanings tended to change with their position in the message. 
+
+\citeA{Evtimova:etal:2018} went one step further, considering multiple-turn
+interactions \cite<see also>{Jorge:etal:2016}.
+% Human linguistic
+% interaction is obviously not limited to single-message episodes, so
+% another move towards more realistic simulations involves allowing
+% agents to take multiple turns. A more flexible scenario was explored
+% by Evtimova et al.~\cite{Evtimova:etal:2018}.
+In their game, one agent
+must pick the definition of an animal from a list of dictionary
+entries, when a natural image of the target animal is presented to
+the other agent. %The messages can include multiple symbols,
+% transmitted in an order-insensitive way.
+The agents can exchange
+multiple messages. The conversation ends when
+the agent tasked with guessing the definition makes its
+final guess.  Several natural
+properties of conversations emerged in this setup. For example, the
+agents tend to exchange more turns in more difficult game
+episodes. % Moreover, message information content increases with turns
+% for the image describing agent, whereas it decreases for the
+% definition guessing one. This stands to reason: as the game
+% progresses, the definition guesser can rely on accrued information,
+% and ask more specific questions. On the other hand, these questions
+% will require more nuanced answers on behalf of the image describer.
+
+
+
+% Jorge et
+% al.~\cite{Jorge:etal:2016} first studied this in a highly constrained
+% setup where the agents where assigned a fixed number of single-symbol
+% turns.
+
+
+% Going beyond classic referential games, Cao et
+% al.~\cite{Cao:etal:2018} (partially inspired by
+% \cite{Lewis:etal:2017}) studied whether agents can learn to use
+% multiple-turn conversations to achieve their goals in a negotiation
+% scenario. In each episode of their game, two agents A and B are
+% exposed to a (symbolically represented) set of items. Each of them is
+% also provided with (random and hidden) utilities for each item type
+% (e.g., in a specific episode, peppers might be very valuable and
+% cherries useless for agent A). At each step, agents emit a
+% multiple-symbol message, as well as a (non-verbally conveyed) proposal
+% on how to split the goods. Either agent can terminate the episode at
+% any time by accepting the proposal that the other agent issued at the
+% previous step. If the agents do not reach an agreement within 10
+% turns, neither gets any reward. The agents learn to play the game at
+% least somewhat successfully in all setups, but the crucial factor
+% determining whether they will meaningfully use the linguistic channel
+% (as opposed to only rely on the information directly conveyed by the
+% non-verbal proposals) is whether they are rewarded ``prosocially''
+% (each agent receives the cumulative reward of both agents under the
+% agreed split) or egotistically. Only prosocial agents learn to use
+% language, sharing in particular information about their
+% utilities. When one agent is made to play against a community of other
+% agents, the language channel, again, is meaningfully used only when
+% there are enough prosocial agents in the community. However, each pair
+% of agents develops its own idiolect, with no convergence to a common
+% language.
+
+A further step towards realistic conversational scenarios, beyond
+referential games, is taken by \citeA{Bouchacourt:Baroni:2019} \cite<see also>{Cao:etal:2018}. In this study, one agent is assigned a
+fruit, the other two tools, and their task is to decide which of the
+two tools is best for the current fruit. The utility of each tool with
+respect to each fruit is derived from a corpus of human judgments,
+resulting in skewed affordance statistics (e.g., a knife is generally
+more useful than a spoon). The setup is fully symmetric, with either
+agent randomly assigned either role in each episode, and both agents
+being able to start and end the conversation. The agents learn to use
+messages meaningfully, accumulating more reward than what they could
+get by relying on general object affordances. However, despite the
+symmetric setup, they develop different idiolects for the different
+roles they take, that is, the same agents use different codes to
+communicate the same meanings, depending on who is in charge of describing the fruit, and who the tools. A similar behaviour  was also observed by \citeA{Cao:etal:2018}.
+% one role or the other, start the conversation or go second, and decide
+% whether to end the episode. Going beyond classic referential games,
+% one agent is assigned a fruit, the other two tools (symbolically
+% represented), and their task is to cooperatively decide which tool is
+% best for the current fruit. The utility of each tool with respect to
+% each fruit is derived from a corpus of human judgments, resulting in
+% skewed affordance statistics (e.g., a knife is generally more useful
+% than a spoon). Bouchacourt and Baroni show that the agents learn to
+% use messages meaningfully, being able in this way to accumulate more
+% reward than what they could get by relying on general object
+% affordances. Moreover, unlike in earlier studies such as
+% \cite{Evtimova:etal:2018}, where artificially ``lobotomizing'' one of
+% the agents was a pre-condition for communication to help, in this
+% experiment the agents rely on language even when they are both endowed
+% with full memory capabilities. On the other hand, despite the strongly
+% symmetric setup, the agents develop different idiolects that they use
+% when taking different roles (a result also reported by
+% \cite{Cao:etal:2018}).
+
+Under which conditions will agents converge to a shared language is
+one of the topics addressed by \citeA{Graesser:etal:2019}, who used deep agent communities as a
+modeling tool for contact linguistics
+\cite{MyersScotton:2002}. They report that,
+if two agents will develop different idiolects, it suffices for
+the community to include a third agent for a shared code to
+emerge. One of their most interesting findings is that, when agent
+communities of similar size are put in contact, the agents develop a
+mixed code that is simpler than either original language, akin
+to the development of pidgins and creoles in mixed-language
+communities \cite{Bakker:etal:2011}.
+% Two
+% agents are exposed to different fragments of a synthetic image The
+% agents communicate through order-insensitive multi-symbol messages for
+% a fixed number of turns. At the end, they must both select the correct
+% caption for the whole image (e.g., ``there is a green triangle'') out
+% of a set of alternatives. If only two agents are playing the game,
+% they will develop different idiolects. It suffices however for three
+% agents to play the game (in turns) for a shared code to
+% emerge. Moreover, increasing community size does not slow down
+% learning. Graesser and colleagues then study what happens when agents
+% from two communities that were originally disconnected are made to
+% interact. They find that all agents are soon able to communicate
+% across communities, including those that were never in direct contact
+% with agents from the other community. When communities of
+% different sizes are made to interact, the smaller community will adopt
+% the code of the larger one. However, and perhaps most excitingly from
+% the point of view of contact-linguistics studies, if the communities
+% are of equal size, the agents will develop a mixed code that is
+% simpler than either of the original languages, akin to the development of
+% pidgins and creoles in mixed-language communities.
+
+% As we have seen, different studies took different steps towards
+% greater realism. However, to the best of our knowledge, nobody has yet
+% tried to combine all these advances in a single simulation that would
+% feature, say, natural visual inputs, multi-turn dialogue, variable
+% length messages, more than 2 agents, and a task based on real-world
+% statistics. This might in part be due to the technical complications
+% that such pursuit implies. However, a possibly even more important
+% factor is that, already in the simpler experiments we reviewed here,
+% decoding the agents' language, and understanding exactly how it is being
+% used, turns out to be a major challenge. 
+% Thus, many recent studies are
+% actually considering even \emph{simpler} setups, and focusing on
+% analysis of the emergent code. This is the topic we turn to in the
+% next section.
+

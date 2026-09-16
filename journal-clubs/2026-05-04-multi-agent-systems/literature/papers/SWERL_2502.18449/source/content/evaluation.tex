@@ -1,0 +1,248 @@
+\section{Evaluation}
+\label{section:evaluation}
+
+\subsection{Experimental setup}
+\label{subsec:setup}
+
+\textbf{Training configs.}
+\ours[70] is trained on top of \llama-3.3-70B-Instruct~\cite{llama31} using \tech for 1,600 steps with a 16k context window.
+We use a global batch size of 512, sampling 16 rollouts from each of the 32 problems in every batch.
+For every global step, a single optimization step is performed using Adam~\cite{adam}.
+We train our models on 512 NVIDIA H100 GPUs; a training run takes approximately 32 wall-time hours.
+
+\textbf{Scaffolding.}
+We have developed \ouragentless on top of \agentless~\cite{agentless} as the underlying scaffold.
+Different from \agentless's multi-step localization, \ouragentless focuses solely on file-level localization, delegating detailed reasoning to the repair step by providing the entire file contents in the input.
+This enables \ours to do more reasoning during \tech and simplifies the RL process to focus on only one issue-solving task.
+Despite this simplification, \ours can still seamlessly complete other pipeline steps, benefiting from out-of-domain generalization through RL.
+Furthermore, while \agentless only employs one reproduction test per issue for reranking, \ouragentless can use multiple reproduction tests, which has proven effective in our scaling analysis (\Cref{subsec:scaling}).
+More details about \ouragentless can be found in \Cref{sec:apd:agentlessmini}.
+
+\textbf{Evaluation setup.}
+We conduct evaluation on \swebverified~\cite{swebverified}, a subset of \swebench with 500 human-verified problems that can more reliably evaluate AI models' capability in solving real-world software issues.
+In the main evaluation (\Cref{subsec:maineval}), we generate 500 patches for each problem using a 1.0 temperature, and use the top 30 reproduction tests for execution and reranking.
+Ultimately, only the highest-ranked patch for each issue will be submitted for \swebench evaluation to calculate the pass@1 score.
+
+\textbf{SFT baseline.}
+To understand the advantages of \tech, we also trained an SFT baseline, named \oursft[70], for experiments in \Cref{subsec:ablate-baseline}, \Cref{subsec:scaling}, and \Cref{subsec:generalizability}.
+It is trained on top of \llama-3.3-70B-Instruct~\cite{llama31} using a mixture of
+synthetic code editing data, \llama~3~\cite{llama31} coding SFT data, and \llama~3 general SFT data.
+The synthetic data is generated using an approach inspired by \magicoder~\cite{magicoder}, where high-quality PR data serves as the seeds for creating chain-of-thoughts and subsequent editing, as well as serving as the oracle for filtering. \llama-3.3-70B-Instruct is employed for this generation process.
+In contrast to our RL model, which only requires a seed PR dataset to trigger the RL loop, the SFT baseline needs synthetic data generation for chain-of-thoughts and additional data mix to ensure the dataset diversity and model generalizability.
+More details are explained in \Cref{sec:apd:posttraining}.
+
+
+\subsection{Main results}
+\label{subsec:maineval}
+\Cref{tab:main-result} presents the pass@1 results on \swebverified for models that utilize open-source scaffolds, with models categorized by their size.
+From the table, we observe that \ours[70] achieves state-of-the-art results among small and medium-sized language models (<100B) by resolving \swebfinalbig{\%} of the issues.
+Additionally, all other open-source baselines we compare, such as \swegpt~\cite{swegpt}, \swegym~\cite{swegym}, and \swefixer~\cite{swefixer}, include distilled outputs from \gpt{-4o} or \sonnet in the training data.
+In contrast, \ours is trained solely with publicly available data through our reinforcement learning technique \tech, without relying on any proprietary LLMs in the pipeline.
+\ours also sets a new record for \llama-based methods on \swebench.
+Additionally, we show that our RL-ed model is significantly better than the SFT baseline in this end-to-end setup, indicating that \tech enhances the general reasoning ability of LLMs to solve issues.
+
+\begin{table}[tb!]
+\centering
+\caption{\textbf{Main results on \swebverified.}
+We include representative methods with open-source scaffolds.
+The scores are either collected from the \swebench Leaderboard~\cite{swebleaderboard} or from the corresponding reference.
+}
+\begin{booktabs}{
+    colspec={llrl},
+}
+\toprule
+Model & Scaffold & \swebverified & Reference\\
+\midrule
+\SetCell[c=4]{halign=c,font=\sffamily} Model closed-source or size $\gg$ 100B & & & \\
+\midrule[dotted]
+
+\gpt{-4o} & \sweagent & 23.2 & \citet{sweagent} \\
+\sonnet & \sweagent & 33.6 & \citet{sweagent} \\
+\gpt{-4o} & \agentless & 38.8 & \citet{agentless} \\
+o1-preview & \agentless & 41.3 & \citet{o1card} \\
+\dpsk-V3\textsuperscript{1} & \agentless & 42.0 & \citet{deepseekv3}\\
+\sonnet & \autocoderover-v2.0 & 46.2 & \citet{autocoderover} \\
+\sonnet & Tools & 49.0 & \citet{sonnetsweb}\\
+\dpsk-R1\textsuperscript{1} & \agentless & 49.2 & \citet{deepseekr1}\\
+\sonnet & \agentless & 50.8 & \citet{agentless}\\
+\sonnet & OpenHands & 53.0 & \citet{openhands}\\
+
+\midrule
+\SetCell[c=4]{halign=c,font=\sffamily} Model size $\le$ 100B & & & \\
+\midrule[dotted]
+\swellama-13B & RAG & 1.2 & \citet{swebench} \\
+\swellama-7B & RAG & 1.4 & \citet{swebench} \\
+\swegpt-7B & \swesyn & 18.2 & \citet{swegpt} \\
+\swegpt-72B & \swesyn & 28.8 & \citet{swegpt} \\
+\swegym-32B & \openhands & 32.0 & \citet{swegym} \\
+\swefixer-72B & \swefixer & 32.8 & \citet{swefixer} \\
+Llama3-SWE-SFT-70B& \ouragentless & 36.2 & This paper\\
+\SetRow{font=\bfseries\sffamily}
+\ours[70] & \ouragentless & \swebfinalbig & This paper\\
+
+\bottomrule
+\SetCell[c=4]{l}
+{
+\footnotesize\textsuperscript{1}Open-source Mixture-of-Experts model with 671B total and 37B active parameters\\
+} & & &\\
+\end{booktabs}
+\label{tab:main-result}
+\end{table}
+
+\subsection{Baseline comparison}
+\label{subsec:ablate-baseline}
+
+
+\begin{table}[htb!]
+\caption{Baseline comparison on \swebverified.
+In this experiment, we compare the repair-only performance of baseline LLMs by providing oracle localized files in the input context, without doing test generation and execution.
+We use greedy decoding by default, but for \llama-3.3-70B-Instruct, we include a 20-sample majority voting result at a temperature of 0.6 to improve formatting accuracy.
+}
+\centering
+\begin{booktabs}{
+    colspec={llrr},
+}
+\toprule
+Model & Setting & Correct format & Repair performance (oracle) \\
+\midrule
+\llama-3.3-70B-Instruct & Greedy decoding & 12.2\% & 5.4 \\
+\llama-3.3-70B-Instruct & Majority voting & 44.6\% & 16.6 \\
+\textsf{\oursft[70]} & Greedy decoding & \textbf{96.2\%} & 29.6 \\
+\textbf{\ours[70]} & \textbf{Greedy decoding} & 95.6\% & \textbf{34.8} \\
+\bottomrule
+\end{booktabs}
+\label{tab:ablate-baseline}
+\end{table}
+
+To understand how much \tech improves LLMs in solving sofware issues, we compare \ours with the corresponding \llama-3 and SFT baseline in \Cref{tab:ablate-baseline}, using \ouragentless as the underlying scaffold.
+In this experiment, we also evaluate on \swebverified but focus on the models' repair ability.
+To achieve this, we provide oracle files in the context and let the model generate a single repair edit using greedy decoding, without incorporating additional pipeline steps such as localization and test generation.
+The table reveals that the base \llama-3.3 model struggles to produce correctly formatted code edits, even when using a 20-sample majority voting approach, where outputs with incorrect formats are pre-filtered.
+With SFT, most code edits generated by the language model are correctly formatted, and the repair performance shows significant improvement.
+However, \ours[70] demonstrates even greater enhancement in repair capabilities, although its format accuracy is slightly lower than that of the SFT version.
+This indicates that \tech{} aids the LLM in better reasoning about issue solving and code editing.
+
+
+\subsection{Scaling analysis with more samples}
+\label{subsec:scaling}
+\ouragentless supports scaling both the number of repair samples and the number of generated reproduction tests.
+The difference in the number of samples may affect the reranking accuracy.
+In this section, we evaluate how the final pass@1 performance on \swebverified scales with the two factors.
+
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.85\linewidth]{plots/swerl-scaling.pdf}
+\caption{\textbf{Scaling analysis with more repair samples and more reproduction tests.}
+The figure on the left illustrates the resolve rate on \swebverified in relation to the number of repair samples, while maintaining a constant 30 test samples.
+Conversely, the figure on the right depicts the resolution rate as it varies with the number of reproduction test samples, with a fixed 500 repair samples.
+}
+\label{fig:scaling}
+\end{figure}
+
+\Cref{fig:scaling} shows that increasing both the number of repair samples and test samples enhances performance on \swebench.
+Notably, for repair samples, there is a significant score increase from 33.6 to 40.0 when the sample size is expanded from 20 to 160. However, beyond 160 samples, the improvement trend begins to plateau, with scores only rising slightly from 40.0 to 41.0 as the sample size increases to 320 and 500.
+Although the impact of adding more reproduction test samples is less obvious,
+there is still a gradual score improvement from 38.8 to 41.0 as the number of test samples increases up to 20.
+There is no difference between 20 and 30 test samples, suggesting a performance saturation point has been reached.
+
+\subsection{Generalizability of RL}
+\label{subsec:generalizability}
+
+
+\begin{table}[htb!]
+\centering
+\caption{\textbf{Generalizability of \ours[70] beyond \swebench.}
+This table compares \llama-3.3-70B-Instruct, the SFT variant, and the RL model on five out-of-domain tasks, highlighting RL improvements and SFT declines.
+All experiments are done in a consistent setting using zero-shot greedy decoding.
+We report the macro average over category accuracy for \mmlu and pass@1 for the others.
+In \mathbench, we use \simpleeval's ``\texttt{Answer: ...}'' prompt format~\cite{simpleeval}. However, only the RL model consistently follows the format requirements, so we also report \mathbench~(lenient) to relax the constraint to include ``\texttt{\textbackslash boxed{...}}''.
+}
+\small
+\begin{booktabs}{
+    colspec={>{\sffamily}lrrr},
+    rows = {font=\linespread{1.0}\sffamily},
+}
+\toprule
+\SetRow{valign=b, abovesep=1pt}
+{\footnotesize Category}\\\textbf{Benchmark} & {\llama-3.3-70B-Instruct} & \oursft[70] & \textbf{\ours[70]} \\
+\midrule
+\SetRow{valign=b, abovesep=1pt}
+{\footnotesize Function coding}\\\textbf{\humaneval{+}} & 76.2 & 73.2 & \textbf{79.9} \\
+\midrule 
+\SetRow{valign=b, abovesep=1pt}
+{\footnotesize Library use}\\\textbf{\bigcodebench-Hard (I)} & \textbf{28.4} & 25.7 & \textbf{28.4} \\
+\textbf{\bigcodebench-Hard (C)} & \textbf{29.1} & 24.3 & \textbf{29.1} \\
+\midrule
+\SetRow{valign=b, abovesep=1pt}
+{\footnotesize Code reasoning}\\\textbf{\cruxeval-I} & 60.5 & 68.4 & \textbf{71.6} \\
+\textbf{\cruxeval-O}  & 61.9 & 75.1 & \textbf{75.5} \\
+\midrule
+\SetRow{valign=b, abovesep=1pt}
+{\footnotesize Math}\\\textbf{\mathbench~(strict)} & 63.2 & 54.0 & \textbf{73.7}  \\
+\textbf{\mathbench~(lenient)} & 70.9 & 71.7 & \textbf{73.7} \\
+\midrule
+\SetRow{valign=b, abovesep=1pt}
+{\footnotesize General}\\\textbf{\mmlu} & 86.49 & 85.26 & \textbf{86.82} \\
+\bottomrule
+\end{booktabs}
+\label{tab:generalizability}
+\end{table}
+
+\ours is only trained with \tech{} on issue-solving data.
+This raises a natural question whether such domain-specific training harms the performance on other tasks.
+To address this, we conduct an experiment in \Cref{tab:generalizability}, evaluating the LLMs on five out-of-domain benchmarks, i.e.,
+\humaneval{+}~\cite{codex,liu2023code} for function-level code generation,
+\bigcodebench~\cite{bigcodebench} for practical code generation with library use,
+\cruxeval~\cite{cruxeval} for code execution reasoning,
+\mathbench~\cite{mathbench} for mathematical reasoning,
+and \mmlu~\cite{mmlu} for general language understanding.
+We also include the SFT baseline, which is finetuned on the same \llama-3.3-70B-Instruct model using issue-solving data, combined with general coding and dialog data.
+
+From the table, it is evident that \ours[70], trained with RL, outperforms both its base model and the SFT baseline.
+There are notable improvements in \cruxeval and \mathbench, where significant reasoning efforts are required to arrive at the final answer. Through \tech, the model enhances its reasoning skills and dedicates more thinking effort to solving problems compared to other baselines.
+Although trained on a single task, \tech{} enables the model to generalize its reasoning capabilities across various domains. In contrast, the SFT version, on average, underperforms relative to the original model.
+
+Overall, our results suggest for the first time that reinforcement learning on real-world software data like PRs enables the model to acquire generalized reasoning skills, whereas supervised finetuning steers the language model towards a specific task distribution, leading to performance declines on tasks with lower emphasis, even when a meticulously curated data mix is used.
+
+\paragraph{Statistical significance analysis.}
+While small absolute gains (1-2 percentage points) on \humaneval or \cruxeval are, by themselves, unlikely to be statistically significant, we evaluate across multiple benchmarks and aggregate evidence, observing improvements that consistently favor RL. With Eval~Arena~\cite{evalarena}, we indicate that improvements of $>0.8$ percentage points on MMLU, 3 points on \cruxeval, and $>3$ points on the full \mathbench dataset are significant on their own; taken together, these results achieve significance at the $0.05$ level.
+
+
+\subsection{Reward ablation}
+\label{subsec:reward-ablation}
+
+According to \Cref{eq:reward}, the reward design of \tech allows different instantiations of the $\mathit{compare}$ function.
+Throughout the paper, we adopt the sequence similarity between the predicted and the oracle patch, which is a continuous value from 0 to 1.
+We denote this type of reward as continuous.
+It is natural to compare this continuous reward with a discrete reward, where the
+$\mathit{compare}$ function outputs 1 if the predicted and oracle patches exactly match each other, and 0 otherwise.
+We trained a variant of \ours with the discrete reward function, using the same training setup as in the continuous reward case.
+
+\begin{figure}[htb!]
+\centering
+\begin{minipage}{0.40\textwidth}
+\begin{booktabs}{
+    colspec={lrr},
+}
+\toprule
+Reward type & Correct format & Repair (oracle) \\
+\midrule
+Discrete & 94.2\% & 29.0 \\
+\textbf{Continuous} & \textbf{95.6\%} & \textbf{34.8} \\
+\bottomrule
+\end{booktabs}
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+\includegraphics[width=\linewidth]{plots/swerl-reward-ablation.pdf}    
+\end{minipage}
+\caption{\textbf{Ablation on \tech's reward functions and their training dynamics.}
+We compare \tech using the default continuous reward function against a discrete reward. Repair (oracle) evaluates the repair-only performance using greedy decoding, with oracle files in the input context.
+}
+\label{fig:reward-ablation}
+\end{figure}
+
+As shown in \Cref{fig:reward-ablation}, while the discrete and continuous reward functions lead to similar format accuracy, the continuous reward is more effective in enhancing the repair performance.
+From the training dynamics, we can see that discrete rewards grow slower than continuous rewards. Additionally, the average discrete reward remains approximately zero upon the completion of training, meaning it struggles to obtain patches exactly matching the oracles.
+This is because real-world patches are highly diverse and often cannot be easily matched. The continuous reward function better captures partial correctness and incremental improvements, allowing the model to learn more nuanced and effective repair strategies.
+

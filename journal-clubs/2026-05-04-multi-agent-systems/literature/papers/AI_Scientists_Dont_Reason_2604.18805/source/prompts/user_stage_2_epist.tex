@@ -1,0 +1,39 @@
+\begin{hypobox}{User prompts for Stage 2 annotation}
+Given the message window and a list of extracted nodes (with node\_id and text), extract supported edges among these nodes.\\
+
+
+Only the following edge types are allowed, any other combination is forbidden:\\
+- tests: Allowed only between: H -> T, J -> T.\\
+    H -> T: the Test (T) directly addresses the Hypothesis' claim (H), or attempts to falsify or verify it.\\
+    J -> T: the Test (T) is designed in response to the Judgment (J), or the Judgment (J) motivates the test design.\\
+- observes: Allowed only between: T -> E.\\
+    T -> E: the Evidence (E) is a direct result of the Test (T).\\
+- updates\_to: Allowed only between: H -> H.\\
+    H -> H: the later Hypothesis (H) is a revision of the earlier one, based on the nodes in between.\\
+- competes\_with: Allowed only between: H -> H.\\
+    H -> H: the two Hypotheses (H) are alternative explanations that are directly compared or evaluated against each other. Both hypotheses should be plausible and co-existing at the same time. If another hypothesis is introduced later as a revision of the first one, then it should be connected with updates\_to instead of competes\_with.\\
+- contradicts: Allowed only between: E -> H, J -> H.\\
+    E -> H: the Evidence (E) contradicts the claim of the Hypothesis (H).\\
+    J -> H: the Judgment (J) contradicts the claim of the Hypothesis (H).\\
+- informs: Allowed only between: E -> H, E -> J, E -> C, J -> C, J -> H, J -> J.\\
+    E -> H: the Evidence (E) provides information relevant to the claim of the Hypothesis (H).\\
+    E -> J: the Judgment (J) is an interpretation of the Evidence (E).\\
+    E -> C: the Commitment (C) is informed by the Evidence (E) but not necessarily in an explicit way.\\
+    J -> H: the Judgment (J) provides information relevant to the claim of the Hypothesis (H).\\
+    J -> J: the later Judgment (J) is a refinement, an extension, or a combination of one or serveral earlier judgments (J).\\
+    J -> C: the Commitment (C) is informed by the Judgment (J) but not necessarily in an explicit way.\\
+
+
+Return JSON with keys:\\
+{\\
+  "edges": [\\
+    {\\
+      "src": "<node\_id>",\\
+      "dst": "<node\_id>",\\
+      "relation": "<one of allowed>",\\
+      "time": <int message index of earliest support>,\\
+      "support": [{"msg\_idx": <int>, "quote": <exact substring from that message>}]\\
+    }, ...\\
+  ]\\
+}\\
+\end{hypobox}

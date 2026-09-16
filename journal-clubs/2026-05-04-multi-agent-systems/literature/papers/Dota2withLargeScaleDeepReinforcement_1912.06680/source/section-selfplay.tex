@@ -1,0 +1,46 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+\section{Self-play}
+\label{sec:selfplay}
+ % \begin{figure}
+ %     \centering
+ %     % To regenerate this plot run "python3 paper/plots/selfplay.py % ~/Desktop/selfplay_plots"
+ %     \includegraphics[width=\textwidth]{figures/selfplay_plots5v5_sp_% win_speedup_milestones.pdf}
+ %     \caption{\textbf{Effect of playing with past opponents on % training speed.} Playing against past opponents has a XXXX % effect on training (no effect?).}
+ %     \label{fig:selfplay}
+ % \end{figure}
+
+  \begin{figure}
+     \centering
+     \includegraphics[width=\textwidth]{figures/opponent_relative_distribution_contour.pdf}
+     \caption{\textbf{Opponent Manager Distribution over past versions.} As the performance of the agent improves, the distribution over past versions changes to find stronger contenders. The slope in the distribution reflects how fast the current agent is outpacing previous versions: a slow falloff indicates that the agent is still challenged by far older versions, while a steep falloff is evidence that counter-strategies have been found that eliminate past agents. In later versions the opponent distribution includes many more past versions, suggesting that after a warmup period, skill progression slows.}
+     \label{fig:selfplay}
+ \end{figure}
+
+\openaifive is trained without any human gameplay data through a self-improvement process named {\it self-play}. 
+This technique was successfully used in prior work to obtain super human performance in a variety of multiplayer games including Backgammon, Go, Chess, Hex, StarCraft 2, Poker  \cite{tesauro1994td,silver2016mastering,anthony2017thinking,silver2017mastering,alphastarblog,brown2019superhuman}. 
+In self-play training, we continually pit the current best version of an agent against itself or older versions, and optimize for new strategies that can defeat these past and present opponents.
+% This strategy acquisition can be achieved by either playing against a frozen set of reference opponents, or saving the agent's version history and sampling from it, or training a match-maker that finds strong opponents from history or a reference set.
+
+In training \openaifive 80\% of the games are played against the latest set of parameters, and 20\% play against past versions.
+We play occasionally against past parameter versions in order to obtain more robust strategies and avoid {\it strategy collapse} in which the agent forgets how to play against a wide variety of opponents because it only requires a narrow set of strategies to defeat its immediate past version (see \citet{DBLP:journals/corr/abs-1901-08106} for a discussion of cyclic strategies in games with simultaneous-turns and/or imperfect information).
+
+\openaifive uses a dynamic sampling system in which each past opponent $i=1..N$ is given a {\it quality} score $q_i$. 
+Opponent agents are sampled according to a softmax distribution; agent $i$ is chosen with probability $p_i$ proportional to $e^{q_i}$.
+Every 10 iterations we add the current agent to past opponent pool and initialize its quality score to the maximum of the existing qualities.
+After each rollout game is completed, if the past opponent defeats the current agent, no update is applied. If the current agent defeats a past opponent, an update is applied proportional to a learning rate constant $\eta$ (which we fix at 0.01):
+\begin{equation}
+    q_i \leftarrow q_i - \frac{\eta}{N p_i}
+\end{equation}
+% This ensures that if a large number of games $G$ are played between the addition of each new past opponent, each past opponent's quality will decrease by $w_i\eta G / N$ where $w_i$ is the chance of the current agent beating this opponent.
+% For \cleanexpname, for example, we have $G\sim17,000$.
+
+%%%% Removing this because the math is too complex to derive.
+% This means that over time as more and more agents are added, if the current agent were not improving ($w_i$ are fixed), the probabilities would converge to:
+% \begin{equation}
+%     p_i\propto N^{-G\eta w_i}\left(\exp G\eta\int_1^i\frac{w_i-w_j}{j}dj\right)
+% \end{equation}
+
+In \autoref{fig:selfplay} we see the opponent distribution at several points in early training. 
+The spread of the distribution gives a good picture of how quickly the agent is improving: when the agent is improving rapidly, then older opponents are worthless to play against and have very low scores; when progress is slower the agent plays against a wide variety of past opponents.
+\end{document}

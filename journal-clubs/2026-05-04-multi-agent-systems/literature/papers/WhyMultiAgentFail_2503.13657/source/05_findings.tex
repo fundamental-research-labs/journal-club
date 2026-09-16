@@ -1,0 +1,117 @@
+\section{The Multi-Agent System Failure Taxonomy}
+\label{sec:mast}
+
+This section details \taxonomy{}, a key result of our study and a critical component that guides the creation and analysis of \dataset{}. \taxonomy{} provides the first empirically grounded, structured framework for defining, understanding, and annotating common failures in MAS. Here, we present its structure, the failure categories it defines, and key insights derived from its development and application.
+
+%%%%%%%%%%%%%%%%%%%
+% \subsection{Multi-Agent System Failure Taxonomy}
+% \label{sec:taxonomy-walkthrough}
+
+% We present \taxonomy{}, shown in Figure~\ref{fig:taxonomy}, as the first framework for unifying MAS failures. \taxonomy{} identifies \numFailureMode{} fine-grained failure modes, mapping them to execution stages (Pre-Execution, Execution, Post-Execution) where their root causes commonly emerge. It organizes these modes into \numFailureArea{} overarching categories based on the fundamental nature of failures.
+
+\taxonomy{}, illustrated in Figure~\ref{fig:taxonomy}, identifies \numFailureMode{} fine-grained failure modes, which we map to MAS execution stages (Pre-Execution, Execution, and Post-Execution) where their root causes commonly emerge. These modes are organized into \numFailureArea{} overarching categories reflecting the fundamental nature of the observed failures. While we recognize that prior works have noted some individual failure types and we do not claim \taxonomy{} is exhaustive, it offers precise definitions for a structured approach to understanding why MAS fail. Detailed definitions for each failure mode (FM) are available in Appendix~\ref{sec:fc-deep-dive}, with specific examples in Appendix~\ref{appendix:examples}.
+
+We acknowledge that some MAS failures can stem from fundamental limitations of current LLMs, such as hallucination or instruction following. However, in developing \taxonomy{}, we focus on identifying failure patterns where improvements in system design, agent coordination, and verification can offer room to improve the reliability of MAS, often independently of or complementary to advancements in the base models themselves. We now discuss each failure category (FC) in \taxonomy{} and its implications.
+
+%%%%%%%%%%%
+
+\begin{tcolorbox}[colback=berkeleyblue!5!white, colframe=berkeleyblue!100!black, boxrule=0.5mm, left=0.1mm, right=0.1mm, top=0.1mm, bottom=0.1mm]
+\textbf{FC1. \fcI.} Failures originate from system design decisions, and poor or ambiguous prompt specifications.\\
+\textbf{\faLightbulbO. Insight 1.} MAS failure is not merely a function of challenges in the underlying model; a well-designed MAS can result in performance gain when using the same underlying model.
+\end{tcolorbox}
+Failures in FC1 occur during execution but often reflect flaws in pre-execution design choices regarding system architecture, prompt instructions, or state management. These include failing to follow task requirements (FM-1.1, 11.8\%) or agent roles (FM-1.2, 1.5\%), step repetitions (FM-1.3, 15.7\%), context loss (FM-1.4, 2.80\%), or not recognizing task completion (FM-1.5, 12.4\%). While FM-1.1 and FM-1.2, disobey specifications, may seem like general instruction-following limitation, we identify deeper causes: (1) flaws in MAS design regarding agent roles and workflow, (2) poor user prompt specifications, or (3) limitations of the underlying LLM. We posit that a well-designed MAS should interpret high-level objectives with minimal but clear user input to mitigate the impact of points (2) and (3).
+
+% \begin{tcolorbox}[colback=californiagold!5!white, colframe=californiagold!100!black, boxrule=0.5mm, left=0.1mm, right=0.1mm, top=0.1mm, bottom=0.1mm]
+% \textbf{Insight1 \faLightbulbO. } Current MAS failure is not merely a function of challenges in the underlying model; a well-designed MAS can result in performance gain when using the same underlying model.
+% \end{tcolorbox}
+For instance, when ChatDev is tasked to create a Wordle game with the prompt \texttt{\textit{a standard wordle game by providing a daily 5-letter...}}, the generated program uses a fixed word dictionary. Even with a more explicit prompt like \texttt{\textit{...without having a fixed word bank, and randomly select a new 5-letter word each day}}, ChatDev still produces code with a fixed list and new errors. This suggests failures stem from the MAS's design for interpreting specifications. Our intervention studies (Appendix~\ref{sec:case-studies}) show that improving agent role specifications alone yields a +9.4\% success rate increase for ChatDev with the same user prompt and LLM (GPT-4o).
+
+%%%%%%%%%%%%%%%%%%
+
+\begin{tcolorbox}[colback=berkeleyblue!5!white, colframe=berkeleyblue!100!black, boxrule=0.5mm, left=0.1mm, right=0.1mm, top=0.1mm, bottom=0.1mm]
+\textbf{FC2. \fcII.} Failures arise from a breakdown in critical information flow from inter-agent interaction and coordination during execution. \\
+\textbf{\faLightbulbO. Insight 2.} Solutions focused on context or communication protocols are often insufficient for FC2 failures, which demand deeper `social reasoning' abilities from agents.
+\end{tcolorbox}
+
+FC2 covers failures in agent coordination. These include unexpected conversation resets (FM-2.1, 2.20\%), proceeding with wrong assumptions instead of seeking clarification (FM-2.2, 6.80\%), task derailment (FM-2.3, 7.40\%), withholding crucial information (FM-2.4, 0.85\%), ignoring other agents' input (FM-2.5, 1.90\%), or mismatches between reasoning and action (FM-2.6, 13.2\%). Figure~\ref{fig:amb_failure_example} illustrates information withholding (FM-2.4). Diagnosing FC2 failures can be complex, as similar surface behaviors (e.g., missing information) can stem from different root causes like withholding (FM-2.4), ignoring input (FM-2.5), or context mismanagement (FM-1.4), underscoring the need for \taxonomy{}'s fine-grained modes.
+
+% \begin{tcolorbox}[colback=californiagold!5!white, colframe=californiagold!100!black, boxrule=0.5mm, left=0.1mm, right=0.1mm, top=0.1mm, bottom=0.1mm]
+% \textbf{Insight2 \faLightbulbO. } Solutions focused on context or communication protocols are often insufficient for FC2 failures, which demand deeper 'social reasoning' abilities from agents.
+% \end{tcolorbox}
+
+Recent system innovations, such as Model Context Protocol \cite{MCPIntroduction2024} and Agent to Agent \cite{Surapaneni2025A2A}, improve agent communication by standardizing message formats from different tool or agent providers. However, the errors we observe in FC2 occur even when agents within the same framework communicate using natural language. This signals a deeper agent interaction dynamic challenge: the collapse of 'theory of mind' \cite{agashe2025llmcoordinationevaluatinganalyzingmultiagent}, where agents fail to accurately model other agents' informational needs. Addressing this likely requires structural improvements to the content of agent messages or enhancing models' contextual reasoning and their capacity to infer other agents' informational needs, such as through targeted training, as base LLMs are generally not pre-trained for such nuanced inter-agent dynamics. Thus, robust solutions will likely involve a combination of improved MAS architecture and model-level advancements in communicative intelligence.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{tcolorbox}[colback=berkeleyblue!5!white, colframe=berkeleyblue!100!black, boxrule=0.5mm, left=0.1mm, right=0.1mm, top=0.1mm, bottom=0.1mm]
+\textbf{FC3. \fcIII.} Failures involve inadequate verification processes that fail to detect or correct errors, or premature termination of tasks.
+\\
+\textbf{\faLightbulbO. Insight 3.} Multi-Level Verification is Needed. Current verifier implementations are often insufficient; sole reliance on final-stage, low-level checks is inadequate.
+\end{tcolorbox}
+FC3 failures are related to the quality control of the final output, including premature termination (FM-3.1, 6.20\%), no or incomplete verification (FM-3.2, 8.20\%), or incorrect verification (FM-3.3, 9.10\%). These highlight challenges in ensuring output correctness and reliability. Systems with explicit verifiers like MetaGPT and ChatDev generally show fewer total failures (Figure~\ref{fig:mas_failure_bar}), indicating explicit checks help. However, the presence of a verifier is not a silver bullet, as overall MAS success rates can still be low. For example (FM-3.2), a ChatDev-generated chess program passes superficial checks (e.g., code compilation) but contains runtime bugs because it fails to validate against actual game rules, rendering the output unusable despite review phases.
+
+% \begin{tcolorbox}[colback=californiagold!5!white, colframe=californiagold!100!black, boxrule=0.5mm, left=0.1mm, right=0.1mm, top=0.1mm, bottom=0.1mm]
+% \textbf{Insight3 \faLightbulbO. } Multi-Level Verification is Needed. Current verifier implementations are often insufficient; sole reliance on final-stage, low-level checks is inadequate.
+% \end{tcolorbox}
+During our GT analysis of MAS traces, we find that many existing verifiers perform only superficial checks, despite being prompted to perform thorough verification, such as checking if the code compiles or if there are leftover \texttt{\textit{TODO}} comments. We posit that MAS development should take lessons from traditional software development where programmers test their code before committing.  More rigorous verification is needed, such as using external knowledge, collecting testing output throughout generation, and multi-level checks for both low-level correctness and high-level objectives. We demonstrate this in an intervention study where adding a high-level task objective verification step to ChatDev yields a +15.6\% improvement in task success on ProgramDev (details in Appendix~\ref{sec:case-studies}).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% \subsection{Is Verifier All You Need?}
+% \label{sec:is_verifier_all_you_need}
+% \melissa{refactor into 4.1}
+% Verification failures are prominent, with incorrect or incomplete verification (FM-3.2 + FM-3.3) accounting for 13.48\% of all observed failures (Figure~\ref{fig:taxonomy}). Recent work emphasizes the importance of verifier agents in agentic systems \cite{setlur2025scaling},
+% and our findings partially align. Systems with explicit verifiers, such as MetaGPT and ChatDev, generally exhibit fewer total failures compared to systems without dedicated verifiers (Figure~\ref{fig:mas_failure_bar}),
+% supporting the intuition that explicit checks improve output quality.
+
+% However, the presence of a verifier is not a silver bullet. Despite having verifiers, overall MAS success rates can be astonishingly low, where ChatDev achieves only \chatdevSuccessRate{} correctness on ProgramDev (Figure~\ref{fig:mas_failure_rate}) on straightforward problems with abundant online examples like implementing Tic-Tac-Toe, Chess, and Sudoku. Failures include bugs such as a Tic-Tac-Toe game declaring the wrong winner or a chess program accepting improperly formatted moves. We discovered during end-to-end human examination of the trace that current verifiers often only perform superficial checks (e.g., missing comments or code compilation) and struggle to ensure deeper correctness.
+
+% % However, the presence of a verifier is not a silver bullet. Despite having verifiers, overall MAS success rates can be astonishingly low; ChatDev achieves only 37\% correctness on ProgramDev\footnote{\url{https://github.com/multi-agent-systems-failure-taxonomy/MAST/blob/main/traces/programdev/programdev_dataset.json}} (Figure~\ref{fig:mas_failure_rate}) on straightforward problems like implementing Tic-Tac-Toe, Chess, and Sudoku. Observed failures include bugs such as a Tic-Tac-Toe game declaring the wrong winner or a Chess program accepting improperly formatted moves. Our human annotators' trace examination reveals that current verifiers often perform only superficial checks (e.g., checking code compilation) and struggle to ensure deeper correctness.
+
+% Stronger verification strategies are clearly needed. We propose exploring methods like retrieving external knowledge sources (e.g., existing implementations), incorporating rigorous testing throughout generation, possibly using Reinforcement Learning, and implementing multi-level checks assessing low-level correctness alongside high-level objectives and overall quality. \cite{liu2023rltf, qi2024verifierqenhancingllmtest, kirchner2024proververifiergamesimprovelegibility}.
+
+% To explore this, we conduct another set of intervention study (detailed in Appendix~\ref{sec:case-studies}) % TODO: Add label for Appendix F/Case Studies
+% where we introduce an additional verification step in ChatDev focusing on high-level task objectives, supplementing existing code-level checks. This relatively simple architectural change yields a notable +15.6\% absolute improvement in task success on ProgramDev (Table~\ref{tab:ag2-chatdev-accuracies}),
+% demonstrating that enhancing verification, particularly at different abstraction levels, is beneficial.
+% % \melissa{NeurIPS TODO: just realized does it mean we need to also get correctness on new benchmark for case study???}
+
+% \begin{tcolorbox}[colback=californiagold!5!white, colframe=californiagold!100!black, boxrule=0.5mm, left=0.1mm, right=0.1mm, top=0.1mm, bottom=0.1mm]
+% \textbf{Insight2 \faLightbulbO.} \textbf{Multi-Level Verification Needed.} Verification is crucial, but current implementations are often insufficient. Sole reliance on final-stage, low-level checks is inadequate. Robust MAS, like complex software systems generally, require modular unit testings. % \melissa{software system in general, need modular testing.}
+% \end{tcolorbox}
+
+% However, if a MAS fails despite having a verifier, is it solely the verifier's fault? We argue no. Verification should act as the final line of defense. If a failure originates earlier and the verifier fails to catch it, \taxonomy{} correctly attributes the failure to its origin, not merely as a verification failure (FC3). Focusing only on the verifier overlooks critical issues in earlier MAS stages and potential cascading effects.
+
+% \subsection{Open Challenges Beyond Correctness}
+% While developing MAST, we focused primarily on failures related to task correctness and completion, as this is a fundamental prerequisite for usable MAS. However, we observe a significant prevalence of inefficiencies in MAS traces, which MAST currently does not include by design.
+
+% Agents often engage in unnecessarily long conversations or take circuitous routes to achieve a goal. For example, in one AppWorld trace, the task was to retrieve the first 10 songs from a playlist. The orchestrator and Spotify agent engaged in 10 rounds of conversation, retrieving one song at a time, even though the Spotify agent's capability allowed retrieving all 10 songs in a single, valid action. Such inefficiencies can lead to dramatically increased costs (token usage) and latency (runtime), sometimes by factors of 10x or more. Addressing this requires optimizing not just for correctness but also for efficiency, cost, and speed.
+
+% We deliberately pruned non-correctness metrics like efficiency during \taxonomy's iterative refinement (Section 3 ) to maintain focus. However, we recognize that efficiency, along with other important dimensions like cost, robustness, scalability, and security, are critical for real-world MAS deployment. Developing taxonomies and evaluation methods for these aspects remains important future work. 
+
+% \melissa{I removed ``Open Challenges Beyond Correctness" entirely}
+% \review{"However, In the table of this paper, I only see metrics like Answer Accuracy, there should be more MAS-related evaluation metrics:Task Completion Rate, Response Time,Resource Utilization,System Stability."}
+
+
+% \melissa{the purpose of this section is to: 1. highlight interesting finding, 2. Justify the legitimacy of MAST}
+% \melissa{4.1 walk through the taxonomy, the implication and example.}
+% \melissa{4.2 Effectiveness of MAST - here we justify with the heat map.}
+% \melissa{4.3 Similar failure pattern but different root cause}
+% \melissa{4.4 All your verifier's fault?}
+% \melissa{4.5 Open Challenges in MAST}
+% \melissa{what should be the biggest takeaway}
+
+% \Melissa{I still don't love the current structure of this section. Just walk through the failure category, no discussion on the result, no insight, no interesting take-away. I wrote it this way for the course project, this need to be rewritten.} \Ion{Agree with Melissa!}
+% \Melissa{I propose: subsection1: a very fast walk through of the taxnomony that describe what each FT. In subsection1, walk through a few interesting cases, and hypothesize why it happen. Main Goal: justify our taxnomony. Then subsection2: pack with a lot of interesting insight on: implication of FT, design principle (what violate the principle, what is good) to draw us to next section, 
+% % refer to HRO and NAT that we introduce in intro, etc...
+% }
+% % \Melissa{Again, please heavily reference the appendix, that is our strength.}
+
+
+
+
+% \melissa{highlight the goal here, and use simpler word.}
+% We provide a comparative analysis of leading large language models, specifically Claude 3.7 Sonnet and GPT-4o, operating within the MetaGPT multi-agent framework on programming tasks through \taxonomy on the left panel of Figure \ref{fig:effect_on_mast_claude_gpt_chatdev_metagpt}. This analysis reveals critical insights into current system-level failure points. Across both models, a predominant vulnerability emerges in the domain of task verification, where failures such as incomplete or entirely absent verification steps, alongside incorrect verification, constitute the most significant portion of observed errors. This pervasiveness suggests that while frameworks like MetaGPT incorporate dedicated verifier roles to simulate software development quality assurance, the practical efficacy of these roles is substantially hampered by the underlying models' current limitations in executing or leveraging these verification processes robustly. The findings underscore a broader challenge in achieving reliable outcomes in multi-agent systems: the mere presence of a verification mechanism does not guarantee its effective application, pointing to a need for more sophisticated verifier agent capabilities and better integration strategies within the MAS architecture.
+
+% While the challenge of task verification is a shared critical bottleneck, nuanced differences in failure distributions offer further understanding of model-specific behaviors within the MAS context. GPT-4o, for instance, demonstrated comparatively lower failure rates in areas such as disobeying task specifications and step repetition, indicating a potential advantage in interpreting and adhering to system design constraints and maintaining a more consistent task execution flow. However, these relative strengths do not overshadow the profound difficulties in verification shared with Claude 3.7 Sonnet. This complex interplay between intrinsic model capabilities and the architectural intricacies of the multi-agent system suggests that pathways to enhanced MAS reliability must transcend improvements in foundational models alone. Instead, a dual-pronged approach, focusing concurrently on bolstering core LLM competencies and advancing the organizational design, communication protocols, and quality control integrations within multi-agent systems, appears essential for meaningful progress.
+

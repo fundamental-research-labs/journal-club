@@ -1,0 +1,57 @@
+\section{Additional Results}
+\label{app:add_result}
+\subsection{Effect of Random Grouping Elements for Action Prediction}
+\label{app:random_group}
+\begin{table}[]
+    \centering
+    \caption{Step Success Rate for Flan-T5 models with different groups of options. Here we shown mean and standard deviation of 5 runs with different random seeds.}
+    \begin{tabular}{lccc}
+    \toprule
+         & \textbf{Cross-Task}& \textbf{Cross-Website} & \textbf{Cross-Domain} \\
+         \midrule
+      Flan-T5\textsubscript{B}   &  \num{41.5}$\pm$\num{0.7}&\num{30.0}$\pm$\num{0.8}&\num{31.3}$\pm$\num{0.5}\\
+      Flan-T5\textsubscript{L}   &  \num{49.9}$\pm$\num{0.2}&\num{35.7}$\pm$\num{0.5}&\num{36.7}$\pm$\num{0.3}\\
+      Flan-T5\textsubscript{XL}   &  \num{51.9}$\pm$\num{0.8}&\num{39.5}$\pm$\num{0.2}&\num{39.6}$\pm$\num{0.2}\\
+      \bottomrule
+    \end{tabular}
+    \label{tab:random_runs}
+\end{table}
+For both training and inference, we shuffle the elements in the webpage and randomly group them into multi-choice questions. The model might give different predictions when presented with different sets of choices, and leads to slightly different final evaluation scores. Here we show the average and standard deviation of \num{5} runs with different random seeds to show the effect of random grouping. As we can see from Table~\ref{tab:random_runs}, the selection of choices only lead to small changes in overall performance with standard deviation less than 1 for all runs.
+\subsection{Zero-shot Results for Flan-T5\textsubscript{XL}}
+\label{app:flan-t5_zero}
+\begin{table}[]
+    \centering
+    \caption{Zero-shot element selection results for Flan-T5\textsubscript{XL} compared with the fine-tuned counterpart.}
+    \begin{tabular}{lccc}
+         \toprule
+         & \textbf{Cross-Task}& \textbf{Cross-Website} & \textbf{Cross-Domain} \\
+         \midrule
+         Flan-T5\textsubscript{XL} Zero-Shot& \num{10.8} &	\num{7.8} & \num{11.7} \\
+         Flan-T5\textsubscript{XL} Fine-Tuned& \num{52.0} &\num{38.9}&\num{39.6}\\
+         \bottomrule
+    \end{tabular}
+    \label{tab:flan-t5_zero}
+\end{table}
+Since Flan-T5 is tuned with multi-choice format, it can also do element selection in zero-shot. However, as we can see from Table~\ref{tab:flan-t5_zero}, while the model still gets some elements correct, it is much lower compared to the fine-tuned model, and \num{3}-shot GPT 3.5/4. This is expected, since Flan-T5 is not tuned for HTML and coding related tasks.
+\subsection{Results on the \num{50} task subsets}
+\label{app:result_50}
+\begin{table}[]
+    \centering
+        \caption{Step Success Rate for all methods on the \num{50} tasks subsets we used to evaluate GPT-4. Numbers in parentheses are the results on the full test set (same as Table~\ref{tab:main})}
+    \begin{tabular}{lccc}
+         \toprule
+         & \textbf{Cross-Task}& \textbf{Cross-Website} & \textbf{Cross-Domain} \\
+         \midrule
+Flan-T5\textsubscript{B}&	\num{43.3} (\num{41.0})&	\num{25.3} (\num{29.5})&	\num{28.1} (\num{31.6})\\
+Flan-T5\textsubscript{L}&	\num{48.1} (\num{50.3})&	\num{30.8} (\num{35.3})&	\num{27.6} (\num{37.3})\\
+Flan-T5\textsubscript{XL}&	\num{47.9} (\num{52.0})&	\num{33.3} (\num{38.9})&	\num{34.6} (\num{39.6})\\
+GPT-3.5&	\num{15.2} (\num{17.4})&	\num{15.1} (\num{16.2})&	\num{16.7} (\num{18.6})\\
+GPT-4&	\num{36.2}&	\num{30.1}&	\num{26.4}\\
+\bottomrule
+    \end{tabular}
+    \label{tab:result_50}
+\end{table}
+
+Due to budget constraint, we only run GPT-4 on \num{50} tasks for each setting. Here we show the step success rate results for other methods on the same \num{50} examples that GPT-4 is tested on,  
+As we can see from Table~\ref{tab:result_50}, the results on the \num{50} tasks subsets are consistent with the results on the respective full test set, and the relative performance across methods and splits remains the same.
+

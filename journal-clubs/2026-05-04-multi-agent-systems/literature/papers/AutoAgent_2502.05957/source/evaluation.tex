@@ -1,0 +1,166 @@
+\section{Evaluation}
+
+\subsection{Evaluation for a Generalist Agent System}
+\textbf{Benchmark Dataset and Evaluation Protocols}.
+The GAIA benchmark~\cite{gaia} is a comprehensive evaluation framework to assess General AI Assistants. It tests fundamental abilities like Reasoning, Multi-Modality Handing, Web Browsing, and Tool-Use Proficiency through a rigorous set of 466 test and 165 validation questions, divided into 3 distinct difficulty levels.
+
+GAIA emphasizes the importance of developing AI systems that can match human performance on everyday tasks, serving as a milestone for assessing progress toward AGI. Specifically, we evaluated our \model\ on the GAIA validation set, using success rate as the primary evaluation metric. This metric measures the percentage of tasks successfully completed, providing a clear indicator of its performance in handling real-world, human-like challenges.
+% \begin{table}[htbp]
+\begin{wraptable}[21]{r}{0.6\textwidth}
+% \vspace{-0.5em}
+\centering
+\caption{Performance comparison between the baseline models and our \model\ on the GAIA benchmark. The results we report are those published on the GAIA leaderboard.
+% \url{https://huggingface.co/spaces/gaia-benchmark/leaderboard}
+}\label{tab:gaia}
+\resizebox{0.6\textwidth}{!}{\begin{tabular}{c|c|ccc} 
+\hline
+Agent
+  Name        & Avg. & L1 & L2  & L3  \\ 
+\hline
+TapeAgent v0.1      & 33.94        & 47.17        & 34.88        & 3.85          \\
+FRIDAY              & 34.55        & 45.28        & 34.88        & 11.54         \\
+Magentic-1          & 36.97        & 54.72        & 33.72        & 11.54         \\
+AgentIM          & 37.58        & 50.94        & 36.05        & 15.38         \\
+Multi-Agent Exp v0.1 & 39.39        & 54.72        & 38.37        & 11.54         \\
+AgentIM v1.1         & 40.00        & 50.94        & 40.70        & 15.38         \\
+Trase Agent         & 40.00           & 47.17        & 40.70         & {23.08}         \\
+HuggingFace Agents & 44.24        & 58.49        & 43.02        & 19.23         \\
+Magentic-1 (o1)     & 46.06        & 56.60         & 46.51        & {23.08}         \\
+omne                & 46.06        & 60.38        & 44.19        & {23.08}         \\
+Trase Agent v0.2    & 47.27        & 58.49        & 46.51        & {26.92}         \\
+Barcelona v0.1      & 50.30         & {62.26}        & 50.00           & {26.92}         \\
+Langfun Agent v2.0  & {54.55}        & {60.38}        & {59.30}         & {26.92}         \\ 
+h2oGPTe Agent v1.6.8  & {63.64}        & {67.92}        & {67.44}         & {42.31}         \\ 
+\hline
+\textbf{\model}           & {55.15}             &    {71.70}          &   {53.49}           &    {26.92}           \\
+\hline
+\end{tabular}}
+% \end{table}
+\end{wraptable}
+\noindent \textbf{Baseline Methods}.
+The baselines we selected are divided into two categories: Open-Source: FRIDAY~\cite{wu2024copilot}, Magentic-1~\cite{Magentic}, Multi-Agent Experiment v0.1 (powered by AutoGen)\cite{microsoft2024gaiamultiagent}, HuggingFace Agents\cite{huggingface2025transformersagents}, Langfun Agent~\cite{google2025langfun}; Closed-Source: TapeAgent, AgentIM, Trase Agent~\cite{trasesystems2025}, Omne, Barcelona\footnote{TapeAgent, AgentIM, Omne, and Barcelona are anonymous.}, and the h2oGPTe Agent~\cite{h2oai2025enterpriseh2ogpte}. These diverse baselines represent the current state-of-the-art in open-source and proprietary multi-agent systems, providing a comprehensive landscape for evaluating the performance and capabilities of our proposed \model\ framework.
+
+\noindent \textbf{Implementation Details}.
+To address tasks in the GAIA benchmark, we utilize a combination of the System Utilities of the {Model} and the Tool Editor Agent from the Agentic-SDK. The basic agents first attempt to complete the task while collecting relevant information and reflections. If successful, the result is directly returned. If not, the Tool Editor Agent creates new tools to continue the task. During validation, Claude-Sonnet-3.5 is used by default.
+
+\noindent \textbf{Evaluation Results and Analysis}.
+The results in Table~\ref{tab:gaia} reveal the following key observations:
+
+$\bullet$ \textbf{Obs.1. Overall Superiority of \model}: Our method significantly outperforms all open-source agent systems and achieves performance close to the latest agent system, h2oGPTe Agent v1.6.8 (submitted on December 16, 2024), securing a stable position in the top 2 rankings. Notably, our approach demonstrates superior performance on Level 1 tasks compared to all state-of-the-art baselines, becoming the first method to achieve over 70\% accuracy rate. This success is attributed to the well-designed System Utilities and the stable interaction of basic agents with the environment, enabling efficient solutions to everyday simple tasks.
+
+
+$\bullet$ \textbf{Obs.2. Effectiveness of Key Components}: Specifically, our framework demonstrates significantly superior performance compared to Magentic-1~\cite{Magentic}, a recent representative open-source MAS, and FRIDAY, a classic self-improved framework. While Magentic-1 leverages the powerful reasoning capabilities of o1-preview to design complex Orchestrator Agent (also the Coder Agent), our framework emphasizes the stability of interactions between sub-agents and their respective environments, as well as the precision of tool definitions. Under these conditions, the Orchestrator Agent achieves better results with simple prompts and handoff tools.
+
+$\bullet$ \textbf{Obs.3. Error Analysis}: The analysis revealed two key limitations in the current evaluation protocol of the GAIA benchmark system: strict string matching that ignores semantic equivalence (e.g., "840 citations" vs. "Citations") and challenges posed by dynamic, anti-automation mechanisms during web searches. These issues underscore the need for a more semantically-aware evaluation approach to improve the system's effectiveness.
+
+\subsection{Evaluation of \model\ on the Retrieval-Augmented Generation (RAG) Task}
+\textbf{Benchmark Dataset and Evaluation Protocols}.
+To test the basic functionalities of the \model, we use the RAG task as the testing benchmark. MultiHop-RAG~\cite{MultiHop-RAG} is a dataset designed to evaluate RAG capabilities, requiring the RAG methods to gather information from multiple sources and generate responses, which aligns with the file functionality logic of \model. We evaluate using two metrics: \textbf{Accuracy (Acc)} measures response consistency with expected answers (e.g., ``ChatGPT'' or ``OpenAI's ChatGPT'' are both correct for ``Which AI tool reached 100M daily users in March?''). \textbf{Error (Err)} counts confident but incorrect responses (e.g., answering ``Bard'' to the above query).
+
+\noindent \textbf{Baseline Methods}.
+The baselines represent a diverse range of LLM-based RAG techniques. The chunk methods, such as NaiveRAG~\cite{mao2020generation} and HyDE~\cite{gao2022precise}, utilize the original text segmentation. The graph methods, including MiniRAG~\cite{fan2025minirag} and LightRAG~\cite{guo2024lightrag}, manage files as sophisticated graphs. In contrast, Langchain's Agentic RAG~\cite{langchain2023} innovatively accesses files through intelligent software agents. These baselines cover a wide array of strategies for leveraging large language models to retrieve and generate robust responses.
+
+\textbf{Implementation Details}.
+We used gpt-4o-mini \cite{openai2023gpt4} as the LLM and text-embedding-3-small for embeddings. We followed MultiHopRAG \cite{MultiHop-RAG} for text chunking, with 256-token chunks and top-6 retrieval. This leverages the gpt-4o-mini's language abilities while text-embedding-3-small provides retrieval, with MultiHopRAG's chunking managing information effectively.
+
+% \begin{table}[h]
+\begin{wraptable}[9]{r}{0.6\textwidth}
+\vspace{-1.5em}
+\centering
+\caption{Evaluation of \model\ and baselines for RAG.}
+\label{tab:rag}
+\resizebox{0.6\textwidth}{!}{
+\begin{tabular}{c|cccccc} 
+\hline
+Method& $acc$ & $err$ & $acc$ & $err$ \\
+\hline
+\multirow{2}{*}{Chunk-Based} & \multicolumn{2}{c}{NaiveRAG} & \multicolumn{2}{c}{HyDE} \\ 
+ 
+% & $acc$ & $err$ & $acc$ & $err$ \\
+\cline{2-5}
+& 53.36\% & 12.28\%
+ & 56.59\% & 16.55\% \\
+\hline
+\multirow{2}{*}{Graph-Based} &  \multicolumn{2}{c}{MiniRAG} &
+\multicolumn{2}{c}{LightRAG} \\ 
+
+% & $acc$ & $err$ & $acc$ & $err$ \\
+\cline{2-5}
+& 57.81\% & 34.78\% & 58.18\% & 35.40\%  \\
+\hline
+\multirow{2}{*}{Agent-Based} & \multicolumn{2}{c}{Langchain} & \multicolumn{2}{c}{\textbf{\model}} \\ 
+
+% & $acc$ & $err$ & $acc$ & $err$ \\
+\cline{2-5}
+& 62.83\% & 20.50\% & \textbf{73.51\%} & 14.20\% \\
+\hline
+\end{tabular}}
+\vspace{-1em}
+% \end{table}
+\end{wraptable}
+
+\noindent \textbf{Evaluation Results and Analysis}. We summarize the key observations from the results (Table~\ref{tab:rag}).
+
+$\bullet$ \textbf{Superior Performance of \model}. The results clearly demonstrate the superior performance of our proposed \model\ model compared to other baselines on the Multihop-RAG task. By leveraging a more flexible and adaptive agent-based framework, \model\ is able to dynamically orchestrate the retrieval and reasoning process, outperforming even other agentic approaches.
+
+$\bullet$ \textbf{\model\ vs. LangChain}. Our method significantly outperforms LangChain, which is also an agentic RAG. This is due to \model's more flexible framework, where agents do not need to rely on predefined workflows and tools to execute file search tasks. The proposed model can orchestrate workflows on the fly during the search process, leading to more efficient and accurate results.
+
+\subsection{\model's Performance on Open-Ended Tasks}
+This section thoroughly explores the capabilities of the \model\ framework in generating agents and workflows based on even vague, natural language inputs across various scenarios. To illustrate the breadth of \model's abilities, we will examine its performance on tasks of varying difficulty - from the creation of a single agent to the orchestration of multiple, coordinated agents.
+
+\noindent \textbf{Task with Single Agent}. \model\ can create tools for third-party APIs (RapidAPI, Hugging Face). We demonstrated this by generating a DaVinci Agent for image creation and refinement. This shows \model\'s capability to build task-specific agents from natural language.
+
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, frame=none, columns=fullflexible, breaklines=true, breakatwhitespace=true, breakindent=3pt]
+I want to create a `DaVinci Agent' that can help me to generate the image with natural language. it can: 
+1. generate the image with natural language and save it to the specified path on the local machine using the HF model 'Sana_600M_1024px_diffusers'
+2. evaluate the image using `visual_question_answering` tool according to the given image.
+3. interatively refine generated image based on the evaluation result.
+\end{lstlisting}
+
+\noindent \textbf{Automated Agent Creation and Execution}. \model\ begins generating an XML table from the natural language requirements, using existing tools and agents. This structured form is then passed to the Tool Editor Agent, which creates the necessary \texttt{generate\_image} and \texttt{refine\_image} tools. The Agent Editor Agent composes the DaVinci Agent by integrating the new tools with an existing \texttt{visual\_question\_answering} tool. This agent is executed, generating and storing several logo designs, as shown in Fig~\ref{fig:logos}. Due to limited local resources, a smaller model was used, yet the agent successfully completed the task. This demonstrates \model's seamless creation of the tailored agent for complex, open-ended design challenges.
+
+\noindent \textbf{Task with Multi-Agents}. To further validate \model's capability to generate agents and integrate third-party tools, we tasked it with creating a Financial Agent based on the following requirements:
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, frame=none, columns=fullflexible, breaklines=true, breakatwhitespace=true, breakindent=3pt]
+I want to create `Financial Agent` that can help me to do two kinds of tasks:
+1. Manage the private financial docs. I have a folder that contain the financial docs in my local machine, and I want to help me to manage them.
+2. Search the financial information online. You may help me to: 
+- get balance sheets for a given ticker over a given period.
+- get cash flow statements for a given ticker over a given period.
+- get income statements for a given ticker over a given period.
+\end{lstlisting}
+
+\noindent \textbf{Building a Comprehensive Financial Agent}. The Agent Form Agent automatically recognized the need to create two distinct agents to handle the given tasks: the \textbf{Document Manager Agent} and the \textbf{Market Research Agent}. The specific XML representation of this multi-agent structure is shown in List~\ref{lst:multi_form} in the Appendix. After successfully validating the structured requirements, the Tool Editor Agent proceeded to create the necessary tools: \texttt{get\_balance\_sheet}, \texttt{get\_cash\_flow}, \texttt{get\_income\_statement}, and \texttt{analyze\_financial\_data}. With the tools in place, the Agent Editor Agent composed the Document Manager Agent and the Market Research Agent, and established a Financial Analysis Orchestrator to coordinate them.
+
+The Financial Analysis Orchestrator skillfully leveraged the innovative new tools and the organization's existing robust capabilities to comprehensively conduct thorough research and detailed analysis on the critical local documents as well as valuable external data sources. This rigorous process culminated in the production of a meticulously crafted, comprehensive research report, as showcased in List~\ref{lst:fin_report} within the Appendix. The comprehensive agent trajectory for this intricate and complex requirement is presented in illuminating detail in Tab~\ref{tab:traj_fin_agent} within the Appendix. This detailed account reveals that while the Orchestrator encountered a SyntaxError during the initial creation phase, the resilient and adaptable Agent Editor component was able to adeptly self-debug and successfully complete the task, thereby strikingly demonstrating the robustness of \model system.
+
+\noindent \textbf{Workflow Generation}. Scaling Test-Time Compute has been validated as a superior approach for solving reasoning problems. However, manually constructing workflows poses a high barrier to entry. We aim to explore whether \model's automatic creation of agents and workflows can bridge the gap between the idea of Test-Time Compute and the implementation of workflows. Taking the majority voting method with multiple models as an example:
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, frame=none, columns=fullflexible, breaklines=true, breakatwhitespace=true, breakindent=3pt]
+I want to create a workflow that can help me to solving the math problem.
+The workflow should:
+1. Parallelize solving the math problem with the same `Math Solver Agent` using different language models (`gpt-4o`, `claude-3-5-sonnet`, `deepseek-chat`)
+2. Aggregate the results from the `Math Solver Agent` and return the final result using majority voting.
+\end{lstlisting}
+\begin{table}[t]
+\vspace{-.5em}
+\centering
+\caption{Comparison between single LLMs and the AI-generated Majority Voting workflow.
+% \url{https://huggingface.co/spaces/gaia-benchmark/leaderboard}
+}\label{tab:math_reason}
+\resizebox{0.80\textwidth}{!}{
+\begin{tblr}{
+  cells = {c},
+  hlines,
+  vline{2,5} = {-}{},
+}
+Models & {gpt-4o\\\scriptsize 0806} & {claude-3.5-sonnet\\\scriptsize 1022} & {deepseek-v3} & {Majority Voting Workflow\\\scriptsize (3 models)} \\
+pass@1    & 66.4           & 66.4                      & 74.2        & \textbf{75.6}                          
+\end{tblr}
+}
+\vspace{-0.1in}
+\end{table}
+
+\noindent \textbf{Potential Test-Time Scaling Law}. Upon receiving the requirements, the Workflow Form Agent generated an XML-formatted workflow table (List~\ref{lst:workflow_form}). This table includes two new agents: \textbf{Math Solver Agent} and \textbf{Vote Aggregator Agent}. After validation, the Agent Editor Agent created agents. The Workflow Editor Agent then constructed a new workflow based on the form and conducted tests. To validate the workflow's practicality, we performed comparative experiments on the MATH-500 dataset~\cite{math500} using 3 LLMs (\texttt{gpt-4o-20240806}, \texttt{claude-3.5-sonnet-20241022}, \texttt{deepseek-v3}) and a Majority Voting workflow. As shown in Tab~\ref{tab:math_reason}, the generated workflow performs significantly better than state-of-the-art baselines. We selected cases from \texttt{deepseek-v3} (Tab~\ref{tab:workflow_error}) where \model's workflow effectively corrected errors through multi-model collaboration, demonstrating its potential to establish scaling laws in LLM agents.
+
+
+
+

@@ -1,0 +1,49 @@
+\section{Issue Generation}
+\label{appx:issue_generation}
+
+We cover the four issue generation strategies we experiment with to determine issue text's effect on how solvable a \bugs{} instance is along with the trajectory's value as a training data point.
+
+\textbf{Generated with LM.}
+We prompt an LM with a randomly selected SWE-bench Verified problem statement, the bug patch, list of Fail-to-Pass tests, source code for one Fail-to-Pass test, and the execution logs of running all the Fail-to-Pass tests.
+We ask the LM to generate an issue that describes the bug conveyed in the patch in the style of the SWE-bench Verified demonstration.
+Figure~\ref{fig:prompt_generate_issue_with_lm} shows the system prompt for this strategy.
+
+\textbf{Fixed issue templates.} We create a set of $7$ pre-defined issue templates, listed in Table~\ref{tab:issue_gen_fixed}.
+Each template uses information from the bug patch or Fail-to-Pass tests associated with every task instance.
+Given a dataset of task instances, we randomly select one of the templates to use as the problem statement according to the probabilities listed in Table~\ref{tab:issue_gen_fixed}.
+The reason we assign the highest likelihood for the prompt that provides all four categories of information (bug type, files changed, functions changed, Fail-to-Pass tests) is to ensure that a higher proportion of task instances are well-specified.
+
+\input{tables/issue_gen_fixed}
+
+\textbf{Fail-to-Pass test code and execution logs.} Another approach is showing the source code and test execution logs for a randomly selected Fail-to-Pass test.
+This approach is motivated by the lack of reproduction code or expected/actual behavior of code communicated with fixed issue templates.
+We show code and execution logs only for a single Fail-to-Pass test; if a task instance has more than one Fail-to-Pass test, we do not disclose remaining tests.
+
+\textbf{Original issue text.}
+This strategy works exclusively for some task instances generated using PR Mirroring.
+If a PR is successfully mirrored, we use the text from the associated issues as the problem statement, exactly as done in SWE-bench.
+Of the $2345$ task instances represented in \bugs{} mirrored from real-world PRs, $708$ or $30.19$\% of these have one or more associated GitHub issue(s) to create a SWE-bench style problem statement.
+
+\input{figures/prompt_generate_issue_with_lm}
+
+% \subsection{Strategy Ablations}
+
+% We investigate how different types of issue impact the \% resolved rate of a bug.
+% To do this, we randomly sampled $590$ of the $708$ PR mirror task instances from \bugs{} that have associated Github issue(s) as well.
+% Given this set of $590$ task instances, we run the four different issue generation strategies, creating four datasets of the same set of bugs with different problem statements.
+% We then run SWE-agent with Claude 3.5 Sonnet to get the \% resolved rate per issue generation strategy.
+% We present these findings in Table~\ref{tab:issue_gen_resolve_rate}.
+
+% \input{tables/issue_gen_resolve_rate}
+
+% We find that the \% resolved rate with original issue text is slightly higher and similar to the top score on SWE-bench ($33.83$\% as of March 24, 2025), which provides some evidence that \bugs{} captures PRs as task instances as faithfully as SWE-bench.
+% The slight increase is likely because our PR mirroring strategy does not attempt to replicate PRs editing more than $8$ files.
+% On the other hand, issues based on a Fail-to-Pass test leads to a $7.4$ percentage point jump in performance.
+% This is a reasonable phenomenon, as for task instances with a single Fail-to-Pass test, this strategy leaks the evaluation for the desired solution directly to the model.
+% The increase with LM generated issues is much less, at just a $2.5$\% increase.
+
+% We also investigate whether the issue generation strategy has impact on the quality of the trajectory as a data point.
+% We fine-tune Qwen $2.5$ $7$B on the set of trajectories corresponding to resolved instances per issue generation strategy, then run inference with SWE-agent on the SWE-bench Lite dataset three times to estimate performance, making sure to fix the number of fine-tuning data points.
+% The findings are summarized in Table~\ref{tab:issue_gen_lite}.
+
+% \input{tables/issue_gen_lite}

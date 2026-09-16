@@ -1,0 +1,126 @@
+\section{Introduction}
+Large language models (LLMs)~\cite{radford2018improving,radford2019language,touvron2023llama} are evolving from episodic chatbots into persistent \emph{agentic} systems~\cite{wang2024survey,yao2022react,yang2024swe} that execute complex workflows over days or weeks.
+In such settings, agents receive a continuous stream of observations---user constraints, tool outputs, and environmental feedback---whose consequences unfold over long horizons.
+This shift makes \emph{controllable, long-term memory} a first-class requirement: relying solely on ephemeral context windows is insufficient, as they are computationally expensive and prone to attention dilution.
+To maintain coherence over time, agents must actively manage an external memory bank~\cite{packer2023memgpt,hu2025memory}, deciding what to retain and how to retrieve it under uncertainty.
+
+
+\begin{figure}[t]
+    \small
+    \centering
+        \includegraphics[width=0.95\linewidth]{figures/memma_challenge_v5.pdf}
+        % \vskip -1em
+    % \vskip -1.em
+    \caption{Two challenges in leveraging the memory cycle effect.}
+    \vspace{-1.2em}
+    \label{fig:challenge_memory_cycle}
+\end{figure}
+
+Effective memory, however, is not merely a storage utility; it is a closed-loop dynamic, conceptualized as the \textbf{memory cycle effect}~\cite{zhang2025learn}.
+This cycle has three coupled phases: \emph{construction}, \emph{retrieval}, and \emph{utilization}.
+Construction determines what information enters the memory bank and how it is organized; retrieval determines what stored information is surfaced as evidence; and utilization reveals whether the retrieved evidence is sufficient for downstream reasoning.
+This coupling implies that optimizing these stages in isolation is fundamentally suboptimal: a retrieval failure may stem from a much earlier construction error, while utilization outcomes should ideally feed back to improve future memory decisions.
+Despite this intrinsic dependency, most existing memory-augmented agents~\cite{chhikara2025mem0,fang2025lightmem,xu2025mem,yan2025memory,zhou2025mem1,shen2026membuilder} still treat memory operations as isolated, reactive subroutines, overlooking the coupling between stages.
+To leverage the memory cycle effect, two technical challenges must be addressed (Fig.~\ref{fig:challenge_memory_cycle}).
+
+
+First, on the \emph{forward path} of the memory cycle, current systems often suffer from \textbf{strategic blindness}: they possess the mechanisms to edit memory and issue retrieval queries, yet lack explicit \textit{meta-cognition to coordinate these actions toward downstream question answering}.
+As our preliminary analysis shows (Sec.~\ref{ssec:motivate_study}), this manifests as two pathologies:
+(i)~\emph{Myopic Construction}, where the agent accumulates or overwrites conflicting facts without resolution; and
+(ii)~\emph{Aimless Retrieval}, where the agent performs shallow or repetitive searches without narrowing the true information gap.
+These failures suggest that \textit{effective forward-path memory behavior requires explicit coordination between construction and retrieval, rather than isolated, short-sighted decisions}.
+% These failures suggest that construction and retrieval should not be driven by isolated, short-sighted decisions, but instead require explicit coordination along the forward path.
+% As a result, memory construction and retrieval are often driven by local heuristics rather than globally coherent reasoning.
+
+Second, on the \emph{backward path} of the memory cycle, feedback from utilization to construction is typically \emph{sparse and delayed}.
+Whether a memory-writing decision is useful may become clear only much later, when the agent fails a downstream question.
+This makes credit assignment difficult: when an answer is wrong, it is hard to identify which earlier construction decision caused the failure, allowing omissions and unresolved conflicts to persist in the memory bank and affect later updates.
+Although recent methods use reflection or experiential learning to improve agent behavior~\cite{shinn2023reflexion,zhao2024expel,zhang2026memrl}, downstream failures are still rarely converted into direct signals for repairing the memory bank itself.
+
+% To address these challenges, we propose \method\ (\textbf{Mem}ory Cycle 
+% \textbf{M}ulti-\textbf{A}gent Coordination), a plug-and-play multi-agent 
+% framework that coordinates the memory cycle along its forward and backward paths.
+% % Specifically, for the \emph{forward path}, \method separates strategic reasoning 
+% % from low-level execution through a planner--worker architecture, where a 
+% % Meta-Thinker produces structured guidance that steers a 
+% % Memory Manager during construction (what to retain, consolidate, or 
+% % resolve) and directs a Query Reasoner during iterative retrieval by 
+% % diagnosing what evidence is missing and how to retrieve it. 
+% % \minhua{This directly addresses \emph{strategic blindness}: the Meta-Thinker reduces 
+% % \emph{Myopic Construction} by guiding what should be retained, consolidated, 
+% % or resolved in memory, and reduces \emph{Aimless Retrieval} by diagnosing 
+% % missing evidence and steering iterative query refinement.}
+% % \suhang{add a sentence or rewrite it to make it more closely connected to the challenge mentioned above, i.e., explicit coordination between construction and retrieval, meta-cognition}
+% Specifically, for the \emph{forward path}, \method separates strategic reasoning from low-level 
+% execution through a planner--worker architecture: a Meta-Thinker produces 
+% structured guidance that steers a Memory Manager during construction (what to 
+% retain, consolidate, or resolve), thereby mitigating \emph{Myopic Construction}, 
+% and directs a Query Reasoner during retrieval by diagnosing missing evidence and 
+% how to retrieve it, replacing one-shot search with diagnosis-guided iterative 
+% refinement and thereby mitigating \emph{Aimless Retrieval}. 
+% For the \emph{backward path}, \method introduces {in-situ self-evolving 
+% memory construction}: after each session, the system synthesizes probe QA pairs, 
+% verifies the memory against them, and converts failures into repair actions on 
+% the memory bank through evidence-grounded critique and semantic consolidation, 
+% before the memory is committed for future use. 
+% \minhua{This directly addresses \emph{sparse and delayed supervision} by turning 
+% downstream failures into immediate, localized repair signals for the current 
+% memory state, before flawed memories propagate into future memory updates.}
+% Together, these two mechanisms enable \method to coordinate the memory cycle along both its forward and backward paths.
+% \suhang{add one sentence explaining how this adress the second challenge???}
+% Together, these two mechanisms enable \method to coordinate the memory cycle in both directions: the forward path guides construction and retrieval online, while the backward path converts detected failures into targeted repairs of the memory bank, improving subsequent memory updates and downstream utilization.
+
+To address these challenges, we propose \method\ (\textbf{Mem}ory Cycle 
+\textbf{M}ulti-\textbf{A}gent Coordination), a plug-and-play multi-agent 
+framework that coordinates the memory cycle along its forward and backward paths.
+Specifically, for the \emph{forward path}, \method separates strategic reasoning from low-level execution through a planner--worker architecture: a Meta-Thinker produces structured guidance that steers a Memory Manager during construction (what to retain, consolidate, or resolve), {thereby mitigating \emph{Myopic Construction}}, and directs a Query Reasoner during retrieval {by diagnosing missing evidence and how to retrieve it, replacing one-shot search with diagnosis-guided iterative refinement and thereby mitigating \emph{Aimless Retrieval}}. 
+For the \emph{backward path}, \method introduces {in-situ self-evolving memory construction}: after each session, the system synthesizes probe QA pairs, verifies the memory against them, and converts failures into repair actions on the memory bank through evidence-grounded critique and semantic consolidation, 
+before the memory is committed for future use. 
+{This directly addresses \emph{sparse and delayed supervision} by turning 
+downstream failures into immediate, localized repair signals for the current 
+memory state, before flawed memories propagate into future memory updates.}
+% Together, these two mechanisms enable \method to coordinate the memory cycle along both its forward and backward paths.
+
+
+Our contributions are:
+(i) \textbf{Analysis}. We identify two technical challenges in leveraging the memory cycle effect: \emph{strategic blindness} on the forward path and \emph{sparse, delayed feedback} on the backward path, and provide empirical evidence through a controlled preliminary study (Sec.~\ref{ssec:motivate_study}).
+(ii) \textbf{Framework}. We propose \method, a plug-and-play multi-agent framework that coordinates the memory cycle along both its forward and backward paths, combining reasoning-aware coordination for construction and iterative retrieval with in-situ self-evolving memory construction for backward repair.
+(iii) \textbf{Experiments}. \method outperforms existing baselines on LoCoMo across multiple LLM backbones, and consistently improves three storage backends as a plug-and-play module.
+
+% Our contributions are summarized as follows:
+% (i) \textbf{Analysis}. We analyze long-horizon memory through the lens of the memory cycle effect and identify two key technical challenges: \emph{strategic blindness} along the forward path and \emph{sparse, delayed supervision} along the backward path. We further provide empirical evidence for strategic blindness through a controlled preliminary study.
+% (ii) \textbf{Framework}. We propose \method, a plug-and-play multi-agent framework that coordinates the memory cycle along both paths: a Meta-Thinker provides strategic guidance for construction and retrieval on the forward path, while in-situ self-evolving memory construction converts failed probes into direct repair actions on the memory bank on the backward path.
+% (iii) \textbf{Experiments}. Experiments on LoCoMo show that \method improves the strongest baseline by +5.92 LLM-as-a-Judge accuracy, achieves the largest gains on challenging categories such as multi-hop and temporal questions, and consistently improves multiple storage backends across LLM backbones, demonstrating both effectiveness and backend-agnostic flexibility.
+
+% Our contributions are summarized as follows: 
+% (i) \textbf{Analysis}. We identify \emph{strategic blindness} as a key failure mode of existing memory-augmented agents and provide empirical evidence through a controlled preliminary study;
+% (ii) \textbf{Framework}. We propose \method, a plug-and-play multi-agent framework that coordinates the forward path of the memory cycle through a Meta-Thinker and strengthens the backward path through in-situ self-evolution.
+% (iii) \textbf{Experiments}. \method delivers strong gains on LoCoMo, including a +5.92 improvement in LLM-as-a-Judge accuracy over the strongest baseline, with the largest gains on challenging categories such as multi-hop and temporal reasoning, while consistently improving multiple storage backends in a backend-agnostic manner.
+
+
+% Effective memory, however, is not merely a storage utility; it is a closed-loop dynamic we term the \textbf{memory cycle effect}~\cite{zhang2025learn}.
+% The cycle has three coupled phases: \emph{construction} determines the upper bound of what can be recalled; \emph{retrieval} filters the evidence available for reasoning; and \emph{utilization} outcomes should ideally feed back to refine future construction.
+% Optimizing these stages in isolation is suboptimal: a retrieval failure (e.g., missing a constraint) often stems from a much earlier construction failure (e.g., discarding a seemingly minor detail), creating a \emph{temporal credit assignment} problem that disjoint heuristics cannot solve.
+% Despite this intrinsic dependency, most existing memory-augmented agents~\cite{chhikara2025mem0,fang2025lightmem,xu2025mem,yan2025memory,zhou2025mem1,shen2026membuilder} still treat memory operations as isolated, reactive subroutines, overlooking the coupling between stages.
+
+
+
+% Large language models (LLMs)~\cite{radford2018improving,radford2019language,touvron2023llama} are transitioning from episodic chatbots to persistent \emph{agentic} systems capable of executing complex workflows over days or weeks.
+% In these settings, agents receive a continuous stream of heterogeneous observations---user constraints, tool outputs, and environmental feedback---whose consequences unfold over long horizons.
+% This shift makes \emph{controllable, long-term memory} a first-class requirement: relying solely on ephemeral context windows is insufficient, as they are computationally expensive and prone to attention dilution.
+% To maintain coherence, agents must actively manage an external memory bank, deciding what to retain for future decision-making and how to retrieve it under uncertainty.
+
+% However, effective memory is not merely a storage utility; it is a closed-loop dynamic we term the \textbf{memory cycle effect}~\cite{zhang2025learn}.
+% The cycle consists of three coupled phases: \emph{Storage} determines the upper bound of what can be recalled; \emph{Retrieval} filters the evidence available for reasoning; and \emph{Utilization} outcomes should ideally provide feedback to refine future storage strategies.
+% Optimizing these stages in isolation is suboptimal: a failure in retrieval (e.g., missing a constraint) often stems from a much earlier failure in storage (e.g., discarding a seemingly minor detail), creating a \emph{temporal credit assignment} problem that is difficult to solve with disjoint heuristics.
+
+% Despite this intrinsic dependency, most existing memory-augmented agents, ranging from heuristic-based systems~\cite{chhikara2025mem0,fang2025lightmem,xu2025mem} to early RL attempts~\cite{yan2025memory,zhou2025mem1,shen2026membuilder}, still treat memory operations as isolated, reactive subroutines, where storage is typically triggered by local rules rather than anticipated downstream utility, and retrieval relies on one-shot semantic similarity rather than the question’s reasoning requirements (e.g., missing slots, multi-hop constraints, temporal dependencies). As revealed by our preliminary analysis (Sec.~\ref{ssec:motivate_study}), this disjointed design leads to \textbf{{strategic blindness}}: agents may possess the mechanisms to edit and retrieve memory, yet lack \emph{explicit meta-cognition} to coordinate these actions toward a coherent goal. 
+% Specifically, this manifests as two pathologies: (i) \emph{Myopic Construction}, where the agent overwrites or accumulates conflicting facts without resolution; and (ii) \emph{Aimless Retrieval}, where the agent performs shallow searches that miss logical links (e.g., temporal constraints), or loops repetitively without narrowing down the search space.
+
+% To bridge this gap, we introduce \method (\textbf{Mem}ory \textbf{M}ulti-agent \textbf{A}ctor), a hierarchical multi-agent framework that orchestrates the memory cycle via explicit reasoning-aware planning.
+% Unlike monolithic policies, \method decouples high-level planning from low-level execution.
+% At the core is a \textbf{Meta-Thinker}, a cognitive executive that observes the agent's trajectory and plans memory operations.
+% Before memory construction phase, the meta-thinker assesses the memory bank and current 
+
+% assesses information density and redundancy, guiding a \textbf{Memory Manager} to perform surgical edits (\texttt{ADD}/\texttt{UPDATE}/\texttt{DELETE}) rather than blind appends.
+% During reasoning, the Meta-Thinker diagnoses information gaps, directing a \textbf{Query Reasoner} to reformulate retrieval targets based on missing logical links rather than surface-level semantics.

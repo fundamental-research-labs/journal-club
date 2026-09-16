@@ -1,0 +1,335 @@
+\section{Results}
+
+\subsection{AUP Scores and Performance Profiles}
+\label{sec:aup_pp_results}
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth]{assets/performance_profile.pdf}
+    \caption{Performance profiles comparing Best Attempt@4 and Best Submission@4 across all models and tasks. The x-axis shows the performance ratio threshold $\tau$ and the y-axis shows the fraction of tasks where a model achieves performance within $\tau$ of the best model.}
+    \label{fig:pp_plots}
+\end{figure*}
+
+As detailed in the \autoref{sec:evaluation}, we evaluate the performance of each model in the SWE-Agent based agent scaffolding using Performance Profiles and Area Under the Performance Profile (AUP) score.
+
+Moreover, since our agent can log the performance of intermediate steps, we categorize the performance of each model using two categories: \texttt{Best Submission} and \texttt{Best Attempt}.
+%
+Best Submission indicates the LLM agent's capability to produce a valid final solution for a task as well as the ability to remember to fall back to the best intermediate solution in case some experiments don't pan out.
+%
+Whereas, Best Attempt indicates the potential ceiling of the LLM agent's capability to solve the given task. 
+
+\autoref{fig:pp_plots} shows the performance profiles for Best Attempt (on the left) and Best Submission (on the right).
+%
+Similarly, \autoref{tab:aup_scores} shows the AUP scores for the Best Attempt and Best Submission for all models.
+
+In our experiments, we found that OpenAI O1-preview is the best-performing model on aggregate across our set of tasks for both Best Attempt and Best Submission, with Gemini 1.5 Pro and Claude-3.5-Sonnet being close behind.
+
+\begin{table*}[!h]
+    \centering
+    \begin{NiceTabular}{lcc}
+        \toprule
+        Model & Best Attempt AUP@4 & Best Submission AUP@4 \\
+        \midrule
+        Llama3.1-405b-instruct & 1.015 & 1.039 \\
+        Claude-3.5-Sonnet & 1.142 & 1.135 \\
+        Gemini-1.5-Pro & 1.140 & 1.125 \\
+        GPT-4o & 1.000 & 1.029 \\
+        OpenAI O1 & \colorbox{blue!15}{1.150} & \colorbox{blue!15}{1.176} \\
+        \bottomrule
+    \end{NiceTabular}
+    \caption{AUP@4 scores for the best attempt and best submission across all models. Best scores are highlighted in \colorbox{blue!15}{blue}.}
+    \label{tab:aup_scores}
+\end{table*}
+
+% Model,Best AUP,Last AUP
+% llama3-405b-tools,1.015,1.039
+% gpt4o2,1.0,1.029
+% claude-35-sonnet-new,1.142,1.135
+% gemini-15-pro,1.14,1.125
+% gpt-o1,1.15,1.176
+% baseline,0.953,0.98
+
+
+% \todo[inline]{@nick: Write the interpretation of the table and plots here.}
+
+\subsection{Raw Performance Scores}
+
+To compare the performance of each model on each task, we also report aggregate metrics over 4 runs with different seeds, namely the Best Attempt@4 and Best Submission@4 in \autoref{tab:ba_raw} and \autoref{tab:bs_raw} respectively. 
+%
+
+While OpenAI O1-Preview is not dominant in all tasks, with Gemini-1.5-Pro, Claude-3.5-Sonnet, and Llama-3.1-405b-Instruct occasionally taking the lead, it is consistently in the top performing models for most tasks and thus takes the top spot in the AUP scores and performance profiles.
+%
+This shows that the performance profile is a good metric to compare the performance of different models on a set of tasks with a diverse set of metrics.
+
+We also find that Llama-3.1-405b-Instruct and GPT-4o are the only models that fail to produce any valid solution for the Language Modeling and Breakout tasks, respectively.
+
+% \todo[inline]{@deepak: add qualitative analysis of the failing trajectories for these models.}
+
+\begin{table*}[!h]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+    \begin{NiceTabular}{llcccccc}
+        \toprule
+        Task & Metric & Baseline & Llama3.1-405b-instruct & GPT-4o & Claude-3.5-Sonnet & Gemini-1.5-Pro & OpenAI o1 \\
+        \midrule
+        CIFAR-10 & Accuracy & 0.497 & 0.548 & 0.733 & \colorbox{blue!15}{0.895} & 0.84 & 0.857 \\
+        Battle of Sexes & Average Reward & 1.023 & 1.261 & 1.149 & 1.442 & 1.443 & \colorbox{blue!15}{1.444} \\
+        Prisoners Dilemma & Average Reward & 2.372 & \colorbox{blue!15}{2.632} & 2.6 & 2.567 & 2.63 & 2.629 \\
+        Blotto & Average Reward & -0.248 & 0.043 & 0.047 & \colorbox{blue!15}{0.576} & 0.249 & 0.248 \\
+        House Price Prediction & $\text{R}^2$ Score & 0.88 & 0.908 & 0.895 & 0.921 & 0.914 & \colorbox{blue!15}{0.931} \\
+        Fashion MNIST & Accuracy & 0.783 & 0.876 & 0.927 & \colorbox{blue!15}{0.945} & 0.916 & 0.92 \\
+        MS-COCO & BLEU Score & 0.279 & 0.294 & 0.176 & \colorbox{blue!15}{0.298} & 0.131 & 0.135 \\
+        MNLI & Validation Accuracy & 0.525 & 0.777 & 0.819 & 0.830 & \colorbox{blue!15}{0.838} & 0.836 \\
+        Language Modeling & Validation Loss & 4.673 & $\infty$ & 4.361 & 4.476 & 4.166 & \colorbox{blue!15}{3.966} \\
+        Breakout & Average Score & 48.817 & 58.87 & $\infty$ & 35.017 & \colorbox{blue!15}{71.389} & 63.518 \\
+        Mountain Car Continuous & Average Reward & 33.794 & 18.692 & -215.776 & 36.313 & 92.513 & \colorbox{blue!15}{96.335} \\
+        Meta Maze & Average Return & 15.734 & 26.744 & 7.823 & \colorbox{blue!15}{48.562} & 27.859 & 34.986 \\
+        3-SAT Heuristic & Wall-Clock Time (s) & 16.158 & 13.793 & 13.676 & 15.728 & 14.36 & \colorbox{blue!15}{13.652} \\
+        \bottomrule
+    \end{NiceTabular}
+    \end{adjustbox}
+    \caption{Best Attempt@4 scores for all models. Best scores are highlighted in \colorbox{blue!15}{blue}. \textit{Note: $\infty$ indicates that the model was not able to produce even a single valid solution for submission or validation.}}
+    \label{tab:ba_raw}
+\end{table*}
+
+\begin{table}[!h]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+    \begin{NiceTabular}{llcccccc}
+        \toprule
+        Task & Metric & Baseline & Llama3.1-405b-instruct & GPT-4o & Claude-3.5-Sonnet & Gemini-1.5-Pro & OpenAI o1 \\
+        \midrule
+        CIFAR-10 & Accuracy & 0.497 & 0.528 & 0.733 & \colorbox{blue!15}{0.894} & 0.758 & 0.854 \\
+        Battle of Sexes & Average Reward & 1.023 & 1.256 & 1.144 & 1.439 & \colorbox{blue!15}{1.443} & 1.439 \\
+        Prisoners Dilemma & Average Reward & 2.372 & 2.562 & 2.582 & 2.563 & \colorbox{blue!15}{2.63} & 2.571 \\
+        Blotto & Average Reward & -0.248 & 0.041 & 0.047 & \colorbox{blue!15}{0.228} & 0.088 & 0.247 \\
+        House Price Prediction & $\text{R}^2$ Score & 0.88 & 0.908 & 0.895 & 0.912 & 0.908 & \colorbox{blue!15}{0.931} \\
+        Fashion MNIST & Accuracy & 0.783 & 0.876 & 0.927 & \colorbox{blue!15}{0.945} & 0.916 & 0.906 \\
+        MS-COCO & BLEU Score & 0.279 & \colorbox{blue!15}{0.294} & 0.111 & 0.125 & 0.131 & 0.135 \\
+        MNLI & Validation Accuracy & 0.525 & 0.777 & 0.819 & 0.830 & \colorbox{blue!15}{0.838} & 0.836 \\
+        Language Modeling & Validation Loss & 4.673 & $\infty$ & 4.361 & 4.476 & 4.166 & \colorbox{blue!15}{3.966} \\
+        Breakout & Average Score & 48.817 & 58.87 & $\infty$ & 17.735 & \colorbox{blue!15}{71.389} & 63.518 \\
+        Mountain Car Continuous & Average Reward & 33.794 & 18.692 & -216.621 & 36.313 & 92.513 & \colorbox{blue!15}{96.335} \\
+        Meta Maze & Average Return & 15.734 & 26.744 & 7.823 & \colorbox{blue!15}{48.562} & 22.889 & 34.986 \\
+        3-SAT Heuristic & Wall-Clock Time (s) & 16.158 & 13.936 & 13.676 & 15.728 & 14.36 & \colorbox{blue!15}{13.83} \\
+        \bottomrule
+    \end{NiceTabular}
+    \end{adjustbox}
+    \caption{Best Submission@4 scores for all models. Best scores are highlighted in \colorbox{blue!15}{blue}. \textit{Note: $\infty$ indicates that the model was not able to produce even a single valid solution for submission or validation.}}
+    \label{tab:bs_raw}
+\end{table}
+
+\subsection{Computational Cost}
+\label{sec:cost_analysis}
+
+\begin{figure*}[!h]
+    \centering
+    \includegraphics[width=\textwidth]{assets/aup_vs_cost.pdf}
+    \caption{Best Attempt AUP@4 vs cost for all models. The x-axis shows the API cost in USD and the y-axis shows the AUP@4 score.}
+    \label{fig:pareto_curve}
+\end{figure*}
+
+
+As discussed in~\citet{kapoor2024aiagentsmatter}, it is important to also consider the pareto curve of performance vs cost for a more comprehensive evaluation of the agents' capabilities and their computational cost. 
+% visualize the agent's evaluation on a pareto curve of performance vs cost.
+%
+In this work, we do not compare different agent scaffoldings; however, the pareto curve can still be useful to choose the most balanced model for a set of tasks.
+%
+\autoref{fig:pareto_curve} shows the Best Attempt AUP@4 vs Average Cost for all models.
+%
+We use Best Attempt AUP scores to for this plot to highlight the maximum performance achievable by each model for a given cost.
+
+% \todo[inline]{@deepak: add reference to the best submissions vs aup plot}
+
+According to results discussed in \autoref{sec:aup_pp_results}, OpenAI O1-Preview is the best-performing model, however, it is also the most computationally expensive by a wide margin.
+%
+In contrast, Gemini-1.5-Pro and Claude-3.5-Sonnet are much more cost-effective while still reaching high performance not too far from OpenAI O1's, with Gemini-1.5-Pro being the most cost-effective.
+
+Gemini-1.5-Pro is cheaper than both GPT-4o and Llama-3.1-405b-Instruct and provides massive performance gains relative to them.
+% 
+GPT-4o is one of the cheapest models to run but performs significantly worse than the top models, Claude-3.5-Sonnet, Gemini-1.5-Pro, or OpenAI O1-Preview.
+% 
+Overall, Gemini-1.5-Pro strikes the best balance between performance and cost on \mlgym-Bench, being the cheapest model to run (approximately $9\times$ cheaper than OpenAI's O1) while achieving $99\%$ of OpenAI O1's AUP (which is the top performing model).
+
+The API pricing for OpenAI O1-preview, GPT-4o, Claude-3.5-Sonnet, and Gemini-1.5-Pro was taken from their respective price pages and for Llama-3.1-405b-instruct was taken from together.ai. For details on API pricing, tokens spent, and context length please consult~\autoref{tab:model_details}
+
+\subsection{Agent Behavior Analysis}
+\label{sec:agent_behavior_analysis}
+
+\subsubsection{Failure Mode Analysis}
+\label{sec:failure_analysis}
+
+
+
+% \begin{figure*}[!h]
+%     % \centering
+%     \includegraphics[width=\textwidth]{assets/error_per_model.pdf}
+%     % \includegraphics{assets/error_per_model.pdf}
+%     \caption{Exit Status Distribution by Model. The size of the bars corresponds to the number of times each model triggered an exit status.}
+%     \label{fig:errors_per_model}
+% \end{figure*}
+In this section we analyze the failure modes of our agents on \mlgym-Bench tasks, using three key perspectives: termination error distribution, failed or incomplete run rates, and task-specific failure patterns.
+%
+% We analyze the failure modes of all models across our suite of tasks through three key perspectives: termination error distribution, failed/incomplete run rates by model, and task-specific failure patterns.
+%
+We collect trajectories across 11 tasks and 5 models with 4 different seeds. 
+%
+This results in a total of $220$ trajectories with 20 and 44 trajectories for each task and model, respectively.
+
+\ibold{Termination Errors}
+\autoref{fig:errors_per_model} shows the distribution of different causes for termination encountered by each model during task execution, as indicated by the first word of the error message.
+% %
+% The figure shows the first word of the error message for each error.
+%
+We categorize the errors into the following types: \texttt{context length exceeded}, \texttt{evaluation error}, \texttt{file permission error}, \texttt{cost limit exceeded}, \texttt{format error}, and \texttt{runtime error}.
+
+First, we observe that almost all models encounter Evaluation Error and is generally the most frequent final error, accounting for $75\%$ of all termination errors.
+%
+Evaluation Error is generally triggered by missing submission artefacts or incorrect submission format at the last step or when the \texttt{submit} command is issued. 
+%
+Gemini-1.5-Pro is the only model that does not submit any invalid solutions, with OpenAI O1-Preview and Claude-3.5-Sonnet being the runner ups.
+
+OpenAI O1-Preview and Claude-3.5-Sonnet demonstrate superior error handling capabilities with the lowest overall error rates. 
+%
+Cost Limit is the second most frequent error encountered by Claude-3.5-Sonnet, Gemini-1.5-Pro and OpenAI O1-Preview, indicating that they could further improve performance if provided with more budget. 
+%
+However, it is interesting to note that Gemini-1.5-Pro is the most cost-effective model across all tasks but still encounters Cost Limit error most frequently among all models.
+
+\ibold{Failed and Incomplete Runs}
+The failed and incomplete run analysis in \autoref{fig:failed_runs_model} reveals significant variations in model reliability.
+%
+If an agent run fails with a termination error without producing any valid intermediate submission, we mark it as failed.
+%
+Whereas, if the run fails with a termination error but produces a valid intermediate submission i.e. at least one score on the test set is obtained, we mark it as incomplete.
+%
+Note that the model's submission does not have to beat the baseline to be considered a valid intermediate submission.
+%
+We are not interested in the performance of the model's submission here, but rather the ability of the agent to produce a valid submission by following the given instructions.
+
+GPT-4o exhibits the highest failure rate, while Gemini-1.5-Pro and OpenAI O1-Preview achieve the best completion rates.
+%
+While Claude-3.5-Sonnet is one of the top performing models across all tasks (\autoref{sec:aup_pp_results}), it has a high failure rate.
+%
+Another interesting observation is that OpenAI O1-Preview has a high incompletion rate, but it always produces at least one valid solution for all tasks.
+
+We report additional results and failure mode analysis in \autoref{sec:failure_analysis_appendix}. 
+%
+
+\begin{figure*}[!t]
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{assets/error_per_model.pdf}
+        % \includegraphics{assets/error_per_model.pdf}
+        \caption{Termination Error Distribution by model. The size of the bars corresponds to the number of times each model triggered an exit status.}
+        \label{fig:errors_per_model}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{assets/failed_runs_model.pdf}
+        % \includegraphics{assets/failed_runs_model.pdf}
+        \caption{Number of Failed and Incomplete runs per model. The criteria for marking a run as incomplete or failed is described in \autoref{sec:failure_analysis}}
+        \label{fig:failed_runs_model}
+    \end{minipage}
+\end{figure*}
+
+\subsubsection{Action Analysis}
+\label{sec:action_analysis}
+
+\newcommand{\editing}{\hextext{4477AA}{\textbf{Edit~}}}
+\newcommand{\viewer}{\hextext{EE6677}{\textbf{View~}}}
+\newcommand{\validate}{\hextext{228833}{\textbf{Validate~}}}
+\newcommand{\submit}{\hextext{CCBB44}{\textbf{Submit~}}}
+\newcommand{\search}{\hextext{66CCEE}{\textbf{Search~}}}
+\newcommand{\python}{\hextext{AA3377}{\textbf{Python~}}}
+\newcommand{\bash}{\hextext{BBBBBB}{\textbf{Bash~}}}
+
+% ACTION_LIST = ["Edit", "View", "Validate", "Submit", "Search", "Python", "Bash"]
+% PAUL_TOL = ["#4477AA", "#EE6677", "#228833", "#CCBB44", "#66CCEE", "#AA3377", "#BBBBBB"]
+
+
+In this section, we analyze the overall action distribution, as well as across models and trajectory steps.
+%
+To analyze the action distribution effectively, we group the actions according to categories defined in~\autoref{tab:tools}: \editing, \viewer, \search, \validate and \submit.
+%
+We treat \texttt{validate} and \texttt{submit} as two separate categories.
+
+Additionally, we have two open-ended categories: \python and \bash.
+%
+All the actions that match the regex patterns \texttt{python.*}, \texttt{deepspeed.*}, \texttt{torchrun.*} are considered as \python actions.
+%
+These actions usually correspond to the agent attempting to run a model evaluation or training script.
+%
+All other actions are grouped under \bash category, i.e. are considered as open-ended bash commands.
+
+
+\ibold{Overall Action Distribution}
+\autoref{fig:total_actions_analysis} shows the action distribution across all runs. 
+%
+File commands such as \editing and \viewer are one of the most frequently used commands with \editing accounting for 50\% of the total actions.
+%
+Whereas, \search commands are rarely used, accounting for only 1\% of the total actions.
+
+This distribution suggests that models spend a significant portion of their time in an iterative development cycle of editing and viewing files.
+%
+Additionally, we observe a trend of regular experimental evaluation and periodic validation of solution by the frequent use of \python and \validate commands.
+
+\ibold{Per-Model Action Distribution}
+\autoref{fig:actions_per_model} shows the action distribution for each model.
+%
+GPT-4o takes the least number of actions overall, indicating that the model either errors out or submits too early without reaching an optimal solution.
+%
+This is consistent with the failure analysis shown in \autoref{fig:failed_runs_model}.
+
+Among the best-performing models, Claude-3.5-Sonnet and OpenAI O1-Preview perform the most number of actions within a run, while Gemini-1.5-Pro performs the least number of actions.
+%
+Consistent with the cost analysis discussed in \autoref{sec:cost_analysis}, Gemini-1.5-Pro's lower trajectory length contributes to it being the most cost-effective model.
+
+
+\begin{figure*}[!t]
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{assets/total_actions_analysis.pdf}
+        \caption{Action distribution across all runs. We group the actions into categories following the grouping defined in~\autoref{tab:tools} and \autoref{sec:action_analysis}.}
+        \label{fig:total_actions_analysis}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{assets/actions_per_model.pdf}
+        \caption{Action distribution for each model. We group the actions into categories following the grouping defined in~\autoref{tab:tools} and~\autoref{sec:action_analysis}.}
+        \label{fig:actions_per_model}
+    \end{minipage}
+\end{figure*}
+
+\ibold{Per-Step Action Distribution}
+\autoref{fig:actions_per_step} illustrates the distribution of actions taken by agents across trajectory steps. 
+%
+Initially, \bash commands are predominant, indicating that agents start by checking and setting up their environment with basic commands such as \texttt{ls}, \texttt{pwd}, \texttt{cd} etc.
+%
+As the steps progress, \editing actions become the most frequent, reflecting the agents' focus on modifying and refining code. 
+%
+This is complemented by a consistent use of \viewer commands, suggesting a pattern of iterative development where agents frequently review their changes.
+
+
+\python and \validate commands are used steadily throughout, which indicates an iterative cycle of experiments and evaluation.
+%
+\submit actions are sparse, typically appearing towards the end of the process, aligning with the finalization of tasks.
+%
+However, we can observe the \submit action being used as soon as Step 5, which indicates that some models submit their solution too early and likely fail to reach an optimal solution to beat other models.
+
+Interestingly, \search commands are rarely used, suggesting that agents might benefit from improved search strategies to enhance efficiency while editing code. 
+
+Overall, our analysis highlights a structured approach where agents begin with getting familiar with the environment and the task, conduct multiple iterations of experiments and validation, and conclude with and submission. We report additional action analysis in~\autoref{sec:action_analysis_appendix}.
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth]{assets/actions_per_step.pdf}
+    % \includegraphics{assets/actions_per_step.pdf}
+    \caption{Action distribution for each step. We group the actions into categories following the grouping defined in \autoref{tab:tools} and \autoref{sec:action_analysis}.}
+    \label{fig:actions_per_step}
+\end{figure*}
+
+
+
+% \subsection{Agent Behavior: Strengths and Weaknesses}

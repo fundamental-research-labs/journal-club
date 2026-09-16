@@ -1,0 +1,157 @@
+\newpage
+\section{Methods}
+
+\subsection{Formalism}
+\label{sec:formalism}
+
+We adopt the language decision process (LDP) framework \autocite{narayanan2024aviary0,carta2023grounding}, a formulation of a partially observable Markov decision process in which observations and actions are represented in text. 
+An LLM-based agent implements a composite policy $\pi_{\text{overall}}$ that factors into two components:
+\begin{equation}
+    \pi_{\text{overall}}(a_t \mid s_t) = f\bigl(\pi_{\text{LLM}}(a_t \mid s_t),\; \pi_{\text{scaffold}}(a_t \mid s_t)\bigr),
+\end{equation}
+where $\pi_{\text{LLM}}$ is the base-model policy governing token-level choices and $\pi_{\text{scaffold}}$ is the scaffold policy governing prompting strategy, tool routing, memory management, and orchestration logic. The state $s_t = (P, h_t)$ comprises the task prompt $P$ and the conversation history $h_t$ at step $t$, which accumulates prior actions, tool outputs, and observations. At each step, the agent selects an action $a_t$ (a tool call, a reasoning step, or a final answer) according to $\pi_{\text{overall}}$. The environment returns an observation, the history grows, and the cycle repeats.
+
+Tools are part of the environment, not the agent. Each environment defines a set of callable functions with standardized docstrings; the agent receives no information beyond what the tool descriptions and returned observations provide. This separation is mirrored directly in our code implementation (\Cref{app:framework-details}): the environment serves tools, task descriptions, and scoring functions through a common interface, while the agent interacts solely through text-based requests. Because all agent configurations face identical tool interfaces and environment dynamics, observed differences in performance and behavior can be attributed to the base model or the scaffold.
+
+\subsection{Task and tool formalism}
+\label{sec:task_subtask}
+% task prompt % tool verbosity etc defined here
+
+  \paragraph{Tasks and subtasks.}
+  A benchmark item is either a single task or a task group $G = \{\tau_1, \ldots, \tau_K\}$ whose dependencies form a directed acyclic graph: each subtask consumes the outputs of its predecessors. The framework resolves this graph and presents subtasks to the agent sequentially, injecting predecessor outputs into the prompt at each step. An \ml task, for example, decomposes into data retrieval, feature engineering, model training, and evaluation, with each subtask consuming the artifacts produced by the previous one.
+
+  
+\paragraph{Task prompt.}
+\label{sec:task-prompt}
+
+The message sequence presented to the base model comprises a system prompt, an environment-specific task prompt (goal description, submission format, and any input data from predecessor subtasks), a scaffold-specific user template that adds response-format instructions, and tool descriptions filtered by the verbosity axis defined below (see \Cref{sec:tool-verbosity}). Only the task prompt varies across environments; all other components are held constant. Full construction details are given in \Cref{app:prompt-construction}.
+
+
+\paragraph{Tool verbosity.}
+\label{sec:tool-verbosity}
+
+Tool docstrings are authored with tagged sections (such as \texttt{[BRIEF]}, \texttt{[DETAILED]}, \texttt{[EXAMPLES]}; full tag definitions in \Cref{sec:verobisty_examples}). Three levels expose cumulative subsets to the agent: brief includes only the \texttt{[BRIEF]} tag; workflow extends through \texttt{[WORKFLOW\_INTEGRATION]}; comprehensive adds examples, error conditions, and limitations. Tool descriptions and task prompts are constructed independently, so verbosity varies without altering the task, enabling a controlled ablation over the information available to $\pi_{\text{LLM}}$.
+
+
+\subsection{Agent implementations} \label{sec:agents-implementations}
+
+All experiments use Corral, the evaluation framework we developed for this study (\Cref{app:framework-details}). Only the model backend and agent scaffold vary across runs. We evaluated three models: GPT-4o (\texttt{gpt-4o-2024-08-06}) via the OpenAI API, Claude Sonnet 4.5 (\texttt{claude-sonnet-4-5-20250929}) via the Anthropic API, and GPT-OSS-120B via the Blablador API. Temperature was set to 0.0 for all runs, and each environment enforces a fixed iteration limit. Tool verbosity was set to brief for main-text results; workflow and comprehensive settings appear in the appendix.
+
+We used two agent scaffolds. The first is ReAct \autocite{yao2022react}: the agent produces reasoning traces and tool calls in a single text stream. The second is structured tool calling: the API parses tool names and arguments from the model output, the agent executes the call, appends the result to the conversation history, and repeats until a termination criterion is met. The two scaffolds differ in how actions are expressed, but the surrounding benchmark logic is identical. Scope and measurement caveats, including compute budget and malformed-response rates, are detailed in \Cref{app:limitations}.
+
+\subsection{Domains and environments} \label{sec:domains_and_environments}
+ 
+Each domain is realized as one or more environments providing tools, a task description, and a scoring function. Observations combine structured data (numerical values, tables, spectra) with natural-language summaries at the selected verbosity level. Scoring functions evaluate both the final answer and, where applicable, intermediate subtask completions. Each environment is backed by a domain-specific engine, instrument, or dataset, ranging from LAMMPS simulations and a live atomic force microscope to a custom thermodynamic equilibrium engine and manually curated spectra (\Cref{tab:env-summary-table}). The inputs each environment receives and the artifacts each produces are shown in \Cref{fig:envs-input-output}. Below, we summarize each domain. Full tool lists, scoring rubrics, and task specifications for the Inorganic Qualitative Analysis environment appear in \Cref{app:wetlab-section}; details for every environment are at \url{https://lamalab-org.github.io/corral/#environments}.
+ 
+\paragraph{Spectroscopic structure elucidation.}
+The agent determines the molecular structure of an unknown compound by requesting and interpreting spectroscopic data\autocite{Banfi2008nmr, Jablonka2022making, Binev2007prediction}. Available tools include mass spectrometry, $^{1}$H and $^{13}$C NMR, HSQC, and infrared spectroscopy, alongside reference databases for chemical shift ranges, isotope distributions, and degree-of-unsaturation calculations. The agent can validate proposed structures and simulate spectra for comparison. Each task comprises 10 sequential subtasks that progress from molecular formula determination through functional group identification to complete SMILES assignment. Two scopes vary the molecular complexity: the first isolates individual analytical steps; the second requires integrating ambiguous, multi-modal evidence. HSQC acquisition is marked as expensive, introducing a cost-information tradeoff.
+ 
+\paragraph{Inorganic qualitative analysis.}
+In a custom-built simulation environment, the agent identifies unknown cations in solution using the systematic wet-laboratory procedure taught in introductory chemistry.
+Tools include adding reagents, performing flame tests, measuring pH, centrifuging, decanting, heating, and observing color and precipitate changes. The environment simulates real chemical equilibria; observations are computed from thermodynamic data (rather than scripted).
+Three scopes increase the number of candidate ions from 3--5 common species with distinct chemistry to 15 or more, including ions with overlapping reactivity (e.g.\ \ce{Ag+}, \ce{Hg^{2+}}), progressively requiring the agent to design discriminating experimental sequences rather than follow a decision tree. Sample volume is limited, penalizing redundant experiments.
+ 
+\paragraph{Circuit inference.}
+The agent recovers the topology and component values of a hidden resistor network from pairwise resistance measurements between nodes. Tools provide series and parallel resistance calculations, delta-wye and wye-delta transforms, resistance measurement between specified node pairs, and circuit validation. Six tasks progress from simple parallel-series networks (6--7 resistors) through linear chains (10 resistors) to complex topologies (13+ resistors with multiple interaction points). This domain isolates logical and mathematical reasoning from domain-specific scientific knowledge.
+ 
+\paragraph{Retrosynthetic planning.}
+The agent designs multi-step synthetic routes to a target molecule under cost, step-count, and commercial-availability constraints. Tools include a template catalog searchable by functional group or bond type, template application and step verification, commercial-availability lookup with CAS number conversion, and functional- and protecting-group detection. Three scopes increase target complexity from simple molecules with one-step solutions to complex natural products requiring up to five steps within a \$9{,}999 budget, where all leaf nodes must be commercially available.
+ 
+\paragraph{AFM experiment execution.}
+The agent operates an atomic force microscope, executes the experimental procedure, and analyzes the resulting nanoscale surface characterization data. The four scopes vary in the degree of guidance: the first specifies all scan parameters for identical measurements, while the last provides only the objective and expects the agent to choose scan areas and derive a mathematical relationship. The Image Optimizer tool is removed at higher scopes, introducing a tradeoff between available assistance and independent reasoning about scan modes and parameters. 
+ 
+\paragraph{Molecular simulation.}
+The agent designs and executes molecular dynamics simulations using the LAMMPS package \autocite{LAMMPS} to predict materials properties. Tools cover the full workflow: retrieving crystal structures from the Materials Project \autocite{jain2013commentary, Horton2025}, converting to LAMMPS data format, querying force-field metadata, running simulations, and analyzing output logs.  Two scopes vary the degree of procedural guidance: at the first, the simulation protocol is prescribed; at the second, the agent must select simulation parameters, design the heating or cooling schedule, and choose appropriate analysis methods. Tasks span quenching, surface energy computation, and melting simulations, with quantitative targets and specified tolerances (e.g.\ self-diffusivity of molten \ce{SiO2} within 20\%).
+ 
+\paragraph{Adsorption surface construction.}
+The agent builds an adsorbate-slab configuration from bulk crystal structures and molecules for heterogeneous catalysis studies. Tools integrate with the Materials Project to retrieve structures and polymorph data, generate surface slabs for specified Miller indices, vacuum, and enumerate adsorption sites. The agent must select an appropriate bulk polymorph, generate a surface termination, identify relevant adsorption configurations, and place the adsorbate molecule on the adsorption site. 
+ 
+\paragraph{ML-based property prediction.}
+The agent assembles a complete machine-learning pipeline to predict formation energies of material polymorphs. Tools cover data retrieval from the Materials Project (batch and single-composition queries), dataset filtering and consolidation, tabular feature engineering, XGBoost  \autocite{chen2016xgboost} training with configurable hyperparameters, evaluation, and cross-validation. Tasks span three material classes (oxides, nitrides, sulfides). Models are scored against specified $R^{2}$ thresholds and cross-validation targets.
+ 
+\subsection{Manual trace annotation}
+
+We built a custom web application to support the manual annotation described in \Cref{fig:marker_annotation_app} (see the annotation app at \url{https://lamalab-org.github.io/corral/#annotate}). The tool displays reconstructed agent traces as interactive graphs. Each node represents a single message-like event, such as user instructions, reasoning steps, or tool calls. Annotators process traces in order. They label only behavior-relevant nodes; by design, system messages, tool outputs, and the initial task description are not annotatable. For each eligible node, annotators select one or more markers from a taxonomy we developed for this study. The taxonomy distinguishes positive behaviors (e.g., planning statements, validation attempts), failure modes (e.g., hallucinations, unnecessary tool use), and neutral states (detailed in \Cref{app:manual_annotation_description}). Annotators can also add free-text observations to each node and trace. The interface requires left-to-right progression and checks that all annotatable nodes receive at least one marker before submission.
+
+For downstream analysis, two expert annotators completed the full annotation process on 773 selected traces. Each selected trace received annotations from one domain expert. The two annotators first annotated and discussed several calibration traces and edge cases to align their understanding. This process produced one final annotation record per trace, which informed all later marker-level analyses.
+
+\subsection{Diagnostic question-answer pairs} \label{sec:qa}
+For each domain, we designed two types of diagnostic questions. Knowledge questions target the specific facts needed to complete tasks; reasoning questions target the specific inference operations the environment requires. The designer of each environment compiled the initial set; submissions were made via pull requests and accepted only after two independent expert reviews. Knowledge question counts range from approximately twenty to over one hundred per environment; reasoning question counts are more uniform, with twenty to twenty-five per environment. All three models were evaluated on the full item bank at a temperature of 0.0. Full results are detailed in \Cref{tab:qa-scores}; the item format, scoring rubric, and review protocol are described in \Cref{app:capability-items}.
+
+\subsection{IRT and phenomenological model}
+
+We adopt a two-stage modeling strategy to (i)~estimate the latent cognitive capabilities that each model brings to each scientific domain, and (ii)~quantify how those capabilities, together with agent-design choices, predict benchmark success as illustrated in \Cref{fig:irt-main-fig} A.
+  
+
+\paragraph{Extracting model capabilities.} A two-parameter logistic (2PL) IRT model estimates latent abilities from binary QA responses. The diagnostic questions are described in \Cref{sec:qa}.
+For model~$j$ answering item~$i$:
+
+  \begin{equation}\label{eq:irt}
+    P(Y_{ij}=1) = \sigma\!\bigl(a_i\,(\theta_j - b_i)\bigr),
+  \end{equation}
+
+where $\theta_j$ is the latent ability of model~$j$, $a_i > 0$ is item discrimination, and $b_i$ is item difficulty. We fit two separate 2PL models, one to knowledge items and one to reasoning items, yielding $\theta_j^{(K)}$ and $\theta_j^{(R)}$ per model-environment pair. Both are standardized to zero mean and unit variance before entering Stage~2.
+
+\paragraph{Phenomenological latent factor models.}
+The IRT-derived abilities serve as covariates in a second modeling stage that predicts agent success on the full benchmark. Raw trial outcomes are first balanced (equal task counts per environment) and aggregated into Binomial counts $(k_{\text{success}}, n_{\text{trials}})$ per unique combination of model, environment, scaffold, scope, tool-description verbosity, aggregation grain (task-level vs.\ subtask-level outcome), and task identifier (the specific task-scope combination). The standardized IRT abilities $\tilde{\theta}_K$ and $\tilde{\theta}_R$ are then merged as continuous predictors.
+
+We specify a family of Bayesian generalised linear models \autocite{edition2013bayesian} (M1--M8; \Cref{sec:models_irt}) of increasing structural complexity, all sharing the Binomial likelihood
+  %
+  \begin{equation}
+    k \sim \mathrm{Binomial}(n,\; p), \qquad
+    \operatorname{logit}(p) = \eta,
+    \label{eq:lfm_likelihood}
+  \end{equation}
+  %
+and a common set of sum-to-zero categorical effects for scaffold ($\gamma$), verbosity ($\xi$), and scope ($\kappa$). Models differ in how they partition the remaining variance. Candidate specifications are compared using Pareto-smoothed importance sampling leave-one-out cross-validation (PSIS-LOO; \Cref{fig:elpd_vs_complexity}). The best-fitting model is M7, which allows knowledge and reasoning slopes to vary by environment $\times$ scope. All main-text variance decompositions and predicted success probabilities are derived from M7 (see \Cref{sec:models_irt}).
+
+
+\subsection{Epistemological graphs} \label{sec:epistemological-graphs}
+
+We sampled traces balanced across environments, models, and problem scope levels, prioritizing task diversity. Only ReAct traces were used, as they contain explicit reasoning steps. Tool description verbosity was set to brief; differences between verbosity levels are minimal (see \Cref{fig:fig-5_app}).
+
+Each trace was annotated using Claude 4.5 Sonnet in two stages. In the first stage, the model labels nodes from short, overlapping windows of messages. Node labels correspond to epistemic operations: hypothesis, test, evidence, judgment, update, and commitment. In the second stage, the model adds directed edges between related nodes. Edge types include testing, observing, using, contradicting, competing, and updating. In both stages, the temperature was set to 0.7. Every node and edge includes a supporting quote and the index of the source message, grounding annotations in the trace. After processing the full trace, repeated items are normalized and duplicates removed. \Cref{app:annotation-pipeline} details the annotation process.
+
+Annotations were validated in two ways. Automated checks verify that each supporting quote appears in the cited message and that each edge connects valid nodes. Expert review guided the annotation design: an expert iteratively revised prompts, labels, and markers until annotations matched their own interpretation of the traces. Inter-annotator agreement analysis on a representative sample of 25 traces showed substantial human–human agreement (overall 92.6\%, mean PABAK 0.853) and even higher human–LLM agreement (95.7\%), confirming that the automated pipeline performs within the range of human expert judgment. \Cref{app:annotation-agreement} provides a deeper analysis of the annotation results.
+
+
+Productive patterns and anti-patterns are defined as explicit structural templates over the annotated graphs (\Cref{tab:prod-motifs-def}, \Cref{tab:reas-break-def}). Productive patterns include Popperian falsification \autocite{popper2005logic}, exploratory-to-confirmatory transitions \autocite{tukey1977exploratory}, and active learning \autocite{lindley1956measure, fedorov2013theory}. Anti-patterns are drawn from established epistemic failures in scientific reasoning and from behaviors observed in the traces, including untested hypotheses, ignored evidence, and unresolved contradictions. Both are grouped into higher-level families for aggregated analysis (\Cref{tab:epist-full-scores}).
+
+
+
+\subsection{Trace intervention experiment} \label{sec:method_intervention}
+The trace intervention experiment probes whether agent performance is driven by latent model capability or by accumulated conversational context. We first ran 15 trials per task across all environments at temperature 0.7 to populate a registry of successful and failed execution traces. A moderate temperature follows standard practice for balancing sample diversity against coherence \autocite{chen2021evaluating}. These runs are distinct from the main evaluation, which uses temperature 0.0 for deterministic scores. For each new trial, we inject a partial trajectory from this registry into the agent's conversation history before the trial begins. The injected traces are replayed, tool calls and environment interactions included, so that the agent resumes from a consistent intermediate state. We vary two factors: the source of the injected trace (successful or failed prior run) and its extent (early steps 1--2 versus near-complete trajectories at steps $n{-}2$ or $n{-}1$). The intervention supplies the actual reasoning and actions a successful agent would have produced rather than instructions or prompting strategies. Intervention trials also use temperature 0.7. Protocol details and pseudocode are in \Cref{app:interventions}.
+
+
+
+\subsection{Token-level log-probability analysis}
+  \label{sec:logprob-analysis}
+
+  To quantify the model's token-level confidence across benchmark environments, we analyze the log-probabilities returned by the language model for each
+  generated token. For every assistant message produced during a trial, we select and save the log-probability of the top-1 token at each
+  decoding step. Formally, for a response consisting of $T$ tokens
+  $\{w_1, w_2, \ldots, w_T\}$,
+  %
+  \begin{equation}
+    \ell_t \;=\; \log p_\theta(w_t \mid w_{<t}, \mathbf{x}),
+    \qquad t = 1, \ldots, T,
+    \label{eq:token-logprob}
+  \end{equation}
+  %
+  where $p_\theta$ denotes the language model, $w_{<t}$ is the preceding token
+  sequence, and $\mathbf{x}$ is the input context (which includes system prompt, task prompt, tool
+  definitions, and conversation history).
+
+  For each environment~$e$, we pool all non-special token log-probabilities
+  across every assistant message from every trial in that environment. Tokens
+  whose log-probability is exactly zero and that correspond to
+  special control tokens (e.g., \texttt{<|endoftext|>},
+  \texttt{<|im\_end|>}) are excluded. The
+  per-environment mean log-probability is then,
+  %
+  \begin{equation}
+    \bar{\ell}_e \;=\; \frac{1}{N_e}\sum_{t=1}^{N_e} \ell_t^{(e)},
+    \label{eq:mean-logprob}
+  \end{equation}
+  %
+  where $N_e$ is the total number of retained (non-zero, finite) tokens across the message or trial it belongs to, giving a vocabulary-level confidence estimate. More negative values of $\bar{\ell}_e$ signal that the model distributes probability more diffusely, reflecting greater uncertainty. Per-environment values and interpretation are reported in \Cref{app:logprob-results}.

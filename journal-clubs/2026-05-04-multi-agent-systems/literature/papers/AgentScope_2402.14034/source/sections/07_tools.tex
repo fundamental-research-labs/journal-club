@@ -1,0 +1,89 @@
+\section{Tool Usage}
+\label{sec:tools}
+% background
+Tool usage is an important feature for LLM-empowered agents, allowing agents to perceive, change their environment, and handle more complex tasks~\citep{auto-gen,art,talm}. 
+% The general progress in tool usage
+For simplicity, we treat using tools as equivalent to calling service functions by LLMs. 
+% brief introduction
+In \ours, the tool usage module is designed based on ReAct algorithm~\citep{react}, which allows for the generation of interleaved reasoning and task-specific actions, along with a core component---service toolkit. 
+% features
+Such design features high compatibility, extensibility, robustness, and re-usability, spanning from function pre-processing, prompt engineering, reasoning, and response parsing to agent-level fault tolerance. 
+Specifically, in \ours the tool usage involves four steps:
+
+\begin{itemize}
+	\item \textbf{Function Preparation}: 
+	Parse the provided service functions, and pre-process the functions so that LLMs can utilize them directly. 
+	
+	\item \textbf{Instruction Preparation}: 
+	Prepare instruction prompt for tool usage to elaborate the available tool functions to LLMs, including the purpose, arguments, constraints of the function, and its calling format. 
+	
+	\item \textbf{Iterative Reasoning}: 
+	LLMs generate strategic reasoning, make decisions for tool usage, and respond in the required format. 
+	
+	\item \textbf{Iterative Acting}: 
+	Parse and check the LLM response according to the calling format, invoke functions if the response adheres to the expected format, or generate a detailed error message to LLMs for correction. 
+
+\end{itemize}
+
+% brief introduction for service toolkit
+In the above process, the service toolkit module is responsible for tool functions management, pre-processing, prompt engineering, response parsing, and function execution, and it is highly modular and extensible. 
+\figref{fig:tools} demonstrates how the service toolkit works in \ours when users post a query. 
+
+
+\begin{figure}[t]
+\centering
+	\includegraphics[width=0.65\linewidth]{figures/tools_usage}
+	\caption{The ReAct-based tool usage module in \ours.}
+	\label{fig:tools}
+\end{figure}
+
+\textbf{Function Preparation}.
+%1. prepare argument
+%2. generate processed function and json schema description
+% feature
+In function preparation, the target is to preset the developer-specific arguments, and to generate ready-to-use functions and their corresponding formatted description for LLMs.
+In \ours, developers only need to register their functions with preset arguments in the service toolkit. 
+As shown in \figref{fig:tools}, developers choose the Bing search function and provide the API key during registration.
+Then the service toolkit will automatically generate the processed ready-to-use function and its description in JSON schema format. 
+The descriptions will be used to generate tool instructions in natural language. 
+Optionally, some model APIs (\eg OpenAI and DashScope Chat API, \etc) can receive the JSON schema descriptions directly, which we will discuss in \secref{sec:customization}.
+
+\paragraph{Instruction Preparation}
+For novice developers, the service toolkit builds in templates for tool instruction and calling format for tool usage, as demonstrated in \figref{fig:tools}. 
+The tools instruction template lists each function with a clear description and the parameters it requires, leading to an easy understanding of their functionalities. 
+On the other hand, the calling format, as demonstrated in \figref{fig:tools}, requires a JSON dictionary in a Markdown fenced code block with \textit{thought}, \textit{speak}, and \textit{function} fields. 
+During LLM generation, we expect the \textit{thought} field will provide a reasoning process for the next acting, including analyzing the current situation, selecting candidate functions, and correcting errors. 
+
+\paragraph{Iterative Reasoning}
+In \ours the reasoning and acting steps are iterative. 
+As stated above, in the reasoning step LLMs should analyze the current situation and decide the next actions. 
+Developers only need to construct prompts with the tool instructions and the calling format instructions and feed them into the LLMs. 
+Such design provides high reusability and flexibility, that is, the service toolkit is task-independent and can be adapted to different tasks and scenarios very easily. 
+
+\paragraph{Iterative Acting}
+In the acting step, the service toolkit will parse the LLM response according to the calling format, extract the selected function, and execute it with the corresponding arguments. 
+If the response conforms to the format requirements, and the function executes successfully, the service toolkit will return the execution results directly, which LLM can generate a response based on in the next reasoning step. 
+Otherwise, we break down errors into response parsing errors, function execution errors, and other runtime errors. 
+For response parsing and function execution errors, we expose them to LLM with detailed error information for correction in the next reasoning-acting iteration, leaving the other runtime errors to developers. 
+
+\subsection{Customization for Experienced Developers}
+\label{sec:customization}
+
+% motivation
+\ours supports developers in highly customizing their tool instructions and function calling formats. 
+To customize tool instruction, the service toolkit in \ours provides JSON schema descriptions automatically, which provides a structured way to elaborate how a function should be called, including its name, purpose, arguments, and other relevant details. 
+These formatted descriptions can be directly fed into some advanced model APIs, e.g. OpenAI and DashScope Chat APIs. 
+For users who want to deeply customize their tool instructions, they can construct instructions based on the JSON schema descriptions. 
+
+Besides the tools instruction, \ours also provides great flexibility, that is, \ours provides various model response parsers, including Markdown fenced code blocks, JSON object code blocks, and customizable tagged contents, as demonstrated in \figref{fig:parsers}. 
+For the users who want to customize the function calling format, the Markdown fenced code blocks and JSON object code block allow them to quickly construct the format instruction and parse the LLM response according to the content types. 
+For users who want to obtain multi-fields from LLMs, the multi-tagged contents allow the developers to combine different tagged contents at will and extract them easily from the response into a Python dictionary. 
+With these parsers, developers are able to customize their own calling format easily. 
+
+\begin{figure}[th]
+	\centering
+	\includegraphics[width=0.8\linewidth]{figures/parser.png}
+	\caption{Parsers in \ours.}
+	\label{fig:parsers}
+\end{figure}
+

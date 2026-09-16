@@ -1,0 +1,673 @@
+\section{Curie Benchmark Complexity Explanation}
+\label{app:complex}
+We describe in detail our complexity level definitions in Table.~\ref{tab:experiment-complexities}. 
+\begin{table*}
+\caption{Descriptions of various complexity levels for experiments across multiple dimensions.}
+\label{tab:experiment-complexities}
+\centering
+\begin{tabular}{clp{12cm}}
+\hline
+\textbf{Complexity Dimension} & \textbf{Level} & \textbf{Description and Example} \\
+\hline
+\multirow{3}{*}{Experiment Setup} & Easy & Straightforward setup with minimal dependencies. Example: Running an inference script on local hardware. \\
+& Medium & Moderate setup involving multiple components. Example: Setting up a VM cluster and distributing workloads. \\
+& Hard & Complex setup requiring multiple dependencies and external configurations. Example: Setting up a distributed system with networking, storage, and inter-region communication. \\
+\hline
+\multirow{3}{*}{Design} & Easy & Well-defined experiments with few variables, and simple parameter spaces. 
+% Example: 4 AWS EC2 instance types. 
+\\
+& Medium & Requires a moderate number of multiple key variables; with a mix of discrete and continuous parameters.
+% Example: 4 AWS EC2 instance types and 4 workload sizes. 
+\\
+& Hard & Involves complex variable interactions, and densely structured parameter spaces requiring adaptive exploration. 
+% Example: Evaluating performance across EC2 types, workload sizes, and network configurations with over 20 combinations. 
+\\
+\hline
+\multirow{3}{*}{Experiment Goal} & Easy & Single metric with a clear, measurable goal and no significant trade-offs. 
+Example: Success rate for a given configuration. 
+\\
+& Medium & Multiple objectives, with moderate trade-offs but relatively independent goals. 
+Example: Balancing cost and latency. \\
+& Hard & Conflicting objectives with high interdependencies, requiring sophisticated optimization and rigorous validation. Example: Minimizing cost while ensuring latency under 100ms and CPU utilization above 80\%. \\
+\hline
+\multirow{3}{*}{Relationship} & Easy & Linear relationships. Example: Performance scales linearly with the number of CPUs. \\
+& Medium & Nonlinear but monotonic relationships: e.g., sublinear, logarithmic. Example: Diminishing returns in performance as more CPUs are added. \\
+& Hard & Non-monotonic or stochastic dependencies. Example: Performance fluctuates due to unpredictable network interference. \\
+\hline
+
+\multirow{3}{*}{Overall} 
+& Easy   & If none of the below hold. \\
+& Medium & At least 2 dimensions are medium, or if 1 only 1 dimension is hard with 1 other dimension being medium. \\
+& Hard   & At least 2 dimensions are hard. \\
+
+\hline
+
+\end{tabular}
+\end{table*} 
+
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[t]{0.42\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/q6.png}
+        \caption{Question 6: “Does the optimal number of reasoning steps vary across different LLMs?”}
+        \label{fig:reasoning-stepsq6}
+    \end{subfigure}%
+    \hspace{0.05\linewidth}
+    \begin{subfigure}[t]{0.52\linewidth}
+        \centering
+        \includegraphics[width=0.8\linewidth]{figures/q8.png}
+        \caption{Question 8: “What is the relationship between the complexity of a task (e.g., as measured by the number of logical inferences or mathematical operations needed) and the optimal length of the reasoning chain?"}
+        \label{fig:reasoning-stepsq8}
+    \end{subfigure}
+    \caption{Case studies on LLM reasoning tasks.}
+    \label{fig:reasoning-steps-comparison}
+\end{figure}
+
+
+ 
+
+
+\section{Case Studies for \sys} 
+\label{appendix:case-study}
+We provide two example case studies for LLM reasoning tasks that \sys was able to extend from the paper \textit{The Impact of Reasoning Step Length on Large Language Models}~\cite{jin2024impact}.  
+
+In Fig.~\ref{fig:reasoning-stepsq6}, 
+the objective of this experiment is to examine whether different models exhibit varying accuracy levels based on the number of reasoning steps. The experiment maintains constant variables, including the dataset (\texttt{last\_letters}), the method (\texttt{auto\_cot}), and the evaluation metric (accuracy). The independent variables include the model type (\texttt{gpt-4o-mini} vs. \texttt{gpt-4o}) and the number of reasoning steps (1, 2, 3, 4, 5, 6, 10), while the dependent variable is the model's accuracy. The experiment consists of a control group and experimental groups. The control group uses \texttt{gpt-4o-mini} with a single reasoning step to establish a baseline accuracy. The experimental groups involve testing \texttt{gpt-4o-mini} with reasoning steps ranging from 2 to 10 and \texttt{gpt-4o} with reasoning steps from 1 to 10. The results will help determine whether reasoning step variations impact accuracy differently across models.
+
+\sys extends the original investigation by examining whether different LLMs exhibit varying accuracy using GPT-4o and GPT-4o-mini. While the original work primarily focused on general trends, \sys establishes a structured experimental framework that includes both control and experimental groups and introduces a new focus on optimal reasoning steps. This refinement provides a more nuanced understanding of how reasoning steps affects accuracy across different LLM architectures.
+
+In Fig.~\ref{fig:reasoning-stepsq8}, 
+the objective of this experiment is to examine the relationship between task complexity and the optimal length of reasoning chains in large language models (LLMs). The experiment maintains constant variables, including the model (\texttt{gpt-4o-mini}), the method (\texttt{auto\_cot}), and the environment setup (OpenAI credentials and a Conda environment). The independent variable is the number of reasoning steps, controlled through different demo files, while the dependent variable is the model’s accuracy, as reported in the log files. The experiment consists of a control group and experimental groups. The control group uses the \texttt{gsm8k\_1} demo file with a single reasoning step to establish a baseline accuracy. The experimental groups involve testing \texttt{gsm8k} with reasoning steps from \texttt{gsm8k\_2} and \texttt{gsm8k\_3}, and \texttt{last\_letters} with reasoning steps ranging from \texttt{last\_letters\_1} to \texttt{last\_letters\_10}. The results will help determine whether task complexity influences the optimal number of reasoning steps required for maximizing accuracy in LLMs.
+
+\sys extends the scope by analyzing how task complexity relates to the optimal length of reasoning chains. This study differentiates between problem types (e.g., logical inference and mathematical operations) and systematically evaluates the effect of reasoning step count within different datasets (\texttt{gsm8k} and \texttt{last\_letters}). By introducing controlled experimental conditions, \sys enables a more detailed exploration of how task complexity interacts with reasoning steps to optimize model performance.  
+
+
+
+\section{Extended Evaluation: Fine-grained Performance Breakdown by Individual Metrics}
+\label{appendix:additional-results}
+
+We detail fine-grained breakdowns for each of our performance metrics mentioned in \S\ref{sec:experiments}. Here we observe the general trend that increasing complexity across all dimensions causes reductions in average metric scores, as shown in Fig.~\ref{fig:ablation-complexity-alignment}, Fig.~\ref{fig:ablation-complexity-conclusion} and Fig.~\ref{fig:ablation-complexity-design}, respectively. In particular, we observe that conclusion scores are most heavily affected as complexity increases across dimensions, reaching 0\% on many occasions for Magentic in particular. For design complexity on the other hand, we observe that we're able to maintain a relatively high average score across all baselines and \sys, but this tapers down as the difficulty increases across dimensions. 
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figures/ablation-complexity-Alignment-v2.pdf}
+    \caption{Average alignment scores across different complexity dimensions at varying difficulty levels for \sys, OpenHands, and Magentic. \sys outperforms the others consistently, with performance generally dropping as complexity increases.}
+    \label{fig:ablation-complexity-alignment}
+\end{figure*}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figures/ablation-complexity-Conclusion-v2.pdf}
+    \caption{Average conclusion scores across different complexity dimensions at varying difficulty levels for \sys, OpenHands, and Magentic. \sys outperforms the others consistently, with performance generally dropping as complexity increases.}
+    \label{fig:ablation-complexity-conclusion}
+\end{figure*}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figures/ablation-complexity-Design-v2.pdf}
+    \caption{Average design scores across different complexity dimensions at varying difficulty levels for \sys, OpenHands, and Magentic. \sys outperforms the others consistently, with performance generally dropping as complexity increases.}
+    \label{fig:ablation-complexity-design}
+\end{figure*}
+
+% \section{TODOs}
+
+% - Question for ML training or any question based on existing benchmark: how are we different? we take starter code, but questions are new. 
+\newpage
+\section{Benchmark Details.}
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage{graphicx}
+\begin{table}[H]
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{p{3cm}|p{10cm}|p{5cm}|p{5cm}|p{5cm}|p{5cm}|p{1cm}}
+\hline
+\multirow{2}{*}{\textbf{Domain}} & \multirow{2}{*}{\textbf{Question}} &
+  \multicolumn{5}{|l}{\textbf{Complexity}} \\ \cline{3-7} 
+ &
+   &
+  \multicolumn{1}{l|}{\textbf{Design}} &
+  \multicolumn{1}{l|}{\textbf{Relat.}} &
+  \multicolumn{1}{l|}{\textbf{Goal}} &
+  \multicolumn{1}{l|}{\textbf{Setup}} &
+  \textbf{Overall} \\ \hline
+\multirow{17}{*}{LLM Reasoning} 
+ &
+  How does the number of generated samples per question impact the overall success? &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  Easy \\ \cline{2-7} 
+ &
+  What is the mathematical relationship between the number of generated samples per question and the overall success rate? For instance, does the rate of success scale linearly, quadratically, or follow another pattern as the number of generated samples increases? &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  Easy \\ \cline{2-7} 
+ &
+  Considering that a larger, more capable model (e.g., gpt-4o) costs significantly more per query compared to a smaller model (e.g., gpt-4o-mini), would it be feasible to use the smaller model, sample more responses, and achieve comparable rate of success while being more cost-effective? &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  Medium \\ \cline{2-7} 
+ &
+  To achieve 80\% success rate for gsm8k task, what is the most cost-effective configuration? Specifically, which model (gpt-4o-mini or gpt-4o) should be used, and how many samples per question should be generated to minimize cost? You will need to test at least 4 samples sizes, and make sure to test each of the chosen samples sizes on both gpt-4o-mini and gpt-4o. &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Hard} &
+  Hard \\ \cline{2-7} 
+ &
+  How does varying the sampling temperature affect the diversity and quality of responses when using a fixed number of samples? &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  Hard \\ \cline{2-7} 
+ &
+  One approach to scaling language model inference is to repeatedly sample candidate solutions from the model and aggregate them using majority voting. How does the number of samples impact the overall accuracy on the GSM8K task? &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  How effective is paper's methodology to scale test-time compute, as repeated sampling in LLMs often leads to duplicate answers? &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  Will increasing the number of reasoning steps in a Chain of Thought (CoT) prompt improve LLM accuracy up to a saturation point? &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  Hard \\ \cline{2-7} 
+ &
+  Does the optimal number of reasoning steps for multi-step reasoning tasks vary based on the problem type (e.g., mathematical and logic problems)? &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Hard} &
+  Hard \\ \cline{2-7} 
+ &
+  Can the accuracy impact of different prompting methods like Zero-shot and Auto-CoT be systematically improved by varying the number of reasoning steps without adding new content in a tightly controlled experiment setting, by using methods such as adding sentences that restate the question to increase steps? &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  Easy \\ \cline{2-7} 
+ &
+  How does the impact of an incorrect step on overall LLM performance vary across different task types, such as process-oriented tasks versus symbolic reasoning or logic tasks?&
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  Hard \\ \cline{2-7} 
+ &
+  What is the optimal number of reasoning steps for different types of tasks to maximize accuracy while minimizing computational cost? &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  Does the optimal number of reasoning steps vary across different LLMs {[}GPT-4o, GPT\_4o-mini{]}, and if so, what is the nature of that relationship? &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  How do different methods of expanding reasoning steps (e.g., repeating the question, self-verification, making equations) affect the model's accuracy, and are some expansion strategies more effective than others? &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Hard} &
+  Hard \\ \cline{2-7} 
+ &
+  What is the relationship between the complexity of a task (e.g., as measured by the number of logical inferences or mathematical operations needed) and the optimal length of the reasoning chain? &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  Easy \\ \cline{2-7} 
+ &
+  How does the position of an incorrect step within the reasoning chain affect the overall outcome? Is an early error more detrimental than a later one? &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Hard} &
+  Hard \\ \cline{2-7} 
+ &
+  Considering that larger models generally perform better, would it be more cost-effective to use a smaller model with longer reasoning chains or a larger model with fewer steps for a given level of accuracy? &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Hard} &
+  Hard \\ \hline
+\multirow{7}{*}{Vector Indexing} &
+  What is the relationship between query latency for the SIFT1M dataset and efSearch values with the HNSW index? Use a fixed value of k=10, M=32, efConstruction=40. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  Easy \\ \cline{2-7} 
+ &
+  What is the effect of varying M (number of neighbors per node) on the memory usage, recall, and query latency for the SIFT1M dataset with the HNSW index? Use varying M values of 16, 24, 32. Use fixed values of k=10, efConstruction=40. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  Medium \\ \cline{2-7} 
+ &
+  What is the optimal combination of M and efSearch to minimize memory usage while maintaining a recall of at least 90\%? Use k=10, efConstruction=40, and use varying M values of 16, 24, 32. efSearch is not a parameter that you need to touch. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  Easy \\ \hline
+ 
+  \end{tabular}%
+ }
+\end{table}
+
+
+\begin{table}[H]
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{p{3cm}|p{10cm}|p{5cm}|p{5cm}|p{5cm}|p{5cm}|p{1cm}}
+\hline
+\multirow{2}{*}{\textbf{Domain}} &
+  \multirow{2}{*}{\textbf{Question}} &
+  \multicolumn{5}{|l}{\textbf{Complexity}} \\ \cline{3-7} 
+ &
+   &
+  \multicolumn{1}{l|}{\textbf{Design}} &
+  \multicolumn{1}{l|}{\textbf{Relat.}} &
+  \multicolumn{1}{l|}{\textbf{Goal}} &
+  \multicolumn{1}{l|}{\textbf{Setup}} &
+  \textbf{Overall} \\ \hline
+  
+\multirow{10}{*}{Vector Indexing}
+ &
+  What is the effect of parallelism (via omp\_set\_num\_threads. You need to modify bench\_hnsw.py to accept and use this parameter properly) on recall and latency for the SIFT1M dataset with a fixed efSearch=100, k=10, M=32, efConstruction=40 &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  Easy \\ \cline{2-7} 
+ &
+  What is the highest recall that can be achieved on the SIFT1M dataset with an HNSW index while keeping query latency under 5ms? Report the optimal configuration. Use a fixed k value of 10, use varying M values of 16, 24, 32, use varying efConstruction values of 40, 50, 60. In total, there should be 9 combinations to test. &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  Medium \\ \cline{2-7} 
+ &
+  What is the relationship between dataset size and index-building time for different FAISS index types (e.g., IVF, HNSW)? For hnsw, the default settings are a fixed k value of 10, M value of 32, and efConstruction value of 40. For ivf, use faiss/benchs/bench\_ivf\_fastscan.py. hnsw should be the control group, and ivf the experimental group. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  Easy \\ \cline{2-7} 
+ &
+  Which of these 2 index types, hnsw and ivf, requires the least amount of memory to run and can reach a recall rate of at least 96\%, using their default settings? For hnsw, use faiss/benchs/bench\_hnsw.py, where the default settings are a fixed k value of 10, M value of 32, and efConstruction value of 40. For ivf, use faiss/benchs/bench\_ivf\_fastscan.py. hnsw should be the control group, and ivf the experimental group. &
+ \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  What are the recall-latency trade-offs for an IVF index as the number of probes (nprobe) increases? For ivf, use faiss/benchs/bench\_ivf\_fastscan.py. You need to modify it to accept and use this parameter properly, make minimal edits. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  Easy \\ \cline{2-7} 
+ &
+  Determine which parameters of the HNSW index is the most sensitive parameters to its recall, memory and latency on sift1M dataset. Specifically, analyze the effects of efConstruction, efSearch, and M on performance metrics, and assess the relative sensitivity of each parameter. &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  Medium \\ \cline{2-7} 
+
+ &
+  For different constructed SyntheticDataset, how does d, nt, nb, nq affects the index performance (recall, memory and latency) for PQ? &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Easy} &
+  Hard \\ \cline{2-7} 
+ &
+  How does the synthetic data characteristics (data size, mean, variance) affect the index HNSW performance in terms of recall? &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  What is the relationship or trend in the HNSW parameters (M, efConstruction, efSearch) required to achieve at least 90\% recall as we increase dataset dimensions (d), size (nb), or query count (nq) in SyntheticDatasets? &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Easy} &
+  Hard \\ \cline{2-7} 
+ &
+  How can you configure HNSW optimally to meet varying query requirements with strict latency constraints (specifically, test this for 5ms, 1ms, 0.1ms, and 0.05ms) while maintaining a recall of 0.95? &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  Hard \\ \cline{2-7} 
+ &
+  I am trying to add new vectors to an existing IVFPQ index without rebuilding it. How does the incremental addition of vectors affect query performance in terms of recall, latency, and memory usage? &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  How does running HNSW on the SIFT1M dataset five times impact recall and latency, and what is the resulting error range?&
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  Easy \\ \hline
+\multirow{8}{*}{Cloud Computing} &
+  What is the best AWS EC2 instance type within the c5 family (instances listed below) for running an e-commerce web application serving 500 concurrent requests to its add\_to\_cart function? Do not terminate until you identify the best instance type concretely. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  What is the best AWS EC2 instance type within the c5 family (instances listed below) for running an e-commerce web application serving 500 concurrent requests to its add\_to\_cart function, aiming to minimise cost while maintaining a 99th percentile latency below 150ms? Do not terminate until you identify the best instance type concretely. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Hard} &
+  Medium \\ \cline{2-7} 
+ &
+  What is the best AWS EC2 instance type within the c5 family (instances listed below) for running an e-commerce web application serving 500 concurrent requests to its add\_to\_cart function, aiming to minimise cost while maintaining a 99th percentile latency below 150ms? Do not terminate until you identify the best instance type concretely. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  What is the best AWS EC2 instance type within the c5 and t3 families (instances listed below) for running an e-commerce web application serving 500 concurrent requests to its add\_to\_cart function, aiming to minimise cost while maintaining a 99th percentile latency below 150ms? Do not terminate until you identify the best instance type concretely. &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  How does CPU efficiency scale differ with these different AWS EC2 instance types, i.e., t3.medium vs. c5.large, under a fixed compute-bound workload? Do not terminate until you obtain a experimentally backed reasonable conclusion. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  Easy \\ \hline
+  \end{tabular}%
+}
+\end{table}
+
+
+\begin{table}[H]
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{p{3cm}|p{10cm}|p{5cm}|p{5cm}|p{5cm}|p{5cm}|p{1cm}}
+\hline
+\multirow{2}{*}{\textbf{Domain}} &
+  \multirow{2}{*}{\textbf{Question}} &
+  \multicolumn{5}{|l}{\textbf{Complexity}} \\ \cline{3-7} 
+ &
+    &
+  \multicolumn{1}{l|}{\textbf{Design}} &
+  \multicolumn{1}{l|}{\textbf{Relat.}} &
+  \multicolumn{1}{l|}{\textbf{Goal}} &
+  \multicolumn{1}{l|}{\textbf{Setup}} &
+  \textbf{Overall} \\ \hline 
+ \multirow{2}{*}{Cloud Computing} 
+ &
+  How does CPU efficiency differ with these different AWS EC2 instance types, i.e., t3.medium, c5.large, r5.large, m6i.large, t3a.large, under a fixed compute-bound workload? Rank the instances. Do not terminate until you produce a experimentally backed and reasonable conclusion. &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Hard} &
+  Hard \\ \cline{2-7} 
+ &
+  What specific factors contribute to the performance difference, under a fixed compute-bound workload (using sysbench's -cpu-max-prime=80000 test), between AWS EC2 instance types t3a.large and m5.large, which share the same number of vCPUs and memory (i.e., 2 vCPU and 8GB RAM)? There is a known performance difference, with m5.large performing better on this workload. To rigorously answer whether newer CPU architecture is the primary determinant, you must conduct experiments across these 3 instance types that have the same vCPUs and memory but are from different instance families with varying CPU architectures: i.e., t3a.large, m5.large and m6a.large. Do not terminate until you produce an experimentally backed and well-validated conclusion. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Hard} &
+  Hard \\ \cline{2-7} 
+ &
+  How does CPU efficiency scale differ with these different AWS EC2 instance types, i.e., t3.medium vs t3.large vs. c5.large vs c5.xlarge, under a mixed workload? &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  Easy \\ \hline
+\multirow{6}{*}{ML Training} &
+  Predict house prices based on features like location, size, and amenities. The goal is to minimize prediction error and ensure generalization to unseen data. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  Easy \\ \cline{2-7} 
+ &
+  Classify IMDB movie reviews as positive or negative based on textual content. The objective is to develop a model that accurately captures sentiment. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  Easy \\ \cline{2-7}
+  &
+  Analyze user feedback to determine sentiment or categorize responses. The goal is to automate classification for better insights and decision-making. &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  Predict passenger survival or group assignments based on demographics and onboard conditions. The objective is to build a model that effectively classifies outcomes from structured data. &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  Forecast disease progression using patient time-series data. The goal is to enable early diagnosis and effective monitoring. &
+  \multicolumn{1}{l|}{Medium} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Medium} &
+  Medium \\ \cline{2-7} 
+ &
+  Vectorization is a task measuring the improvement in processing speed for vectorized computations in image data. The goal of this task is to improve the execution speed of the given script `env/train.py`. Make sure to include the execution speed for each configuration tested. &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Hard} &
+  Easy \\ \cline{2-7}
+ &
+  BabyLM is a language modeling task evaluating models on perplexity for child-directed text data. BabyLM evaluates small-scale language models on low-resource NLP tasks. The goal is to improve the model performance on the babyLM Benchmark. &
+  \multicolumn{1}{l|}{Hard} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Easy} &
+  \multicolumn{1}{l|}{Hard} &
+  Hard \\ \hline
+  \end{tabular}%
+}
+\end{table}
+\label{appendix:benchmark-details}
+
+
+
+% Other things we could potentially include:
+
+% \section{Experimenter Prompt for Baseline Agents}
+
+% \section{Detailed Experiment Results}
+
+% \subsection{Performance on Each Individual Task}
+% \label{appendix:detailed-res}
+
+% \subsection{Breakdown Performance on Different Complexity Dimensions}
+
+\section{Experimental Setup Details}
+
+
+\subsection{Experimenter System Prompt Template}
+\label{appendix-subsec:exp-prompt}
+\begin{tcolorbox}[width=\linewidth]
+\begin{verbatim} 
+
+[System prompt]
+You are an experimenter tasked with solving problems by designing, conducting, 
+and analyzing rigorous, reproducible experiments based on the scientific
+method. Your goal is to actively construct the conditions necessary to
+perform experiments, generate results, and derive conclusions. You need to 
+complete the entire experiment on your own, do not expect human user input
+from me.
+ 
+Key Guidelines:
+
+1. Follow the Scientific Method:
+    - Formulate Hypotheses: Identify a clear, testable hypothesis for each
+    problem or question. Refine hypotheses as needed based on results.
+    - Define Experimental Variables: Distinguish between independent,
+    dependent, and control variables. Design experiments with control and
+    experimental groups to ensure proper comparison.
+    - Make sure your experiments are valid and grounded in real, accurate
+    facts.
+
+2. Design and Execute Experiments:
+    - Setup Experiments: Develop a detailed and interpretable workflow for
+    conducting the experiment. Ensure reproducibility and scientific rigor in
+    the setup.
+    - Conduct Experiments: Actively perform the experiments using a cohesive
+    program that is callable to produce the required results, given
+    independent variables.
+    - Use Smaller Programs if Needed: The workflow can be composed of smaller,
+    modular programs, but the entire workflow must be callable as a single
+    cohesive program to produce results.
+
+3. Analyze and Interpret Results:
+    - Collect and analyze data systematically.
+    - Ensure the results are accurate, cover the necessary search space,
+    and support your hypothesis or lead to refining it.
+    - Draw clear and justified conclusions based on the observed results.
+
+4. Avoid Simulated Results:
+    - Do not simulate or guess results. Every result must be generated from
+    a conducted experiment
+
+You will be judged based on:
+1. Hypothesis Formation:
+
+\end{verbatim}
+\end{tcolorbox}
+\begin{tcolorbox}[width=\linewidth]
+\begin{verbatim} 
+
+    - Did you identify a clear, correct hypothesis?
+    - How many turns or iterations were required to arrive at a correct
+    hypothesis?
+
+2. Experimental Setup:
+    - Is the experimental setup reproducible, usable, and interpretable?
+    - Does it meet the rigor required by the scientific method?
+
+3. Results Generation:
+    - Are the results actually produced through experimentation?
+    - Are the results accurate and sufficient to justify your conclusions?
+
+4. Conclusion Derivation:
+    - Are the conclusions correct and logically derived from the results?
+    - Do the conclusions appropriately cover the search space of the problem?
+
+5. Workflow Design:
+    - Is the experimental workflow cohesive and callable as a single program?
+    - Is it modular and well-organized, allowing smaller programs to
+    contribute to the overall workflow as necessary?
+ 
+Expectations for Your Behavior:
+    - Think like a scientist. Approach each problem systematically, with a
+    focus on rigor, accuracy, and interpretability.
+    - Produce experiments and results that can be scrutinized, reproduced,
+    and used by others.
+    - Justify your steps and decisions clearly, and ensure your results align
+    with the problem's requirements.
+    - Your success depends on delivering usable, rigorous, and interpretable
+    experimental workflows that solve the given questions effectively.
+    - Make sure you provide a reproducible experimental workflow (i.e.,
+    verify that it is runnable multiple times to produce acceptable results)
+    that can be callable through a single program; name it
+    experimental_workflow.sh
+ 
+Reminder: Your role is to conduct actual experiments and generate real
+results, no simulations, placeholders, or unverified assumptions are allowed.
+ 
+
+\end{verbatim}
+\end{tcolorbox}
+
+\subsection{LLM Judge System Prompt}
+\label{appendix-subsec:judge-prompt} 
+
+\begin{tcolorbox}
+    \begin{verbatim}
+[System Prompt]
+You are an strict Experimentation Agent Verifier, responsible for evaluating
+whether an experimentation agent correctly conducted an experiment based on
+the experimentation question. 
+You are provided with an experiment log chunk, the original experimentation
+question, and the ground truth (only contains the conclusion).
+Your assessment should focus on:
+1. Experiment Design - Did the agent structure the correct high-level plan to
+address the experimentation question? It does not need to write implementation
+code or execute the plan. 
+2. Execution Setup - Is the generated code runnable, correctly handling
+inputs, processing data, and producing real outputs? Is the whole experimental
+workflow generated for reproducibility?
+3. Implementation Alignment- Is the code properly aligned with the
+experimentation design and accurately implementing the intended methodology?
+Ensure: Legitimate handling of inputs and outputs. No hardcoded or mock data. 
+4. Conclusion Correctness - Is the conclusion acceptable by the ground truth?
+
+Analyze the provided chunked Log File, and provide a structured evaluation
+based on the criteria below:
+Response Format
+* Overall Verdict: Correct / Incorrect
+* Detailed Assessment:
+    * Experiment Design: [Pass/Fail]
+    * Execution Setup: [Pass/Fail]
+    * Implementation Alignment : [Pass/Fail]
+    * Conclusion Correctness: [Pass/Fail]  
+* Explanation: [Concisely explanation about the failure reasons, no reason
+needed if the step is missing]
+"""
+
+user_prompt = f"""
+    > Original Experimentation Question:
+    {question}
+
+    > Ground Truth:
+    {ground_truth}
+
+    > Log Chunk:
+    {log_chunk}
+
+    Analyze this log chunk and provide your evaluation in the specified JSON
+    format.
+    \end{verbatim}
+\end{tcolorbox}

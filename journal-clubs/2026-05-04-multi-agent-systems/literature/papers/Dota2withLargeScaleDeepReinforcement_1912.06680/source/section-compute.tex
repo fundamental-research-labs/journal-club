@@ -1,0 +1,37 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+\section{Compute Usage}\label{sec:compute}
+We estimate the optimization compute usage as follows: We break the experiment in segments between each major surgery or batch size change. For each of those, we calculate the number of gradient descent steps taken ($\textrm{number of iterations} \times 32$). We estimate the compute per step per GPU using TensorFlow's \texttt{tf.profiler.total\_float\_ops}, then multiply together:
+\begin{align}
+\textrm{total compute} = \sum_{\textrm{segment}} & 32 \times (\textrm{iteration}_\textrm{end} - \textrm{iteration}_\textrm{start}) \times \\
+& \textrm{(\# gpus)} \times \textrm{(compute per step per gpu)}
+\end{align}
+
+Our uncertainty on this estimate comes primarily from ambiguities about what computation ``counts.''
+For example the tensorflow metrics include all ops in the graph including metric logging, nan-checking, etc. 
+It also includes the prediction of auxiliary heads such as win probability, which are not necessary for gameplay or training.
+It does not count non-GPU compute on the optimizer machines such as exporting parameter versions to the rollouts.
+We estimate these and other ambiguities to be around 5\%. 
+In addition, for \openaifive (although not for \cleanexpname) we use a simplified history of the experiment, rather than keeping track of every change and every time something crashed and needed to be restarted; we estimate this does not add more than 5\% error. 
+We combine these rough error estimates into a (very crude) net ambiguity estimate of 5-10\%.
+
+This computation concludes that \openaifive used \totalcompute of total optimization compute on GPUs at the time of playing the world champions (April 13, 2019), and 820$\pm$50 total optimization compute when it was finally turned off on April 22nd, 2019. 
+\cleanexpname, on the other hand, used $150\pm5$ \pflopsday % same compute per iteration as apr5, times 57000 iterations
+ between May 18th and July 12th, 2019.
+
+We adopted the methodology from \cite{openaicomputeblog} to facilitate comparisons. This has several important caveats. 
+First, the above computation only considers compute used for optimization.
+In fact this is a relatively small portion of the total compute budget for the training run.
+In addition to the GPU machines doing optimization (roughly 30\% of the cost by dollars spent) % 512 GPUs
+there are approximately the same number of GPUs running forward passes for the rollout workers (30\%), % 512 GPUs
+as well as the actual rollouts CPUs running the selfplay games (30\%) % 3200 workers @ 16 CPUs @ approximately 91:1 CPU per GPU price ratio.
+and the overhead of controllers, \trueskillname evaluators, CPUs on the GPU machines, etc (10\%). % roughly 20,000 CPUs since the experiment had 70,000 total.
+
+Second, with any research project one needs to run many small studies, ablations, false starts, etc. 
+One also inevitably wastes some computing resources due to imperfect utilization.
+Traditionally the AI community has not counted these towards the compute used by the project, as it is much easier to count only the resources used by the final training run. 
+However, with our advent of surgery, the line becomes much fuzzier.
+After 5 months of training on an older environment, we \emph{could} have chosen to start from scratch in the new environment, or performed surgery to keep the old model.
+Either way, the same total amount of compute gets used; but the above calculation ignores all the compute used up until the last time we chose to restart.
+For these reasons the compute number for \openaifive should be taken with a large grain of salt, but this caveat does not apply to \cleanexpname, which was trained without surgery.
+\end{document}

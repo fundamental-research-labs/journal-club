@@ -1,0 +1,43 @@
+## The Coordination Reality Check
+
+A recurring empirical message across 2024-2026 studies is not that multi-agent systems fail. It is that coordination has a cost, and that cost often dominates unless the task genuinely benefits from decomposition, diversity, and verification.
+
+@whymultiagentfail made the failure surface explicit by annotating multi-agent traces and organizing failures around system design, inter-agent misalignment, and task verification. Their taxonomy covers 14 failure modes over 1,642 annotated traces, including step repetition, reasoning-action mismatch, incomplete verification, and incorrect verification. The paper also reports that adding high-level verification to ChatDev improves ProgramDev success by 15.6 percentage points, while still leaving correctness far from solved. These are system-level failures. A model can produce a reasonable local message while the team as a whole loses state, follows a bad assumption, repeats work, terminates early, or accepts an unverified answer. @fig-why-fail shows the resulting failure taxonomy.
+
+![Taxonomy of multi-agent LLM failure modes across system design, inter-agent alignment, and task verification. Coordination failures often arise from system structure, handoffs, and weak verification rather than isolated model mistakes. Reproduced from @whymultiagentfail.](figures/why-multi-agent-fail-taxonomy.pdf){#fig-why-fail width=92% fig-alt="Taxonomy figure for multi-agent LLM failures organized by system design, inter-agent alignment, and task verification."}
+
+@scienceofscaling sharpened the point by treating the choice among single-agent and multi-agent architectures as an empirical scaling question rather than a slogan. Across controlled configurations, reported MAS effects range from +80.8% on a decomposable finance task to -70.0% on a sequential planning task; communication overhead grows super-linearly with agent count with exponent 1.724, and independent architectures amplify trace-level errors far more than centralized ones. The relevant variables include task decomposability, baseline single-agent strength, tool dependence, orchestration topology, model capability, and cost. More agents can add useful computation on some tasks, but they can also add redundant computation, message overhead, and error amplification. @fig-science-scaling summarizes why architecture-task fit matters.
+
+![Agent scaling dynamics across model capability and task setting. Multi-agent gains depend on architecture-task fit: coordination can help on decomposable tasks, but communication overhead and error amplification can dominate on sequential or tool-heavy tasks. Reproduced from @scienceofscaling.](figures/science-of-scaling-main.pdf){#fig-science-scaling width=92% fig-alt="Main figure from Towards a Science of Scaling Agent Systems comparing agent-system architectures and scaling behavior."}
+
+@singleagentoutperforms offer a particularly important control for text-only multi-hop question answering. Their lesson is not that a single agent always wins across tool use, GUI work, safety workflows, or software engineering. Their lesson is that multi-agent papers must not compare a multi-agent system with more total inference against a weaker single-agent baseline with less thinking budget. If the task fits inside one agent's context and the evidence is not naturally partitioned, splitting reasoning across agents can introduce summarization loss, aggregation failure, and duplicated effort. @fig-single-agent gives a robustness check across model versions, while the paper's central evidence comes from equal-thinking-budget comparisons.
+
+![MuSiQue 4-hop accuracy for single-agent and sequential multi-agent systems across Gemini model versions under unlimited thinking. Stronger base models improve both systems, but do not by themselves create a systematic multi-agent advantage; the paper's main evidence comes from separate budget-matched comparisons. Reproduced from @singleagentoutperforms.](figures/single-agent-model-versions.png){#fig-single-agent width=92% fig-alt="Plot comparing MuSiQue 4-hop accuracy for single-agent and sequential multi-agent systems across Gemini model versions under unlimited thinking."}
+
+CooperBench is a complementary warning from software engineering [@cooperbench]. It asks whether coding agents can actually cooperate as teammates. Leading two-agent configurations perform roughly 50% below a solo agent implementing both features, and adding a communication channel reduces merge conflicts without reliably improving task success. The important result is not merely a low score. It is that cooperation introduces specific failure modes: unclear commitments, weak partner modeling, incompatible assumptions, and merge failures. Communication can reduce some mechanical conflicts while still failing to produce correct joint work.
+
+Long-horizon artifact studies add another layer. DELEGATE-52 shows that delegated document editing can corrupt artifacts over repeated transformations: after 20 interactions, frontier models still corrupt about 25% of content on average, and agentic file/tool use adds about 6% additional degradation in the reported setup [@delegate52]. SlopCodeBench shows that coding agents can solve some current checkpoints or pass behavioral checks while producing code that becomes progressively more verbose and structurally eroded over repeated changes; no evaluated agent solves a full problem end-to-end, structural erosion rises in 80% of trajectories, and verbosity rises in 89.8% [@slopcodebench]. AgentBoard similarly motivates progress-sensitive evaluation, because final success rates can hide early plateaus, repeated actions, and partial completion [@agentboard].
+
+These results are not separate warnings about separate domains. They show the same coordination problem at different scales. In multi-hop question answering, a group of agents can debate and summarize, but if the needed evidence already fits in one context, the split can discard information that a single long-thinking agent would have kept. In CooperBench, two coding agents can each implement a plausible feature, yet their patches fail together because neither agent fully understands the other's assumptions. In DELEGATE-52, an edit can satisfy the requested change while quietly damaging unrelated parts of the document. In SlopCodeBench, code can keep passing the current checkpoint while becoming harder to extend later.
+
+The common failure point is the handoff. A message, vote, patch, memory entry, or edited file is only a trace of the work that produced it. It may leave out a dependency, hide uncertainty, drop a constraint, or carry silent damage. If the next agent treats that trace as complete, the system now has less truth than the previous agent saw. This is why "better communication" is too weak as a prescription. CooperBench shows that communication can reduce merge conflicts without fixing joint correctness. Multi-agent systems need checked communication: state and artifacts must carry enough evidence that another agent, verifier, or human can decide whether they should be trusted.
+
+```{=typst}
+#reviewbox[
+```
+
+**Box 1 | Evidence standards for multi-agent claims.**
+
+- **Budget control:** Compare against strong single-agent, best-of-N, sampling-and-voting, and workflow baselines under matched or reported token, dollar, latency, tool, and context budgets.
+- **Mechanism isolation:** Show whether gains come from communication, diversity, retrieval, voting, verification, tool access, model strength, optimized routing, collaboration training, or simply more attempts.
+- **Repeated reliability:** Report repeated-run variance, failure rates, and confidence intervals rather than only best-case successes.
+- **Trace inspection:** Diagnose coordination failures in messages, tool calls, memory updates, artifact diffs, and termination decisions.
+- **Artifact evaluation:** Measure intermediate and final artifacts, not only final text answers.
+- **Long-horizon degradation:** Track preservation, maintainability, verbosity, drift, and quality erosion across repeated edits or handoffs.
+- **Scope discipline:** Explain why the task structure needs multiple agents rather than deeper serial reasoning, more samples, a better verifier, or a learned controller.
+
+```{=typst}
+]
+```
+
+These standards convert the reality check into a positive agenda. The question is no longer whether a system has multiple agents. It is what extra work the split buys relative to simpler alternatives, and what prevents that work from becoming noise.

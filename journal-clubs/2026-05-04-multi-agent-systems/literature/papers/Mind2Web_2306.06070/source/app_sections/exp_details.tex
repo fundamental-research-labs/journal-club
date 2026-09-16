@@ -1,0 +1,46 @@
+\section{Experiment Details}
+\label{app:exp}
+\subsection{Evaluation}
+\label{app:eval_normalization}
+One complication that arises during evaluation on real-world websites is that multiple elements on a webpage may induce the same effect. For instance, a button might house a text span within it, both of which, when clicked, yield identical results.
+To enhance the robustness of our evaluation, we employ heuristics to detect elements equivalent to the ground truth.
+We first examine the ancestors of the labeled element to identify potential higher-level elements acceptable for the current action. We employ a straightforward heuristic that locates the nearest clickable element
+to the ground truth, including itself. After identifying the top-level acceptable element, we include all its visible descendants that are located within its post-rendering bounding box as acceptable as well. Manual checking on \num{100} instances where the heuristic identifies a top-level element other than the ground truth confirms the validity of the approach.
+ For both training and evaluation stages, all acceptable elements are considered positive.
+
+\subsection{Model Implementation Details}
+
+\begin{table}[t]
+    \centering
+    \small
+    \caption{Hyperparameters used in experiments.}
+    \begin{tabular}{rp{3cm}p{6cm}}
+    \toprule
+        \textbf{Method} & \textbf{Model} & \textbf{Hyperparamerters} \\
+        \midrule
+        Candidate Generation & \texttt{deberta-v3-base} &\texttt{batch\_size:\num{32}, epoch:\num{5}, learning\_rate:\num{3e-5}}\\\addlinespace
+        Action Prediction \\
+        \hspace{2em}Generation& \texttt{flan-t5-base} &\texttt{batch\_size:\num{32}, epoch:\num{5}, learning\_rate:\num{5e-5}}\\\addlinespace
+        \multirow{1}{*}{\hspace{2em}\model}& \texttt{flan-t5-base, flan-t5-large, flan-t5-xl} &\texttt{batch\_size:\num{32}, epoch:\num{5}, learning\_rate:\num{5e-5}}\\
+        &\texttt{gpt-3.5-turbo, gpt-4}&\texttt{temperature:\num{0}, \#~demonstrations:\num{3}}\\
+    \bottomrule
+    \end{tabular}
+    \label{tab:hyper}
+\end{table}
+
+\noindent\textbf{Candidate Generation.}
+We use the Cross-Encoder implementation from Sentence-Transformers~\footnote{\url{https://www.sbert.net/examples/applications/cross-encoder/README.html}} and use DeBERTa as the backbone model. More specifically, we use \texttt{DeBERTa-v3-base}~\footnote{\url{https://huggingface.co/microsoft/deberta-v3-base}} for our experiments.
+
+\noindent\textbf{Action Prediction.}
+We use the Seq2Seq model implementation from Transformers~\cite{wolf-etal-2020-transformers}. We experiment with the \texttt{base}~\footnote{\url{https://huggingface.co/google/flan-t5-base}}, \texttt{large}~\footnote{\url{https://huggingface.co/google/flan-t5-large}} and \texttt{xl}~\footnote{\url{https://huggingface.co/google/flan-t5-xl}} versions of Flan-T5~\cite{flant5}.
+
+\noindent\textbf{LLM In-context Learning.}
+We use the OpenAI API for in-context learning with LLMs. We experiment with two versions of GPT models: \texttt{gpt-3.5-turbo} and \texttt{gpt-4}. We include three demonstration examples for in-context learning. The complete prompt is shown in Table~\ref{tab:action_prediction_prompt}.
+
+\noindent\textbf{Training Details.}
+The \texttt{flan-t5-xl} and \texttt{flan-t5-large} models are trained on servers with 4*A100 80GB cards provided by Ohio Supercomputer Center~\cite{OhioSupercomputerCenter1987}. All other models are trained with single A6000 48GB cards.
+
+Please see Table~\ref{tab:hyper} for all hyperparameters used in our experiments.
+
+
+% \end{table}

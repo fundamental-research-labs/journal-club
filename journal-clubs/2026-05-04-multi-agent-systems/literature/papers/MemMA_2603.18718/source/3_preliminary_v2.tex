@@ -1,0 +1,123 @@
+\section{Preliminaries and Motivation}
+\subsection{Problem Setting}
+\noindent\textbf{Task Setup.}
+We consider a long-horizon conversational setting in which an agent processes a stream of dialogue chunks
+$\mathcal{C}=\{c_1,\ldots,c_T\}$ over time. 
+The stream is further organized into sessions $\mathcal{S}=\{s_1,\ldots,s_N\}$,where each session $s_\tau$ consists of one or more consecutive chunks corresponding to a coherent interaction episode.
+At each step $t$, the agent maintains an external memory bank $M_t$ composed of structured entries
+(e.g., text, timestamp, source, and speaker metadata), which is updated as new conversational information arrives.
+After processing the full stream $\mathcal{C}$, the agent is evaluated on a set of questions $Q$.
+For each query $q \in Q$, it retrieves evidence $E(q)$ from $M_T$ and outputs an answer $\hat{y}(q)$.
+Our goal is to design an agent $\pi$ that maximizes answer accuracy by jointly improving memory construction and retrieval.
+
+% After observing the full chunks $\mathcal{C}$, the agent is evaluated on a set of queries ${Q}$: for each $q\in{Q}$, it retrieves evidence $E(q)$ from $M_T$ and outputs an answer ${y}(q)$. Our objective is to learn $\pi$ that maximizes answer accuracy by jointly optimizing memory construction and retrieval. 
+
+\noindent\textbf{Challenges.}
+This setting is challenging because success depends on both memory construction and memory retrieval.
+During \emph{construction}, the agent must decide what to write, update, merge, or discard when a new chunk arrives.
+During \emph{retrieval and answering}, it must identify the right evidence from memory under ambiguity, temporal dependencies, and incomplete or underspecified initial queries.
+The challenge is therefore not merely to improve answer generation, but to maintain a useful memory bank and retrieve the right evidence under bounded memory and retrieval budgets.
+
+
+\subsection{Memory Cycle Effect as a Design Lens}
+\label{ssec:cycle_effect}
+The above challenges suggest that long-term memory should not be viewed as a linear pipeline of isolated modules.
+Instead, we adopt the \textbf{memory cycle effect}~\cite{zhang2025learn} as a design lens for analyzing long-term memory systems.
+Under this view, memory forms a closed loop with three tightly coupled phases: \emph{construction}, \emph{retrieval}, and \emph{utilization}.
+Construction determines what information enters the memory bank and how it is organized; retrieval determines what stored information is surfaced as evidence; and utilization reveals whether the retrieved evidence is sufficient for downstream answering.
+
+This perspective highlights two dependencies. First, there is a \emph{forward dependency}: construction constrains retrieval, and retrieval in turn constrains utilization.
+A poorly constructed memory bank may omit important details, retain redundant entries, or leave conflicts unresolved, all of which degrade downstream retrieval quality. 
+Second, there is a \emph{backward dependency}: utilization outcomes expose deficiencies in upstream memory operations, since answering failures may stem from earlier storage omissions, unresolved contradictions, or poorly targeted retrieval. 
+As a result, the utility of memory operations is often sparse and delayed, making isolated optimization of memory modules fundamentally suboptimal.
+
+Together, these dependencies suggest that long-term memory should be studied as a coupled cycle rather than independent storage and retrieval components.
+This motivates the need for mechanisms that explicitly coordinate forward memory execution and propagate utilization feedback backward to improve future memory decisions.
+
+
+
+
+\begin{table}[t]
+\centering
+% \scriptsize
+% \small
+
+% \vspace{-1em}
+\caption{Preliminary analysis results (\%) in LoCoMo dataset, GPT-4o-mini is the backbone LLM. 
+% \zhiwei{since the performance gap for F1 is not that significant, could we report variance}
+} 
+% \vspace{-1em}
+\label{tab:prior_study}
+\scalebox{0.95}{\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{F1} & \textbf{B1} & \textbf{ACC} \\%& 
+     \midrule
+Static Baseline & 22.64 & 17.24 & 52.60 \\
+Unguided Active & 23.49 & \textbf{18.36} & 54.60\\
+Strategic Active & \textbf{24.78} & 17.73 & \textbf{59.21}\\
+\bottomrule
+\end{tabular}}
+% \vspace{-1.5em}
+\end{table}
+
+
+\subsection{Motivating Analysis: Strategic Blindness}
+\label{ssec:motivate_study}
+% \suhang{the logic here is quite strange. We were talking about ``the need for xxx'' in the above paragraph. Then we suddenly talk about ``recent agents have moved beyond fully passive to xxx''. I do not get the connection or the reason why we want to discuss this. Are we trying to do experiments to further demonstrate ``the need for mechanisms that xxx'', or are we trying to show another issue? Could we add some transition sentences here?} 
+The analysis above motivates coordination across the memory cycle, 
+but do existing active memory agents achieve this in practice?
+Recent agents~\cite{fang2025lightmem,xu2025mem} have moved beyond 
+fully passive memory by introducing active updates or iterative 
+retrieval. However, most still operate in a largely reactive 
+manner: they trigger operations based on local context or immediate similarity signals rather than an explicit global strategy. 
+% Recent memory-augmented agents~\cite{fang2025lightmem,xu2025mem} have moved beyond fully passive memory by introducing active updates or iterative retrieval.
+% However, most of them still operate in a largely reactive manner: they trigger operations based on local context or immediate similarity signals rather than an explicit global strategy. 
+We characterize this limitation as \emph{strategic blindness}: the agent has the \emph{hands} to edit memory and issue retrieval queries, but lacks the \emph{brain} to coordinate these actions across the full memory cycle.
+% We identify two concrete manifestations:
+This manifests as:
+(i)~\emph{Myopic Construction}: construction decisions are driven 
+by local context rather than downstream utility. The agent 
+indiscriminately appends, overwrites, or ignores information, 
+leaving redundancy and conflicts unresolved.
+(ii)~\emph{Aimless Retrieval}: when the initial query is incomplete 
+or semantically mismatched with stored memory, one-shot retrieval 
+or shallow rewrites fail to surface the required evidence. Without 
+strategic guidance, successive queries do not narrow the information gap.
+
+\noindent\textbf{Setup.} 
+To empirically validate this diagnosis, we conduct a preliminary study on a subset of LoCoMo~\cite{maharana2024evaluating}, focusing on reasoning-intensive queries by excluding adversarial samples.
+We compare three progressively stronger baselines using GPT-4o-mini~\cite{gpt4ocard} as the backbone:
+(i) \textit{Static}, which performs memory construction followed by one-shot top-$30$ retrieval;
+(ii) \textit{Unguided Active}, which adds iterative query rewriting without strategic guidance; and
+(iii) \textit{Strategic Active}, which introduces a planner to guide both construction and retrieval.
+We report token-level F1, BLEU-1 (B1), and LLM-as-a-Judge accuracy (ACC).
+More evaluation details are provided in Appendix~\ref{appendix:preliminary_evaluation_details}.
+
+
+% \noindent\textbf{Empirical analysis.} 
+% Table~\ref{tab:prior_study} reveals two findings:
+% (i)~\emph{Refinement provides capability:} the \textit{Unguided Active} variant (54.6\% ACC) outperforms the \textit{Static} variant (52.6\%), confirming that iterative refinement helps bridge the semantic gap missed by one-shot retrieval;
+% (ii)~\emph{Reasoning provides control:} the \textit{Strategic Active} variant achieves a larger leap to 59.2\% ACC, substantially outperforming both weaker variants.
+% Case studies in Appendix~\ref{appendix:preliminary_case_studies} further show that unguided memory storage and retrieval often induce reasoning drift and degrade utility.
+% These findings suggest that active memory operations alone are insufficient: explicit strategic reasoning is needed to guide both construction and retrieval. \suhang{how does this experiment verify Myopic
+% Construction and Aimless Retrieval? Could you explicitly connect the experiment design with these two points?}
+
+\noindent\textbf{Empirical analysis.} Table~\ref{tab:prior_study} reveals two findings: (i)~\emph{Refinement provides capability:} {Unguided Active} (54.6\% Acc) outperforms {Static} (52.6\%), confirming that one-shot retrieval often fails to surface the required evidence when the initial query is incomplete or mismatched with memory, which directly reflects \emph{Aimless Retrieval}. (ii)~\emph{Reasoning provides control:} {Strategic Active} achieves a larger leap to 59.2\% Acc. Since it shares the same active operators as {Unguided Active}, this gap reflects the value of explicit strategic guidance in addressing both \emph{Aimless Retrieval} and \emph{Myopic Construction}. Case studies in Appendix~\ref{appendix:preliminary_case_studies} further illustrate both pathologies with concrete examples of redundant entries and retrieval drift. 
+These findings suggest that active memory operations alone are insufficient: explicit strategic reasoning is needed to guide both construction and retrieval. 
+% These findings motivate the design of \method, where a Meta-Thinker provides explicit coordination for both construction and retrieval.
+% These findings motivate the forward-path design of \method, in which a Meta-Thinker provides explicit strategic reasoning for both construction and retrieval.
+
+
+
+% \noindent\textbf{Empirical analysis.} 
+% Table~\ref{tab:prior_study} reveals two findings:
+% (i)~\emph{Refinement provides capability:} the \textit{Unguided Active} variant (54.6\% J) outperforms the \textit{Static} variant (52.6\%), confirming that iterative refinement helps bridge the semantic gap that one-shot retrieval misses;
+% (ii)~\emph{Reasoning provides control:} the \textit{Strategic Active} variant achieves a larger leap to 59.2\% J, significantly outperforming both other variants.
+% Case studies in Appendix~\ref{appendix:preliminary_case_studies} further show that unguided memory storage and retrieval often induces reasoning drift and degrades utility.
+% This demonstrates that explicit reasoning provides the \emph{control} needed to filter noise during construction and target evidence during retrieval.
+
+% Table~\ref{tab:prior_study} reveals two clear findings that support our hypothesis:
+% (i) \emph{Refinement provides capability:} the \textit{unguided active} variant ($54.6\%$) outperforms the \textit{static} variant ($52.6\%$), confirming that iterative active refinement helps bridge the semantic gap that static retrieval misses;
+% (ii) \emph{Reasoning provides control:} The \textit{strategic baseline} creates a larger leap to ${59.2\%}$, significantly outperforming the other variants. In addition, our case studies in Appendix~\ref{appendix:preliminary_case_studies} further reveal that unguided memory storage and retrieval often induces reasoning drift and degrades utility. This demonstrates that explicit reasoning provides the \textit{control}, filtering noise during construction and targeting evidence during retrieval.
+
+% \zhiwei{since the experiment results would motivate the core design of our framework, could we have more results using different benchmarks, base models, or even planning agent}

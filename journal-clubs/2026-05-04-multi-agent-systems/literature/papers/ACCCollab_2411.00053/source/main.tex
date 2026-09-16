@@ -1,0 +1,120 @@
+
+\documentclass{article} 
+
+\usepackage{algorithm2e}
+\usepackage{algorithmic}
+\RestyleAlgo{ruled}
+\usepackage{multirow}
+
+\usepackage[table]{xcolor}
+\usepackage{adjustbox}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage{format/iclr2025_conference,times}
+\input{format/math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+
+\lhead{Published as a conference paper at ICLR 2025}
+\title{ACC-Collab: An Actor-Critic Approach to Multi-Agent LLM Collaboration}
+
+\author{Andrew Estornell \thanks{Equal contribution. Correspondence to  \texttt{\{andrew.estornell,jeanfrancois\}@bytedance.com}} \\
+ByteDance Research \\
+\texttt{andrew.estornell@bytedance.com}
+\And
+Jean-Fran\c cois Ton \footnotemark[1] \\
+ByteDance Research\\
+\texttt{jeanfrancois@bytedance.com}
+\And 
+Yuanshun Yao \thanks{Work done while at ByteDance Research} \\
+Meta GenAI \\
+\texttt{kevinyao@meta.com\qquad\qquad\qquad\qquad\qquad~} 
+\And 
+Yang Liu \footnotemark[2]\\
+University of California, Santa Cruz\\
+\texttt{yangliu@ucsc.edu}
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+\newcommand\blfootnote[1]{
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}
+  \addtocounter{footnote}{-1}
+  \endgroup
+}
+
+
+
+\newcommand{\ours}{\text{ACC-Collab}}
+
+\newtheorem{remark}{Remark}
+\iclrfinalcopy
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+  Large language models (LLMs) have demonstrated a remarkable ability to serve as general-purpose tools for various language-based tasks. 
+  Recent works have demonstrated that the efficacy of such models can be improved through iterative dialog between multiple models.
+  While these 
+  paradigms show promise 
+  in
+  improving model efficacy, most works in this area treat collaboration as an emergent behavior, rather than a learned behavior. 
+  In doing so, current multi-agent frameworks rely on collaborative behaviors to have been sufficiently trained into off-the-shelf models. 
+  To address this limitation, we propose \ours, an \textbf{A}ctor-\textbf{C}riti\textbf{c} based learning framework to produce a two-agent team (an actor-agent and a critic-agent) specialized in collaboration.
+  We demonstrate that \ours~ outperforms SotA multi-agent techniques on a wide array of benchmarks.
+\end{abstract}
+
+\input{intro}
+\input{prelim}
+\input{exp}
+
+
+\section{Conclusion, Limitations and Impact}
+In this paper, we propose ACC-Collab, a novel framework for jointly training a two-agent team (one actor-agent and one critic-agent) to collaboratively solve problems through iterative discussion. 
+To train these agents, we developed an off-policy data generation scheme dubbed ``Guided-Collaboration'', which produces high-quality preference data for collaborative models. 
+We found that ACC-Collab outperforms all baselines on a wide array of domains. 
+In particular, even a single round of training for both the actor and critic results in a high-quality team. 
+Of particular note is the effects that ACC-Collab has on the critic model.
+Without ACC-Collab, the critic model is often too agreeable and lacks verbosity in their responses. 
+In contrast, after training with ACC-Collab, the critic is far more likely to provide detailed disagreements during discussion. 
+
+
+However, our framework ACC-Collab also comes with limitations. Firstly, even though ACC-Collab attains superior performance compared to baselines on a wide array of domains, it is important to note that we conduct experiments mainly on question-answering tasks; thus, it remains to be seen whether such a framework would continue to be effective in other types of tasks. 
+Moreover, in our experiments, we train and test models on the same task (partitioning each task into a training and testing set). As such, the generalizability of each actor-critic team to unseen domains is unknown.
+Our method makes use of the fact that for each question, correct and incorrect answers can be easily established.
+Secondly, while we provide results for three families of models, these experiments are performed on 2B, 7B, and 8B models. 
+While our method is effective for these sizes (standard in open-source models), it remains to be seen whether this effectiveness will scale to larger models. 
+
+
+\newpage
+\subsection*{Acknowledgments}
+We would like to thank Li Hang for his valuable insights and guidance during the development of this work.
+
+\subsection*{Reproducibility Statement}
+Here, we outline the details necessary to reproduce our results. 
+We provide an algorithm for our data generation procedure (Algorithm \ref{alg:traj}), as well as a description of our training procedure in Section \ref{sec:off_policy}.
+Each dataset, baseline method, and base model used are specified at the beginning of Section \ref{sec:exp}. 
+We provide additional experimental details in Section \ref{SUP:exp}. 
+Prompts used for our method can be found in Section \ref{SUP:examples}.
+Lastly, we publicly release the code used for our method.
+
+
+
+
+
+
+\bibliography{bib.bib}
+\bibliographystyle{format/iclr2025_conference}
+\newpage
+\appendix
+\input{appendix}
+
+
+\end{document}

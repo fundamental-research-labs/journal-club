@@ -1,0 +1,145 @@
+\section{Methodology}
+
+We first describe the automatic generation of high-quality multi-agent collaborative reasoning data. Next, we improve the collaborative reasoning capabilities of LLMs in MAS by performing SFT on the generated data. Finally, we introduce a CEO agent into the MAS framework to further enable adaptive scaling by directing collaboration and adjusting resource allocation.
+
+\subsection{Automatic Generation of Multi-Agent Collaborative Reasoning Data}
+
+\paragraph{Question Sampling Based on Difficulty, Diversity, and Interdisciplinarity.}
+When selecting questions for our multi-agent collaborative reasoning dataset, we consider three main aspects: \ding{182} Difficulty, \ding{183} Diversity, and \ding{184} Interdisciplinarity. We begin with the complete dataset from Simple-Scaling \citep{s1}, which includes diverse questions sourced from historical AIME problems, OlympicArena \citep{olympicarena}, and AGIEval \citep{agieval}, among others. These questions cover various domains such as Physics, Geometry, Number Theory, Biology, and Astronomy. To ensure difficulty and interdisciplinarity, we use DeepSeek-R1 \citep{r1} to determine whether solving each question requires interdisciplinary knowledge, excluding those that DeepSeek-R1 answers using fewer than 1024 tokens. Questions selected through this process are generally challenging and demand knowledge integration from multiple disciplines. For example, solving a complex mathematics problem might benefit from collaboration between algebra and geometry experts, whereas addressing an advanced astronomy question could require input from astronomers, physicists, and mathematicians.
+
+\paragraph{Generating Multi-Agent Collaborative Reasoning Traces.}
+To generate collaborative reasoning traces, we employ open-source MAS frameworks and reasoning models, specifically AgentVerse \citep{agentverse} and DeepSeek-R1 \citep{r1}, to process previously selected questions. This MAS framework involves multiple roles: Expert Recruiter (e.g., Human Resources), Problem Solver (e.g., Scientists and Engineers), Executor (e.g., Quality Assurance Engineers), and Evaluator (e.g., Product Manager). The agents collaborate in the following manner: the Expert Recruiter identifies and assigns suitable experts for the task, with the \textbf{total agent number} fixed and independent of question complexity or available information. These recruited experts function as Problem Solvers, proposing and iteratively refining solutions through multi-turn discussions with a predetermined \textbf{critic iteration number}. Once a consensus is reached—or if the maximum number of critic iterations is exhausted—the resulting solution is passed to the Executor, who runs the necessary code or invokes external tools if required. The Evaluator then reviews both the solution and the results produced by the Executor, providing feedback for potential refinement. This iterative process continues until either the solution is evaluated as correct or the predefined \textbf{total iteration number} is reached. Each MAS role produces distinct inputs and outputs, generating reasoning traces from its expert viewpoint. We collect all input-output pairs from each agent and compile the entire collaborative reasoning history into a comprehensive trace for the respective question.
+
+
+\begin{figure}[t]
+\centering
+\begin{tcolorbox}[
+  enhanced,
+  title=Multi-agent Collaborative Reasoning Trace,
+  colback=white,              
+  colframe=black,             
+  colbacktitle=gray!20,       
+  coltitle=black,             
+  fonttitle=\bfseries,        
+  boxrule=0.8pt,              
+  sharp corners,
+  left=2pt, right=2pt, top=1pt, bottom=1pt
+]
+\scriptsize
+
+% Expert Recruiter
+\begin{tcolorbox}[
+  enhanced,
+  colback=white,
+  colframe=royalblue,
+  boxrule=0.5pt,
+  sharp corners,
+  left=1pt, right=1pt, top=1pt, bottom=1pt
+]
+\textcolor{royalblue}{\textbf{Expert Recruiter}} \\
+\textbf{Prompt:} You are leading a group of experts to solve: ... Find the greatest integer that does not exceed $\dfrac{x^2}{100}$. Recruit two experts with different specialties to best solve the problem... \\
+\textbf{Response:}
+\textless think\textgreater\space ... I need to identify experts best suited for this geometry task... \textless/think\textgreater 1. A geometric analysis expert. 2. An algebraic modeling expert.
+\end{tcolorbox}
+
+% Problem Solver 1
+\begin{tcolorbox}[
+  enhanced,
+  colback=white,
+  colframe=olivegreen,
+  boxrule=0.5pt,
+  sharp corners,
+  left=1pt, right=1pt, top=1pt, bottom=1pt
+]
+\textcolor{olivegreen}{\textbf{Problem Solver 1 (Geometric Expert)}} \\
+\textbf{Prompt:} ... Solve the following accurately: One base of a trapezoid is $100$ units longer than the other... Find the greatest integer that does not exceed $x^2/100$... \\
+\textbf{Response:}
+\textless think\textgreater\space ... Let’s understand the structure: the segment splits the area in a 2:3 ratio. We need the length $x$ such that both halves have equal area... \textless/think\textgreater ...Using RMS to find $x$, we get:
+\[
+\frac{x^2}{100} = \frac{18125}{100} = 181.25 \Rightarrow \boxed{181}
+\]
+\end{tcolorbox}
+
+% Problem Solver 2
+\begin{tcolorbox}[
+  enhanced,
+  colback=white,
+  colframe=orange,
+  boxrule=0.5pt,
+  sharp corners,
+  left=1pt, right=1pt, top=1pt, bottom=1pt
+]
+\textcolor{orange}{\textbf{Problem Solver 2 (Algebraic Expert)}} \\
+\textbf{Prompt:} ... Given the prior solution, critique its correctness. Do not solve again. If you agree with the final answer, append \texttt{[Agree]}... \\
+\textbf{Response:}
+\textless think\textgreater\space ... Reviewing the solution: the answer is correct. However, explanation for using RMS could be clearer... \textless/think\textgreater ... The reasoning is sound and the steps are accurate. \texttt{[Agree]}
+\end{tcolorbox}
+
+% Evaluator
+\begin{tcolorbox}[
+  enhanced,
+  colback=white,
+  colframe=red,
+  boxrule=0.5pt,
+  sharp corners,
+  left=1pt, right=1pt, top=1pt, bottom=1pt
+]
+\textcolor{red}{\textbf{Evaluator}} \\
+\textbf{Prompt:} You are an experienced science teacher. Evaluate the final solution from both solvers for correctness... \\
+\textbf{Response:}
+\textless think\textgreater\space ... Let me verify each step. Yes, the use of RMS and the calculation are both appropriate... \textless/think\textgreater ... \textbf{Correctness:} 1 ...
+\end{tcolorbox}
+\end{tcolorbox}
+\caption{An illustration of a multi-agent collaborative reasoning data sample from M500.}
+\label{fig:data_sample}
+\end{figure}
+
+
+
+\paragraph{Data Filtering.}
+To ensure high-quality collaborative reasoning traces, we filter data based on three criteria: \ding{182} \textbf{Consensus Reached:} Traces where Problem Solvers fail to reach consensus within the maximum allowed critic iterations are discarded. This criterion ensures effective discussion convergence and minimizes unresolved reasoning. \ding{183} \textbf{Format Compliance:} Samples that deviate from the required format are excluded. Specifically, each agent's reasoning must be enclosed within \texttt{<think>} and \texttt{</think>} tags, and the final answers must be encapsulated within \texttt{boxed\{\}}. This maintains output consistency and facilitates automated parsing and answer extraction. \ding{184} \textbf{Correctness:} We extract the final answer from each collaborative trace and compare it against the ground-truth solution, discarding any traces with incorrect answers.
+
+Through this method, we iteratively sample 500 questions along with their corresponding multi-agent collaborative reasoning traces, forming the \textbf{M500} dataset. This dataset contains 500 challenging and diverse questions requiring interdisciplinary collaboration, accompanied by comprehensive and high-quality reasoning traces that document the full multi-agent problem-solving process. The pseudocode detailing this sampling procedure is provided in Algorithm \ref{algo:data_generation} in the Appendix.
+
+Figure \ref{fig:data_sample} shows an illustrative example from M500, with the complete data sample presented in Figure \ref{fig:data_sample_complete} in the Appendix. The collaborative reasoning trace for this example includes input-output interactions among four agents: Expert Recruiter, Geometry Expert, Algebra Expert, and Evaluator. The example question is sufficiently challenging (requiring 5695 tokens), achieves consensus among agents, complies with the required format, and produces a correct solution. Additionally, the distribution of question categories in the M500 dataset, predicted expert counts, and solution token usage are illustrated in Figure \ref{fig:data_analyze}. We observe significant diversity in the dataset across fields such as economics, physics, biology, and mathematics. Most questions are predicted to be optimally solved by two experts and require fewer than 8192 tokens for solutions.
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.98\linewidth]{figures/data_analyze.png}
+    \caption{Distributions of key statistics in M500: question category (filtered with count $>10$), predicted number of experts required for solving each problem, and solution token usage.}
+    \label{fig:data_analyze}
+\end{figure}
+
+
+\subsection{Enhancing LLM Collaborative Reasoning through Supervised Fine-Tuning}
+
+Inspired by Simple-Scaling \citep{s1}, which shows that long CoT reasoning capabilities in LLMs can be developed through SFT on detailed reasoning traces, we apply SFT to an LLM $f$ using the M500 dataset. The goal is to enable $f$ to produce long CoT that contributes to the collaboration in a MAS. Specifically, the SFT objective is to minimize:
+
+
+\[
+\mathcal{L}_{\text{SFT}} = \mathbb{E}_{(\mathbf{x}, \mathbf{y}) \in \text{M500}} \left[ -\frac{1}{|\mathbf{y}|} \sum_{t=1}^{|\mathbf{y}|} \log P_f(\mathbf{y}_t \mid \mathbf{x}, \mathbf{y}_{<t}) \right],
+\]
+
+where \( P_f(\mathbf{y}_t \mid \mathbf{x}, \mathbf{y}_{<t}) \) denotes the probability the model \( f \) assigns to token \( \mathbf{y}_t \) given input \( \mathbf{x} \) and previous tokens \( \mathbf{y}_{<t} \).
+
+
+For each question $q$ in the M500 dataset, we have a series of input-output pairs $\{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^{n}$ corresponding to the reasoning traces from all participating agents. During training, we ensure all reasoning traces for $q$, $\{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^{n}$, are grouped within the same batch and ordered according to the original generation sequence in the MAS. This approach helps the model learn collaborative reasoning in a coherent and temporally logical manner.
+
+
+\subsection{Adaptive Test-time Scaling}
+Recently, TTS has emerged as an effective method for enhancing the performance of LLMs. Models such as OpenAI's o-series and DeepSeek-R1 have shown considerable improvements by employing scaled reasoning during inference. However, the application of TTS within MAS remains relatively unexplored. Previous studies in single-agent scenarios indicate that the optimal TTS strategy depends on question difficulty \citep{tts,rebase}. In MAS, choosing an appropriate TTS strategy is even more critical due to the significantly higher computational and time costs involved in collaboration compared to single-agent.
+
+To address this issue, we propose an adaptive TTS strategy for MAS by introducing a dedicated "\textbf{CEO}" agent, which dynamically manages collaboration and resource allocation based on the ongoing progress of a given task. As shown in Figure \ref{fig:ceo}, the CEO agent evaluates the question, current solution state, evaluation feedback, and available resources to determine whether a proposed solution should be accepted or needs further refinement. Additionally, this agent directs subsequent discussions, decides how many agents to involve, and sets appropriate reasoning depth, i.e., the token budget for each agent's response.
+
+Unlike static MAS configurations, which have fixed numbers of agents, iteration limits, and reasoning depths, our adaptive approach allows the MAS to dynamically adjust its settings. This capability enables more effective scaling of collaborative reasoning by modifying agent participation, termination conditions, and reasoning depth according to the evolving complexity and requirements of the problem.
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.98\linewidth]{figures/method.png}
+    \caption{Overview of integrating the CEO agent into an existing MAS, using AgentVerse \citep{agentverse} as an example. The CEO agent adaptively scales collaboration and reasoning by adjusting the number of agents, termination conditions, and reasoning depth.}
+    \label{fig:ceo}
+\end{figure}

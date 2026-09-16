@@ -1,0 +1,190 @@
+\section{Further Emergence Results}
+
+\subsection{Trajectory Traces From Each Stage of Emergent Strategy}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{assets/randomized_env_traj.jpg}
+	\caption{Trajectory Traces From Each Stage of Emergent Strategy. Rows correspond to different strategies, columns to characteristic snapshots in chronological order within an episode that showcase the strategy. \textit{Running and chasing}: Hiders (blue) try to hide behind walls and moveable objects, and seekers (red) chase and search for hiders. \textit{Fort building:} During the preparation phase (first 3 snapshots), hiders build a fort out of 3 boxes and hide inside. Seekers are not able to overcome this barrier during the remainder of the trial. \textit{Ramp use:} During the preparation phase, hiders build a fort out of 2 boxes and a wall (1st and 2nd snapshot). After the preparation phase, a seeker grabs a ramp (3rd snapshot), drags it towards the fort (4th snapshot) and uses it to enter the fort (5th snapshot). \textit{Ramp defense:} Hiders prevent ramp use by dragging ramps away and locking them in place during the preparation phase (1st, 2nd and 3rd snapshot). They then build a fort in safe distance from the ramps (4th snapshot). After the preparation phase, seekers are not able to enter the fort (5th snapshot). \textit{Box surfing:} A single hider locks both ramps in place and hides inside a fort built from 2 boxes and an interior wall during the preparation phase (1st and 2nd snapshot). The seeker grabs a square box (3rd snapshot) and drags it next to one of the locked ramps to jump on top (4th snapshot). It then ``surfs'' on the box to the edge of the fort and jumps inside (5th snapshot). \textit{Surf defense}: During the preparation phase, hiders lock all ramps and boxes in place (1st, 2nd and 3rd snapshot) and construct a fort out of 3 boxes (4th snapshot). After the preparation phase, seekers are not able to enter the fort (5th snapshot).
+	}
+	\label{fig:emergence_detailed}
+\end{figure}
+
+\subsection{Dependence of Skill Emergence on Randomness in the Training Distribution of Environments}
+\label{appendix:randomization}
+
+Discovering tool use is a difficult exploration problem, as only a very specific set of actions will lead to an increase in reward. During training, we find that randomization over many components of our environment, such as the number of agents in each team, the number of boxes, the shape of boxes (square or elongated), the initial location of agents and objects and the presence and location of interior and exterior walls helps emergence, despite leading to a broader training distribution. As we successively reduce the amount of randomization, we find that fewer stages of skill progression emerges, and with at times less sophisticated strategies (e.g. hiders learn to run away and use boxes as moveable shields), Table \ref{table:randomization}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+    \hline
+    team size & \# boxes & box shape & \makecell{initial \\ location} & walls & emergence\\
+    \hline
+    1-3 & 3-9 & random & random & random & 6 stages \\
+    \hline
+    1 & 3-9 & random & random & random & 6 stages \\
+    \hline
+    1 & 7 & fixed & random & random & 6 stages \\
+    \hline
+    1-3 & 3-9 & random & random & no walls  & 4 stages \\
+    \hline
+    1 & 3-9 & random & random & no walls & 2 stages$^*$ \\
+    \hline
+    1 & 7 & fixed & random & no walls & 2 stages$^*$ \\
+    \hline
+    1 & 7 & fixed & fixed & no walls & 2 stages \\
+    \hline
+\end{tabular}
+\vspace{.25cm}
+
+$^*$ Hiders run away and use boxes as movable shields.
+
+\caption{Number of stages of emergence for different levels of environmental randomization (batch size is held constant).}
+\label{table:randomization}
+\end{table}
+
+
+
+\subsection{Quadrant Environment}
+\label{appendix:quadrant}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{assets/quadrant_env_traj.jpg}
+	\caption{Sample Trajectory Traces From Each Stage of Emergent Strategy in the Quadrant Environment. Rows correspond to different strategies, columns to characteristic snapshots in chronological order within an episode that showcase the strategy. \textit{Running and chasing}: Hiders (blue) try to hide behind walls and moveable objects, seekers (red) chase and search for hiders. \textit{Fort building:} During the preparation phase (first 3 snapshots), hiders push the two boxes into the two doors of the lower right room and lock them in place. Seekers are not able to overcome this barrier during the remainder of the trial. \textit{Ramp use:} During the preparation phase, hiders secure the room using the two boxes (1st and 2nd snapshot). After the preparation phase, a seeker grabs the ramp (3rd snapshot), drags it towards the walls of the room (4th snapshot) and both seekers use the ramp to enter the room (5th snapshot). \textit{Ramp defense:} Hiders prevent ramp use by grabbing the ramp during the preparation phase (2nd snapshot), pulling it inside the room (3rd snapshot), and then secure the doors using the 2 blocks (4th snapshot). After the preparation phase, the seekers are not able to enter the room (5th snapshot). Also, note that while one hider brings the ramp into the room, the other hider drags a box out of corner and then passes it to its team mate (3rd and 4th snapshot), evidence of sophisticated coordination between hiders.}
+	\label{fig:quadrant}
+\end{figure}
+
+As well as the default \textit{random rooms} environment described above, we also train and evaluate agents in the much simpler \textit{quadrant} environment (Figure \ref{fig:quadrant}) for illustration purposes. This environment consists of a room in the lower right corner that is connected by 1-2 doors to the remainder of the environment. Unlike in the main environment, the interior walls are fixed and only the location of the doors vary from episode to episode. Hiders are spawned randomly in the environment, but seekers are only spawned outside the room. Two cubic boxes are spawned inside the room and one ramp is spawned inside or outside the room. Both hiders and seekers receive a negative reward if they leave the environment or if they bring an object outside the environment. Also, in contrast to the main environment, only boxes, but not ramps can be locked in place.
+
+The quadrant environment gives rise to a similar skill progression as in the main environment (Figure \ref{fig:quadrant}): basic running and chasing, then fort building by hiders, ramp use by seekers, and ramp defense by hiders. Hiders create shelter by pushing boxes into the doors of the room in the lower right corner, preventing seekers from entering. Seekers drag ramps to the exterior walls of the room and then use them to jump inside. As ramps are not lockable in this environment, hiders instead defend against ramp use by pulling the ramp inside the room before securing the wall opening with boxes.
+
+\subsection{Further Ablations}
+
+\begin{figure}[h]
+\centering
+\begin{subfigure}{.48\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{assets/abl_masked_v.pdf}
+\end{subfigure} \hspace{0.01\textwidth}
+\begin{subfigure}{.48\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{assets/abl_pooling.pdf}
+\end{subfigure}
+\caption{Effect of Omniscient Value Function and Pooling Architectures on Emergent Autocurricula. In blue we show the number of episodes required and in orange the wall clock time required to achieve stage 4 (ramp defense) of the emergent skill progression presented in Figure~\ref{fig:emergence_big} for varying batch and model sizes. Note that in our ablation comparing omniscient and masked value functions, the experiment with a masked value function never reached stage 4 in the allotted time, so here we compare timing to stage 3.}
+\label{fig:arch_ablations}
+\end{figure}
+
+In Figure~\ref{fig:arch_ablations} we compare the performance between a masked and omniscient value function as well a purely pooling architecture versus self-attention. We find that using an omniscient value function, meaning that the value function has access to the full state of the unobscured environment, is critical to progressing through the emergent autocurricula at the given scale. We found that with the same compute budget, training with a masked value function never progressed past stage 3 (ramp usage). We further found that our self-attention architecture increases sample efficiency as compared to an architecture that only embeds and then pools entities together with a similar number of parameters. However, because self-attention requires more compute despite having the same number of parameters, the wall-clock time to convergence is slightly slower. 
+
+\subsection{Evaluating Agents at Different Phases of Emergence}
+\label{appendix:phase_eval}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{assets/phase_transfer_plot.pdf}
+\caption{Fine-tuning From Different Phases in the Emergent Autocurriculum. We plot the mean performance on the transfer suite and 90\% confidence interval across 3 seeds and smooth performance and confidence intervals with an exponential moving average. We show the fine-tuning performance for a policy sampled at each of the six phases of emergent strategy (see Figure~\ref{fig:emergence_big}).}
+\label{fig:phase_transfer}
+\end{figure}
+
+In Figure~\ref{fig:phase_transfer} we evaluate policies sampled during each phase of emergent strategy on the suite of targeted intelligence tasks, by which we can gain intuition as to whether the capabilities we measure improve with training, are transient and accentuated during specific phases, or generally uncorrelated to progressing through the autocurriculum. We find that the hide-and-seek agent improves on the navigation and memory tasks as it progresses; notably on Lock and Return, the performance monotonically increases with emergence phase, and the policy from the phase 6 performs 20\% better than the policy from phase 1. However, performance on Object Counting is transient; during phase 1 the hide-and-seek agent performs extremely well, much better than all baselines and other phases but loses this ability in later stages. Finally, we find that performance on the manipulation tasks is relatively uncorrelated to the phases of emergence, and surprisingly the policy transferred from phase 1, the phase before any tool use emerges, performs comparably well to other phases.
+
+\subsection{Alternative Games to Hide-and-Seek with Secondary Objectives}
+\label{appendix:alternative_games}
+
+\subsubsection{Hide-and-Seek with Food Reward}
+\label{appendix:hns_multiple_objectives}
+
+In the main hide-and-seek environment, hiders build forts at locations that would give them the best chance of staying hidden from seekers. To test whether hiders could be incentivized by a secondary objective to adapt the location of forts, we add additional food rewards and test whether hiders would bias the location of their forts towards the location of the food. In this environment, hiders can eat food and receive food rewards only under the following conditions: after the preparation phase, when all hiders are hidden from seekers and when the food is sufficiently close and visible to them. Therefore, just chasing after food would not be an effective strategy for hiders, because hiders receive neither hide-and-seek nor food rewards if one or more hiders are seen by a seeker. Instead, hiders are incentivized to build forts around the location of food and then eat the food while being unobserved by seekers (figure \ref{fig:HnSwF-trajectory}).
+
+Food is distributed in the form of 5 food pellets that are spawned close to each other in a rectangular area in the center of the environment whose side length is 1/4 of the room size. Each food pellet can provide a positive food reward of +1 for each time step. Food rewards are shared between hiders, irrespective of which hider eats a food item. Hiders (as well as seekers) can observe the locations of food pellets as separate entities; if food pellets are obstructed or outside the field of view they are masked out like other type of objects.
+
+As shown in figure \ref{fig:HnSwF-emergence-statistics}, this environment gives rise to four levels of skill progression, similar to the one of the main environment: basic running and chasing, then fort building by hiders, ramp use by seekers, and ramp defense by hiders. Moreover, hiders consume food, and food consumption is highly correlated with their ability to construct stable forts; food consumption decreases during the initial phase as seekers get better at chasing and therefore prevent hiders from eating food. Food consumption then increases again as hiders learn to construct forts and shield themselves from the view of seekers, but plateaus once seekers learn to use ramps. Finally, food consumption rises again as hiders get better at defending against ramp use.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{assets/food_trajectory.jpg}
+    \caption{Example trajectory in hide-and-seek environment with additional food reward. During the preparation phase, hiders lock the ramps at the boundary of the play area (2nd snapshot) and construct a fort around the food reward (3rd and 4th snapshot). After the preparation phase, hiders can eat food and receive the additional food reward, because they are hidden from seekers inside the fort.}
+    \label{fig:HnSwF-trajectory}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \hspace{-.05\textwidth}
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{assets/HnSwF-Reward.pdf}
+      
+    \end{subfigure}
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{assets/HnSwF-Food.pdf}
+    \end{subfigure}
+    
+    \bigskip
+    \hspace{-.05\textwidth}
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{assets/HnSwF-Movement.pdf}
+      
+    \end{subfigure}
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{assets/HnSwF-Locking.pdf}
+    \end{subfigure}
+    \caption{Reward and environment specific statistics during emergence in hide-and-seek with secondary food rewards for hiders.}
+    \label{fig:HnSwF-emergence-statistics}
+\end{figure}
+
+
+\subsubsection{Hide-and-Seek with Dynamic Food}
+\label{appendix:dynamic_food}
+In the food variant introduce in Sec.~\ref{appendix:hns_multiple_objectives}, the location of food pellets is fixed throughout the episode. Here we consider a dynamic food variant such that a food pellet will be eaten up, i.e., disappear, when a hider is close to it, and then a new food pellet will show up in a different location but still within the center region. More precisely, the game area is simply an empty room without outside walls containing 2 seekers, 3 hiders, 1 dynamic food and 8 elongated boxes. The food will be always located within a square in the center of the environment with side length 1/5 of the game area size. We inherit the same reward and policy structures from the previous game.
+
+In this game, merely building a center fort is not sufficient for obtaining the highest reward since the food might disappear and respawn outside the fort. The agent must ensure that the fort is large enough such that all the possible spawning positions of the food will be inside the fort. Such a behavior does emerge after training for around $4.5\times 10^{10}$ samples. %We show the learning curve as well as a visualized trajectory in Figure~\ref{fig:dynamic-food-trajectory}. 
+
+We also experimented on variants where the food spawning region has different side length. When the side length is reduced to 1/6 of the game area, the same behavior emerges faster taking $1.5\times 10^{10}$ samples. However, when the side length of the dynamic food region is increased to 1/4 of the game area, hiders converge to a policy that ignores the food and only builds a small fort to protect themselves.
+
+\subsubsection{Food Protection Game}
+\label{appendix:food_protection}
+In the previous two variants, we introduce extra food reward to the hider in addition to the original hide-and-seek reward for promoting more goal-oriented behavior. Now we consider a different game rule such that the competition between hiders and seekers only depends on the food collecting reward and show that this rule can also lead to tool use and complex behavior.
+
+We consider an empty game area surrounded by walls that contains 50 food pellets randomly distributed in a center square of size 2/3 of the game environment.  There are 3 hiders, 2 seekers and 7 elongated boxes in the game. The only goal for seekers is to collect food. Once a food pellet is collected by any of the seeker, a +3 reward will be given to all the seekers and then the food will disappear permanently from the game. The goal for the hider is to protect the food from seekers and their reward is simply the negative value of seekers. Each episode consists of 200 time steps. The preparation period, in which only hiders can move, extends to the first 100 time steps. The last 60 steps of the game corresponds to a food collecting period, during which the hiders cannot move. Additionally, after the preparation phase we also add a -1 ``boundary penalty'' for hiders when they are too close to the wall to ensure they stay within the food region.
+
+Our initial motivation for this task was to promote hiders to learn to construct complex and large fort structures with a more direct competition pressure. For example, we expected that the agents would learn to build a large fort that would cover as much food as possible. Unfortunately, such behavior did not emerge. However, after around $7\times 10^{10}$ samples of training, the hiders surprisingly discover an extremely efficient and effective strategy: they learn to physically `push' the immobile seekers to the corner of the environment during the preparation phase and then collaboratively use elongated boxes to trap the seekers in the corner. Figure~\ref{fig:coin-protection-trajectory} illustrates a trajectory corresponding to this strategy. Interestingly, the hiders demonstrate strong collaborations. Since there are 2 seekers and 3 hiders, when the 2 hiders are pushing the seekers to the corner, the 3rd hider will follow the `pushing' hiders distantly, and once the pushing hiders finish the job, this 3rd hider will quickly grab a box to build the trap without blocking the escaping route of those 2 pushing hiders. We emphasize that this behavior was completely surprising to us and further indicates that complex behavior can emerge from multi-agent self-play with a wide range of competition rules.
+
+Lastly, we also experimented with different versions of the close-to-wall ``boundary penalties''. In all cases, we observe similar fort-building behaviors, namely blocking the seekers to the corner, with tiny variations. When we remove the penalty, the behavior emerges twice faster ($3.5\times 10^{10}$ samples) and 1 hider will stay in the fort with the seekers instead of getting outside. When we add the penalty throughout the episode, the hiders even learned to stay in the center region while grabbing an elongated box as a tool to push the seekers towards the corner. However, the behavior emerges twice slower in this setting, i.e., $1.4\times 10^{11}$ samples required.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{assets/food_protector.jpg}
+    \caption{Example trajectory in the food protection game. During the preparation phase, the hiders first explore the room to find seekers, then physically push the seekers to the corner and eventually collaboratively grab elongated boxes to build a small fort surrounding the seekers to trap them there. To secure the trap, they even learn to build the fort using \emph{two} elongated boxes to prevent seekers from escaping. }
+    \label{fig:coin-protection-trajectory}
+\end{figure}
+
+
+\subsection{Zero-shot generalization}
+
+We find that the trained policies can zero-shot generalize to environments with slightly larger number of hiders, ramps or boxes in Figure~\ref{fig:generalization}. The hider reward provides a reasonably good measure for generalization performance, since the modifications in question make constructing safe shelter more difficult. First, we looked at increasing the number of hiders from 1-3 hiders, as in the training distribution, to 4-6 hiders; increasing the number of hiders decreases the hider reward because all hiders need to stay hidden from seekers. However, the decline in hider reward is very gradual, indicating that the policy generalizes well to more than 4 hiders. A similar effect occurs when increasing the number of ramps because hiders need to secure more ramps from seekers. If we increase the number of ramps from 2 to 3 or 4 the hider reward drops only gradually. Finally, we find hider performance is remarkably stable, though still slowly declines, when increasing the number of boxes.
+
+\begin{figure}
+	\centering
+	\hspace{-0.02\textwidth}
+	\begin{subfigure}{.33\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{assets/gen_hiders.pdf}
+	\end{subfigure}%
+	\hspace{0.01\textwidth}
+	\begin{subfigure}{.33\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{assets/gen_ramps.pdf}
+	\end{subfigure}
+	\begin{subfigure}{.33\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{assets/gen_boxes.pdf}
+	\end{subfigure}
+	\caption{Zero-shot generalization to a larger number of hiders (left), ramps (center) and boxes (right). The dotted line denotes the boundary of the training distribution (1-3 hiders, 2 ramps, 1-9 boxes). Error bars denote standard error of the mean.}
+	\label{fig:generalization} 
+\end{figure}
+

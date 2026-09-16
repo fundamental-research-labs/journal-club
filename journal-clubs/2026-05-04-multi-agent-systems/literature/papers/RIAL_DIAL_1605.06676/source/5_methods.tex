@@ -1,0 +1,53 @@
+\section{Methods}
+\label{sec:methods}
+
+In this section, we present two approaches for learning communication protocols. 
+\vspace{-3mm}
+\subsection{Reinforced Inter-Agent Learning}
+The most straightforward approach, which we call \emph{reinforced inter-agent learning} (RIAL), is to combine DRQN with independent Q-learning for action and communication selection. Each agent's $Q$-network represents $Q^a(o^a_t, m^{a'}_{t-1}, h^a_{t-1},u^a)$, which conditions on that agent's individual hidden state and observation. Here and throughout $a$ is the index of agent $a$.
+
+To avoid needing a network with $|U||M|$ outputs, we split the network into $Q^a_{u}$ and $Q^a_{m}$, the Q-values for the environment and communication actions, respectively.  Similarly to \cite{narasimhan2015language}, the action selector separately picks $u^a_t$ and $m^a_t$ from $Q_{u}$ and $Q_{m}$, using an $\epsilon$-greedy policy. Hence, the network requires only $|U| + |M|$ outputs and action selection requires maximising over $U$ and then over $M$, but not maximising over $U \times M$. 
+
+Both $Q_{u}$ and $Q_{m}$ are trained using DQN with the following two modifications, which were found to be essential for performance.
+First, we disable experience replay to account for the non-stationarity that occurs when multiple agents learn concurrently, as it can render experience obsolete and misleading. Second, to account for partial observability, we feed in the actions $u$ and $m$  taken by each agent as  inputs on the next time-step. Figure~\ref{fig:ddrqn_arch}(a) shows how information flows between agents and the environment, and how Q-values are processed by the action selector in order to produce the action, $u^a_t$, and message $m^a_t$.
+Since this approach treats agents as independent networks, the learning phase is not centralised, even though our problem setting allows it to be. Consequently, the agents are treated exactly the same way during decentralised execution as during learning.
+
+
+\begin{figure}[thb]
+\vspace{-3mm}
+    \centering
+    \begin{subfigure}[t]{0.5\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{artwork/new/ddrqn_step.pdf}
+        \caption{\rec~- RL based communication}
+    \end{subfigure}%
+    ~ 
+    \begin{subfigure}[t]{0.5\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{artwork/new/ddrqn_step_flow.pdf}
+        \caption{\dic~- Differentiable communication} %Added this to claim the term, since we like it and want to do some SEO here.
+    \end{subfigure}%
+    \caption{In \rec (a), all Q-values are fed to the action selector, which selects both environment  and communication actions. Gradients, shown in red, are computed using DQN for the selected action and flow only through the Q-network of a single agent. In \dic (b), the message $m^a_t$ bypasses the action selector and instead is processed by the \magicbox (Section 5.2) and passed as a continuous value to the next C-network. Hence, gradients flow  across agents, from the recipient to the sender. For simplicity, at each time step only one agent is highlighted, while the other agent is greyed out.}
+%    \vspace{-1.0em}
+    \label{fig:ddrqn_arch}
+\end{figure}
+
+
+\textbf{Parameter Sharing.} \rec can be extended to take advantage of the opportunity for centralised learning by sharing parameters among the agents. This variation learns only one network, which is used by all agents.
+%
+However, the agents can still behave differently because they receive different observations and thus evolve different hidden states.  In addition, each agent receives its own index $a$ as input, allowing them to specialise. The rich representations in deep Q-networks can facilitate the learning of a common policy while also allowing for specialisation. Parameter sharing also dramatically reduces the number of parameters that must be learned, thereby speeding learning.
+%
+Under parameter sharing, the agents learn two $Q$-functions $Q_u(o^a_t,m^{a'}_{t-1},h^a_{t-1},u^a_{t-1}, m^{a}_{t-1},a, u^a_t)$ and $Q_m(\cdot)$, for $u$ and $m$, respectively, where $u^a_{t-1}$ and $m^{a}_{t-1}$ are the last action inputs and $m^{a'}_{t-1}$  are messages from other agents. During decentralised execution, each agent uses its own copy of the learned network, evolving its own hidden state, selecting its own actions, and communicating with other agents only through the communication channel.
+
+\subsection{Differentiable Inter-Agent Learning}\label{subsec:diff-comm}
+
+While \rec can share parameters among agents, it still does not take full advantage of centralised learning.  In particular, the agents do not give each other feedback about their communication actions.  Contrast this with human communication, which is rich with tight feedback loops. For example, during face-to-face interaction, listeners send fast nonverbal queues to the speaker indicating the level of understanding and interest.  \rec lacks this  feedback mechanism, which is intuitively important for learning communication protocols. 
+
+To address this limitation, we propose \emph{differentiable inter-agent learning} (\dic).  The main insight behind \dic is that the combination of centralised learning and Q-networks makes it possible, not only to share parameters but to push gradients from one agent to another through the communication channel.  Thus, while \rec is end-to-end trainable \emph{within} each agent, \dic is end-to-end trainable \emph{across} agents.  Letting gradients flow from one agent to another gives them richer feedback, reducing the required amount of learning by trial and error, and easing the discovery of effective protocols.
+
+\dic works as follows: during centralised learning, communication actions are replaced with direct connections between the output of one agent's network and the input of another's.  Thus, while the task restricts communication to discrete messages, during learning the agents are free to send real-valued messages to each other.  Since these messages function as any other network activation, gradients can be passed back along the channel, allowing end-to-end backpropagation across agents.
+
+In particular, the network, which we call a \dicnet, outputs two distinct types of values, as shown in Figure~\ref{fig:ddrqn_arch}(b), a) $Q(\cdot)$, the Q-values for the environment actions, which are fed to the action selector, and b) $m^a_t$, the real-valued message to other agents, which bypasses the action selector and is instead processed by the \emph{discretise/regularise unit} ($\text{\magicbox}(m^a_t)$). The $\text{\magicbox}$ regularises it during centralised learning, $\text{\magicbox}(m^{a}_{t})=\text{Logistic}(\mathcal{N}(m^a_t, \sigma))$,  and discretises it during decentralised execution, $\text{\magicbox}(m^{a}_{t}) = \mathbbm{1}{\{  {m}^{a}_{t} > 0 \}}$, where $\sigma$ is the standard deviation of the noise added to the channel. Figure~\ref{fig:ddrqn_arch} shows how gradients flow differently in \rec and \dic. The gradient chains for $Q_u$, in \rec  and $Q$, in \dic, are based on the DQN loss. However, in \dic the gradient term for $m$ is the backpropagated error from the recipient of the message to the sender.  Using this inter-agent gradient for training provides a richer training signal than the DQN loss for $Q_m$ in \rec. While the DQN error is nonzero only for the selected message, the incoming gradient is a $|m|$-dimensional vector that can contain more information, here $|m|$ is the length of $m$. It also allows the network to directly adjust messages in order to minimise the downstream DQN loss, reducing the need for trial and error exploration to learn good protocols. 
+
+While we limit our analysis to discrete messages, \dic naturally handles continuous protocols, as they are part of the differentiable training. While we limit our analysis to discrete messages,  \dic naturally handles continuous message spaces, as they are used anyway during centralised learning. \dic can also scale naturally to large discrete message spaces, since it learns binary encodings instead of the one-hot encoding in \rec,  $|m| =O( \log(|M|)$.
+Further algorithmic details and pseudocode are in Appendix~\ref{app:a}.

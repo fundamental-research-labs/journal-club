@@ -1,0 +1,122 @@
+\section{Deferred Content of \Cref{sec:theory}}
+\label{appendix_defproof}
+
+
+\begin{remark}[Rationale Behind the Setup]
+\label{rmk:rationale}
+\upshape
+This formalization captures several key aspects of complex problem-solving dynamics. Choosing to collaborate ($a_0$) represents contributing \textit{exploratory ideas} or \textit{partial solutions}. While these contributions have a lower immediate probability of correctness \(R_{\text{col}}(q)\), they are essential building blocks towards the complete solution. Acting independently $(a_1)$ represents using conventional approaches that may yield a higher \textit{immediate probability} of correctness \(R_{\text{ind}}(q)\), but may contribute less to solving particularly challenging problems. The collaboration threshold \(C(q)\) represents the minimum amount of collaboration efforts and idea generation needed to solve complex problems. Once this threshold is reached (i.e., achieving collaborative synergy), the agents can combine their insights to solve the challenging problem, with a higher  reward \(R_{\text{syn}}(q)\).
+\end{remark}
+
+\claimsingle*
+\begin{proof}
+For the last turn (\( {t} = 2 \)), regardless of whether the opponent selects \( a_0 \) or not, choosing \( a_1 \) is {an} optimal strategy. This is because:
+\begin{itemize}
+    \item If collaborative synergy has been  achieved, the agent will always receive \( R_{\text{syn}}(q) \) regardless of their action in the second turn.
+    \item If collaborative synergy has not been achieved, since we know that \( R_{\text{col}}(q) < R_{\text{ind}}(q) \), the optimal choice is to select \( a_1 \) in the final turn to maximize the immediate reward.
+\end{itemize}
+
+
+Therefore, considering the cumulative reward for the turn $t=1$, the 
+reward matrix is given as follows: 
+
+\[
+\begin{array}{c|cc}
+ & \text{\( a_0 \) (Collaborate)} & \text{\( a_1 \) (Act independently)} \\ \hline
+\text{\( a_0 \) (Collaborate)} & (R_{\text{col}}(q) + R_{\text{syn}}(q), R_{\text{col}}(q) + R_{\text{syn}}(q)) & (R_{\text{col}}(q) + R_{\text{ind}}(q), 2R_{\text{ind}}(q)) \\
+\text{\( a_1 \) (Act independently)} & (2R_{\text{ind}}(q), R_{\text{col}}(q) + R_{\text{ind}}(q)) & (2R_{\text{ind}}(q), 2R_{\text{ind}}(q)) \\
+\end{array}
+\]
+
+Since the opponent chooses \( a_0 \) with probability \( \pi(q) \), the expected reward for choosing \( a_0 \) is:
+
+\[
+(R_{\text{col}}(q) + R_{\text{syn}}(q)) \pi(q) + (R_{\text{col}}(q) + R_{\text{ind}}(q))(1-\pi(q)).
+\]
+
+The expected reward for choosing \( a_1 \) is $2R_{\text{ind}}(q)$. To determine the optimal strategy, we compare these two expected rewards. The agent should collaborate (\( a_0 \)) if:
+
+\[
+(R_{\text{col}}(q) + R_{\text{syn}}(q)) \pi(q) + (R_{\text{col}}(q) + R_{\text{ind}}(q))(1-\pi(q)) \geq  2R_{\text{ind}}(q).
+\]
+which is equivalent to 
+\[
+(R_{\text{syn}}(q) - R_{\text{ind}}(q))\pi(q) \geq R_{\text{ind}}(q) - R_{\text{col}}(q).
+\]
+
+Thus, if \( (R_{\text{syn}}(q) - R_{\text{ind}}(q))\pi(q) \geq R_{\text{ind}}(q) - R_{\text{col}}(q) \), the optimal strategy is to \textit{collaborate} (\( a_0 \)). Otherwise, the agent should act independently (\( a_1 \)) to maximize their cumulative expected reward.
+\end{proof}
+
+Now, we provide the formal statement of \Cref{claim:2}. Before doing so, we define the regularized Nash Equilibrium (NE).
+\begin{definition}[Regularized NE]
+An entropy-regularized Nash equilibrium is defined as a strategy profile $\pi^\ast$ where each player maximizes a regularized objective that combines the expected reward with an entropy term. Specifically, for each player \(i\), the equilibrium strategy \(\pi_i^\star\) satisfies 
+\[
+\pi_i^\star = \arg\max_{\pi_i} \; \mathbb{E}_{a_i \sim \pi_i,\, a_{-i} \sim \pi_{-i}^\star}\bigl[u_i(a_i,a_{-i})\bigr] + \tau H(\pi_i),
+\]
+where \(\tau>0\) is a temperature parameter and \(H(\pi_i) = -\sum_{a_i} \pi_i(a_i) \log \pi_i(a_i)\) is the Shannon entropy of the strategy, and $u_i$ is the utility function of player $i$. This entropy term smoothens the best response, leading to a softmax (or logit) formula of the optimal strategy:
+\[
+\pi_i^\star(a_i) = \frac{\exp\Bigl(\frac{1}{\tau}\, \mathbb{E}_{a_{-i} \sim \pi_{-i}^\star}\bigl[u_i(a_i,a_{-i})\bigr]\Bigr)}{\sum_{a_i'} \exp\Bigl(\frac{1}{\tau}\, \mathbb{E}_{a_{-i} \sim \pi_{-i}^\star}\bigl[u_i(a_i',a_{-i})\bigr]\Bigr)}.
+\]
+\end{definition}
+
+
+
+
+
+
+
+
+
+\noindent \textbf{Observation 2. }
+Consider a game where each agent maximizes their expected cumulative utility plus an entropy regularizer with a small regularization coefficient \(\tau > 0\). Let \(\text{NE}(\tau)\) denote the unique Nash equilibrium of the regularized game for a fixed \(\tau > 0\). As \(\tau \to 0\), the sequence of equilibria \(\text{NE}(\tau)\) converges to  Collaborate $(a_0)$ if   
+$$R_{\text{syn}}(q) = 1 > \max( 3R_{\text{col}}(q) - 2R_{\text{ind}}(q),2R_{\text{ind}}(q) - R_{\text{col}}(q)).$$
+
+
+
+
+\begin{proof}
+Following the reasoning in showing  \Cref{claim:1}, we analyze the cumulative reward for the turn $t=1$. The reward matrix is given by:
+
+\[
+\begin{array}{c|cc}
+ & a_0 \text{ (Collaborate)} & a_1 \text{ (Act independently)} \\ \hline
+a_0 \text{ (Collaborate)} & (R_{\text{col}}(q) + R_{\text{syn}}(q), R_{\text{col}}(q) + R_{\text{syn}}(q)) & (R_{\text{col}}(q) + R_{\text{ind}}(q), 2R_{\text{ind}}(q)) \\
+a_1 \text{ (Act independently)} & (2R_{\text{ind}}(q), R_{\text{col}}(q) + R_{\text{ind}}(q)) & (2R_{\text{ind}}(q), 2R_{\text{ind}}(q)) \\
+\end{array}.
+\]
+If $R_{\text{syn}}(q) = 1 > 2R_{\text{ind}}(q) - R_{\text{col}}(q),$ then this game is a coordination game, and according to \citet[Theorem 1]{zhang2016quantal},
+as \(\tau \to 0\), the regularized NE converges to the risk-dominant strategy \citep{harsanyi1988general} in a \(2 \times 2\) game. In this setting, {by definition,} the collaboration strategy \((a_0, a_0)\) is risk-dominant  \citep{harsanyi1988general} if:
+\[
+(R_{\text{col}}(q) + R_{\text{syn}}(q)) + (R_{\text{col}}(q) + R_{\text{ind}}(q)) > (2R_{\text{ind}}(q) + 2R_{\text{ind}}(q)),
+\]
+which is equivalent to 
+\[
+R_{\text{syn}}(q)  > 3R_{\text{ind}}(q) - 2R_{\text{col}}(q).
+\]
+Combining the two conditions completes the proof. 
+\end{proof}
+
+\section{Deferred Details in \Cref{ssec:exp-toy}}
+\label{appendix:toy}
+
+
+The game is solved using backward induction with the state represented as \((\text{turn}, \texttt{count})\), where \(\texttt{count}\) denotes the number of times \((a_0, a_0)\) has occurred in the history of the interactions. Both players choose actions to maximize their expected cumulative utility plus an entropy term times a coefficient \(\tau = 0.1\).
+
+
+\paragraph{Choices of $R_{\text{col}}(q), R_{\text{ind}}(q), R_{\text{syn}}(q), C(q)$. } Each instance of a question \(q\) is associated with parameters drawn as follows: the independent action reward \( R_{\text{ind}}(q) \) is sampled from a uniform distribution \( R_{\text{ind}}(q) \sim \text{Unif}(0, 1) \). The collaborative action reward \( R_{\text{col}}(q) \) is then sampled condition on \( R_{\text{ind}}(q) \), following \( R_{\text{col}}(q) \sim \text{Unif}\Big(0, R_{\text{ind}}(q)\Big) \). The synergy reward is fixed as \( R_{\text{syn}}(q) = 1 \).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figs/collab_subplots.png}
+    \safevspace{-5mm}
+  \caption{
+Collaboration probability (turn 1) as a function of the threshold \(C\), for two different horizons \(T=10\) (left) and \(T=20\) (right). 
+We set the synergy reward to \(R_{\mathrm{syn}}=1\) and vary \(C\) from \(T{-}1\) down to \(\lfloor (T{-}1)/2 \rfloor\).  
+The red curve (``Multi-Agent'') represents the collaboration probability when both players adaptively learn in a multi-agent setting.  
+The blue curves show the best-response probabilities of Player 1 when facing a fixed opponent with collaboration probabilities \(\pi_{\mathrm{fixed}}(q) \in \{0.5,0.6,0.7\}\).  
+Each data point represents an average over 5000 random samples of \((R_{\mathrm{ind}}, R_{\mathrm{col}})\). }
+  \safevspace{-5mm}
+  \label{figs:collaboration_probability}
+\end{figure}
+
+

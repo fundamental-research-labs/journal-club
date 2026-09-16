@@ -1,0 +1,238 @@
+
+\section{Experimentation Benchmark}
+ \label{sec:benchmark}
+
+
+\if 0
+What to highlight?
+
+- Experimental questions are different from other regular benchmark questions, so we can't use them. 
+- They are different in the following ways: these questions are typically long-running complex experiments. For cloud, this may even span connecting to remote machines and managing them (running workloads/experiments on a remote machine). For llm reasoning 2:
+- These experiments are complex because they stress test different components of experiments, first, we have the design space that is... 
+- Then, we have the relationship complexity that... this is difficult because... 
+
+The benchmark is great for two reasons: (1) the way we structure the questions as an experiment, and (2) the way we construct in terms of complexity levels
+
+\fi
+
+We design a novel benchmark to stress test \sys's ability to automate experiments while enforcing rigor in the face of real-world challenges. 
+As shown in Table~\ref{table:benchmark-overview} (with full details in App.~\ref{appendix:benchmark-details}), our benchmark consists of 46 tasks across 4 domains within computer science.
+Our tasks are derived directly from \textbf{real-world influential research papers} and use-cases within \textbf{popular open-source projects}.
+We will open-source our benchmark to enable follow-up research. 
+% These tasks are carefully designed with varying levels of experimental complexity, allowing for a comprehensive assessment of \sys’s ability to handle demanding experimentation scenarios.
+% It evaluates how well \sys maintains structured, hypothesis-driven exploration and prevents error propagation throughout the experimental process.
+% It differs from standard benchmarks in two key ways:
+% It consists of two main features: 
+
+\subsection{Experiment-Centric Task Design}
+Instead of treating tasks as isolated problems with fixed solutions, we structure each task as a full experimental process. This means that tasks require hypothesis formation, iterative refinement, and rigorous validation, mirroring real-world experiment workflows rather than one-shot problem-solving.
+
+The process begins with distilling high-level contributions from research papers (e.g., theoretical insights or empirical findings), or core system behaviors from open-source projects (e.g., the interplay between configuration parameters and performance). 
+These insights are then translated into testable questions framed with explicit configurations, metrics, and expected outcomes.
+% Ground truth data is constructed using published empirical results for research papers or official benchmarks provided by open-source projects. 
+Ground truth data is derived from published results or official benchmarks provided by open-source projects.
+We use these findings to design tasks with three key components:
+
+\noindent\textbf{1. Experiment Formulation:} 
+Each task specifies the (a) Experiment Question (e.g., optimizing performance, identifying relationships); (b) Practical constraints (e.g., resource budgets); (c) High-level Setup Requirements - Contextual details such as datasets, and experimental environments.
+% , or computational tools. 
+This framing ensures that tasks are open-ended, requiring iterative exploration rather than one-shot solutions.
+
+\noindent\textbf{2. Experimental Context:} To ensure agents correctly interpret and execute tasks, the benchmark provides detailed context for each question. This includes: (a) Domain Knowledge – Background information essential for interpreting the problem.
+(b) Starter Code \& Tools – Predefined scaffolding to simulate real-world research workflows.
+% This ensures that agents operate under realistic conditions where understanding and iterating on a problem is as important as solving it.
+
+\noindent\textbf{3. Ground Truth:} 
+% To assess an agent’s ability to conduct rigorous experimentation, we define ground truth in two key areas:
+This is defined in two key areas:
+(a) \textit{Experimental Design}: Does the agent correctly formulate the experiment, identifying relevant variables and methodologies? 
+(b) \textit{Result Analysis:} 
+  Does the agent correctly interpret findings, and justify its conclusions? We outline the expected outcomes or acceptable solution ranges.
+\if 0 
+To assess an agent’s ability to conduct rigorous experimentation, we define ground truth in three key areas:
+
+Experimental Design Validity – Does the agent correctly formulate the experiment, identifying relevant variables, constraints, and methodologies?
+Execution Soundness – Does the agent systematically explore the search space, perform well-structured trials, and generate meaningful intermediate results?
+Result Analysis & Iteration – Does the agent correctly interpret findings, refine its approach based on evidence, and justify its conclusions with logical reasoning?
+\fi
+
+\if 0
+\begin{packedenumerate}
+    \item \textbf{Questions:}
+    The question outlines the objectives (e.g., optimizing latency or accuracy), practical constraints (e.g., resource limits), and necessary contextual requirements, (e.g., dataset or other experimental setups) to guide the agent toward meaningful outcomes.
+
+    \item \textbf{Context:}  
+    To ensure agents correctly interpret and execute tasks, the benchmark provides detailed context for each question. This includes problem formulations, domain knowledge, and starter code.
+ 
+
+    \item \textbf{Ground Truth:} 
+    Comprehensive ground truth is provided for evaluating each critical step of experimentation:
+   1). \textit{Experimental Design}: Specifies the key variables, parameters, or setups essential for answering the question.
+  2). \textit{Experiment Execution}: Defines the expected search space along with the intermediate results.
+  3). \textit{Result Analysis:} Outlines the expected outcomes or acceptable solution ranges, ensuring the agent’s conclusions are accurate, logically derived, and aligned with the problem objectives.  
+\end{packedenumerate}
+\fi
+
+
+\begin{table*}[]
+\caption{Main benchmark results in terms of four metrics introduced in \S\ref{sec:experiments}. We aggregate and average the success rate among all tasks within each domain. 
+The final row presents the weighted average, computed based on the number of tasks in each domain.
+% Lastly, we weighted average the overall success rate by the number of task in each domain.
+% The average score is the weighted average. 
+% The success rate for each task is averaged across 5 trials. 
+%\textcolor{red}{mark the number with background color. bold the best results?}
+}
+\begin{tabular}{c|cccc|cccc|cccc}
+ \toprule
+ \multicolumn{1}{l}{} & \multicolumn{4}{|c}{Curie}      & \multicolumn{4}{|c}{OpenHands}  & \multicolumn{4}{|c}{Microsoft Magentic-One} \\
+\multicolumn{1}{l|}{} & Des. & Exec. & Align. & Con.  & Des.                        & Exec.                         & Align.                        & Con.                          & Des.    & Exec.    & Align.    & Con.    \\ \hline                 
+LLM Reason.          & 98.3   & 83.3  & 76.7   & 44.9 & 86.7 &  24.6 & 36.7 & 14.2 & 72.0      & 9.3     & 14      & 6.7     \\
+Vector DB            & 97.8   & 71.7  & 77.2   & 25.6 & 85.0                         & 48.3                         & 52.3                         & 11.7                         & 85.0      & 6.4      & 63.6      & 0.0     \\
+Cloud Comp.          & 100.0  & 92.7  & 96.9   & 32.3 & 96.9                         & 25.2                         & 49.2                         & 5.0                          & 95.0     & 6.3      & 33.8      & 0.0     \\
+ML Training          & 95.2   & 66.7  & 39.3   & 41.7 & 63.1                         & 24.3                         & 16.7                         & 5.7                          & 90.0      & 2.9      & 25.7      & 0.0     \\ \midrule
+Weighted Avg.              & 97.9   & 78.1  & 73.4   & 36.1 & 83.6                         & 32.4                         & 40.2                         & 10.5             & 82.9      & 6.8      & 35.2      & 2.3    \\
+\bottomrule
+\end{tabular}
+\label{table:main-results}
+\end{table*}
+
+\subsection{Experimental Complexity}
+% We construct realistic and meaningful tasks by directly deriving them from influential \textbf{research papers} and popular \textbf{open-source projects}, ensuring that our benchmark reflects genuine challenges encountered in scientific inquiry and system optimization. 
+
+% While our benchmark is grounded in authentic research contexts, the agent frameworks may yield conclusions that diverge from the expected ground truth, which provides valuable opportunities to explore and analyze deviations. \amber{add section reference.}
+\if 0
+Experimental research is rarely a one-size-fits-all process; different problems require varying degrees of complexity and iteration. Our benchmark is designed to reflect this reality by structuring tasks into a hierarchical complexity framework, ensuring that agents are evaluated on their ability to handle increasingly sophisticated experimentation scenarios.
+Tasks are designed to test how well an agent navigates multi-step experimentation, adapts to unexpected results, and maintains structured records over long-term iterative processes. 
+This ensures that the benchmark evaluates not just problem-solving ability but the capacity to manage and execute rigorous, scalable experimentation.
+Unlike standard benchmarks that categorize tasks solely by a single overall difficulty metric (e.g., easy, medium, hard), our benchmark structures complexity along experiment-driven dimensions:
+\fi 
+
+Experimental research varies in complexity across different dimensions. Our benchmark reflects this by structuring tasks into a hierarchical framework, assessing an agent’s ability to handle increasingly sophisticated experimentation tasks. 
+% Tasks test multi-step reasoning, adaptation to unexpected results, and structured record-keeping over iterative processes.
+Unlike standard benchmarks that classify tasks by a single difficulty metric (e.g., easy, medium, hard), ours structures complexity along experiment-driven dimensions (detailed definitions in App.~\ref{app:complex}):
+
+\noindent\textit{1). Design Complexity:} The complexity of structuring an experiment (e.g., requiring hypothesis refinement), including defining the scope of exploration, selecting key variables, and structuring parameter spaces—ranging from discrete to continuous and from sparse to dense configurations.
+
+\noindent\textit{2). Experiment Setup Complexity:} The difficulty of initializing and configuring the experimental environment, from simple predefined setups to intricate dependencies requiring multi-step configuration.
+
+\noindent\textit{3). Relationship Complexity:} The interactions between variables and outcomes, from simple linear dependencies to complex non-monotonic relationships.
+
+\noindent\textit{4). Experiment Goal Complexity:} The number of competing objectives and trade-offs involved, from single-metric optimization to multi-objective balancing under constraints.
+% and are subject to change as AI agents improve in their experimentation capabilities over time.
+
+\if 0
+\begin{packeditemize}
+    \item \textbf{Design Complexity:} The size and structure of the variable configurations, ranging from discrete to continuous, and from sparse to dense parameter spaces.
+    \item \textbf{Experiment Setup Complexity:} The difficulty of initializing and configuring the experimental environment, from straightforward setups to intricate dependencies.
+    \item \textbf{Relationship Complexity:} The interactions between variables and outcomes, from simple linear dependencies to complex non-monotonic relationships.
+    \item \textbf{Experiment Goal Complexity:} The number and trade-offs of objectives, such as optimizing single metrics or navigating multi-objective challenges.
+\end{packeditemize}
+\fi
+
+
+% These dimensions enable the evaluation of frameworks across various real-world challenges, with detailed definitions of difficulty levels provided in App.~\ref{app:complex}. 
+
+
+% Table~\ref{tab:experiment-complexities}.
+
+% \begin{table*}[t]
+% \label{table:benchmark-sample}
+% \centering
+% \caption{Example Questions Across Complexity Dimensions for LLM Reasoning}
+% \begin{tabular}{|p{4.3cm}|p{11cm}|}
+% \hline
+% \textbf{Complexity Dimension} & \textbf{Example Question} \\ \hline
+% Search Space Complexity & How does the number of samples impact the success rate? \\ \hline
+% Relationship Complexity & What is the mathematical relationship between the number of samples and the success rate (e.g., quadratic, log-linear)? \\ \hline
+% Experiment Goal Complexity & To achieve a success rate of 90\% while ensuring response latency remains under 10ms per output token, what is the optimal model type (e.g., GPT-4o, GPT-4o-Mini) and number of samples? \\ \hline
+% Experiment Setup Complexity & What is the relationship between the number of samples and success rate across different datasets (Math, Code, etc.)? \\ \hline
+% \end{tabular}
+% \end{table*}
+
+
+% \subsection{Workloads}
+% Our benchmark workloads span across 4 different topics within computer science, focusing on LLM reasoning, vector indexing, cloud computing and ML training, as summarized in Table~\ref{table:benchmark-overview}.
+% These tasks are derived from real-world applications and research challenges to reflect practical use cases. 
+
+
+
+% \paragraph{LLM Reasoning.}  
+% TODO: what is reasoning, why we need it. scaling test time compute.
+% TODO: why we carious about the setups (number of steps, number of generated samples).
+
+
+% In this workload, we investigate key questions such as: How do the number of generated samples or reasoning steps impact response quality?
+% What configurations (e.g., model type and reasoning steps) provide the best trade-offs between accuracy and cost?
+
+
+% % Answering these questions offers actionable insights for [ LLM reasoning ], ensuring [quality] and cost-efficiency in real-world use cases.
+
+% \paragraph{Vector Indexing.}  
+% Vector indexing involves building data structures to efficiently index and retrieve high-dimensional vector embeddings, which are essential for similarity search in tasks like retrieval augmented generation (RAG) and recommendation systems. 
+% This workload focuses on algorithm-system co-optimization, where various index mechanisms and configurations directly affect retrieval accuracy, memory usage, and response time.  
+
+% This workload examines questions such as: Which indexing mechanisms (e.g., tree-based or graph-based) perform best for different datasets?
+% How do configuration parameters like index size and search depth impact performance?
+% What trade-offs exist between retrieval accuracy and resource constraints?
+% These questions are critical for understanding the system behavior and deploying scalable, high-performance indexing solutions in production environments.
+ 
+
+% \paragraph{Cloud Computing.}
+% TODO. 
+% - Inherently difficult: remote setup unlike in other domains. Interact with cloud infra with complex dependencies. Cite IaC-Eval.
+% - Relevance: very much needed search for best instance type leads to cost savings, but very particular to specific use-cases. 
+
+% Cloud computing experimentation investigates the interplay between system configurations, resource utilization, and cost optimization in distributed environments. Unlike other domains, tasks in this workload involve remote setups with complex dependencies, requiring interaction with cloud infrastructure through tools such as Infrastructure-as-Code (IaC).
+
+% Key questions include:
+
+% How do different instance types or configurations impact cost and performance?
+% What are the optimal resource allocation strategies for specific use cases?
+% By addressing these inherently challenging tasks, this workload highlights the importance of efficient resource management and cost-saving strategies in real-world cloud deployments.
+
+% \paragraph{ML Training.}
+% cite MLAgentBench.
+
+% ML training workloads focus on optimizing model training processes across diverse setups, including hyperparameter tuning, resource allocation, and distributed training strategies. These tasks emphasize the interplay between training efficiency, model performance, and resource constraints.
+
+% Sample questions include:
+
+% What are the optimal configurations for distributed training across heterogeneous resources?
+% How does the choice of hyperparameters affect convergence time and resource consumption?
+% What trade-offs exist between training cost and final model accuracy?
+% By addressing these questions, the workload enables frameworks to explore scalable and efficient training methodologies essential for modern machine learning applications.
+
+% Please add the following required packages to your document preamble:
+% \usepackage[table,xcdraw]{xcolor}
+% Beamer presentation requires \usepackage{colortbl} instead of \usepackage[table,xcdraw]{xcolor}
+
+
+ 
+\if 0
+\subsection{Evaluation}  
+The goal of our evaluation is to assess how rigorously each framework performs the experimentation process, as rigor is the foundation of reliable scientific research.
+To achieve this, we evaluate every critical step in the experimentation pipeline, ensuring that each contributes to producing accurate and reproducible conclusions.
+% The evaluation utilizes the framework's outputs, including logs of the experimentation process, intermediate results, and final conclusions, to provide a transparent and systematic assessment.
+
+ 
+% The framework’s performance is measured across three key aspects of the experimentation process:  
+% \begin{itemize}  
+%     \item \textbf{Experiment Design:} Whether the framework accurately identifies key variables relevant to the research question and generates correct, executable code to set up experiments.  
+%     \item \textbf{Experiment Execution:} Whether the framework explores the necessary search space comprehensively, executes all required experiments, and produces valid results.  
+%     \item \textbf{Result Analysis:} Whether the framework analyzes experimental data correctly, draws logical conclusions, and provides insights aligned with the documented results.  
+% \end{itemize}  
+
+To evaluate each of these steps, we employ the LLM as a judge, which compares the framework's outputs against the ground truth. 
+This evaluation ensures that key variables are captured, generated code is correct, the search space is sufficiently explored, and all conclusions are consistent with the ground truth. 
+By leveraging an LLM for this purpose, the pipeline provides an efficient and scalable method to verify rigor and identify areas where the framework may require improvement.  
+
+Pat notes: we consutrct this by providing baseline golden truth answers for each of the setup process: search space, setup requirements, log requirements, and so on.. We then pass relevant snippets to each of these validators..
+furthermore, we integrated our setup verifier within our pipeline to also perform the analysis. 
+Or maybe we can say: we backport everything from our validators, and instead ask these validators to validate the final logs, rather than the progression. 
+
+\amber{do we need to talk about how the eval pipeline is constructed?}
+
+\amber{we might add efficiency (time, cost) as one of the metrics.}
+
+
+\fi

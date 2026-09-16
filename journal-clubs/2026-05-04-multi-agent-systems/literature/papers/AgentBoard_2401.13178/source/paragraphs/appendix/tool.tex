@@ -1,0 +1,165 @@
+
+
+\section{Details of Environments}
+\label{appendix:detail environment}
+\input{tables/task_stats.tex}
+\subsection{Details of Embodied Environments}
+ 
+\paragraph{AlfWorld (ALF)~\citep{shridhar2020alfworld}} are
+Household tasks that require models to explore rooms and use commonsense reasoning to perform tasks, 
+Within \BenchName, we evaluate a model's ability to perform tasks in physical household settings, 
+such as ``put a pencil on the desk". 
+AlfWorld is categorized into six types, comprising a total of 134 environments. 
+
+\paragraph{ScienceWorld (SW)~\citep{wang2022scienceworld}} 
+is a complex interactive text environment that poses a significant challenge to agents' scientific commonsense. This environment requires agents to navigate through 8 distinct functional rooms (e.g., workshop, kitchen) and utilize the tools to complete tasks such as ``measure the melting point of the orange juice". 
+%While ScienceWorld has already provided subgoals, these subgoals pose challenges in reflecting the performance of a LLM due to the subgoal sparsity and inappropriate weighting of different subgoals as further explained in Appendix~\ref{sec: Re-annotation of Scienceworld}.
+%In the original labels, subgoals are divided into ``sequential subgoals'' and ``unordered and optional subgoals''.  Completing only sequential subgoals yields full rewards (100 points), while each task under ``unordered and optional subgoals'' earns just 1 point. But many of these subgoals are important and necessary for achieving the final goals. Yet, they remain challenging even for strong models like GPT-3.5-Turbo. It is inappropriate to assign these necessary and difficult subgoals a score of 1. Moreover, the first subgoals in 'sequential subgoals' could be far from the initial state. This could result in very low rewards despite significant progress being made.
+%\jh{is this 1-point subgoal important? You could argue it is important thus 1 point is a bad design, but ``it is difficult'' does not entail 1 point is inappropriate, I don't see the logic here} 
+To address these issues, we re-annotate subgoals to calculate $r_t^{subgoal}$, where
+Specifically, we incorporate necessary observations as part of the subgoals. 
+the rewards for these subgoals are uniform and distributed evenly throughout the task. 
+To ensure that our annotated subgoals are necessary for achieving final goals, we restrict the use of tools and designated task completion rooms in the task descriptions. 
+We show more details of we annotated subgoals in the Appendix~\ref{sec: Re-annotation of Scienceworld}%\jh{plz elaborate this point further in the appendix}
+
+%\jh{can you give examples on how the original sub-goals are re-annotated, and how we modify text to provide more information in the appendix?}
+
+\paragraph{BabyAI (BA)~\citep{chevalier2018babyai}}
+is an interactive environment where agents navigate and manipulate objects in a 20x20 grid space. 
+The agent can only see objects within a limited sight and cannot perceive objects in remote rooms. 
+The original implementation represents observations as images and only allows for tensor-based low-level actions such as “0: move left”.
+“1: move right”, and “2: move forward”. 
+To enable text-based input and output for LLM agents, 
+We modified it by mapping the original actions to a textual action space and providing textual descriptions of visual observations, as shown in Table~\ref{tab:goal_trajectory}. 
+For each step, the environment returns a text description of the current observation, such as “There is a red ball 1 step to your right and 1 step ahead of you. There is a wall 2 steps ahead.” We also introduced high-level actions, such as "go to red ball 1” and “toggle and go through green locked door 1”, to expand the action space and enrich the semantic complexity of the environment. 
+Additionally, we implemented a new subgoal-based progress rate for the environments to increase the density of rewards compared to the original reward scores.
+Unlike the previous reward score in BabyAI which awards a point only after a new object is found or pickup, requiring many steps to see progress in reward score, our new approach increases density of the rewards, requiring fewer steps to achieve them. 
+We re-annotated subgoals and calculate with the equation of $r_{t}^{\text{subgoal}}$. 
+Subgoals are re-annotated to update the progress rate whenever the agent makes progress, such as navigating to another room, finding a red ball, and picking it up in the problem “pickup a red ball”.
+
+
+ 
+
+\subsection{Details of Game Environments}
+Evaluating LLM agents as strategic game playing agents demands strong planning ability of agents. We choose three tasks that are all demanding in planning and making strategies. 
+
+\paragraph{Jericho (JC)~\citep{hausknecht2020interactive}}
+is a collection of text-based game environments that evaluate agents to perform adventures in fictional worlds. This task is unique in that it requires strong world modeling ability as agents could only gain information about the magic world through exploration and interaction. 
+For example, for the task that requires the agent to perform actions with magic, it cannot reason with pre-trained commonsense knowledge and must perform exploration to understand the rules of the magic world. 
+The original games are quite long (need 50-300 steps to finish), which is not suitable for LLM agents with fixed context length. To solve this issue, we rewrite the goal of each adventure to restrict the games to be finished within 15 subgoals. 
+For example, \emph{zork1} game requires the player to enter a dungeon and explore the dungeon to find a bar. We rewrite the goal as “You need to find your way into a secret passage where the entrance is in the living room of the house.” and the agent only needs to find the entrance to the dungeon, which can be finished in 8 steps. 
+We use the $r_t^{\text{subgoal}}$ as progress rate metrics, and we meticulously annotate the subgoals for each problem. 
+Each subgoal characterize that the agent has solved a small problem, e.g. “find the entrance to the house" $\rightarrow$ “enter the house" $\rightarrow$ “find the living room" $\rightarrow$ “discover a trap door" $\rightarrow$ “find the entrance to dungeon". 
+
+\paragraph{PDDL (PL)~\citep{vallati20152014},} short for Planning Domain Definition Language, is a set of strategic games defined with PDDL symbolic language. 
+We selected 4 representative game domains, \textit{Gripper, Barman, Blocksworld, Tyreworld} to benchmark LLM agents in diverse scenarios, where the agent needs to move balls across rooms, make cocktails, rearrange blocks and pump up and install new tyres to cars. 
+This task is difficult as it requires multiple rounds of planned actions to finish a single subgoal and agents need to plan strategically to avoid repetitive steps. 
+For example, in \textit{Barman}, the player is given a menu, and is required to make a few cocktails with a few containers and ingredients. The agent could use a strategy of trying to use different containers each time to avoid repetitive cleaning and save steps. 
+While the commonly-used environment implementation \citep{silver2020pddlgym} requires the agent to interact with an environment with PDDL expressions, 
+e.g. \texttt{clean-shaker(hand1, hand2, shaker)} and provides observations as set of predicates \texttt{ontable(shaker1) $\wedge$ empty(shaker1)}.  
+we write parser rules to offer a text-based observation to agents that allows LLMs to interact with natural language to be consistent with other tasks. 
+e.g.“Shaker1 is on the table. Shaker1 is empty” and enable the agents to interact with the environment with simple text commands, e.g. “clean-shaker shaker1 with hand1 while hand2 is empty.” 
+We curate 10-20 problems for each of the four domains by ourselves, ensuring the problems are multi-round and diverse. 
+We use the $r_t^{\text{match}}$ as progress rate metric, where the matching score compares the similarity between the properties of current state and the goal state. 
+e.g. for the goal state ``Block a is on block b. Block b is on the table'', if at current state ``Block a is on the table. Block b is on the table'', then the matching score is 0.5. The agent will receive a 100\% progress rate only if all conditions of the goal state are satisfied.
+
+\subsection{Details of Web-based Environments}
+Evaluating LLM's capability as a generalist agent in web-based scenarios has become pivotal~\citep{Shi2017WorldOB, deng2023mind2web}. 
+Web agent is expected to navigate the network efficiently and perform diverse tasks amidst highly dynamic, intricate, and multi-turn interactions. 
+Based on the task categorization, we've pinpointed two tasks of high recognition and quality: the specific network task, WebShop~\citep{yao2022webshop}, and the general network task, WebArena~\citep{zhou2023webarena}. The latter permits unrestricted access to any supported webpage.
+
+\paragraph{WebShop (WS)~\citep{yao2022webshop}}
+is a network-based simulation environment for e-commerce experiences, featuring a website with 1.18 million actual products, each with distinct labels and attributes. In this environment, the agent is allowed to interact with the system through `search[QUERY]' or `click[ELEMENT]' actions to purchase products matching the instructions. 
+This process necessitates that the model possesses reasoning and grounding abilities.
+Based on the original implementation method~\citep{yao2022webshop,shinn2023reflexion}, we have improved the error feedback, including refining the observation for exceeding page limits and interacting with wrong objects. These enhancements contribute to the effective operation of the entire environment and the rationality of multi-step reasoning processes.
+As there are no sub-goals in the environment, to obtain a continuous progress rate, we expanded the calculation rules from~\citep{yao2022webshop}, calculating the score at different web pages (stages). 
+To measure the distance of the current state to the final goal as the progress rate, we expanded the product scoring rules from~\citet{yao2022webshop} to derive the score at different web pages. Please refer to Appendix~\ref{sec: Re-annotation of WebShop} for details.
+% Specifically, we calculate the highest score of products on a page for both search result page and product description page. At the confirm order page, we calculate the final product score (a full score cannot be achieved if attributes are not correctly chosen). In this rule-based evaluation, the final progress rate is the average of the scores from the three pages.
+
+\paragraph{WebArena (WA)~\citep{zhou2023webarena}}
+is a real web environment containing four applications: online shopping, discussion forums, collaborative development, and business content management. It supports 11 different web browsing actions. 
+such as click (element),  new tab, goto (URL), etc., and offers additional tools like maps and wikis. 
+The observation space consists of structured web content
+(the accessibility tree
+\footnote{https://developer.mozilla.org/en-US/docs/Glossary/Accessibility\_tree}). Completing tasks in this highly realistic environment requires the agent to possess strong memory, high-level planning, common sense, and reasoning abilities.
+Compared to other datasets~\citep{deng2023mind2web,shi2017world}, WebArena offers multi-round and continuous web browsing interaction simulation. We filtered 245 instances from the original dataset for two main sub-tasks: Site Navigation and Contact \& Config, each annotated with the target URLs or required content. 
+To obtain the progress rate, we revised the existing method for calculating the final score~\citep{zhou2023webarena} and continuously computed the progress rate at each step, fusing the URL matching score with the content matching score, 
+derived from the current URL and target URL, with the content matching score calculated based on the detected required content, 
+as detailed in Appendix~\ref{sec: Re-annotation of WebArena}.
+% The progress rate is formulated as follows: 
+
+% \begin{equation}
+%     r^{\text{match}} = \frac{n}{m+n}(r_{d}(r_{q}+r_{p})) + \frac{m}{n+m}r_{c} \quad (n=3; m=0,1,2,\ldots)
+% \end{equation}
+
+% In our method, we effectively utilize the annotation data, treating URLs as indicators of the web browsing trajectory and required contents as integral scoring points. First, We use \texttt{util.parse} to dissect URL into domain, query, and parameters. $r_{d}$ is assigned a binary value (0/1), scoring only if the domain is correct. Then, by applying the LCS (Longest Common Subsequence) algorithm, we calculate the matching score $r_{q}$ between the current query and the target query, and $r_{p}$ is the F1 score between the current and target parameters. The content matching score $r_{c}$ is calculated based on the proportion of required contents detected at each step. Ultimately, the progress rate is computed as a weighted sum of the URL matching and content matching scores. Here, $n$ represents the number of URL components, and $m$ denotes the count of required contents.
+
+
+\subsection{Details of Tool Environments}
+In \BenchName,
+a tool contains a variety of functions, accessed by agents via function calling.
+These functions are the actions that LLM agents can take in tool environments.
+% We primarily design the tool environments from the following three perspectives:
+% \paragraph{Tool Category}
+Drawing upon open datasets and APIs, we have developed a suite of five distinct tools, each encapsulated in its own environment.
+% \footnote{To facilitate expedited evaluation, we simplified the design process to yield basic yet functional tool prototypes.}
+Tool Environments are categorized into two groups: Tool-Query Environments and Tool-Operation Environments, representing two general usage scenarios.
+% Each environment is characterized by specialized functions, with Tool-Query Environments primarily facilitating question answering and Tool-Operation Environments enabling data manipulation, including creation, deletion, updating and retrieval.
+Tool-Query Environments include Weather Environment, Movie Environment and Academia Environment.
+Tool-Operation Environments include Todo Environment and Sheet Environment.
+
+% In Tool-Query Environments and Todo Environment, we employ $r_{t}^{\text{subgoal}}$ as a metric to measure progress rate.
+% When designing actions for these environments, we ensure that each action's functionality is indecomposable~(i.e., the functionality and outcome of one action can not be achieved through other actions).
+% This design choice results in a deterministic set of required golden actions to achieve our annotated goal.
+% Furthermore,
+% we ask human annotators to identify golden actions for each goal.
+% Every output returned by executing golden actions is then processed as a subgoal.
+
+% For a detailed introduction to the functions of each tool, please refer to Appendix XX.
+
+% \paragraph{Fine-grained Multi-step Interaction}
+% For each devised goal within our tool-using environments, 
+% the completion requires a series of interactions with the respective tool.
+% At present, our scope is limited to single-tool multi-step scenarios and we leave multi-tool multi-step as our future work.
+% In tool-using scenarios, most subgoals are derived from the observations returned by golden function calls.
+
+% \paragraph{Metric}
+% Diverse metrics have been previously adopted for evaluating tool-using performance, ranging from accuracy-centric methods for definitive assessment to using large language models for comparative evaluation.
+% In our tool-using scenarios, we prioritize an objective measurement of performance, quantified by the metrics of success rate and reward score, which are formulated to reflect progressive achievement.
+
+
+
+
+
+
+
+
+\subsubsection{Tool-Query Environments}
+\label{appendix.a.2}
+\paragraph{Weather Environment}
+Weather Environment enables LLM agents to use the weather tool to retrieve past, present and future weather data, encompassing temperature, precipitation and air quality across various locales.
+We use Python codes to integrate Open-Meteo API\footnote{\url{https://open-meteo.com/}}, implement the requisite functions and subsequently develop a weather tool.
+% The names, descriptions, input and output of the functions provided by the tool can be found in Figure~\ref{fig:weather_prompt}.
+
+\paragraph{Movie Environments}
+Movie Environment grants LLM agents to use the movie tool to access cinematic data, encompassing film details, personnel and production companies.
+We incorporate the API and data from The Movie Database\footnote{\url{https://www.themoviedb.org/}}, implement the necessary functions, and thus establish the movie tool.
+% The names, descriptions, input and output of the functions provided by the tool can be found in Figure~\ref{fig:movie_prompt}.
+% The appendix provides a detailed function overview.
+
+\paragraph{Academia Environment}
+Academia Environment equips LLM agents the academia tool to query information related to computer science research, including academic papers and author information.
+In its development, we harness data from the Citation Network Dataset\footnote{\url{https://www.aminer.org/citation}}, craft the relevant functions, and subsequently construct the academia tool.
+% The names, descriptions, input and output of the functions provided by the tool can be found in Figure~\ref{fig:academia_prompt}.
+
+\subsubsection{Tool-Operation Environments}
+\label{appendix.a.3}
+\paragraph{Todo Environment}
+Todo Environment facilitates LLM agents in querying and amending personal agenda data through the todo tool.
+We implement the todo tool based on the Todoist API\footnote{\url{https://todoist.com/}}.
+% The names, descriptions, input and output of the functions provided by the tool can be found in Figure~\ref{fig:todo_prompt}.
+
+\paragraph{Sheet Environment}
+Sheet Environment allows LLM agents to use the sheet tool to access and modify spreadsheet data.
+We build our sheet tool upon the Google Sheets API\footnote{\url{https://www.google.com/sheets/about/}}.
+% The names, descriptions, input and output of the functions provided by the tool can be found in Figure~\ref{fig:sheet_prompt}.

@@ -1,0 +1,376 @@
+\section{Experiments}
+\label{sec:experiments}
+
+We evaluate TarMAC on a variety of tasks and environments.
+All our models were trained with a batched synchronous version of the multi-agent
+Actor-Critic described above, using RMSProp with a learning rate of
+$7\times 10^{-4}$ and $\alpha = 0.99$, batch size $16$, discount factor
+$\gamma = 0.99$ and entropy regularization coefficient $0.01$ for agent policies.
+All our agent policies are instantiated from the same set of shared parameters; \ie $\theta_1 = ... = \theta_N$.
+Each agent's GRU hidden state is $128$-d, message signature/query is $16$-d, and message value is $32$-d (unless specified otherwise).
+All results are averaged over $5$ independent seeds (unless noted otherwise),
+and error bars show standard error of means.
+
+\vspace{-5pt}
+\subsection{SHAPES}
+\label{sec:shapes}
+
+The SHAPES dataset was introduced by~\citet{andreas_cvpr16}\footnote{\href{https://github.com/jacobandreas/nmn2/tree/shapes}{\texttt{github.com/jacobandreas/nmn2/tree/shapes}}}, and originally created
+for testing compositional visual reasoning for the task of visual question answering.
+It consists of synthetic images of $2$D colored shapes
+arranged in a grid ($3 \times 3$ cells in the original dataset) along with corresponding
+question-answer pairs.
+There are $3$ shapes (circle, square, triangle), $3$ colors (red, green, blue),
+and $2$ sizes (small, big) in total (see~\Figref{fig:shapes_3x3}).
+
+We convert each image from SHAPES
+into an active environment where agents can now be spawned at different regions of
+the image, observe a $5 \times 5$ local patch around them and their coordinates, and take actions
+to move around -- $\{$\texttt{up}, \texttt{down}, \texttt{left}, \texttt{right}, \texttt{stay}$\}$. Each agent is tasked with
+navigating to a specified goal state in the environment within a max no.~of steps -- $\{$`red', `blue square',
+`small green circle', \etc$\}$ -- and the reward for each agent at every timestep
+is based on team performance \ie $r_t = \frac{\textnormal{\# agents on goal}}{\textnormal{\# agents}}$.
+Having a symmetric, team-based reward incentivizes agents to cooperate
+in finding each agent's goal.
+
+\begin{table*}[h!]
+\centering
+\begin{tabular}{lrrr}
+   & \multicolumn{1}{c}{{\scriptsize $30 \times 30$, $4$ agents, find$[$\texttt{red}$]$}} & \multicolumn{1}{c}{{\scriptsize $50 \times 50$, $4$ agents, find$[$\texttt{red}$]$}} & \multicolumn{1}{c}{{\scriptsize $50 \times 50$, $4$ agents, find$[$\texttt{red,red,green,blue}$]$}}    \\ \midrule
+    {\small No communication}
+        & {\small $95.3$}{\scriptsize $\pm 2.8\%$} & {\small $83.6$}{\scriptsize $\pm 3.3\%$} & {\small $69.1$}{\scriptsize $\pm 4.6\%$}  \\[0.05in]
+    {\small No attention}
+        & {\small $\mathbf{99.7}$}{\scriptsize $\pm 0.8\%$} & {\small $\mathbf{89.5}$}{\scriptsize $\pm 1.4\%$} & {\small $82.4$}{\scriptsize $\pm 2.1\%$} \\[0.05in]
+    {\small TarMAC}
+        & {\small $\mathbf{99.8}$}{\scriptsize $\pm 0.9\%$} & {\small $\mathbf{89.5}$}{\scriptsize $\pm 1.7\%$} & {\small $\mathbf{85.8}$}{\scriptsize $\pm 2.5\%$}  \\ \bottomrule
+\end{tabular} \\[0.05in]
+\caption{Success rates on $3$ different settings of cooperative navigation
+    in the SHAPES environment.}
+\label{table:shapesnumbers}
+\vspace{-15pt}
+\end{table*}
+
+\textbf{How does targeting work?}
+Recall that each agent predicts a signature and value vector as part of the message
+it sends, and a query vector to attend to incoming messages.
+The communication is targeted because the attention probabilities are a function
+of both the sender's signature and receiver's query vectors. So it is not just
+the receiver deciding how much of each message to listen to.
+The sender also sends out signatures that affects how much of each
+message is sent to each receiver.
+The sender's signature could encode parts of its observation most relevant to other
+agents' goals (\eg it would be futile to convey coordinates in the signature),
+and the message value could contain the agent's own location. For example, in ~\Figref{fig:shapes_3x3},
+at $t=6$, we see that when agent 2 passes by blue, agent 4 starts attending to agent 2. Here,
+agent 2's signature likely encodes the color it observes (which is blue), and agent 4's query
+encodes its goal (which is also blue) leading to high attention probability.
+Agent 2's message value encodes coordinates agent 4 has to navigate to,
+which it ends up reaching by $t=21$.
+
+SHAPES serves as a flexible testbed for carefully controlling and analyzing
+the effect of changing the size of the environment, no. of agents, goal configurations, \etc.
+\Figref{fig:shapes_3x3} visualizes learned protocols, and \tableref{table:shapesnumbers}
+reports quantitative evaluation for three different configurations --
+1) 4 agents, all tasked with finding \texttt{red} in $30 \times 30$ images,
+2) 4 agents, all tasked with finding \texttt{red} in $50 \times 50$ images,
+3) 4 agents, tasked with finding $[$\texttt{red,red,green,blue}$]$ respectively in $50 \times 50$ images.
+We compare TarMAC against two baselines -- 1) without communication, and 2) with communication
+but where broadcasted messages are averaged instead of attention-weighted, so
+all agents receive the same message vector, similar to~\citet{sukhbaatar_nips16}.
+Benefits of communication and attention increase with task complexity
+({\scriptsize $30 \times 30 \rightarrow 50 \times 50$ \& find$[$\texttt{red}$]$ $\rightarrow$ find$[$\texttt{red,red,green,blue}$]$}).
+
+\vspace{-5pt}
+\subsection{Traffic Junction}
+\label{sec:tj}
+
+\textbf{Environment and Task.} The simulated traffic junction environments from~\cite{sukhbaatar_nips16} consist of
+cars moving along pre-assigned, potentially intersecting routes on one or more road junctions. The total number of cars is fixed at $N_\textnormal{max}$,
+and at every timestep new cars get added to the environment with probability $p_\textnormal{arrive}$. Once a car completes its route, it becomes available to be sampled and added
+back to the environment with a different route assignment.
+Each car has a limited visibility of a $3 \times 3$ region around it, but is free
+to communicate with all other cars. The action space for each car
+at every timestep is \texttt{gas} and \texttt{brake}, and the reward consists of a linear time penalty
+$-0.01\tau$, where $\tau$ is the number of timesteps since car has been active,
+and a collision penalty $r_\textnormal{collision} = -10$.
+
+\begin{table}[h]
+\centering
+    \resizebox{\columnwidth}{!}{
+    \begin{tabular}{lrr}
+    \toprule
+       & \multicolumn{1}{c}{Easy} & \multicolumn{1}{c}{Hard}    \\ \midrule
+        No communication
+            & $84.9${\scriptsize $\pm 4.3\%$}  & $74.1${\scriptsize $\pm 3.9\%$}  \\[0.05in]
+        CommNet~\citep{sukhbaatar_nips16}
+            & $99.7${\scriptsize $\pm 0.1\%$}  & $78.9${\scriptsize $\pm 3.4\%$}  \\[0.05in]
+        TarMAC $1$-round
+            & $\mathbf{99.9}${\scriptsize $\pm 0.1\%$}   & $84.6${\scriptsize $\pm 3.2\%$}  \\[0.05in]
+        TarMAC $2$-round
+            & $\mathbf{99.9}${\scriptsize $\pm 0.1\%$} & $\mathbf{97.1}${\scriptsize $\pm 1.6\%$}  \\ \bottomrule
+    \end{tabular}} \\[0.05in]
+    \caption{Success rates on traffic junction. Our targeted
+    $2$-round communication architecture gets a success rate of $97.1${\scriptsize $\pm 1.6\%$}
+    on the `hard' variant, significantly outperforming~\citet{sukhbaatar_nips16}.
+    Note that $1$- and $2$-round refer to the number of rounds of communication between actions (\Eqref{eq:nextstate}).}
+    \label{table:traffic}
+    \vspace{-5pt}
+\end{table}
+
+\textbf{Quantitative Results.} We compare our approach with CommNet~\citep{sukhbaatar_nips16} on the \texttt{easy}
+and \texttt{hard} difficulties of the traffic junction environment. The \texttt{easy} task has one junction of two one-way roads on a $7 \times 7$ grid with $N_\textnormal{max}=5$ and
+$p_\textnormal{arrive}=0.30$, while the \texttt{hard} task has four connected
+junctions of two-way roads on a $18 \times 18$ grid with $N_\textnormal{max}=20$ and
+$p_\textnormal{arrive}=0.05$.
+See \Figref{fig:brake}, \ref{fig:attention} for an example
+of the four two-way junctions in the \texttt{hard} task. As shown in \tableref{table:traffic},
+a no communication baseline has success rates of $84.9${\scriptsize $\pm 4.3\%$}
+and $74.1${\scriptsize $\pm 3.9\%$} on \texttt{easy} and \texttt{hard}
+respectively. On \texttt{easy}, both CommNet and TarMAC get close to $100\%$.
+On \texttt{hard}, TarMAC with $1$-round significantly outperforms
+CommNet with a success rate of $84.6${\scriptsize $\pm 3.2\%$}, while $2$-round
+further improves on this at $97.1${\scriptsize $\pm 1.6\%$},
+which is an $\sim$$18\%$ absolute improvement over CommNet.
+We did not see gains going beyond $2$ rounds in this environment.
+
+\textbf{Message size \vs multi-round communication.}
+We study performance of TarMAC with varying message value size and number of rounds
+of communication on the \texttt{hard} variant of the traffic junction task. As can be seen in~\Figref{fig:msg_sz_rounds},
+multiple rounds of communication leads to significantly higher performance than
+simply increasing message size, demonstrating the advantage of multi-round communication.
+In fact, decreasing message size to a single scalar performs almost as well as $64$-d,
+perhaps because even a single real number can be sufficiently partitioned to cover the space of meanings/messages that need to be conveyed.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/main/message_size_vs_round.png}
+    \caption{Success rates for $1$ \vs $2$-round \vs message
+    size on \texttt{hard}. Performance does not
+    decrease significantly even when the message vector is a single scalar, and
+    $2$-round communication before taking an
+    action leads to significant improvements over $1$-round.}
+    \label{fig:msg_sz_rounds}
+\end{figure}
+
+\begin{figure*}[t]
+    \begin{minipage}[b]{0.28\textwidth}
+        \begin{subfigure}{\textwidth}
+            \centering
+            \includegraphics[width=0.9\textwidth]{figures/main/brake_probs_v2.png}
+            \vspace{5pt}
+            \caption{Brake probabilities at different locations on the \texttt{hard} traffic
+                junction environment. Cars tend to brake close to or right before entering junctions.}
+            \label{fig:brake}
+        \end{subfigure}
+    \end{minipage}\hfill
+    \begin{minipage}[b]{0.27\textwidth}
+        \begin{subfigure}{\textwidth}
+            \centering
+            \includegraphics[width=0.9\textwidth]{figures/main/att_probs_v2.png}
+            \vspace{5pt}
+            \caption{Attention probabilities at different locations.
+            Cars are most attended to in the `internal grid' -- right after the $1$st
+            junction and before the $2$nd.}
+            \label{fig:attention}
+        \end{subfigure}
+    \end{minipage}\hfill
+    \begin{subfigure}{0.41\textwidth}
+        \centering
+        \vspace{15pt}
+        \includegraphics[width=0.9\textwidth]{figures/main/cars_in_sys_vs_att_v2.png}
+        \vspace{10pt}
+        \caption{No.~of cars being attended to
+        1) is positively correlated with total cars,
+        indicating that TarMAC is adaptive to dynamic team sizes,
+        and 2) is slightly right-shifted, since it takes few steps
+        of communication to adapt.}
+        \label{fig:carcount}
+    \end{subfigure}
+    \vspace{5pt}
+    \caption{Interpretation of model predictions from TarMAC in the traffic junction environment.}
+    \label{fig:traffic}
+    \vspace{-10pt}
+\end{figure*}
+
+\begin{figure*}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{figures/main/house3d_nav.jpg}
+    \caption{Agents navigating to the \texttt{fireplace} in House3D (marked in yellow).
+    Note in particular that agent $4$ is spawned facing away from it.
+    It communicates with others, turns to face the \texttt{fireplace}, and moves towards it.}
+    \label{fig:house3dnav}
+    \vspace{-15pt}
+\end{figure*}
+
+\vspace{5pt}
+\textbf{Model Interpretation.} Interpreting the learned policies of TarMAC,
+\Figref{fig:brake} shows braking probabilities at different locations --
+cars tend to brake close to or right before entering traffic junctions, which is reasonable
+since junctions have the highest chances for collisions.
+Turning our attention to attention probabilities (\Figref{fig:attention}),
+we can see that cars are most-attended to when in the `internal grid' -- right after
+crossing the $1$st junction and before hitting the $2$nd junction. These attention
+probabilities are intuitive -- cars learn to attend to specific sensitive locations
+with the most relevant local observations to avoid collisions.
+Finally,~\Figref{fig:carcount}
+compares total number of cars in the environment
+\vs number of cars
+being attended to with probability $> 0.1$ at any time. Interestingly, these are (loosely)
+positively correlated, with Spearman's $\sigma=0.49$, which shows that TarMAC
+is able to adapt to variable number of agents. Crucially, agents learn this dynamic targeting behavior purely from task rewards with
+no hand-coding! Note that the right shift between the two curves is
+expected, as it takes a few timesteps of communication for team size changes to propagate.
+At a relative time shift of $3$, the Spearman's rank correlation between the two curves goes up to $0.53$.
+
+\vspace{-5pt}
+\subsection{House3D}
+\label{sec:h3d}
+
+Next, we benchmark TarMAC on a cooperative point-goal
+navigation task in House3D~\citep{house3d}. House3D provides a rich and diverse
+set of publicly-available\footnote{\href{https://github.com/facebookresearch/house3d}{\texttt{github.com/facebookresearch/house3d}}}
+$3$D indoor environments, wherein agents do not have access to the top-down map
+and must navigate purely from first-person vision. Similar to SHAPES, the agents are tasked
+with finding a specified goal (such as `fireplace') within a max no.~of steps,
+spawned at random locations in the environment and allowed to communicate and move around.
+Each agent gets a shaped reward based on progress towards the specified target.
+An episode is successful if all agents end within $0.5$m of the target object
+in $500$ navigation steps.
+
+\tableref{table:house3d} shows success rates on a \texttt{find[fireplace]} task
+in House3D. A no-communication navigation policy trained with the same
+reward structure gets a success rate of $62.1${\scriptsize $\pm 5.3\%$}.
+Mean-pooled communication (no attention) performs slightly better with a
+success rate of $64.3${\scriptsize $\pm 2.3\%$}, and TarMAC
+achieves the best success rate at $68.9${\scriptsize $\pm 1.1\%$}.
+TarMAC agents take $82.5$ steps to reach the target on average vs. $101.3$
+for no attention vs. $186.5$ for no communication.
+\Figref{fig:house3dnav} visualizes a predicted navigation trajectory of $4$ agents.
+Note that the communication vectors are significantly more compact ($32$-d)
+than the high-dimensional observation space ($224 \times 224$ image),
+making our approach particularly attractive for scaling to large agent teams.
+
+\vspace{10pt}
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+    & \multicolumn{1}{c}{Success rate} & \multicolumn{1}{c}{Avg. \# steps}    \\ \midrule
+    No communication
+        & $62.1${\scriptsize $\pm 5.3\%$}
+        & $186.5$  \\[0.05in]
+    No attention
+        & $64.3${\scriptsize $\pm 2.3\%$}
+        & $101.3$ \\[0.05in]
+    TarMAC
+        & $\mathbf{68.9}${\scriptsize $\pm 1.1\%$}
+        & $\mathbf{82.5}$  \\ \bottomrule
+\end{tabular} \\[0.09in]
+\caption{$4$-agent \texttt{find[fireplace]} navigation task in House3D.}
+\label{table:house3d}
+\end{table}
+
+Note that House3D is a challenging testbed for multi-agent reinforcement
+learning. To get to $\sim$$100\%$ accuracy, agents have to deal with high-dimensional
+visual observations, be able to navigate long action sequences (up to $\sim$$500$ steps),
+and avoid getting stuck against objects, doors, and walls.
+
+\vspace{-5pt}
+\subsection{Mixed and Competitive Environments}
+\label{sec:competitive}
+
+\begin{figure*}[t]
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \begin{subfigure}{1.0\textwidth}
+            \centering
+            \includegraphics[width=0.9\textwidth]{figures/main/pp_easy_steps.png}
+            \vspace{5pt}
+            \caption{$3$ agents, $5\times5$ grid,
+                vision=$0$, max steps=$20$}
+            \label{fig:pp_easy}
+            \vspace{10pt}
+        \end{subfigure}
+    \end{minipage}\hfill
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \begin{subfigure}{\textwidth}
+            \centering
+            \includegraphics[width=0.9\textwidth]{figures/main/pp_hard_steps.png}
+            \vspace{5pt}
+            \caption{$10$ agents, $20\times20$ grid,
+                vision=$1$, max steps=$80$}
+            \label{fig:pp_hard}
+            \vspace{10pt}
+        \end{subfigure}
+    \end{minipage}\hfill
+    \vspace{-5pt}
+    \caption{Average no.~of steps to complete an episode (lower is better)
+        during training in the Predator-Prey mixed environment.
+        IC3Net + TarMAC converges much faster than IC3Net,
+        demonstrating that attentional communication helps.
+        Shaded region shows $95\%$ CI.}
+    \label{fig:pp}
+    \vspace{-10pt}
+\end{figure*}
+
+\begin{table*}[t]
+\centering
+\begin{tabular}{lccc}
+    & \multicolumn{1}{c}{{\scriptsize $3$ agents, $5 \times 5$,}}
+        & \multicolumn{1}{c}{{\scriptsize $5$ agents, $10 \times 10$,}}
+        & \multicolumn{1}{c}{{\scriptsize $10$ agents, $20 \times 20$,}} \\[-0.05in]
+    & \multicolumn{1}{c}{{\scriptsize vision=$0$, max steps=$20$}}
+        & \multicolumn{1}{c}{{\scriptsize vision=$1$, max steps=$40$}}
+        & \multicolumn{1}{c}{{\scriptsize vision=$1$, max steps=$80$}}    \\ \midrule
+    {CommNet~\cite{sukhbaatar_nips16}}
+        & {$9.1$}{\scriptsize $\pm 0.1$} & {$13.1$}{\scriptsize $\pm 0.01$} & {$76.5$}{\scriptsize $\pm 1.3$}  \\ [0.05in]
+    {IC3Net~\cite{singh_iclr19}}
+        & {$8.9$}{\scriptsize $\pm 0.02$} & {$13.0$}{\scriptsize $\pm 0.02$} & {$52.4$}{\scriptsize $\pm 3.4$} \\ [0.05in]
+    {IC3Net $+$ TarMAC}
+        & {$8.31$}{\scriptsize $\pm 0.06$} & {$\mathbf{12.74}$}{\scriptsize $\pm 0.08$} & {$41.67$}{\scriptsize $\pm 5.82$} \\ [0.05in]
+    {IC3Net $+$ TarMAC (2-round)}
+        & {$\mathbf{7.24}$}{\scriptsize $\pm 0.08$} & -- & {$\mathbf{35.57}$}{\scriptsize $\pm 3.96$} \\ \bottomrule
+\end{tabular} \\[0.1in]
+\caption{Average number of steps taken to complete an episode (lower is better)
+        at convergence in the Predator-Prey mixed environment.}
+\label{table:ppnumbers}
+\vspace{-15pt}
+\end{table*}
+
+Finally, we look at how to extend TarMAC to
+mixed and competitive scenarios. Communication via sender-receiver soft
+attention in TarMAC is poorly suited for competitive scenarios,
+since there is always ``leakage'' of the agent's state as a message to other
+agents via a low but non-zero attention probability, thus compromising its
+strategy and chances of success. Instead, an agent should first be able to independently decide if it wants to
+communicate at all, and then direct its message to specific recipients if it does.
+
+The recently proposed IC3Net architecture by~\citet{singh_iclr19} addresses
+the former -- learning when to communicate. At every timestep, each agent in IC3Net
+predicts a hard gating action to decide if it wants to communicate.
+At the receiving end, messages from agents who decide to communicate are
+averaged to be the next input message.
+Replacing this message averaging with our sender-receiver soft attention,
+while keeping the rest of the architecture and training details the same as
+IC3Net,
+should provide an inductive bias for more flexible communication strategies,
+since this model (IC3Net + TarMAC) can learn both when to
+communicate and whom to address messages to.
+
+We evaluate IC3Net + TarMAC on the Predator-Prey environment from~\citet{singh_iclr19},
+consisting of $n$ predators, with limited vision, moving around
+(with a penalty of $r_{\text{explore}}=-0.05$ per timestep)
+in search of a stationary prey. Once a predator reaches a prey, it keeps getting positive
+reward $r_{\text{prey}}=0.05$ till end of episode \ie till other agents reach prey or
+maximum no.~of steps. The prey gets $0.05$ per timestep only till the first
+predator reaches it, so it has incentive to not communicate its location.
+We compare average no. of steps for
+agents to reach the prey during training (\Figref{fig:pp}) and at convergence (\tableref{table:ppnumbers}).
+\Figref{fig:pp} shows that using TarMAC with IC3Net leads to significantly faster convergence
+than IC3Net alone, and \tableref{table:ppnumbers} shows that TarMAC agents
+reach the prey faster.
+Results are averaged over $3$ independent runs with different seeds.
+
+
+

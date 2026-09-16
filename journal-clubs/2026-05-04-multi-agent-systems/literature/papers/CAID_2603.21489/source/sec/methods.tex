@@ -1,0 +1,144 @@
+% \section{SWE Primitive Driven Multi-Agent System}
+\section{Branch-and-Merge Multi-Agent Coordination with SWE Primitives}
+\label{sec:methods}
+\input{tables/methods-caid}
+% \gncomment{Much of this paragraph is repetitive with the intro. You don't need to say things twice.}
+% Software engineering (SWE) primitives are battle-tested tools and protocols that support human software team collaboration, including dependency graphs, asynchronous execution, \texttt{git worktrees}, branch-and-merge mechanisms, and executable test suites. We formalize these SWE-primitives from human software engineering teams for multi-agent systems and propose \ourmethod (see Figure \ref{fig:teaser}). \ourmethod is a multi-agent system built around a manager-engineer architecture. The manager agent acts as the central orchestrator to first explore the implementation goal and gain a high-level picture of the workload, expected behaviors, and task dependencies. Based on this exploration, the manager delegates tasks to $N$ engineer agents through structured \textsc{JSON} specifications. Each engineer implements their assigned tasks asynchronously and in parallel within their own isolated workspace. Once the implementation is finished, the engineer is also responsible for verifying the quality of their code and submitting a final \texttt{git commit}. Finally, their implementations are merged back into the main branch via \texttt{git merge}, and the manager dynamically assigns the next tasks, repeating this process until all tasks are complete or the rounds limit is reached. We summarize the systematic mapping between these human SWE practices and our multi-agent blocks in Table \ref{tab:swe-primitive-mapping}. 
+We formalize \ourmethod as a coordination architecture centered on branch-and-merge which is supported by SWE primitives. These primitives support the core operations of CAID, including task decomposition, isolated development, integration, and verification. In Table \ref{tab:swe-primitive-mapping}, we summarize the mapping between concrete SWE primitives (e.g., \texttt{git worktree}, \texttt{git merge}, dependency graphs, and test suites) and their corresponding coordination roles in \ourmethod.
+\ourmethod consists of task specification and dependency modeling (Section \ref{sec:task-spec-dep-graph}), dependency-aware task delegation (Section \ref{sec:dep-awa-delegation}), workspace isolation and integration (Section \ref{sec:iso-int}), structured communication with asynchronous execution (Section \ref{sec:com-async}), and self-verification with termination control (Section \ref{sec:self-verfication}).
+
+\subsection{Task Specification and Dependency Graph}
+\label{sec:task-spec-dep-graph}
+
+In order to perform multi-agent delegation, we need to first split the overall task into a set of sub-tasks and decide their ordering.
+In our preliminary experience, if we allow agents to split the task in an arbitrary manner, they may miss important parts of the task as they proceed through the implementation. 
+Therefore, to proceed with task delegation in a structured way, we instead have the manager create a dependency graph of the repository to organize the work to be done.
+
+The repository structure is represented as a directed graph $G = (V, E)$, where each node $v \in V$ corresponds to a unit of work and each directed edge $(v_i, v_j) \in E$ indicates that $v_j$ depends on $v_i$.
+Let $\mathcal{C}_t \subseteq V$ denote the set of units that have been completed and successfully integrated into the main branch at round $t$. A unit $v_j$ is eligible for delegation only if all its dependencies have been satisfied:
+$\texttt{Ready}_t(v_j) \iff \forall (v_i, v_j) \in E,\; v_i \in \mathcal{C}_t$.
+At each round, the manager selects executable units from the ready set $\{ v \in V \mid \texttt{Ready}_t(v) \}$ and converts them into task assignments.
+
+Depending on the variety of task, the unit of work and method for dependency analysis can be defined in different ways.
+In \autoref{sec:commit0} and \autoref{sec:paperbench}, we describe how we define these for the tasks in the Commit0 and PaperBench benchmarks respectively. Although the granularity differs across the benchmarks, in both settings, the manager constructs a dependency structure before delegating the task. Engineers are assigned tasks only after this dependency structure is established.
+
+% \gncomment{Move to the sections describing the benchmarks.}
+% Although the granularity differs across benchmarks, in both settings the dependency structure constrains delegation order, ensuring that engineers are assigned tasks only after prerequisite components have been integrated.
+% The inputs differ across benchmarks. For Commit0, the manager receives an instruction and the path to a repository directory that contains executable tests. For PaperBench, the manager receives a research paper and reproduction requirements, which typically do not provide explicit test-to-file mappings.
+% We define the basic implementation unit at the file or module level. Before delegating work to engineers, the manager analyzes how these units depend on each other. 
+% For Commit0 tasks, it inspects import statements to identify file-level dependencies. It also collects executable test cases from the repository and examines which files they exercise. These tests indicate which files are required for specific tests to pass and help the manager understand the expected behavior of the task. This allows the manager to identify which components must be implemented earlier so that dependent tests can pass. For open-ended tasks such as PaperBench, explicit test-to-file mappings are not always available. The manager reads the paper by considering the main contribution described in the paper as the central implementation objective and infers the required implementation order from it. Although the granularity differs, in both settings, the manager constructs a dependency structure before delegation. Engineers are assigned tasks only after this dependency structure is established. \jy{maybe we don't want it to be too task specific?}
+
+
+
+\subsection{Dependency-Aware Task Delegation}
+\label{sec:dep-awa-delegation}
+
+% \gncomment{Make it clear that this is mostly achieved by prompting and do a reference to the prompt in the appendix.}
+
+We prompt (see Appendix \ref{app:commit0-prompt} and \ref{app:paperbench-prompt}) the manager to convert the dependency structure constructed in Section \ref{sec:task-spec-dep-graph} into the small executable task units and assign them to each engineer. We instruct the manager to split the implementation work into at most $N$ major task groups, where $N$ is the maximum number of engineers allowed to work in parallel. The manager activates up to $N$ engineers for task groups whose dependencies have already been satisfied and not all $N$ engineers are necessarily activated. Files with strong or circular dependencies are grouped together and assigned to the same engineer to reduce cross-agent coordination. 
+
+% If a single file contains a large number of unimplemented functions, the manager may further divide the work at the function level, ensuring that function sets assigned to different engineers do not overlap.
+
+At each delegation step, the manager selects next tasks with top priority from the major task group. We prompt the manager to prioritize the tasks that enable earlier test execution, expose more evaluation signals, or that lie closer to the upstream end of the dependency chain are preferred. We suggest to the manager that engineers typically start with simpler functions before moving on to more complex ones. The manager dynamically updates the dependency state after the implementation of the intermediate engineer and decides whether to assign the next task or keep the engineer idle. We define one round as a complete cycle of delegation, implementation, and dependency update. The process continues until no executable task groups remain or predefined execution limits are reached.
+
+% After completing their assigned functions and performing self-verification, engineers submit their updates. The manager updates the dependency state after integration and decides whether to assign the next task or keep the engineer idle. We define one round as a complete cycle of delegation, implementation, and dependency update. The process continues until no executable task groups remain or predefined execution limits are reached.
+
+
+
+\subsection{Workspace Isolation and Integration}
+\label{sec:iso-int}
+We use \texttt{git worktree} to ensure that each engineer then works in its own worktree and modifies files only within that workspace. This workspace is derived from the main branch. Before delegation, we ask the manager to perform the necessary setup to ensure that the repository is in an executable state. This includes preparing the runtime environment, organizing entry points, or adding minimal function stubs when required by the task. These preparatory changes are committed to the main branch so that all subsequent engineer branches are created from a consistent base state. Certain shared files, such as package initialization files (e.g., \texttt{\_\_init\_\_.py}), are marked as restricted, and engineers are explicitly instructed not to commit changes to them. Worktrees are deleted after all assigned tasks are completed or when the engineer reaches the predefined iteration limit.
+
+% We use \texttt{git worktree} to ensure that each engineer operates in their own workspace.
+% Each engineer operates in an independent \texttt{git worktree} bound to a dedicated branch derived from the main branch. Before delegation, the manager performs necessary setup to ensure that the repository is in an executable state. This includes preparing the runtime environment, organizing entry points, or adding minimal function stubs when required by the task. These preparatory changes are committed to the main branch so that all subsequent engineer branches are created from a consistent base state. Each engineer then works in its own worktree and modifies files only within that workspace. Certain shared files, such as package initialization files (e.g., \texttt{\_\_init\_\_.py}), are marked as restricted, and engineers are explicitly instructed not to commit changes to them. Worktrees are deleted after all assigned tasks are completed or when the engineer reaches the predefined iteration limit.
+
+Integration is performed through standard \texttt{git commit} and \texttt{git merge} operations. After completing implementation and self-verification, an engineer submits a commit from its branch. The manager attempts to merge this branch into the main branch. If a merge conflict occurs, the engineer who produced the conflicting commit is responsible for resolving it. To solve the conflict, we ask the engineer to pull the latest main branch into its worktree, resolve conflicts locally, and resubmit the updated commit. As the results, the main branch remains the single source of integrated state throughout execution. We observe that this branch-based isolation, combined with explicit merge responsibilities, prevents parallel development from corrupting the shared codebase.
+% We formalize the integration process as a sequence of state transitions over the main branch. Let $S_t$ denote the repository state of the main branch after round $t$, and let $\Delta_i$ denote the verified commit produced by engineer $i$. A successful integration applies the transition
+% \[
+% S_{t+1} = \texttt{Merge}(S_t, \Delta_i).
+% \]
+% The transition is accepted only if the merged state passes the executable test suite:
+% \[
+% \texttt{Accept}(S_{t+1}) \iff \texttt{Tests}(S_{t+1}) = \texttt{Pass}.
+% \]
+% The main branch remains the single source of integrated state throughout execution. This branch-based isolation, combined with explicit merge responsibility, prevents parallel development from corrupting the shared codebase.
+
+\subsection{Communication and Asynchronous Execution}
+\label{sec:com-async}
+We use a structured JSON protocol as the communication interface between the manager and the engineer agents. When delegated the task, the manager outputs a machine-parsable JSON specification that defines task assignments, file paths, target functions, and dependency information. We provide the details in Appendix \ref{app:commit0-prompt}. This ensures that the task boundaries, responsibilities, and outputs are explicitly defined and can be programmatically validated.
+
+The execution is organized around an asynchronous manager-controlled event loop. Once tasks are delegated, each engineer operates as an independent coroutine. Engineers invoke language model calls, modify code in their worktrees, and execute verification commands such as running tests. These operations are executed concurrently up to a predefined maximum number of active engineers. The manager listens for completion signals and dynamically updates the dependency state when commits are submitted. Engineers who finish early can be assigned new executable task units, while engineers whose dependencies are not yet satisfied remain idle. To manage context growth, the manager maintains a compressed execution history. We use \texttt{LLMSummarizingCondenser} to periodically summarize prior interaction rounds while preserving key structured artifacts such as the dependency graph, completed tasks, and unresolved errors. This separation prevents unnecessary context expansion while preserving execution traceability.
+
+\subsection{Self-Verification and Termination}
+\label{sec:self-verfication}
+To ensure the quality of the implementation, we require each engineer to verify its own implementation before submitting a commit. After completing the assigned functions, the engineer executes verification within its worktree. When executable tests are available, the engineer runs the subset of tests that directly import or reference the modified files. If there is no explicit mapping, the engineer runs the repository’s default test command or a minimally runnable entry point. Any failed test or runtime exception must be resolved before submission, and engineers iteratively refine the implementation using concrete error logs and tracebacks. After a verified commit is submitted, the manager integrates it into the main branch and updates the dependency state. The manager does not perform a detailed code review at every step, but monitors the overall progress and remaining implementation units. We terminate execution when all units in the dependency structure have been completed and integrated, or when predefined limits, such as maximum rounds or iteration budgets, are reached. If termination occurs due to limit exhaustion while unresolved units remain, the task is considered incomplete.
+
+% \subsection{Dependency-Aware Tasks Delegation}
+% Real-world software engineering encompasses diverse objectives. In \ourmethod, we use a manager agent to orchestrate the workflow and the progress of the implementation. It dynamically constructs a global dependency graph before any physical task delegation and execution begins. During the initial exploration phase, the manager analyzes the provided resources, such as source code, documentation, and task specifications. For structured codebases, it combines static analysis of import trees with dynamic test collection to understand the expected behavior of each function that needs to be implemented. For open-ended tasks, it extracts the core execution pipeline directly from the documents. Finally, the manager initializes the shared environment, synthesizes missing function placeholders or installs necessary dependencies, and establishes a clear, actionable implementation plan.
+
+% Guided by this mental dependency graph, the manager performs topology-aware workload delegation. It divides the overall objective into up to $N$ main task groups. To prevent merge conflicts and maintain workspace isolation, the manager enforces strict file-level boundaries, ensuring that no two engineering agents ever modify the same implementation file simultaneously. The manager groups highly dependent components into the same task to ensure that one agent can implement them together. This prevents engineering agents from indefinitely waiting on each other's progress. During task delegation, the manager prioritizes tasks that unlock the most unit tests or establish critical results. By providing each engineer with precise instructions and expected behaviors, the manager eliminates the overhead of re-exploring the entire workspace.
+
+% \subsection{Structured Communication Protocol}
+% Many existing multi-agent systems rely on unstructured natural language \citep{li2023camel, qian2024chatdev} or shared message pools where all agents share the same context \citep{hong2023metagpt}. However, pure natural language is sometimes insufficient for inter-agent communication. Sharing all information among agents inevitably leads to severe context overload and ambiguous execution. To address this, the central manager in \ourmethod communicates with the engineer agents through a structured JSON format. Once the manager constructs the mental dependency graph, it formulates precise JSON specifications. These specifications contain detailed instructions, exact file paths, target functions, and dependency explanations for each task. This ensures engineers only receive the specific information they need. Such a structured, isolated communication protocol ensures that agents do not suffer from the cognitive overload of processing irrelevant global context. In particular, we design the manager to track the progress of multiple engineers across many rounds, as it is responsible for overall coordination and implementation process control. To prevent the manager's own context window from exploding, we use the \texttt{LLMSummarizingCondenser} from Openhands to dynamically compress previous conversation history.
+
+% \subsection{Workspace Isolation: \texttt{git worktree}}
+% Recent multi-agent frameworks heavily emphasize deep collaboration by simulating human software engineering teams through role-playing \citep{he2025llm, tawosi2025almas, khanzadeh2025agentmesh, nguyen2025agilecoder}. However, forcing multiple agents to concurrently modify code within a single shared workspace inevitably leads to severe race conditions and destructive execution conflicts \citep{cemri2025multi, cai2025designing}. In \ourmethod, we hypothesize that robust collaboration must be built upon strict physical isolation. Clear execution boundaries are fundamental for parallel development. We address these execution conflicts by leveraging the \texttt{git worktree} software engineering primitive. When delegating tasks, the manager determines the number of engineers to onboard. It dynamically creates a dedicated \texttt{git worktree} for each engineer agent. This allows agents to independently handle implementations (e.g., generating code, running tests, and performing self-verification) within their own workspaces. This absolute isolation confines any destructive actions and guarantees that one agent's errors never disrupt another's progress. Upon successful verification, the engineer submits a standard \texttt{git commit}. The manager then safely merges these isolated branches back into the main execution branch to complete the collaborative workflow.
+
+% \subsection{Asynchronous Execution: \texttt{asyncio}}
+% Instead of the sequential coordination of agents through role-splitting, \ourmethod introduces a non-blocking asynchronous parallel execution mechanism. Building on the physical isolation provided by \texttt{git worktree}, the manager orchestrates multiple engineers concurrently without triggering file-level race conditions. Once instructions are dispatched, the manager wraps each assigned task into an independent asynchronous coroutine and launches them simultaneously. This allows agents to process I/O-bound API calls and local computations (e.g., running \texttt{pytest}) in parallel. Crucially, we also use this asynchronous architecture to govern the manager-engineer interaction. Once an individual engineer finishes its implementation and submits a \texttt{git commit}, the manager dynamically updates its mental model of the current progress. It then immediately decides whether to assign the next task to this specific agent, an available idle agent, or a newly onboarded one. By keeping all agents continuously active, \ourmethod prevents fast workers from waiting on slower ones, maximizing overall system throughput.
+% \subsection{Self-Verification} 
+% In real-world software engineering, developers are intrinsically and naturally responsible for the quality of their implementations. They do not merely generate code and blindly delegate quality assurance to a team leader. We map this principle directly to the engineer agents in \ourmethod. Many existing agentic frameworks attempt to improve code quality through non-executable code reviews, LLM-driven self-reflection, or peer chat \citep{yao2022react, shinn2023reflexion, dong2024self}. \textit{Do these non-executable methods truly capture all runtime incorrect behaviors in long-horizon SWE tasks?} Without doing the real execution, it is difficult for both human and agent to predict the outcome behaviors of a long-horizon implementation. In \ourmethod, we introduce an executable self-verification mechanism that makes engineer agents responsible for their own implementation by actively executing quick test suites or running their implemented code. If any execution fails, the engineer agents can capture the concrete runtime tracebacks and error logs, using them to iteratively debug and refine the code. The central manager only performs a final review after all the implementation tasks are finished or all engineers reach the limits of rounds set for the runs.
+
+% \subsection{Output Integration} 
+% The asynchronous implementation efforts must be systematically integrated into the main codebase to maintain project integrity. While task delegation by a central manager can minimize overlapping edits, the potential conflicts remain inevitable in complex software projects. We address this by employing \texttt{git commit} to capture individual engineer progress and \texttt{git merge} as the core mechanism for integration. Once an engineer submits their work, the manager attempts to merge the isolated workspace into the main execution branch. When a merge conflict occurs, the engineer agent who created this specific commit is responsible for resolving the conflicts by pulling the current status of the main branch, resolving the discrepancies, and making a commit again. This iterative approach ensures that \ourmethod can handle complex code inter-dependencies, ensuring the consistency of the final output through standardized software engineering protocols.
+
+% We introduce PAVE, a SWE-primitives driven multi-agent system.
+% \jy{Git-based verion control: MegaAgent: A Large-Scale Autonomous LLM-based Multi-Agent System}
+% \paragraph{Dependency-awareness tasks delegation.}
+% xxx
+% \jy{Manager onboards agents based on complexity of the implementation works. The manager is the Central Orchestrator that responsible for overall coordination and process control.}
+
+% \paragraph{Asynchronous execution.}
+% xxx
+
+% \paragraph{Workspace isolation.}
+% xxx
+
+% \paragraph{Structured communication.}
+% xxx
+
+% \jy{does pure natural language communication suffice for solving complex tasks? For manager to track the previous conversation, we use Openhands LLMSummarizingCondenser. Agents in PAVE communicate through a structured JSON format, rather than a NL dialogue \citep{qian2024chatdev}}
+% \jy{communication one-to-one:
+% \begin{enumerate}
+%     \item Camel: Communicative agents for” mind” exploration of large scale language model society.
+%     \item Chat
+% with the environment: Interactive multimodal perception using large language models.
+%     \item Building cooperative embodied agents modularly with large language
+% models. 
+%     \item store information in a global message pool: MetaGPT (https://arxiv.org/pdf/2308.00352). Agent selects information based on their role.
+%     \item do all agents need to share all information? --> overload
+% \end{enumerate}
+% }
+
+% \paragraph{Self-verification.} 
+% xxx
+% \jy{engineers are responsible for the quality of their implementation}
+% \jy{Non-executable code review:
+% \begin{enumerate}
+%     \item React: Synergizing reasoning and acting in language models.
+%     \item Reflexion: an autonomous agent with dynamic
+%     \item Self-collaboration code generation via chatgpt
+% memory and self-reflection. 
+% \end{enumerate}
+% executable feedback for verification: MetaGPT. \\
+% }
+
+% \paragraph{Output integration.} 
+% xxx
+
+% \jy{\texttt{git commit \& merge}}
+
+
+
+
+

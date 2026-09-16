@@ -1,0 +1,88 @@
+\section{Method}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.5\linewidth]{fig/algorithm_2.pdf}
+    \caption{Illustration of Agent Forest. The two-phase process begins by feeding the task query, either alone or combined with prompt engineering methods, into LLM agents to generate answers. Subsequently, majority voting is applied to these answers to determine the final answer. Specifically, an LLM agent refers to a single LLM or a multiple LLM-Agents collaboration framework.}
+    \label{fig:algorithm}
+\end{figure}
+
+In this section, we introduce \textbf{Agent Forest}, which is implemented through a two-phase process: sampling and voting. The overview of our method is shown in Figure \ref{fig:algorithm}.
+
+%\textbf{Sampling.} Let $x$ represent the task query and $\mathcal{M}$ denote an LLM. In this phase, we generate $N$ samples by two variants. The first is in a \textbf{vanilla form} wherein the $\mathcal{M}$ is queried $N$ times to produce $N$ samples, with each sample represented as $s=\mathcal{M}(x)$. The second involves \textbf{integration with other methods} to generate $N$ samples, treating these methods as modular components, with each sample denoted as $s = f_{\mathcal{M}}(x)$. By repeating the chosen method $N$ times, we obtain a set of response samples $S=\{s_1, s_2, ..., s_N\}$.
+
+\textbf{Sampling.} Let $x$ represent the task query and $\mathcal{M}$ denote an LLM. In this phase, we generate $N$ samples by solely querying the LLM $\mathcal{M}$ $N$ times with each sample represented as $s=\mathcal{M}(x)$ or by integrating with other methods $f_{\mathcal{M}}$ with $N$ times executions where each sample is denoted as $s = f_{\mathcal{M}}(x)$. We obtain a set of samples $S=\{s_1, s_2, ..., s_N\}$ at the end of this phase.
+
+\textbf{Voting}. Let $A$ represent the final answer. In this phase, we employ majority voting to consolidate the response sample set $S$ into the final answer $A$. This involves calculating the cumulative similarity for each sample relative to the others, denoted as $V(s_i)=\sum_{j=1,j\neq i}^{N}sim(s_i, s_j)$. For open-ended generation tasks such as code generation, the BLEU score proposed by \cite{bleu} is utilized to quantify similarity. Conversely, for close-ended tasks like multiple-choice questions, similarity is measured by occurrence frequency. The sample that exhibits the highest cumulative similarity is then chosen as the final answer denoted as $A=\operatorname*{arg\,max}_{s_i \in S} V(s_i)$.
+
+The complete process of Agent Forest is described in Algorithm \ref{alg:sampling-and-voting}.
+
+\begin{algorithm}[t!]
+\caption{Agent Forest}
+%\tiny
+\begin{algorithmic}[1]
+\REQUIRE Query $x$, number of samples $N$, LLM $\mathcal{M}$ or LLM integrated with other methods $f_{\mathcal{M}}(x)$
+\STATE Initialize an empty set for samples $S \gets \emptyset$
+\FOR{$i = 1$ to $N$}
+    \STATE Generate sample $s_i \gets \mathcal{M}(x)$ or $s_i \gets f_{\mathcal{M}}(x)$
+    \STATE Add sample to the set $S \gets S \cup \{s_i\}$
+\ENDFOR
+%\STATE \textbf{return} $S$
+\FOR{each sample $s_i$ in $S$}
+    \STATE Initialize similarity scores $V(s_i) \gets 0$
+    \FOR{each sample $s_j$ in $S$}
+        \IF{$i \neq j$}
+            \STATE $V(s_i) \gets V(s_i) + sim(s_i, s_j)$
+        \ENDIF
+    \ENDFOR
+\ENDFOR
+\STATE $A \gets \operatorname*{arg\,max}_{s_i \in S} V(s_i)$
+\STATE \textbf{return} $A$
+\label{alg:sampling-and-voting}
+\end{algorithmic}
+\end{algorithm}
+
+%When the options of the task are finite, represented as $O=\{o_1, o_2, ..., o_K\}$ with $K$ being the number of options, we count the occurrence of each option, denoted as $V(o_j)=\sum_{i=1}^{N}1(s_i=o_j)$. And the option with the highest frequency is selected as the final answer, denoted as $\operatorname*{argmax}_{o_j\in O}V(o_j)$. In situations with open-ended response possibilities, such as code generation, we utilize the BLEU score \cite{bleu} to measure the similarity between responses, denoted as $\textbf{BLEU}(s_i, s_j)$. We calculate the cumulative BLEU score for each sample, denoted as $V(s_i)=\sum_{j=1, j\neq i}^{N}\text{BLEU}(s_i, s_j)$. The answer with the highest cumulative BLEU score is then selected as the final response, noted as $\operatorname*{argmax}_{s_j\in S}V(s_j)$.
+
+
+
+
+%Consider an input $x$ and a llm denoted as $M$. We aim to generate $N$ candidate outputs by independently applying the agent $M$ to the input $x$. During a single iteration of sampling, a candidate output $c$ from the set of possible options $O=\{o_1, o_2, ..., o_K\}$ is selected according to a multinomial distribution with probability $P(c=o_i|x)$, conditioned on the input $x$. After $N$ independent sampling events, we obtain a collection of outputs $\{c_1, c_2, ..., c_N\}$. These outputs are then utilized to tally the frequency of each option, denoted by $V(o_j)=\sum_{i=1}^{N}1(c_i=o_j)$. The final output is determined through majority voting, defined as $o^*=\operatorname*{argmax}_{o_j\in O}V(o_j)$.
+
+%We introduce our method designed to improve the performance of LLMs through sampling and voting. This method can be used standalone in its vanilla form or integrated with other methods.
+
+%\textbf{Vanilla Form.} Our method operates standalone without any prompt engineering or multiple LLM-Agent collaboration frameworks. By querying the LLM multiple times, we gather a set of candidate answers. The final output is determined through majority voting. %By increasing the number of queries, the performance can be enhanced.
+
+%\textbf{Integration with Other Methods.} Our method can be integrated with various existing method aimed at enhancing the performance of LLMs. These external methods are treated as modular components, or `black boxes', which can be executed repeatedly to yield a set of responses. Subsequently, majority voting is employed to synthesize these responses into a single consensus-based answer. %With increased ensemble size, the performance can be improved further.
+
+%Our method is implemented in two phases: the generation of multiple responses and the determination of a final result via majority voting. The overall overview of our method is shown in Figure \ref{fig:arch}.
+
+
+%\textbf{Gathering.} To procure multiple responses, our method employs two strategies. The first is a straightforward approach wherein the LLM is queried multiple times in its vanilla form, without the integration of any specialized prompting mechanisms or multi-agent frameworks. The performance is augmented simply by increasing the query count. The second strategy involves the incorporation of our method with other existing methods to generate multiple responses. By executing the methods multiple times, we can enhance its performance through our ensemble strategy.
+
+
+%\textbf{Voting}. For the aggregation of responses into a single, most probable answer, we apply majority voting due to its simplicity and reliability. In scenarios where the response options are limited, we tally the frequency of each response and designate the most frequent one as the final answer. Conversely, in situations with unlimited response possibilities, such as code generation, we employ the BLEU score \cite{bleu} to evaluate the similarity among responses. The answer with the highest BLEU score is then selected as the final response.
+
+
+
+% We first present the more agents mechanism ubiquitously adopted by various frameworks and methods previously discussed. Next, we provide the problem formulation. Finally, we give a simulation with an explanation underscoring the efficacy of the proposed mechanism.
+
+% \subsection{The ``More Agents'' Mechanism}
+
+% The more agents mechanism iteratively conducts sampling to address a given problem, utilizing either a single model or a combination of different models. This effectively simulates the concurrent problem-solving efforts of numerous agents. The iterative process culminates in a majority voting procedure to determine the most probable candidate, ensuring consistency in the final result. Performance enhancement is achieved simply by instantiating more agents. This mechanism is compatible with a broad spectrum of other techniques that can improve the performance of LLMs, such as prompt engineering or multiple llm agents collaboration frameworks. For instance, CoT-SC \cite{cotsc} integrates CoT prompts with the more agents mechanism to boost performance by generating a consensus answer through majority voting from different CoTs provided by multiple agents. Similarly, in the Debate framework \cite{debate}, the involvement of more agents has been shown to enhance reasoning performance further.
+
+
+% \subsection{Problem Formulation}
+% Consider an input $x$ and a llm agent $M$. We aim to generate $N$ candidate outputs by independently applying the agent $M$ to the input $x$. The sampling procedure is assumed to be independent and identically distributed (i.i.d.). During a single iteration of sampling, a candidate output $c$ from the set of possible options $O=\{o_1, o_2, ..., o_K\}$ is selected according to a multinomial distribution with probability $P(c=o_i|x)$, conditioned on the input $x$. After $N$ independent sampling events, we obtain a collection of outputs $\{c_1, c_2, ..., c_N\}$. These outputs are then utilized to tally the frequency of each option, denoted by $V(o_j)=\sum_{i=1}^{N}1(c_i=o_j)$. The final output is determined through majority voting, defined as $o^*=\operatorname*{argmax}_{o_j\in O}V(o_j)$.
+
+% \subsection{Simulation and Explanation}
+% Building upon the established problem framework, we conduct a series of simulations utilizing the more agents mechanism under varying conditions to examine the impact on performance. In Figure \ref{fig:simulation}, we illustrate the probability of correctly identifying the first option as the answer, which we assume to be correct, across different values of $N$ (the number of agents) and within distinct multinomial distribution probability sets for the options.
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=1.0\linewidth]{icml2024/fig/simulation.png}
+%     \caption{Relationship between number of agents ($N$) and distribution probability sets. When the probability of the correct option is the highest within the set, an increase in the number of agents ($N$) corresponds to an augmentation in the correct response rate. Conversely, if the probability of the correct option is not the highest, the correct response rate diminishes as the number of agents increases.}
+%     \label{fig:simulation}
+% \end{figure}
+
+% Intuitively, the enhancement in performance resulting from the involvement of more agents can be attributed to the premise that while incorrect answers may occur in numerous forms, there are few ways to answer correctly. The pivotal condition for this enhancement is that the probability of the correct answer must be the highest among all options. It is noteworthy that the greater the difference between the highest probability and the average, the more pronounced the improvement phenomenon becomes. This effect can be explained by the law of large numbers, provided that the agents' outputs are independent and identically distributed (iid) when given the same input.

@@ -1,0 +1,45 @@
+\section{Difficulty Rating}
+\label{appx:difficulty}
+We train a model that labels a task with one of three difficulty labels: $<15$ minutes (easy), $15$ minutes - $1$ hour (medium), and $1$+ hour (hard).
+This model allows us to quantify the difficulty of individual task instances and, in aggregate, the difficulty of entire datasets.
+
+To train this model, we use $1699$ annotations from ~\citet{chowdhuryintroducing}.
+In their work towards curating SWE-bench Verified, a subset of $1699$ SWE-bench task instances were labeled with four difficulty levels: $<15$ min, $15$ min - $1$ hr, $1$-$4$ hrs, and $4$+ hrs.
+Generally, three annotators were assigned to each instance, and the difficulty annotations were ensembled by taking the majority choice for a sample, or the median if there is no majority.
+The distribution of annotated difficulties, from easiest to hardest, is $24.5$\%, $53.5$\%, $19.4$\%, and $2.8$\%.
+
+Because there are very few samples in the $4$+ hr category, we reclassify the $1$-$4$ hr and $4$+ hr instances into a  single $1$+ hr category.
+Next, we create corresponding train and test datasets at a $80$/$20$\% split, randomly shuffling the instances while ensuring the train and test distributions do not deviate significantly from the original.
+An instance's problem statement and solution patch are provided as input, and one of the three difficulty labels serves as the target output.
+We perform LoRA fine-tuning~\citep{hu2021loralowrankadaptationlarge} on a Qwen 2.5 32B Instruct model using the Unsloth~\citep{unsloth} library.
+The model achieves an accuracy of $75.3$\% on the test set.
+All errant predictions are off by one; in other words, the model never predicted $<15$ min when the label was $1$+ hr, and vise versa.
+
+Using this model, we can grade the difficulty of a \bugs{} instance once the bug patch and corresponding issue text have been created.
+To provide a succinct summary of difficulty for a dataset of SWE-bench style task instances, we propose a ``difficulty score" metric.
+Each label corresponds to a numeric difficulty score of $1$, $5$, and $9$, from easiest to hardest.
+The difficulty score is therefore the average difficulty score across all task instances.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/difficulty_stacked_bar.pdf}
+    \caption{
+Distribution of task instance difficulty (\textcolor{green}{\texttt{easy}}/\textcolor{yellow}{\texttt{medium}}/\textcolor{red}{\texttt{hard}}) for existing SWE-bench style datasets (left $5$ bars) and \bugs{} (right $5$ bars), assessed by our difficulty rating model.
+The average difficulty score for each dataset is listed above each bar.
+For \bugs{}, per bug strategy, we sample $1000$ task instances with LM generated issue text.
+    }
+    \label{fig:difficulty_scores}
+\end{figure}
+
+\input{tables/difficulty_scores}
+
+Figure~\ref{fig:difficulty_scores} summarizes our findings for difficulties across different SWE-bench style datasets.
+We provide a more thorough rundown of task instances per difficulty level in Table~\ref{tab:difficulty_scores}.
+We find that different \bugs{} bug generation methods yield different levels of difficulty.
+LM Modify are consistently rated to be easy - from several manual spot checks, we notice that while the prompt for LM Modify provides several examples of types of bugs and does not name specific issues to create, the large majority of bugs created by this strategy are simple variable assignment mistakes (e.g. \texttt{a=a; b=b} is changed to \texttt{a=b; b=a}).
+An open-ended prompt like ours does not actually yield high diversity in terms of mistakes created.
+Procedural modifications are, as expected, the next easiest, as the types of bugs created by this strategy are finite.
+PR Mirrors and LM Rewrites yield much harder tasks, confirmed not only by our bug rating model, but also the lower average resolve rate on these tasks by our expert model (SWE-agent + Claude 3.7 Sonnet).
+Finally, aggregating smaller functions together is a simple but effective strategy for creating bugs that are rated as more complex.
+This effect aligns with our original expectations; generally, bugs that require editing more functions and files tend to be rated as more difficult.
+\bugs{} can be used to create task instances with a range of difficulties.

@@ -1,0 +1,94 @@
+\section{The \model\ Framework}
+
+\begin{figure*}[t]
+\vspace{-1em}
+    \begin{center}
+    \includegraphics[width=1.\textwidth]{figs/autoagent-v1.pdf}
+    \end{center}
+    \vspace{-0.5em}
+    \caption{\model\ is a fully automated, language-driven generalist agent system. The core components that enable this include the Agentic System Utilities, the LLM-powered Actionable Engine, the Self-Managing File System, and the Self-Play Agent Customization module.}
+    \label{fig:overall}
+    \vspace{-1.0em}
+\end{figure*}
+
+\model\ is designed to be the automated operating system for LLM agents and general AI assistant. Inspired by modern computer operating systems, \model\ consists of key components that enable seamless natural language-driven agent development and task execution, as illustrated in Fig~\ref{fig:overall}. Its \textbf{Agentic System Utilities} provide foundational building blocks for complex agent-driven tasks, while the \textbf{LLM-powered Actionable Engine} forms the central brain, understanding inputs and orchestrating multi-agent coordination. The \textbf{Self-Managing File System} manages structured storage and retrieval of user multi-modal data, and the \textbf{Self-Play Agent Customization} empowers users to generate specialized, tailored agents and workflows through natural language, without any coding requirements. Collectively, these robust capabilities make \model\ a versatile and powerful platform, powering a variety of autonomous agent-based solutions for diverse applications.
+
+\subsection{Agentic System Utilities}
+The \model\ framework employs a modular, multi-agent architecture to address the key challenge of developing intelligent personal assistant agents capable of seamlessly integrating and coordinating diverse capabilities, from web browsing and information retrieval to data analysis and code execution. This design choice, which comprises specialized agents for web, coding, and file management tasks, as well as an orchestrator agent to decompose and delegate user requests, enables the agentic system utilities to serve as a versatile and extensible foundation that can adapt to a wide range of user requirements, facilitating the rapid development of tailored, agent-driven solutions. Detailed system prompts and tool definitions for \textbf{Agentic System Utilities} can be found in Appendix Sec~\ref{sec:system_agent}.
+
+\subsubsection{Orchestrator Agent}
+The Orchestrator Agent is the primary interface for interacting with the user. It receives tasks from the user, comprehends the tasks, decomposes them into sub-tasks, and delegates these sub-tasks to appropriate sub-agents using the \texttt{handoff} tools~\cite{openai2023swarm}. Once a sub-agent completes a sub-task, it returns the result to the Orchestrator also using the \texttt{handoff} tool. Based on the task completion status, the Orchestrator continues to assign the next sub-task to a suitable agent. This iterative process continues until the entire task is completed. The Orchestrator, designed with the \texttt{handoff} mechanism, is a simple yet effective solution, eliminating the need for complex prompts to handle task planning.
+
+\subsubsection{Web Agent}
+The Web Agent provides a versatile and extensible set of tools that enable the agent to perform a wide range of web-based tasks, from general web searches to file downloads.
+
+\noindent \textbf{Functionality}. The Web Agent performs web searches, navigate to pages, browse content, and download files. We abstract web browsing behaviors into 10 high-level tools (actions), such as: \texttt{click}, \texttt{web\_search}, \texttt{visit\_url}, etc., which the agent can use to complete web-based tasks.
+
+\textbf{Environment}. In this work, we implement the browser environment based on BrowserGym~\cite{workarena2024}. This environment defines low-level, code-driven browser behaviors, such as the execution code for clicking a specific browser element. The high-level tools used by the agent are implemented by combining these low-level actions, significantly enhancing the extensibility of the tool definitions.
+
+\subsubsection{Coding Agent}
+The Coding Agent is the agent's comprehensive and versatile solution for tackling a wide range of code-driven tasks. It empowers the agent to effortlessly handle complex challenges, from data analysis and calculations to machine learning, automation, and system administration. This seamlessly integrated, feature-rich agent serves as the primary interface for all code-related activities, abstracting complexities to enable focused problem-solving. In essence, the coding agent provides a secure environment to explore, execute, and interact with code to achieve diverse objectives.
+
+\noindent \textbf{Functionality}. The Coding Agent is designed to handle a wide range of code-related operations. We have abstracted these capabilities into 11 distinct tools (actions), including the creation of code scripts and directories, execution of Python code, implementation of specific commands, and navigation of directory structures. This versatile toolset enables the Coding Agent to address a diverse array of everyday tasks that require programmatic solutions.
+
+\noindent \textbf{Environment}. The Coding Agent operates within an interactive terminal environment, where the results of all code-related tools are returned to the agent as observations through the terminal output. When the output exceeds the display capacity, the terminal presents it in a paginated form, allowing the agent to navigate through the content using commands such as \texttt{terminal\_page\_up}, \texttt{terminal\_page\_down}, and \texttt{terminal\_page\_to}. This ensures that the agent can access and review the full output without encountering issues related to the LLM's context length limitations.
+
+To ensure safety, all code-related operations run in a secure Docker sandbox. We support third-party sandboxing integration, like the E2B system~\cite{e2b2023}, further enhancing the safety and reliability of the agent's code-driven activities. This provides robust protection for local data during execution.
+
+\subsubsection{Local File Agent}
+The key objective of the Local File Agent is to provide a unified set of tools to convert and analyze various local multi-modal data types. This includes text, video, audio, spreadsheets, and other formats to assist users with everyday tasks in an efficient manner.
+
+\noindent \textbf{Functionality}. Users need to handle a wide variety of file types, including text documents (e.g., \texttt{.doc}, \texttt{.pdf}, \texttt{.txt}, \texttt{.ppt}), videos (e.g., \texttt{.mp4}, \texttt{.mov}), audio files (e.g., \texttt{.wav}, \texttt{.mp3}), spreadsheets (e.g., \texttt{.csv}, \texttt{.xlsx}), and other multi-modal and multi-format files. Therefore, a dedicated Local File Agent for managing and analyzing local files is crucial. This Local File Agent can use a unified set of tools to convert files into Markdown and perform effective analysis to assist with everyday tasks.
+
+\noindent \textbf{Environment}. The interaction environment for the Local File Agent is similar to the Coding Agent, utilizing an interactive Markdown Browser. Files converted into Markdown format can be displayed in paginated form within the Markdown Browser, enabling the agent to analyze long texts and complex files that exceed the context length limitations.
+
+\subsection{LLM-powered Actionable Engine}
+As the CPU executes instructions, manages resources, and coordinates processes in an OS, the LLM-powered actionable engine can understand natural language, generate plans, and coordinate tasks across agents. This enables seamless human-agent collaboration and task completion.
+
+We utilize LiteLLM~\cite{berriai2023litellm} to standardize LLM requests through an OpenAI-like interface, supporting 100+ models from various providers. For agent collaboration, the LLM receives all action-observation pairs up to time \(t\) as state \(s_t\) to determine the next action. These pairs serve as system RAM, facilitating efficient retrieval and enabling language-driven system coordination.
+
+\subsubsection{Generating Actionable Reflections}
+We generate reflections (\ie, actions) based on LLM context, which can be broadly categorized into two distinct approaches that leverage the language model's capabilities.
+
+\noindent \textbf{Direct Tool-Use Paradigm}. This approach is suitable for commercial LLMs or LLM serving platforms that support tool-use. These LLMs can directly generate a parsed next-step tool to execute based on the provided tool set and the current state, reducing errors during the tool parsing phase. However, this method heavily relies on the optimization of the third-party platform's capabilities.
+
+\noindent \textbf{Transformed Tool-Use Paradigm}. This approach does not rely on the LLM's inherent tool-use capabilities. Leveraging the superior code-generation abilities of modern LLMs, we transform the tool-use paradigm into a structured XML code generation task, \eg, \texttt{<function=function\_name> <parameter=parameter\_1>value\_1</parameter> ... </function>}. This structured output is then parsed to extract critical information like tool arguments and others. It improves the performance of commercial models with suboptimal tool-use capabilities and enables the integration of open-source LLMs into the system, providing greater flexibility and customization.
+
+\subsection{Self-Managing File System}
+The file system in \model\ is a vector database that LLM agents can retrieve and understand. In our design framework, users can upload text files in any format (e.g., \texttt{.pdf}, \texttt{.doc}, \texttt{.txt}) or compressed archives and folders containing any text files. The system tools in the file system automatically convert these files into a consistent text format and store them in a user-defined collection within the vector database (using the \texttt{save\_raw\_docs\_to\_vector\_db} tool). This enables agents to self-manage their database memory and perform efficient and accurate retrieval and generation using tools like \texttt{query\_db} and \texttt{answer\_query}. The detailed definitions of the tools are presented in Tab~\ref{tab:tool_1}.
+
+\subsection{Self-Play Agent Customization}
+To allow users to customize tools and agents for specific scenarios or build their own multi-agent systems and workflows, it is designed as a code-driven, controllable self-programming agent framework. By implementing constraints, error-handling mechanisms, and customized workflows, it enables controlled code generation, facilitating the creation of tools, agents, and workflows. The \model\ supports two distinct modes: agent creation without workflow and agent creation with workflow.
+
+\subsubsection{Agent Creation without Workflow}
+Building effective multi-agent systems often requires domain-specific expertise, such as in-depth knowledge of financial regulations or healthcare protocols. However, this level of specialized know-how may not always be available to users. For example, in the financial services, constructing a multi-agent system to automate complex investment portfolio management would necessitate expertise in areas like asset allocation, risk modeling, and regulatory compliance.
+
+To address this challenge, our \model\ provides a powerful workflow-based mode allowing users to generate sophisticated agent systems with minimal domain expertise. In this mode, the user provides high-level descriptions of the desired agent(s), such as the agent's name and a brief sentence-level description for the expected agent functionalities. \model\ then uses this input to automatically generate the appropriate agent(s) and the necessary workflow(s) to orchestrate their collaborative efforts. This is all done based on the current state of the framework, including the available tools, agents, and workflows. The key steps in this workflow-based agent generation approach are:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Analyze Requirements and Existing Components}. The process begins by carefully analyzing the user's requirements in the context of the existing tools and agents already available in the system. This in-depth analysis is performed using the specialized profiling agent, which helps thoroughly assess the current capabilities and resources that can be leveraged to fulfill the user's needs.
+
+\item \textbf{Analyze Tools and Structure Agents}. Based on the comprehensive analysis performed, the system then carefully determines the need for creating new tools, meticulously evaluates whether existing tools can be effectively utilized, and subsequently structures the seamless collaboration between multiple agents as appropriate. This ensures the optimal and comprehensive use of available resources, ultimately leading to the efficient agent system design.
+
+\item \textbf{Generate Detailed XML Agent Specifications}. This step is designed to generate structured XML code that accurately represents the detailed agent creation requirements. This comprehensive XML representation captures the necessary information, including the agent's functionality, dependencies, and interactions, to enable the seamless and efficient subsequent process of agent generation.
+
+\end{itemize}
+
+\noindent \textbf{Optimized Tool Creation with Third-Party APIs}. The Tool Editor Agent can seamlessly integrate various third-party APIs, such as LangChain, RapidAPI, and Hugging Face, to create powerful tools. It expertly utilizes advanced retrieval techniques to search for and surface relevant API documentation, including comprehensive details like names, descriptions, and invocation methods. The robust system currently supports an extensive collection of 145 APIs from 8 diverse categories in RapidAPI, LangChain~\cite{langchain2023}, and a wide range of models from 9 categories in Hugging Face. Future plans include seamlessly integrating more cutting-edge platforms like Composio~\cite{composio2023}.
+
+The agent also generates tool code based on its knowledge, automatically checking for syntax errors. It designs test cases, runs the tool, and verifies functionality. If the tool fails, the agent automatically debugs the code until successful. This targeted approach allows a more customized and adaptable tool set, rather than a bloated, integrated system.
+
+\noindent \textbf{Agent Creation and Execution}.
+When the user's requirements involve multiple agents focused on different tasks, the Agent Editor Agent automatically identifies this need and performs the necessary multi-step agent creation operations. After all agents are successfully created, the system invokes the \texttt{create\_orchestrator\_agent} tool to generate an orchestrator agent that connects the required agents. This orchestrator adheres to the Orchestrator-Workers MAS design pattern, with a system prompt that includes task descriptions, sub-task decomposition rules, and other scenario-specific details. Detailed algorithms and system prompts are provided in Appendix Sec~\ref{sec:agent_app}.
+
+\subsubsection{Agent Creation with Workflow}
+When users have specific requirements for a MAS's workflow and domain knowledge, \model\ allows a tailored approach. In this mode, users provide descriptions of the desired agent(s) and specify the tasks they want the created agent(s) or workflows to accomplish. \model\ then uses this information about the target tasks to generate not just the individual agent(s), but also the necessary workflow(s) to coordinate their collaborative efforts in achieving the specified objectives.
+
+Traditional graph-based methods often require strict adherence to graph theory principles~\cite{gptswarm, langchain2023langgraph, ADAS, aflow}, a task challenging for LLMs when generating workflows. To overcome these challenges, \model\ adopts an event-driven approach where we model each agent's task-solving as an event. By leveraging event listening and triggering mechanisms, \model\ enables seamless collaboration between agents, offering greater flexibility and adaptability compared to rigid graph structures. 
+
+\noindent \textbf{Constructing New Workflows}. The process of creating a new workflow is itself a multi-agent workflow. The Workflow Form Agent analyzes the requirements and existing tools/agents to determine if new agents need to be created, which agents should form the workflow, and what the listening and triggering logic between events should be. It then generates structured XML code.
+
+During the parsing phase, a robust error detection mechanism verifies whether the generated workflow form complies with system constraints (\eg, constraints on the \texttt{on\_start} event). If the constraints are not satisfied, detailed error messages are sent back to the Workflow Form Agent as feedback for regeneration. If the constraints are satisfied, the workflow form is passed to the Workflow Editor Agent, which creates new agents (if needed), constructs the new workflow, and executes it on the task. Detailed algorithms and system prompts are shown in Appendix Sec~\ref{sec:workflow_app}.
+
+
+

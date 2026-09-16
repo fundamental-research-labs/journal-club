@@ -1,0 +1,175 @@
+\pdfoutput=1
+% !TeX program = pdflatex
+\pdfminorversion=4
+\documentclass[11pt, a4paper]{stanford}
+
+\usepackage[authoryear, sort&compress, round]{natbib}
+\usepackage{microtype}
+% \usepackage{times}
+\usepackage{subfiles}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{graphicx}
+
+\usepackage{amsmath}
+\usepackage[most]{tcolorbox}
+\usepackage[utf8]{inputenc}
+\usepackage{pifont}
+\usepackage{fontawesome5}
+\usepackage{xspace}
+\usepackage[ruled, vlined, linesnumbered]{algorithm2e}
+\usepackage{enumitem}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{wrapfig}
+\usepackage{multirow}
+
+% temp
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage{booktabs}
+
+
+
+% \newtcbox{\licensepill}{
+%   on line,
+%   boxrule=0pt,
+%   colback=gray!15,
+%   colframe=gray!15,
+%   arc=4pt,
+%   boxsep=0pt,
+%   left=3pt,
+%   right=3pt,
+%   top=1pt,
+%   bottom=1pt,
+%   before upper=\scriptsize\ttfamily
+% }
+
+\newcommand{\licensepill}[1]{%
+  \colorbox{gray!15}{\scriptsize\texttt{#1}}%
+}
+
+\newcommand{\diyi}[1]{{\color{blue}{[diyi: #1]}}}
+\newcommand{\arpan}[1]{\textcolor{green!60!black}{[Arpan: #1]}}
+\newcommand{\hao}[1]{\textcolor{purple!60!black}{[Hao: #1]}}
+\newcommand{\michael}[1]{\textcolor{cyan!60!black}{[Michael: #1]}}
+
+\definecolor{accentcolor}{HTML}{175E54}
+\hypersetup{colorlinks=true, citecolor=accentcolor, linkcolor=accentcolor, urlcolor=accentcolor}
+
+
+
+
+
+
+\title{\dataset: Why Coding Agents Cannot be Your Teammates Yet}
+% Both "The curse of coordination" and "Why Agents cannot be your teammates yet" are kinda
+% like the 2nd part of a two-part title, so let's keep one of them, and put our dataset
+% name in the title
+% Alternatives:
+% \dataset: Evaluating Coding Agents in a Team
+% \dataset: Benchmarking the Curse of Coordination
+
+\author{%
+\bfseries\fontsize{9}{13}\selectfont%
+Arpandeep Khatua$^{1*}$, Hao Zhu$^{1*}$, \par Peter Tran$^{2**}$, Arya Prabhudesai$^{2**}$, Frederic Sadrieh$^{2**}$,
+Johann K. Lieberwirth$^{2**}$,\par Xinkai Yu$^{1}$, Yicheng Fu$^{1}$, Michael J. Ryan$^{1}$, Jiaxin
+Pei$^{1}$, Diyi Yang$^{1}$ \par
+\vspace{0.5em}
+$^{1}$Stanford University \qquad $^{2}$SAP Labs US \qquad $^{*}$Equal Contribution \qquad $^{**}$Equal Contribution \qquad \texttt{https://cooperbench.com}
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+\newcommand{\dataset}{CooperBench\xspace}
+
+% Custom maketitle to place figure before abstract
+\makeatletter
+\renewcommand{\maketitle}{\bgroup
+\setlength{\parindent}{0pt}
+\begin{adjustwidth}
+  {0pt}{24pt}
+  \begin{flushleft}
+    { {\raggedright \titlefont \@title\par}%
+    \vskip11pt {\raggedright \@author\par} \vskip20pt%
+    }%
+  \end{flushleft}
+\end{adjustwidth}
+\egroup
+
+% Insert figure here between author and abstract
+\begin{figure}[!h]
+  \centering
+  \makebox[\textwidth][c]{%
+  \includegraphics[width=1\linewidth]{figs/cotomata_teaser_v2.pdf}%
+  }
+  \caption{\small The \dataset 
+  %\michael{To me the name reads like "Cooper" (as in the name e.g. Bradley Cooper) rather than "Co-oper"}\hao{I think that is the intended pronunciation.} 
+  benchmark draws tasks for two agents from a pool of features with
+  potential conflicts. The agents execute the tasks in their individual environments, communicating
+  in real time to coordinate. Success is measured by whether the resulting code changes by both agents
+  are compatible and pass the requirements for both features.}
+  \label{fig:teaser}
+\end{figure}
+
+{%
+{\abscontent} }%
+\thispagestyle{firststyle}
+}%
+\makeatother
+
+\begin{abstract}
+  % In human society, team conflicts are inevitable and typically resolved through negotiation and coordination among different parties. This requires
+  Resolving team conflicts requires not only task-specific competence, but also social intelligence to find common ground and build consensus. 
+ Similarly, as AI agents increasingly collaborate on complex work, they must develop coordination capabilities to function as effective teammates. Yet we hypothesize that current agents lack these capabilities.
+ % Despite recent efforts to develop AI agents for automating human work, we
+  % hypothesize that current agents lack the coordination capabilities needed to become effective
+% teammates. 
+  To test this hypothesis, we introduce \textbf{\dataset}, a benchmark of over 600 collaborative coding
+  tasks across 12 libraries in 4 programming languages. Each task assigns two agents different
+  features that can be implemented independently but may conflict without proper coordination. Tasks are
+  grounded in real open-source repositories with expert-written tests. Evaluating state-of-the-art
+  coding agents, we observe \textbf{the curse of coordination}: agents achieve on average \textbf{30\% lower
+  success rates} when working together compared to performing both tasks individually, across the full
+  spectrum of task difficulties. This contrasts sharply with human teams, where adding teammates typically
+  improves rather than diminishes productivity. Our analysis reveals three key issues: (1) communication
+  channels become jammed with vague, ill-timed, and inaccurate messages; (2) even with effective
+  communication, agents deviate from their commitments; and (3) agents often hold incorrect
+  expectations about others' plans, observations, and communication.
+  Besides these issues, through large-scale simulation, we  also observe rare but interesting emergent coordination behavior between agents including role division, resource division, and negotiation.
+  Our research not only presents
+  a novel benchmark for collaborative coding, but also calls for a research shift from pursuing individual
+  agent capability to developing \emph{social intelligence}: the ability to understand others,
+  communicate effectively, and coordinate actions. % Only by integrating social intelligence beyond individual capabilities can we develop AI agents that become reliable teammates. % Improving individual capabilities alone will not
+  % enable agents to coordinate well with humans or other agents; only by integrating social intelligence
+  % into training can we develop AI agents that become reliable teammates.
+\end{abstract}
+
+\begin{document}
+  \maketitle
+
+  \subfile{sections/01-introduction}
+  \subfile{sections/02-cooperator_benchmark}
+  \subfile{sections/03-experiment}
+  \subfile{sections/04-cooperation} 
+  \subfile{sections/05-communication}
+  \subfile{sections/06-coordination}
+  \subfile{sections/07-related_work}
+  \subfile{sections/07-conclusion}
+
+  \section*{Acknowledgments}
+This research is supported in part by grants from ONR grant N000142412532, NSF grant IIS-2247357, DSO National Laboratories (DSO), and support from SAP. We thank Google Cloud Platform and Modal Platform for their credits. We thank Yutong Zhang, Gavin Li, Hannah Cha, John Yang, Yijia Shao and all members of Stanford SALT Lab for their help and feedback throughout this project.
+
+
+  \input{main.bbl}
+  
+
+  \appendix
+  % \section{Appendix}
+  \subfile{sections/08-appendix}
+\end{document}

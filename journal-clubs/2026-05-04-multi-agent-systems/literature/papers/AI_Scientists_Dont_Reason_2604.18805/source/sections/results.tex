@@ -1,0 +1,101 @@
+\section{Results}
+We model LLM-based agents as language decision processes \autocite{narayanan2024aviary0,carta2023grounding}, in which a composite policy factors into a base-model component governing token-level choices and a scaffold component governing prompting strategy, tool routing, and orchestration logic (\Cref{fig:overview}A, Methods \Cref{sec:formalism}). 
+In practice, a scaffold wraps the base model in a loop: it formats prompts, routes tool calls, appends observations to the conversation history, and repeats until a termination criterion is reached. Common implementations include ReAct \autocite{yao2022react} and structured tool-calling interfaces. 
+This decomposition allows us to attribute observed behavior to the base model or to the scaffold. We evaluate agents through two lenses: a systematic performance analysis supported by manually curated diagnostic assessments, and a behavioral analysis of the epistemological structure of reasoning traces.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/JOURNAL_APRIL17/overview_journal_april18.pdf}
+    \caption{\textbf{Benchmarking scientific reasoning across epistemic demand and problem scope.}
+(A) Agents as language decision processes. A base LLM policy is augmented with an agent scaffold (e.g., reasoning, reflection, tool use) to form an agent that interacts with scientific environments via iterative act-observe loops.
+(B) Large-scale evaluation grounds our findings. The benchmark comprises 25{,}000+ agent runs across 15+ environment scopes and 90+ tools, enabling statistically grounded evaluation of model and scaffold contributions.
+(C) Mechanistic and epistemological analyses reveal failure modes. We analyze agent behavior through mechanistic analysis of trajectories and epistemological analysis of reasoning processes.
+(D) Environments are organized along an axis of increasing epistemic demand (left to right). Workflow execution tasks (e.g., \md, \catalyst, \ml, \afm) emphasize procedural correctness; strategic reasoning tasks (e.g., \retro) require multi-step planning under constraints; hypothesis-driven inquiry tasks (e.g., \spectra, \wetlab, \resistor) require generating, testing, and revising competing hypotheses. Within each domain, task scope increases through graded configurations (sn $\rightarrow$ sn+1) that expand the search space. Axis labels WE and E mark workflow-execution and evidence anchors; H, G, and P mark hypothesis, goal, and protocol anchors; T, J, and U denote test, judge, and update operations.}
+    \label{fig:overview}
+\end{figure}
+
+We constructed environments in eight scientific domains that vary along two dimensions: epistemic demand and task scope (\Cref{fig:overview}D, \Cref{sec:domains_and_environments}). 
+Epistemic demand captures the kind of reasoning a problem requires, ranging from workflow to hypothesis-driven tasks. Workflow-construction tasks include molecular simulation, surface construction, machine learning, and atomic force microscopy, which are procedurally complex but epistemically straightforward---the solution path is well-defined and the agent must execute it correctly. Hypothesis-driven tasks in spectroscopic structure elucidation, qualitative chemical analysis, and circuit inference are different. The agent must first understand the problem space itself, then form hypotheses about hidden structure, design discriminating experiments, and revise beliefs as evidence accumulates. Retrosynthetic planning occupies an intermediate position, requiring strategic search through large combinatorial spaces under cost and availability constraints. Problem scope varies within each domain through graded configurations that expand problem scope by modulating the search space: from a few to many interacting ions, from simple to complex resistor networks, from spectral confirmation to full elucidation, from measuring friction to (re)discovering power-law behavior. 
+Each environment further decomposes into subtasks isolating specific cognitive operations---retrieval, execution, reasoning, and validation (more details in \Cref{sec:task_subtask}).
+
+Within each group, specific environments were designed to isolate aspects of scientific reasoning that are difficult to probe with existing benchmarks. The qualitative analysis environment simulates chemical equilibria from thermodynamic data, requiring iterative experimental design under limited sample volume. The circuit inference environment isolates logical reasoning from domain knowledge. The spectroscopic structure elucidation environment poses the same class of problem that motivated DENDRAL---inferring molecular identity from spectral evidence---with access to multiple analytical techniques and a cost-information tradeoff. 
+%AFM experiment environment evaluates the real-world planning and experiment with increasing complexity, starting from a well-defined experiment to measure the friction of a sample to (re)discovering the power-law behavior between surface roughness and friction. 
+All environments share a common implementation framework with standardized tool interfaces and can be explored interactively at \url{https://lamalab-org.github.io/corral/#environments}.
+
+\subsection*{The base model determines performance}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/JOURNAL_APRIL17/performance_v3.pdf}
+    \caption{\textbf{Performance is primarily driven by model choice and degrades with epistemic demand.}
+    (A) Heatmap of average scores for all model-scaffold configurations across environment-scope combinations, grouped by epistemic demand category.
+    (B) Average $\text{Pass}@5$ across subtask categories ordered by increasing cognitive complexity. Both scaffolds exhibit the same decline from retrieval to validation.
+    (C) Model spread (performance range across models) versus scaffold spread (performance range across scaffolds) for each environment. Nearly all environments fall above the diagonal, indicating that model choice, not scaffold design, is the primary source of performance variation.}
+    \label{fig:performance}
+\end{figure}
+
+We evaluated three frontier (two commercial closed-source and one open-source) models---\gptfourOfull, \claudesonnetfull, and \gptossfull---each paired with two scaffold architectures (ReAct and structured tool-calling), across all eight domains and their task scopes (\Cref{fig:performance}; per-configuration scores in \Cref{tab:aggregate-scores,tab:aggregate-scores-subtask}).
+
+Agents solve workflow-construction tasks at guided scopes reliably: in molecular simulation and surface construction, leading configurations approach the performance ceiling (see \Cref{fig:performance}). 
+Performance declines as the problem scope broadens within a domain and declines more steeply as epistemic demand increases. 
+In \wetlab and \spectra at the broadest scope, even the strongest configuration falls below 60\%. Across nearly all environments, the performance spread attributable to model choice exceeds the spread attributable to scaffold choice (\Cref{fig:performance}C). Both scaffolds yield the same decline in $\text{Pass}@5$ from retrieval through execution and reasoning to validation (\Cref{fig:performance}B). Manual annotation of reasoning traces by two expert annotators, using a custom tool and a taxonomy developed for this study (\Cref{app:manual_annotation_description}), independently confirms this pattern (\Cref{fig:annotation-main-fig}).
+
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{figures/JOURNAL_APRIL17/irt.pdf}
+    \caption{\textbf{Reasoning ability is the dominant predictor of task success.} (A) A two-stage latent-factor framework separates knowledge and reasoning contributions to task success. Stage~1: item response theory estimates latent knowledge and reasoning abilities from domain-specific diagnostic assessments. Stage~2: a prediction model combines these ability estimates with environment, scope, scaffold, and verbosity to predict task success probability. (B) Models diverge most in hypothesis-driven domains. Reasoning capability profiles show the largest separation in \wetlab and \spectra. (C) Reasoning ability dominates; scaffold choice is negligible. Variance decomposition of the prediction model: reasoning ability (41.4\%) and environment--scope interaction (30.1\%) together account for over 70\% of explained variance. Scaffold (1.5\%) and verbosity (0.1\%) contribute minimally.}
+    \label{fig:irt-main-fig}
+\end{figure}
+
+To move beyond task-level performance and identify the underlying capabilities that drive it, we constructed a diagnostic battery of question-answer pairs for each domain, separately targeting the knowledge and reasoning operations associated with each environment (\Cref{sec:qa}). 
+We applied item response theory (IRT) to these diagnostic items \autocite{hori2022item,zhou2026lost}. IRT jointly estimates item difficulty and respondent ability from patterns of correct and incorrect answers, yielding latent ability parameters for each model-environment combination (\Cref{fig:irt-main-fig}A, \Cref{sec:app_irt}). The resulting capability profiles differ across models (\Cref{fig:irt-main-fig}B). The separation is most pronounced for reasoning ability in hypothesis-driven domains, where the gap between the strongest and weakest model exceeds 5.3 standard units in \wetlab (see \Cref{fig:capability_heatmaps} for all environments). In \retro and \spectra, two of the three models effectively lack the domain knowledge required. 
+The \ml environment shows the smallest knowledge gap (0.62 standard units, see \Cref{fig:capability_heatmaps} for knowledge capabilities), consistent with the broad coverage of machine-learning topics in LLM training data.
+
+We combined these IRT-derived abilities with environment, scope, scaffold, and verbosity-level (see Methods for details) as parameters in a latent factor model predicting task success (\Cref{fig:irt-main-fig}A). 
+We evaluated eight candidate model specifications of increasing structural complexity (M1--M8; \Cref{sec:models_irt}) and selected the best-fitting model (M7) by PSIS-LOO cross-validation (\Cref{app:binomial-subsec}, \Cref{fig:elpd_vs_complexity}). The variance decomposition is clear (\Cref{fig:irt-main-fig}C). Reasoning ability accounts for 41.4\% of the explained variance, environment scope for 30.1\%, scaffold for 1.5\% and verbosity for 0.1\%. 
+All three independent analyses (raw performance comparisons, manual trace annotation, and latent factor modeling) converge on the same conclusion: the base model determines the performance of the agent, and the scaffold modulates the interaction only marginally.
+
+\subsection*{Epistemological structure of agent reasoning}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/JOURNAL_APRIL17/epst_combined.pdf}
+    \caption{\textbf{Reasoning breakdowns dominate across all domain groups.} (A) Epistemological annotation process. Agent traces are annotated in two stages using the model \claudesonnet: first, each step is labeled with an epistemic operation (hypothesis, test, evidence, judgment, update, commitment); second, directed edges capture dependencies between operations. The annotation process is described in detail in \Cref{app:annotation-pipeline}. (B) Frequency of each pattern across domain groups. Bar plots show that reasoning-breakdown rates exceed productive-motif rates in every domain group; detailed scores are in \Cref{tab:epist-full-scores}.}
+    \label{fig:epistemology}
+\end{figure}
+
+To examine how agents reason, we analyzed the full agent traces.
+We classified each step in an agent's trajectory according to the epistemic operation it performs: forming a hypothesis~(H), gathering evidence~(E), testing a prediction~(T), justifying a conclusion~(J), updating a belief~(U), or committing to a hypothesis~(C). We then represented the dependencies among these operations as a directed graph in which each node is an epistemic operation and each edge a dependency or reference between operations (\Cref{fig:epistemology}A). We observe that different reasoning modes produce different structural signatures. A Popperian cycle of conjecture and refutation generates loops between H, T, and U nodes. Abductive inference produces converging structures where multiple E nodes feed into H. A linear chain of tool calls with no back-references produces a path graph with minimal branching (see Methods \Cref{sec:epistemological-graphs} for more details and \Cref{app:annotation-pipeline} for the full annotation protocol).
+
+\paragraph{Reasoning breakdowns predominate.}
+We compiled a catalog of productive reasoning patterns and anti-patterns, defined as structural templates over the annotated graphs (see \Cref{tab:prod-motifs-def} and \Cref{tab:reas-break-def} for definitions and illustration of graphs), and measured their prevalence across traces (\Cref{fig:epistemology}B). 
+Untested claims, hypotheses stated without experiments designed to test them, appear in 53\% of traces overall and 63\% in hypothesis-driven domains. Evidence non-uptake, gathering a result and proceeding without incorporating it, occurs in 68\% of traces. In 71\% of traces, beliefs are never updated. Only 26\% of traces exhibit refutation-driven belief revision. Convergent multi-test evidence, multiple independent lines of evidence brought to bear on a single hypothesis, occurs rarely (7\%). Evidence-led hypothesis generation occurs in 65\% of traces but coexists with the high rates of evidence non-uptake and untested claims. While abductive reasoning occurs, downstream testing and revision, in most traces, do not. Representative trace excerpts for each breakdown category are shown in \Cref{fig:reasoning-breakdown-examples}; the annotated traces are browsable at \url{https://lamalab-org.github.io/corral/#explainers} (see \Cref{app:illustrative-traces}).
+
+\paragraph{Reasoning does not adapt to epistemic demand.}
+Agents do not adapt their reasoning to the task, as a human practitioner would. Ion identification rewards hypothesis-test cycles, retrosynthesis rewards combinatorial tree search, and molecular simulation rewards a simulate-validate-refine loop; yet the topology of agent reasoning is the same across all three. Evidence non-uptake rates are 82\% in workflow domains, 66\% in strategic reasoning, and 60\% in hypothesis-driven domains (\Cref{fig:epistemology}C). Convergent multi-test evidence remains at or below 10\% in every domain group. Increasing problem scope within a domain produces no corresponding shift in the agent's epistemic operations (\Cref{fig:scope_invariance}). Agents apply a single reasoning mode across the full epistemic range. This mode is adequate for workflow execution but not for the disciplined treatment of evidence that hypothesis-driven inquiry requires (\Cref{fig:performance}).
+
+This invariance extends to the model level. Models differ in the raw frequency of individual operations, with stronger models producing more H and E nodes per trace, but the topology of their reasoning graphs is similar. Higher-performing models retrieve more relevant knowledge and execute procedures more accurately. The epistemic structure of their reasoning does not change correspondingly.
+
+\subsection*{Trace interventions and reliability}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/JOURNAL_APRIL17/logprobs_v2.pdf}
+    \caption{\textbf{Scaffold interventions rescue workflow execution but not hypothesis-driven reasoning; failures in the latter recur across repeated trials.}
+    (A) Success rates under trace interventions. Agents receive a partial trajectory from a prior successful run (success trace; blue) or prior failed run (failed trace; red) before attempting a new trial. In workflow-construction environments (mean log-probability $-$0.20), one or two injected successful steps suffice to exceed baseline. In hypothesis-driven and strategic-reasoning environments (\spectra, \wetlab, \retro; mean log-probability $\approx -0.27$), gains emerge only at near-complete trajectories (steps $n{-}2$ or $n{-}1$). Shaded regions show $\pm 1$ standard deviation.
+    (B) \passhat{} (all $k$ trials succeed) and \passat{} curves by environment group. In hypothesis-driven domains, \passhat{} falls below 0.1 by $k=4$ under baseline conditions, and below 0.05 by $k=4$--$6$ even with success-trace interventions at early steps.
+    (C) Mean token-level log-probability per domain group, ordered by epistemic demand. Domains where partial interventions fail show the most negative log-probabilities, linking intervention unrecoverability to low token-level confidence.}
+    \label{fig:combined}
+\end{figure}
+
+The reasoning breakdowns documented above raise the question of whether they can be mitigated by providing agents with better context. 
+To test this, we designed a trace intervention experiment that provides an extreme form of scaffolding: injecting partial reasoning trajectories from prior runs into the agent's conversation history before it begins a new trial (methodology in \Cref{sec:method_intervention}). These interventions inject actual sequences of tool calls, observations, and reasoning steps: the content a successful agent would have produced on its own. We varied both the source (successful or failed prior runs) and the extent (early steps only, or near-complete trajectories) of the injected traces (\Cref{fig:combined}A).
+
+The effectiveness of these interventions tracks epistemic demand. We compare each intervention to a no-injection baseline (\Cref{sec:method_intervention}) and relate the results to token-level \gptoss log-probabilities (\Cref{sec:logprob-analysis}). In workflow construction domains such as \ml, where models exhibit high token-level confidence (mean log-probability $-$0.2 across the group; per-environment values in \Cref{fig:logprob_breakdown}, \Cref{fig:combined}C), injecting one or two successful steps suffices to exceed baseline performance. Failed-trace interventions have little effect: success rates remain near baseline. In \spectra, \wetlab, and \retro, where token-level confidence is lower (mean log-probability $-$0.27), partial interventions do not improve performance. Gains emerge only when agents receive near-complete successful trajectories (steps $n{-}2$ or $n{-}1$).
+
+This has a direct consequence for reliability. \passhat, the probability that all $k$ independent trials succeed, decays rapidly in hypothesis-driven domains (\Cref{fig:combined}B). Under baseline conditions, \passhat drops below 0.05 by $k = 4$--$6$ for \spectra and \wetlab. Even under success-trace interventions at early steps, the decay is similar. Repeated attempts do not yield consistent success.
+
+This pattern holds across both scaffold architectures. ReAct and tool-calling agents exhibit similar dependence on late-stage successful steps and similar degradation under failed-trace interventions (\Cref{fig:pass_hat_per_agent}). 
+Across all four analyses (performance decomposition, latent factor modeling, epistemological trace analysis, and trace interventions), the same conclusion holds: the base model determines what LLM-based agents can do in scientific settings, and current base models do not exhibit the epistemic patterns characteristic of scientific reasoning.

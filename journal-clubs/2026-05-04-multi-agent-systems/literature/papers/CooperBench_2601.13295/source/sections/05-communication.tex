@@ -1,0 +1,74 @@
+\section{What is the role of communication in agent-agent cooperation?}\label{sec:role_of_communication}
+
+In \dataset, the communication tool we provide is the only channel agents could use to coordinate with each other. Can agents effectively use it? We hypothesize that although agents might actively use the tool, their communication might be far from effective or efficient. To evaluate this, we compare with a baseline setting, where the communication tool is banned, i.e. ``no comm''.
+
+\begin{figure}[!t]
+    \centering
+      \centering
+      \includegraphics[width=\linewidth]{figs/converstaion_error/conflict_rate_change_scatter.pdf}
+    \caption{\textbf{(a)} Effect of inter-agent communication on cooperation success or lack thereof. All agents fail to use communication for improving cooperation success. \textbf{(b)} Communication substantially reduces naive merge conflicts across all models. \textbf{(c)} Communication overhead as a percentage of all execution events, broken down by message type. Models that communicate more (e.g., \texttt{Claude Sonnet 4.5}, \texttt{GPT-5}) show larger reductions in conflict rate.}\label{fig_comm_conflict_and_overhead}
+
+\end{figure}
+\paragraph{Communication does not lead to better cooperation.}
+As shown in Fig.~\ref{fig_comm_conflict_and_overhead} (a), none of the models effectively leverage communication tool to achieve higher cooperation success. The difference between ``with comm'' and ``no comm'' settings is not statistically significant. This shows that existence of the communication tool does not help coordination. Does this mean agents are not using them? We quickly negate this question through examine the usage and the conflict rate. 
+
+\paragraph{Communication reduces merge conflicts.}
+As shown in Fig.~\ref{fig_comm_conflict_and_overhead} (b), communication does significantly reduce the merge conflicts between patches in \texttt{Claude Sonnet 4.5}, \texttt{GPT-5}, \texttt{MiniMax M2}, and \texttt{Qwen Instruct}. This shows that agents could leverage the communication tool to reduce overlap in their work, despite that just avoiding conflicts does not warrant cooperation success. 
+Communication also consumes a meaningful share of the agent's action budget.
+Fig.~\ref{fig_comm_conflict_and_overhead} (c) reports the frequency of all communication speech act types.
+This result shows that agents spent as much as 20\% of the steps in communication, within which planning, questioning, and updating each almost takes up 1/3 of steps. But why this much effort in communication does not translate into better cooperation? 
+
+
+\paragraph{What distinguishes effective communication?}
+To understand why communication helps conflicts but not success, we analyze what \emph{successful} communication looks like. 
+% Table~\ref{tab:comm_patterns} compares communication patterns between trajectories that avoided merge conflicts versus those that did not. 
+Three patterns emerge.
+
+% \begin{table}[t]
+%   \centering
+%   \caption{Communication patterns that distinguish conflict-free trajectories. All differences significant at $p < 0.001$ (Mann-Whitney U test).}
+%   \begin{tabular}{lccl}
+%     \toprule
+%     \textbf{Metric} & \textbf{Conflict} & \textbf{No Conflict} & \textbf{Interpretation} \\
+%     \midrule
+%     Plan:Question ratio & 1.31 & \textbf{2.04} & More plans, fewer questions \\
+%     Line number mentions & 22.5 & \textbf{32.6} & More specific locations \\
+%     File path mentions & 10.0 & \textbf{13.1} & More file references \\
+%     \bottomrule
+%   \end{tabular}
+%   \label{tab:comm_patterns}
+% \end{table}
+
+\noindent\textit{First, successful agents plan more and question less.}
+Trajectories that avoid conflicts have a Plan:Question ratio of 2.04, compared to 1.31 for conflict trajectories. This suggests that questions are a \emph{symptom} of coordination problems, not a cure. Agents that are already struggling tend to ask more questions, but questioning does not prevent conflicts.
+
+\noindent\textit{Second, first-turn planning is the strongest predictor.}
+Having a \texttt{Plan} message in the very first turn nearly halves the conflict rate (29.4\% vs 51.5\%). This effect is robust across difficulty levels: in 7 out of 8 difficulty buckets, first-turn planning significantly reduces conflicts, with the effect actually \emph{stronger} for harder tasks (39\% reduction at the highest difficulty).
+
+\noindent\textit{Third, specificity matters.}
+Successful trajectories contain significantly more concrete references: 32.6 line number mentions versus 22.5, and 13.1 file path mentions versus 10.0. Agents that communicate \emph{where} they are editing with specific line ranges successfully avoid overlapping changes.
+
+\paragraph{Spatial vs.\ semantic coordination.}
+These findings explain why communication helps conflicts but not success. Merge conflicts are fundamentally a \emph{spatial} coordination problem: agents must agree on who edits which lines. The patterns above (early planning, specific line numbers, file paths) all address spatial coordination, and they work.
+
+However, task success requires \emph{semantic} coordination: understanding \emph{what} to implement, not just \emph{where}. Our case study in Appendix~\ref{app:case_study} illustrates this gap. Two agents successfully coordinated on line numbers and edit ranges (spatial), yet failed because they never discussed the actual parameter values their implementations should use (semantic). They solved the ``formatting'' problem of avoiding overlapping edits but not the ``design'' problem of ensuring compatible implementations.
+
+\paragraph{Repetition, Unresponsiveness, and Hallucination.} Beyond the spatial-semantic gap, the communication itself is often flawed.
+We identify three major communication problems, and show their frequencies in Fig.~\ref{fig_comm_errors}.
+We automatically detect these patterns using an LLM-as-judge approach with a precision-focused taxonomy; see Appendix~\ref{app:comm_error_detection} for the full rubric and evidence requirements.
+Repetition consumes budget without adding constraints a partner can act on, which is consistent with high communication overhead without commensurate gains in end-to-end success.
+Unresponsiveness breaks the feedback loop when one agent asks for a decision that gates implementation, and incorrectness creates false shared context, such as asserting an interface decision or a completed change that is not actually satisfied.
+Hallucination results in noises which makes it hard to partners to coordinate under imperfect information. 
+
+
+In this section, we show that the communication tool is heavily used, but \emph{not} properly leveraged by agents for coordination.
+This shows that agents lack the critical \emph{pragmatics} understanding of language: communication is not just about message passing, but about achieving certain functions through passing the messages.
+Agents are ``talking'' a lot, but they cannot achieve their communication goals through communication when communication channel is jammed with repetitions, unresponded questions, or false information. 
+
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{figs/converstaion_error/conversation_errors_v5_buckets.pdf}
+    \caption{Break down frequencies of different kinds of communication errors.}\label{fig_comm_errors}
+\end{figure}
+

@@ -1,0 +1,114 @@
+\begin{tcolorbox}[breakable,title=Prompt Details for WebArena ]
+\textbf{\textcolor{blue}{System Prompt}}\\ 
+\textnormal{You are an autonomous intelligent agent tasked with navigating a web browser. You will be given web-based tasks. These tasks will be accomplished through the use of specific actions you can issue.}\\
+\begin{tikzpicture}
+\draw[dashed] (0,0) -- (\linewidth,0); % 绘制一条宽度为\linewidth的虚线
+\end{tikzpicture}
+\textbf{\textcolor{blue}{Instruction}}\\
+\textnormal{Here's the information you'll have:}\\
+\textnormal{The user's objective: This is the task you're trying to complete.}\\
+\textnormal{The current web page's accessibility tree: This is a simplified representation of the windowed webpage, providing key information.}\\
+\textnormal{The current web page's URL: This is the page you're currently navigating.}\\
+\textnormal{The open tabs: These are the tabs you have open.}\\
+\\
+\textnormal{The useful websites and corresponding URL you can navigate:}\\
+\textnormal{`reddit': ``http://reddit.com''}\\
+\textnormal{`online shop': ``http://onestopmarket.com''}\\
+\textnormal{`e-commerce platform': ``http://luma.com/admin''}\\
+\textnormal{`gitlab': ``http://gitlab.com''}\\
+\textnormal{`wikipedia': ``http://wikipedia.org''}\\
+\textnormal{`map': ``http://openstreetmap.org''}\\
+\\
+\textnormal{The actions you can perform fall into several categories:}\\
+\\
+\textnormal{Page Operation Actions:}\\
+\textnormal{`click [id]': This action clicks on an element with a specific id on the webpage.}\\
+\textnormal{`type [id] [content] [press\_enter\_after = 0 \textbar 1]': Use this to type the content into the field with id. By default, the ``Enter'' key is pressed after typing unless press\_enter\_after is set to 0.}\\
+\textnormal{`hover [id]': Hover over an element with id.}\\
+\textnormal{`press [key\_comb]':  Simulates the pressing of a key combination on the keyboard (e.g., Ctrl+v).}\\
+\textnormal{`scroll [directio n= down \textbar up]': Scroll the page up or down.}\\
+\\
+\textnormal{Tab Management Actions:}\\
+\textnormal{`new\_tab': Open a new, empty browser tab.}\\
+\textnormal{`tab\_focus [tab\_index]': Switch the browser's focus to a specific tab using its index.}\\
+\textnormal{`close\_tab': Close the currently active tab.}\\
+\\
+\textnormal{URL Navigation Actions:}\\
+\textnormal{`goto [url]': Navigate to a specific URL.}\\
+\textnormal{`go\_back': Navigate to the previously viewed page.}\\
+\textnormal{`go\_forward': Navigate to the next page (if a previous `go\_back' action was performed).}\\
+\\
+\textnormal{Completion Action:}\\
+\textnormal{`stop [answer]': Apply this action when you believe the task is complete. If it is a operation-type task, use `stop [Done]' when finished. If the objective is to give a text-based answer, provide the answer in the bracket.}\\
+\\
+\textnormal{To be successful, it is very important to follow the following rules:}\\
+\textnormal{1. You should only issue an action that is valid given the current observation}\\
+\textnormal{2. You should only issue one action at a time.}\\
+\textnormal{3. Generate the action in the correct format and always put the action inside a pair of @. Such as, @click [1234]@.}\\
+\textnormal{4. Complete the task by interacting with the starting page, and avoid using `goto' actions casually.}\\
+\textnormal{5. Reasonable inputs will return accurate observations, so do not repeat the same action when unnecessary.}
+
+\begin{tikzpicture}
+\draw[dashed] (0,0) -- (\linewidth,0); % 绘制一条宽度为\linewidth的虚线
+\end{tikzpicture}
+\textbf{\textcolor{blue}{Examples}}\\
+\textnormal{You should perform actions to accomplish the goal: Add a white desk to my wish list}\\
+\textnormal{Observation:}\\
+\textnormal{WINDOWED PAGE:\{}\\
+\textnormal{Tab 0 (current): One Stop Market}\\
+\textnormal{[1] RootWebArea `One Stop Market' focused: True}\\
+\textnormal{\hspace*{5mm}[1254] link `My Wish List'}\\
+\textnormal{\hspace*{5mm}[2427] StaticText `Search'}\\
+\textnormal{\hspace*{5mm}[1585] combobox `Search' autocomplete: both hasPopup: listbox required: False expanded: False}\\
+\textnormal{\hspace*{5mm}[2430] link `Advanced Search'}\\
+\textnormal{\hspace*{5mm}[1588] button `Search' disabled: True}\\
+\textnormal{\}}\\
+\textnormal{URL: http://onestopmarket.com}\\
+\\
+\textnormal{Action: @type [1585] [white desk] [press\_enter\_after=1]@}\\
+\textnormal{Observation:}\\
+\textnormal{WINDOWED PAGE:\{}\\
+\textnormal{Tab 0 (current): Search results for: `white desk'}\\
+\textnormal{[2635] RootWebArea ``Search results for: `white desk'" focused: True}\\
+\textnormal{\hspace*{5mm}[3869] link `My Wish List'}\\
+\textnormal{\hspace*{5mm}[4827] StaticText `Search'}\\
+\textnormal{\hspace*{5mm}[4072] combobox `Search' autocomplete: both hasPopup: listbox required: False expanded: False}\\
+\textnormal{\hspace*{5mm}\hspace*{5mm}[5027] StaticText `white desk'}\\
+\textnormal{\hspace*{5mm}[4830] link `Advanced Search'}\\
+\textnormal{\hspace*{5mm}[4075] button `Search' disabled: True}\\
+\textnormal{\hspace*{5mm}[3729] main `'}\\
+\textnormal{\hspace*{5mm}\hspace*{5mm}[3842] heading ``Search results for: `white desk'"}\\
+\textnormal{\hspace*{5mm}\hspace*{5mm}[3907] StaticText `Items 1-12 of 38823'}\\
+\textnormal{\hspace*{5mm}\hspace*{5mm}[4781] link `Image'}\\
+\textnormal{\hspace*{5mm}\hspace*{5mm}\hspace*{5mm}[4833] img `Image'}\\
+\textnormal{\hspace*{5mm}\hspace*{5mm}[4783] link `Image'}\\
+\textnormal{\hspace*{5mm}\hspace*{5mm}\hspace*{5mm}[4849] img `Image'}\\
+\textnormal{\}}\\
+\textnormal{URL: http://onestopmarket.com/catalogsearch/result/?q=white+desk}\\
+...
+%\textnormal{Action: @scroll [down]@}\\
+%\textnormal{Observation:}\\
+%\textnormal{WINDOWED PAGE:\{}\\
+%\textnormal{Tab 0 (current): My Wish List}\\
+%%\textnormal{[5381] RootWebArea `My Wish List' focused: True}\\
+%\textnormal{\hspace*{5mm}[6685] link `My Wish List 1 items'}\\
+%\textnormal{\hspace*{5mm}[6470] main `'}\\
+%\textnormal{\hspace*{5mm}\hspace*{5mm}[6605] alert `' live: assertive atomic: True relevant: additions text}\\
+%\textnormal{\hspace*{5mm}\hspace*{5mm}\hspace*{5mm}[6777] StaticText `Techni Mobili Rolling Writing Height Adjustable Desktop and Moveable Shelf,White Desk has been added to your Wish List. Click '}\\
+%\textnormal{\hspace*{5mm}\hspace*{5mm}\hspace*{5mm}[6778] link `here'}\\
+%\textnormal{\hspace*{5mm}\hspace*{5mm}\hspace*{5mm}[6779] StaticText ` to continue shopping.'}\\
+%\textnormal{\}}\\
+%\textnormal{URL: http://onestopmarket.com/wishlist/index/index/wishlist\_id/5/}\\
+%\\
+%\textnormal{Action: @stop [Done]@}\\
+%\textnormal{Observation:}\\
+%\textnormal{Well Done!}\\
+%\textnormal{URL: http://onestopmarket.com/wishlist/index/index/wishlist\_id/5/}
+
+
+\end{tcolorbox}
+\begin{figure}[!h]
+    \vspace{0.01cm}
+    \caption{Prompt details for WebArena. The provided example is changed based on the type of the specific environment instance.}
+    \label{fig:webarena_prompt}
+\end{figure}

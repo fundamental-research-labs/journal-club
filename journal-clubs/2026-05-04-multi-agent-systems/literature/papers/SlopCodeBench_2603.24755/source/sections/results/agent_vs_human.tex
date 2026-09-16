@@ -1,0 +1,18 @@
+\subsection{Calibration Against Maintained Human Repositories}
+\label{sec:agent-vs-human}
+\input{sections/generated/agent_vs_human_repo_table}
+
+We use a panel of \avhPanelN{} maintained Python repositories as a calibration reference for the scale and direction of verbosity and structural erosion. This is not a matched human-solution baseline: the repositories differ in task, age, and development process. The comparison answers a narrower question: whether the drift observed in agent trajectories resembles the evolution of maintained software. \autoref{tab:agent-vs-human} shows the quality metrics for these repositories, grouped by GitHub star tiers to provide broad coverage of maintained Python software. For \avhTemporalN{} of these repositories we sample up to 30 commits from the source-touching git history, producing \avhTemporalCkpts{} temporal checkpoints. \autoref{fig:agent-human-trajectory} shows how accumulation in agents compares to humans.
+
+\paragraph{Erosion and Verbosity Have Similar Gaps}
+Agents concentrate $\avhAgentErosionMean \pm \avhAgentErosionStd$ of complexity mass in high-CC functions versus $\avhMajorErosionMean \pm \avhMajorErosionStd$ for the highest-starred tier. \texttt{scikit-learn} (\avhSklearnErosion{}) and \texttt{scipy} (\avhScipyErosion{}) sit at the human upper end yet both remain well below agents. The verbosity gap is driven largely by violation percentage: $\avhAllViolMean \pm \avhAllViolStd$ human versus $\avhAgentViolMean \pm \avhAgentViolStd$ agent. Even the lowest-starred tier at $\avhNicheVerbMean \pm \avhNicheVerbStd$ stays \avhNicheVerbRatio{}$\times$ below agents; only \avhHumanAboveAgentVerbN{} of \avhPanelN{} repositories exceed the agent mean.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/agent_human_trajectory.pdf}
+    \caption{Mean verbosity and structural erosion across normalized trajectory progress for agent runs and human repositories. Shaded regions show 95\% confidence intervals. Agent metrics climb monotonically; human metrics plateau.}
+    \label{fig:agent-human-trajectory}
+\end{figure}
+
+\paragraph{Agent and Human Behaviors diverge over time.}
+Agent outputs are already worse at snapshot level: agent checkpoints average $\avhAgentErosionMean \pm \avhAgentErosionStd$ erosion versus $\avhMajorErosionMean \pm \avhMajorErosionStd$ in the human panel, and $\avhAgentViolMean \pm \avhAgentViolStd$ verbosity versus $\avhAllViolMean \pm \avhAllViolStd$. But the larger separation appears over time (\autoref{fig:agent-human-trajectory}). Only \avhTemporalVerbRisingPct{}\% of human repos end with higher verbosity than they started, and the median first-to-last growth is \avhTemporalVerbGrowthMedian{}\% versus 43\% for agents. Erosion diverges further: \avhTemporalErosRisingPct{}\% of human repos show rising erosion versus 79\% of agent trajectories.\footnote{Because the temporal panel spans 2005 to 2026, post-ChatGPT commits could include LLM-assisted contributions. We find no evidence of this. Pre-ChatGPT checkpoints ($n{=}\avhTemporalPreN$) have a median verbosity of \avhTemporalPreVerbMedian{} versus \avhTemporalPostVerbMedian{} post-ChatGPT ($n{=}\avhTemporalPostN$).} Maintained software can worsen; agent trajectories worsen more often and by larger margins.

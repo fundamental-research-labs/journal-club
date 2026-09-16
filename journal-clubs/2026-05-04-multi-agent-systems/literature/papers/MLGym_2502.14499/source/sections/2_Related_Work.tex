@@ -1,0 +1,172 @@
+\section{Related Work}
+\label{sec:related}
+% Machine learning advances have ushered in transformative changes across many scientific domains, but the explosion of computer science publications has also exposed a bottleneck in peer-review scalability, prompting questions about the realistic pace of scientific progress. 
+% %
+% Moreover, efforts to automate experiments and scientific text generation through ML sometimes conflict with principles of ``slow science\footnote{\url{https://medium.com/@emilymenonbender/scholarship-should-be-open-inclusive-and-slow-15ab6ce1d74c}},'' as well as broader concerns about verifiability and scientific integrity \citep{scienceIntegrityGenAI}. 
+% %
+
+% While there are several schools of thought to approach the methodology of science that can be applied to the current state of machine learning, namely \citep{Feyerabend1988-FEYAM} and \citep{Lakatos_1970}, we argue that the evaluation process in a new developing landscape of agentic research should ensure such properties as \textbf{reproducibility, verifiability and falsifiability}\citep{popper2002logic}. In what follows, we survey existing approaches to ML-driven science automation and examine both the opportunities and controversies presented by these new paradigms.
+
+% Open questions and differences in the implementation of these principles, in particular, \begin{itemize}
+%     \item how to assess the scientific novelty of results obtained automatically \citep{si2024llmsgeneratenovelresearch}
+%     \item how to ensure and whether to ensure the verifiability of results when generating experiments \citep{boginSUPEREvaluatingAgents2024}
+%     \item how to ensure the falsifiability of results when setting generated scientific problems \citep{scienceIntegrityGenAI}
+% \end{itemize}
+% are largely decisive in defining the further approaches to science acceleration. 
+
+
+%\dn{Another Potential Structure}
+
+\subsection{AI Research Frameworks and Benchmarks}
+
+\autoref{tab:mlgym_novelty_table_tex} shows a comparison between \mlgym and \mlgym-Bench with other related LLM agent frameworks and benchmarks. Below, we expand on the differences between \mlgym and these works. 
+
+
+\begin{table*}[!h]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+    \begin{NiceTabular}{lcccccc}
+        \toprule
+        Benchmark & Gym Interface & Algorithmic Tasks & Open-Ended Research & Flexible Artifacts & Agentic Harness \\
+        \midrule
+        \mlgym (ours) & \greencheck & \greencheck & \greencheck & \greencheck & \greencheck  \\
+        MLE-Bench & \cross & \cross & \cross & \cross & \cross  \\
+        SWE-Bench/Agent & \cross & \cross & \cross & \cross & \greencheck \\
+        MLAgentBench & \cross  &  \cross  & \greencheck & \greencheck & \greencheck \\
+        RE-Bench & \cross  & \cross & \greencheck & \greencheck & \cross \\
+        ScienceAgentBench & \cross &  \cross & \cross & \cross &  \cross  \\
+        \bottomrule
+    \end{NiceTabular}
+    \end{adjustbox}
+    \caption{Comparison of \mlgym and \mlgym-Bench with other related LLM agent frameworks and benchmarks. Algorithmic Tasks refers to the inclusion of tasks that require coming up with new algorithms such as reinforcement learning, game theory or SAT problems. Open-ended Research refers to the inclusion of tasks that are not fully solved by the research community and where multiple new solutions could be discovered such as language modeling, game theory or SAT problems. Flexible Artifacts refers to the allowance of different research artifacts such as model weights, reinforcement learning algorithms, or code capturing an agent's strategy.}
+    \label{tab:mlgym_novelty_table_tex}
+\end{table*}
+
+ 
+% Further, \mlgym enables research on many diverse training algorithms, such as training RL agents or language models. 
+%YB - again, not sure I completely understand what you meant by that column, please elaborate. 
+First, \mlgym is the first framework for AI Research Agents that provides a Gym interface, making it easy to integrate and train these agents using RL algoritms. \mlgym-Bench is also the first benchmark to include tasks that require research on algorithms in multiple domains such as RL, game theory, or SAT. 
+
+Second, \mlgym-Bench encompasses a wide range of open-ended AI research tasks, covering supervised learning, language modeling, reinforcement learning, game theory and SAT.  
+In contrast, SWE-Bench/SWE-Agent~\citep{yangSWEagentAgentComputerInterfaces2024} focuses on solving Github issues so the code changes either fix the code or not (as opposed to optmization tasks with finer-grained metrics, such as a loss metric in a supervised learning problem).
+%
+Similarly, MLE-Bench~\citep{chanMLEbenchEvaluatingMachine2024} includes narrowly scoped machine learning tasks from Kaggle competitions.
+% 
+While these tasks have a spectrum of quality levels, they tend to be already solved by current state-of-the-art methods. 
+On the other hand, MLAgentBench~\citep{huangMLAgentBenchEvaluatingLanguage2024} contains both ML-specialized tasks (regression, classification, code speed improvements) and tasks focused on recent research challenges (e.g. CLRS reasoning corpus~\citep{velivckovic2022clrs}, BabyLM challenge~\citep{oba2023babylm}).
+RE-bench~\citep{rebench-metr} also consists of broadly scoped ML engineering tasks which are hard to saturate and reward increasingly sophisticated approaches.
+ScienceAgentBench~\citep{chenScienceAgentBenchRigorousAssessment2024} incorporates data-driven scientific discovery tasks extracted from peer-reviewed publications, but which are so specific that they resemble Kaggle competition rather than open research questions. 
+
+Third, \mlgym allows for flexible evaluation artifacts: it is sufficient to provide python code that the agent can call to examine the quality of its current solution, such as a model checkpoint or an RL algorithm.
+In contrast, MLE-Bench requires a CSV file to be submitted for grading each question and SWE-Bench/Agent require evaluating a piece of code through a collection of unit tests. MLAgentBench, RE-Bench and ScienceAgentBench provide Python scripts to compute the evaluation scores.
+
+Finally, \mlgym enables easy evaluation of both models and agents. To facilitate model evaluation, \mlgym provides a default agentic harness that can be used out-of-the-box to evaluate any base model.
+% SWE-Agent augments SWE-Bench by defining an agentic harness that substantially improves SWE-Bench performance;  \mlgym uses a variant of the agentic harness defined in SWE-Agent. 
+% Similarly, MLAgentBench provides its own harness (which is one of the 
+% harnesses used by MLE-Bench). MLE-Bench experiment with three harness options (AIDE \citep{weco2024aide}, MLAgentBench harness, OpenHands CodeAct \citep{wang2024openhandsopenplatformai}), similarly to ScienceAgentBench who experiment both with direct prompting and two agentic harnesses (OpenHands CodeAct and self-debug \citep{chen2024teaching}).  Finally, RE-Bench also report results using two different harnesses (AIDE, \href{https://github.com/poking-agents/modular-public}{Modular}).
+
+% \dm{The footnote regarding Agent Evaluation vs Model Evaluation is a bit confusing. If all the results we report on are doing Model Evaluation, shall we just remove the footnote?}
+
+
+
+\subsection{LLM Agents}
+% From early works such as Chain-of-Thought \citep{wei2023chainofthoughtpromptingelicitsreasoning} or Inner Monologue \citep{huang2022innermonologueembodiedreasoning}, and other approaches aimed at bolstering LLM autonomy, a new area of “agentic” LLM research has emerged \citep{kaddour2023challenges, wangSurveyLargeLanguage2024}. 
+Research on tool-augmented LLMs~ \citep{schick2023toolformerlanguagemodelsteach} has inspired a new research agenda of “agentic” LLMs~\citep{kaddour2023challenges, wangSurveyLargeLanguage2024}, where LLMs interact with an external environment. Existing work explores teaching LLMs to use tools or APIs \citep{schick2023toolformerlanguagemodelsteach, qin2023toolllmfacilitatinglargelanguage}, navigate the web~\citep{nakano2022webgptbrowserassistedquestionansweringhuman, deng2023mind2webgeneralistagentweb, zhou2023webarena}, interface with operating systems~\citep{wu2024copilot}, play games~\citep{paglieri2024balrog,wang2023voyager}, or interact with other simulated~\citep{wang2024userbehaviorsimulationlarge, lin2023agentsimsopensourcesandboxlarge} or physical worlds~\citep{zhang2024buildingcooperativeembodiedagents}. Evaluating agentic LLMs typically involves designing controlled environments, providing suitable tools, defining tasks and goals, and establishing quantitative metrics to measure the system’s performance.
+
+% under constraints such as strategy, access to feedback, time limits and number of steps, memory usage, planning capability, and the scope of possible actions, often incorporating simulated user profiles for a more realistic setup.
+Building on these directions,~\citet{yoranAssistantBenchCanWeb2024} introduce \textit{AssistantBench}, emphasizing the complexity of open-web navigation and showcasing how current systems struggle with realistic, time-consuming tasks such as monitoring real-estate markets or identifying nearby businesses. Meanwhile,~\citet{kapoor2024aiagentsmatter} highlight the importance of standardized evaluation protocols that consider both accuracy and cost, warning against overfitting and advocating for more reproducible benchmarks. Extending these concerns to multi-dimensional environments,~\citet{liuAgentBenchEvaluatingLLMs2023} propose \textit{AgentBench}—a suite of eight interactive settings that test agents’ capacity for reasoning, decision-making, and long-term instruction following. Similarly,~\citet{mialonGAIABenchmarkGeneral2023} focus on holistic planning skills through \textit{GAIA}, a benchmark designed to assess performance on real-world questions requiring robust tool-use and multimodal reasoning, revealing substantial gaps between human-level proficiency and current LLMs. Finally,~\citet{trivediAppWorldControllableWorld2024} emphasize the necessity of sophisticated tool integration with \textit{AppWorld}, an interactive environment where agents must operate diverse applications via APIs and generate complex code in an iterative fashion. Collectively, these works underscore not only the breadth of agentic LLM capabilities but also the pressing need for systematic, multifaceted benchmarks that capture complex tasks with verifiable results and foster reproducible progress in the field. However, none of these works focuses on evaluating or developing LLM agents for open-ended AI research tasks.
+
+
+%\citep{yoranAssistantBenchCanWeb2024}
+
+%\citep{kapoor2024aiagentsmatter}
+
+%\citep{liuAgentBenchEvaluatingLLMs2023}
+
+%\citep{mialonGAIABenchmarkGeneral2023}
+
+%\citep{trivediAppWorldControllableWorld2024}
+
+
+\subsection{Agents for Software Engineering and Data Science}
+%\citep{yangSWEagentAgentComputerInterfaces2024}
+
+%\citep{wangOpenDevinOpenPlatform2024}
+
+%\citep{antoniades2024swesearchenhancingsoftwareagents}
+
+%\citep{xiaAgentlessDemystifyingLLMbased2024}
+
+%\citep{li2024autokagglemultiagentframeworkautonomous}
+%\citep{grosnit2024largelanguagemodelsorchestrating}
+%\citep{lei2024spider20evaluatinglanguage}
+
+In line with the principle of reproducibility and verifiability, software engineering tasks provide a testbed for LLM agents, where tasks can be tightly scoped and outcomes rigorously measured. Recent work has explored how agents can tackle code-level challenges in controlled settings that permit systematic evaluation. As discussed above,~\citet{yangSWEagentAgentComputerInterfaces2024} introduce \textit{SWE-agent}, which operates within a constrained agent-computer interface to facilitate file creation, repository navigation, and code testing—thereby enhancing both traceability and reproducibility on benchmarks such as SWE-bench and HumanEvalFix. Similarly,~\citet{wangOpenDevinOpenPlatform2024} describe \textit{OpenHands}, a platform that restricts agent interactions to sandboxed environments for safer command execution and verifiable web browsing, and in doing so provides a standardized foundation for benchmarking. Magentic-One ~\citep{fourney2024magenticonegeneralistmultiagentsolving} is another agentic system competent in software engineering but also augmented with web navigation capabilities, as demonstrated by its strong performance on the GAIA, AssistantBench and WebArena \citep{zhou2023webarena} agentic benchmarks.  On the other hand, ~\citet{zhang2024autocoderover} achieve competitive perforemance on SWE-bench with AutoCodeRover, which, unlike the agentic approaches, solves  Github issues by combining LLM-based programming with program representation as an abstract syntax tree.
+
+
+
+Towards the goal of automating data science work, \citet{li2024autokagglemultiagentframeworkautonomous} introduce AutoKaggle, a multi-agent human-assisting system, and \citet{grosnit2024largelanguagemodelsorchestrating} present AgentK v1.0, an end-to-end autonomous data science agent; both of these systems perform well on Kaggle competition data. Still within the realm of data science work, \citet{lei2024spider20evaluatinglanguage} build Spider 2.0, a challenging benchmark and code agent framework for automating text-to-SQL workflows. Going one step further,  \citet{cao2024spider2vfarmultimodalagents} introduce Spider 2-V,  an autonomous multimodal agent   coupled with a benchmark focusing on the automation of enterprise data science and engineering workflows.
+
+
+More search-oriented approaches include \textit{SWE-Search} ~\citep{antoniades2024swesearchenhancingsoftwareagents}, a multi-agent framework that marries Monte Carlo Tree Search (MCTS) with iterative refinement, enabling agents to continuously evaluate and improve their approaches to repository-level tasks. In a similar vein, \citet{koh2024treesearchlanguagemodel} explore tree search for LLM agents and show that equipping LLM agents with best-first  search boosts performane for the WebArena  and VisualWebArena \citep{koh2024visualwebarena} agentic benchmarks. Also on augmenting LLM agents with search, \citet{yu2025exactteachingaiagents} propose MCTS-based test-time search and self-learning techniques that yield better performance on  VisualWebArena. Finally,~\citet{xiaAgentlessDemystifyingLLMbased2024} demonstrate that even relatively simple approaches can excel when thoroughly monitored: an 'agentless' system follows a three-step process and outperforms more complex agent-based methods on SWE-bench Lite, underscoring the value of constrained, verifiable environments in driving reproducible gains for autonomous SWE agents.
+
+
+\subsection{Agents for Scientific Research}
+
+Controlled SWE contexts build the foundation for more complex automation while maintaining a reproducible and verifiable approach. However, just the software foundations alone are not sufficient to address the remaining gaps towards the goal of science acceleration. Going from the limited environments and well-defined tasks with metrics towards a less-defined area of open-ended questions, there are substantial efforts needed to boost the capabilities of research agents. For instance, coming up with automatable criteria to gauge scientific novelty or constructing theories inheriting the automated findings from heterogeneous disciplines are examples of areas that could use more refinement and experimentation. 
+
+Nevertheless, the first steps on this path can be started now - in the field of ML research and data science - since these areas represent for us a scientific playground with tasks that are both well-defined and have formal criteria of verifiability (benchmarks and tests), falsifiability (ablation studies and tests for data leakage, memorization, out of domain generalization, etc) and reproducibility.
+
+\ibold{Data Science}
+
+Many recent works approach both classic data science tasks and real-life repository-based tasks as a testbed for agents with a known test set and metrics.
+While based on similar grounds, the works differ in the resulting levels of autonomy of the agents. For instance, \textit{ML-Bench} \citep{tangMLBenchEvaluatingLarge2024} focuses on explicit tasks within existing GitHub repositories — evaluating agents in code-centric setups without delving into open-ended objectives. By contrast, \textit{Data Interpreter} \citep{hongDataInterpreterLLM2024} extends agent testing to broader data science problems, spanning coding tasks, mathematical reasoning, and a limited suite of open-ended applications (e.g., OCR, web search, and mini-game generation), thus reflecting a more flexible approach to autonomy. The agentic benchmark \textit{SUPER} \citep{boginSUPEREvaluatingAgents2024} raises the bar by requiring the agent to formulate the task itself and iterate on NLP-related data and tasks within research repositories, thereby emphasizing self-directed problem-solving.
+
+
+\ibold{AI Research}
+%Machine learning is an example of quantiative science, so it lends itself well to agentic approaches.
+
+The presence of models and simulations in machine learning itself inevitably leads to the fact that this area also becomes the object of automation.
+Having an agent formulating a task itself and approaching open-ended tasks naturally leads to automatic agentic enhancement of the machine learning methods themselves. AutoML~\citep{eggensperger2019pitfalls,lindauer2020best,tornede2023automl} and NAS~\citep{elsken2019neural,nasir2024llmatic} approaches have been previously paving the foundations of ML automation within environments with built-in restrictions (an explicit set of methods, definition of the search space and strategy), while the agentic approach can propose open-ended solutions without said specifications.
+
+For example, \textit{MLAgentBench}~\citep{huangMLAgentBenchEvaluatingLanguage2024} consists of an environment for agents to solve 13 complex tasks ranging from improving image classification to language modeling, with the current state-of-the-art LLMs achieving 0\% success rate for the most difficult of these tasks. The proposed pipelines for agents in the environment include designing and running experiments, analyzing the results, and iterating towards improving the defined metrics. Similarly, \textit{RE-Bench} (Research Engineering Benchmark)~\citep{rebench-metr} is a set of 7 diverse and challenging ML tasks with the methodological addition of real human experts involvement and progress comparison: timed sessions for ML experts vs LLM agents. Authors state that the best agents achieve a score 4x higher than human experts when both are given a total time budget of 2 hours per environment. However, humans currently display better returns to increased time budgets, narrowly exceeding the top AI agent scores given an 8-hour budget, and achieving 2x the score of the top agent when both are given 32 total hours. \textit{MLE-bench}~\citep{chanMLEbenchEvaluatingMachine2024} focuses on Kaggle tasks as a source for agentic evaluations. Agents are evaluated across well-defined metrics, datasets, and real competition result distribution. The attempts are limited to 24 hours. However, in contrast with \textsc{\mlgym}, all these works contain a more narrow set of domains that do not assess algorithmic reasoning capabilities. Moreover, some of them do not provide a standardized agentic harness to allow for model evaluation, but they vary both the harnesses (also known as \textit{scaffolds}) and the LLMs when comparing performances. While our work focuses on creating an evaluation framework with objective and standardized evaluation metrics, other recent works focus on developing an agentic harness for the more subjective task of generating papers based on end-to-end experimental cycles \citep{luAIScientistFully2024}. 
+
+
+\ibold{Scientific Discovery}
+
+Several recent works have approached scientific automation with LLM agents targeting the process of scientific discovery. \textit{DiscoveryWorld}~\citep{jansenDISCOVERYWORLDVirtualEnvironment2024} is a benchmark for scientific agents being evaluated in a game-like virtual discovery environment. 120 tasks require an agent to form hypotheses, design and run experiments, analyze results, and act on conclusions -- for areas like proteomics, chemistry, archeology, physics, agriculture, rocket science, linguistics, or epidemiology. The custom simulation engine only supports a limited list of objects and 14 possible actions.
+A distinctive feature of the work is also that it focuses on general discovery skills rather than task-specific solution, and the assessment, space of objects and actions is common to all scientific domains.
+
+\textit{ScienceAgentBench} \citep{chenScienceAgentBenchRigorousAssessment2024}, however, approaches differently the similar task of creating a discovery-based agentic benchmark: the tasks are based on  44 cherry-picked  peer-reviewed publications that include data-driven discovery tasks with well-defined metrics.
+The scientific areas covered include bioinformatics, computational chemistry, geographical information science, and neuroscience yielding 102 tasks of various types, such as data processing, modeling or visualization. Each task is defined by Python-based evaluation environment, end result metrics and intermediate evaluation criteria. Special metrics control data contamination and agent shortcut issues. Comparing different baselines, including pure LLMs with prompting, authors state that execution feedback is necessary for agents to generate useful solutions.
+
+The idea of execution feedback and iterative improvement for research tasks has been proposed in \textit{ResearchAgent}~\citep{baekResearchAgentIterativeResearch2024}. Agentic concept-based approach with literature-based discovery shows great improvement for end-to-end iterative solution generation, also supported by knowledge-based vs random facts ablations. 
+The agent is evaluated solely with subjective human preference annotation and automatic human preference evals. While covering structured aspects of end-to-end experimental pipeline (problem clarity, feasibility, significance, relevance, originality, method generalizability, innovativeness, experiment reproducibility, validity, etc), relying solely on human judgment without supporting it with objective metrics is insufficient, as~\citet{si2024llmsgeneratenovelresearch} shows.
+
+
+
+%Add some critique about current work in this space. No easy way to integrate new tasks, rigid evaluations, etc.
+
+%Now talk a bit more about how we see this problem and how we are trying to solve it. Connect contributions to all the critiques above.
+
+%\dn{Structure End}
+
+
+% \subsection{Evaluating Agents for Scientific Research}
+% %\dn{We should change this to "AI for science" and then differentiate between "AI for science" and "Agents for Science"}
+
+% \ibold{Machine Learning Methods in Science Automation}
+
+% Machine learning methods have rapidly permeated various scientific domains, automating parts of the research pipeline and accelerating discovery. 
+% Finding ML applications within modelling sciences \footnote{\url{https://en.wikipedia.org/wiki/Scientific_modelling}}, such as physics, biology, chemistry, linguistics, economics, geologic modelling, epidemiological modelling, neuroscience, etc. -- has been a prolific method expansion for all the fields that already had the prerequisite conditions for automating: formal models and simulations.
+
+% In protein engineering, \textit{ProGen} \citep{madani2020progenlanguagemodelingprotein} and related LLM-based approaches have successfully generated novel protein sequences, leveraging language modeling to account both structural and functional constraints. Likewise, recent works in DNA modeling \citep{benegas2024genomiclanguagemodelsopportunities} utilize large-scale genomic datasets to predict genetic variations, opening up new frontiers for gene editing and synthetic biology. Moving beyond the life sciences, \textit{AlphaProof} \footnote{\url{https://deepmind.google/discover/blog/ai-solves-imo-problems-at-silver-medal-level/}} aims to revolutionize mathematical reasoning by integrating large language models into automated theorem-proving systems, achieving notable results on formal proof benchmarks. Despite these advances, many scientific fields still lack the large, high-quality representative data and standardized evaluation methodologies necessary for ML modelling. As a result, numerous areas of study remain underexplored, underscoring the need for more comprehensive cross-disciplinary data sharing, methodology and reproducibility effort, and open benchmarking platforms to drive continued progress in automated scientific discovery. 
+
+% \ibold{Limits of ML-driven Agency}
+
+% The stated limitations and the lack of a well-defined path for domain-specific result validation in the different areas of science are not the only challenges for agentic applications in science.
+
+% For a lot of areas, the bias of the existing benchmarks and datasets itself is recognized as quite serious, and introducing elements of automation into problem-solving, we must take into account that the problems themselves are mostly not epistemologically motivated but rather are oriented toward applied and industrial problems, which places a significant limitation on the basis and future development of the approach itself \citep{kogkalidis2024tables}.
+% Economic value driven acceleration versus the epistemiological and environmental motivation can widely shift research priorities towards the narrow path of technical optimization, at the expense of theoretical depth and societal context.
+
+%\dn{Should we critique here? The critique should be in discussion/limitation section because it also affects us.}

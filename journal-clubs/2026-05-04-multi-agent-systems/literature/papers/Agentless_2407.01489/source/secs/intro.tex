@@ -1,0 +1,90 @@
+\section{Introduction}
+
+
+Large language model{s} (\llm{s}) have become the go-to default choice for code generation~\citep{codex,austin2021program,starcoder,magicoder}. 
+State-of-the-art \llm{s} like \gptfour~\citep{gptfour} and \claudesonnet{}onnet~\cite{claudethreefive} have demonstrated their prowess in being able to synthesize code snippets based on given user description. 
+However, compared to the main evaluation setting of simple, self-contained problems, applying \llm{s} on repository-level software engineering tasks has been understudied. 
+Software engineering tasks like feature addition, program repair, and test generation require an in-depth understanding of not only information within files, containing thousands of lines of code, but also repository-level dependencies across files. 
+
+Recently, to address the gap and evaluate the ability of tools to automatically solve real-world software engineering problems, the popular \swebench~\cite{swebench} benchmark has been developed. 
+In \swebench, each problem consists of a real-world GitHub issue description and the corresponding Python repository.
+The task is to modify the repository to resolve the issue, either fixing a bug or introducing a new feature.
+Recently, the authors have published a subset of the benchmark -- \swebenchlite~\cite{swebenchlite} (300 problems) that performs further filtering and focuses on bug fixing issues. 
+
+To solve the challenging real-world software development problems from \swebench, {inspired by the Devin AI Software Engineer~\cite{devinwebpage}, there has been a significant body of work from both academia and industry focusing on developing \emph{agent-based} approaches~\cite{autocoderover, aidar, sweagent, coder, repounderstander, bouzenia2024repairagent}}. 
+While there is not a fixed definition for agent-based approaches, they generally equip \llm{s} with a set of tools and allow agents to iteratively and autonomously perform actions, observe feedback, and plan future steps~\cite{liu2024largesurvey}. 
+Example tools can include the ability to open/write/create files, search for code lines, run tests, and execute shell commands.  
+In each attempt to solve a problem, agent-based approaches will have multiple turns, where each turn consists of performing an action.
+Subsequent turns {depend} on previous actions and the feedback information the agent receives from the environment. 
+
+
+
+At first glance, agent-based approaches appear to be a natural and straightforward way to tackle software development tasks. 
+After all, human developers also perform similar actions and use feedback to plan future steps. 
+However, the disparity between human and current \llm abilities leads to the following limitations of agent-based approaches:
+
+
+
+\begin{itemize}[noitemsep, leftmargin=*, topsep=0pt]
+    \item \textbf{Complex tool usage/design.}
+    %
+    To utilize tools, current agent-based approaches apply an abstraction layer between the agent and the environment. 
+    Examples are mapping real actions to API calls so that agents can use tools by outputting an API call instruction.
+    However, such abstractions and API call specifications require careful design of input/output formats and can easily lead to incorrect or imprecise tool design/usage,
+    especially for more complex action spaces. 
+    Given the{ iterative} nature of agent-based approaches, where current action/plan depends on previous turns, incorrectly or imprecisely defining/using a tool can both reduce performance and incur additional cost in wasted \llm queries. 
+    \item {\textbf{Lack of control in decision planning.}}
+    In addition to using tools, current agent-based approaches also delegate the decision-making process to the agents{}, allowing them to decide when and what action to perform. 
+    The agents decide the current action to take based on previous actions taken and the feedback provided by the environment, often with minimal checks to ensure the action taken make sense.
+    Due to the large possible action space and feedback response, it can be extremely easy for autonomous agents to become confused and perform sub-optimal explorations.
+    Furthermore, to solve an issue, an agent can take upwards of 30 or 40 turns, which makes it extremely difficult to both understand the decisions made by the agents and also debug the exact turns where an incorrect decision is made. 
+    \item \textbf{Limited ability to self-reflect.}
+    Existing agents struggle with the capability to perform self-reflection~\cite{olausson2023self, huang2024large}.
+    That is to say they tend to take all information/feedback and do not know how to filter out or correct irrelevant, incorrect, or misleading information~\cite{shi2023large, zhang2023siren}. 
+    The limited ability to self-reflect means that an incorrect step can be easily amplified and negatively affect all future decisions made by the agent.
+    
+\end{itemize}
+
+
+In this paper, we advocate that instead of rushing to develop increasingly complex \llm agent-based approaches and tools for software development (which can also be non-trivial to use or replicate due to the fully autonomous setup), we should first take a step back and ask the following introspective question: \emph{Do we really have to employ complex autonomous software agents?}
+
+\parabf{Our work.} We set out to answer this important question by building \tech{} -- an \emph{agentless} approach to automatically resolve software development {issues}.
+To solve each issue, \tech follows a simple three phase process: localization, repair, and patch validation. 
+In the localization process, \tech employs a hierarchical process to first localize the fault to specific files, then to relevant classes or functions, and finally to fine-grained edit locations.
+\tech's localization process make uses of both \llm-based localization as well classic information-retrieval-based localization idea~\cite{zhou2012should}.
+To perform repair, \tech takes the localized edit locations and generates multiple candidate patches in a simple diff format. 
+At the same time, \tech generates \reproduction tests that can reproduce the original error and help with candidate patch selection.
+Finally, \tech re-ranks all remaining patches and selects one to submit in order to fix the issue. 
+While \tech leverages \llm{s} to perform each detailed task, unlike prior complex agent-based tools, \tech{} does not allow \llm{s} to \emph{autonomously} decide future actions or operate with any complex tools.
+Our deliberate choice {to avoid} using agents not only allows \tech to have a simplistic and straightforward design that {is easy to understand}, but also helps avoid the above-mentioned limitations of \llm agents in software development. 
+We evaluate \tech on the popular \swebenchlite~\citep{swebenchlite} benchmark and demonstrate that \tech not only achieves the highest performance (\totalsolveperc{}) {among} all open-source approaches, but {also} does so at a fraction of the cost! 
+
+Furthermore, we performed a fine-grained manual analysis on the \swebenchlite dataset and {classified} all its problems into different categories across dimensions like problem description, ground truth patch, and {bug} location information.
+Surprisingly, we observed that \swebenchlite contains problems with exact ground truth patch in the description (\exactpatch), problems with missing critical information needed to solve the issue (\notenoughinfo), and problems that include misleading solutions in the issue description (\misleadingpatch).
+Recognizing these issues, we built \swebenchlitefiltered{},
+which removes such problematic problems, and serves as a more rigorous benchmark to evaluate the ability to solve real-world software development {challenges}.
+Overall, {in an era focused on achieving} top placements on leaderboards, our work highlights the overlooked potential of a simplistic, cost-effective technique in autonomous software development.
+We hope \tech will help reset the baseline, starting point, and horizon for autonomous software agents, and inspire future work along this crucial direction. 
+
+
+
+
+\parabf{Contributions.} In this work, we make the following contributions:
+
+\begin{itemize}[noitemsep, leftmargin=*, topsep=0pt]
+ \item \textbf{An \emph{agentless} approach.} We propose \tech, an \emph{agentless} approach to automatically solve software development problems.
+ \tech leverages LLM-empowered prompting-based and embedding-based retrieval to perform hierarchical localization.
+ During repair, \tech{} samples multiple candidate patches in a simple diff format for efficient patch generation.
+ \tech{} {then} generates \reproduction tests to verify {that} the issue has been resolved. 
+ Finally, \tech leverages both regression {tests} and generated \reproduction tests to select the final submission patch.
+ \item \textbf{Extensive evaluation.} We evaluate \tech on the popular \swebenchlite dataset comparing against state-of-the-art agent-based approaches. 
+ Our results demonstrates that \tech is able to achieve higher performance  (\totalsolveperc{}, \totalsolve correct fixes) than all open-source approaches, with comparably low cost as well.
+ This shows the previously overlooked potential of a simplistic technique in autonomous software development. 
+ Additionally, \emph{\tech has already been adopted by OpenAI as the go-to approach to showcase the real-world coding performance of \gptfouro~\cite{openaiverified} as well as the new \oone model family~\cite{openaioonesystemcard}}
+ We further perform a rigorous ablation study to understand the effectiveness of different components of \tech on the final performance.
+ \item \textbf{\swebenchlitefiltered{} benchmark.} We performed manual classifications on the problems in the popular \swebenchlite dataset.
+ We found that there are problematic problems with unclear, misleading issue descriptions, as well as problems that contain exact ground truth patches. 
+ To address these issues, we constructed a filtered dataset of \swebenchlitefiltered{} that excludes such problematic issues{, enabling} more rigorous evaluation and comparison. 
+ This has also been confirmed recently by OpenAI, which acknowledged our benchmark and released \swebenchverified~\cite{openaiverified} along the same direction.
+\end{itemize}
+

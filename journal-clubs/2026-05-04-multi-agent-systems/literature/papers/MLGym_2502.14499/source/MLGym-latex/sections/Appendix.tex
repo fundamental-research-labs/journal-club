@@ -1,0 +1,445 @@
+\section{Additional Results and Analysis}
+\label{sec:additional_results}
+
+\subsection{Computational Cost}
+\label{sec:cost_analysis_appendix}
+
+\autoref{tab:task_details} lists the resources needed to run the agent on each task in \mlgym-Bench.
+Each task has a set Training Timeout, which is used as the time limit for any python commands. 
+Specifically, it is used to prevent the agent from continuously scaling the model parameters.
+Average agent runtime and Baseline runtime show the wall clock time for each agent run and the provided baseline code, respectively.
+
+% \todo[inline]{@deepak: update baseline runtime}
+\begin{table}[!h]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+    \begin{NiceTabular}{lcccc}
+        \toprule
+        Task & Training Timeout & GPUs/Agents & Average Agent Runtime & Baseline Runtime (mins) \\
+        \midrule
+        CIFAR-10 & 30m & 1 & ~4h & 15 \\
+        Battle of Sexes & 30m & 0 & ~30m & 5 \\
+        Prisoners Dilemma & 30m & 0 & ~30m & 5 \\
+        Blotto & 30m & 0 & ~30m & 5 \\
+        House Price Prediction & 30m & 1 & ~1.5h & 10 \\
+        Fashion MNIST & 30m & 1 & ~2h & 10 \\
+        MS-COCO & 40m & 1 & & 7\\
+        MNLI & 40m & 1 & & 22 \\
+        Language Modeling & 40m & 2 & ~4h & 20 \\
+        Breakout & 30m & 2 & ~2h & 15 \\
+        Mountain Car Continuous & 30m & 2 & ~2h & 15 \\
+        Meta Maze & 30m & 2 & ~2h & 15 \\
+        3-SAT Heuristic & 30m & 0 & ~30m & 5 \\
+        \bottomrule
+    \end{NiceTabular}
+    \end{adjustbox}
+    \caption{Computational resources required for each task in \textsc{\mlgym-bench}.}
+    \label{tab:task_details}
+\end{table}
+
+\autoref{tab:model_details} lists the average input and output tokens and associated pricing for each model across all tasks in \mlgym-Bench. We report the model pricing as listed by their respective providers. Llama3.1-405b-Instruct pricing is taken from Together AI. Note that for this work, we used the open-weights model checkpoint with FP-8 precision, hosted on Meta Internal servers.
+Gemini-1.5-Pro charges 2\texttt{X} for using the long-context capabilities, i.e for input and output exceeding 128K tokens. However, in our experiments, we do not observe Gemini using the long-context capabilities, so the final price is reported based on the normal pricing.
+\begin{table}[!h]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+    \begin{NiceTabular}{lccccc}
+        \toprule
+        & \multicolumn{2}{c}{Avg. Usage} & \multicolumn{2}{c}{Pricing} & \\
+        Model & Input & Output & Input & Output & Context Length \\
+        \midrule
+        Llama3.1-405b-instruct$^{\ast}$ & 304348 & 2512 & 3.50 & 3.50 & 128k \\
+        Claude-3.5-Sonnet & 707704 & 12415 & 3.00 & 15.0 & 200k \\
+        Gemini-1.5-Pro$^\dagger$ & 282613 & 1633 & 1.25 & 5.00 & 2M \\
+        GPT-4o & 266886 & 2429 & 2.50 & 10.0 & 128k \\
+        OpenAI O1-Preview & 368898 & 60704 & 15.0 & 60.0 & 128k \\
+        \bottomrule
+    \end{NiceTabular}
+    \end{adjustbox}
+    \caption[Model details]{Model pricing, token usage and context length details. Model Pricing is in USD per 1M tokens. $^\ast$Llama3.1: FP8 endpoint by Together\footnotemark}
+    \label{tab:model_details}
+\end{table}
+
+\footnotetext{\url{https://www.together.ai/pricing}}
+
+\newpage
+% MODEL_COST_MAP = {
+%     "llama3-405b-tools": {
+%         "input_price": 3.5e-06,
+%         "output_price": 3.5e-06
+%     },
+%     "gpt4o2": {
+%         "input_price": 2.5e-06,
+%         "output_price": 10e-06
+%     },
+%     "claude-35-sonnet-new": {
+%         "input_price": 3e-06,
+%         "output_price": 15e-06
+%     },
+%     "gemini-15-pro": {
+%         "input_price": 1.25e-6,      # $1.25 per 1M tokens for <= 128k
+%         "output_price": 5e-6,        # $5.00 per 1M tokens for <= 128k
+%         "input_price_long": 2.5e-6,  # $2.50 per 1M tokens for > 128k
+%         "output_price_long": 10e-6   # $10.00 per 1M tokens for > 128k
+%     },
+%     "gpt-o1": {
+%         "input_price": 15e-06,
+%         "output_price": 60e-06
+%     }
+% }
+\subsection{Failure Mode Analysis}
+\label{sec:failure_analysis_appendix}
+\begin{figure*}[!h]
+    \centering
+    \includegraphics[width=\textwidth]{assets/failed_runs_task.pdf}
+    % \includegraphics{assets/failed_runs_task.pdf}
+    \caption{Number of Failed and Incomplete runs per task. The criteria for marking a run as incomplete or failed is described in \autoref{sec:failure_analysis}}
+    \label{fig:failed_runs_task}
+\end{figure*}
+
+Continuing the discussion from \autoref{sec:failure_analysis}, we show the failed and incomplete runs on each task to understand the difficulty distribution of tasks.
+%
+Language Modeling and all Reinforcement Learning tasks (Meta Maze, Mountain Car Continuous and Breakout) prove the most challenging, with the highest failure rates.
+%
+Whereas, Fashion MNIST and Prisoner's Dilemma show the lowest failure rates, with all models producing a valid intermediate solution and a valid submission for all seeds.
+%
+
+These failure patterns align with the raw performance scores in \autoref{tab:ba_raw} and \autoref{tab:bs_raw}, where we observe that tasks requiring complex architectural decisions (Language Modeling) or complex algorithms (Breakout, Meta Maze and Mountain Car Continuous). 
+%
+Traditional supervised learning tasks are handled more reliably across models, while the more advanced models demonstrate better error handling and completion rates overall.
+\newpage
+
+\subsection{Action Analysis}
+\label{sec:action_analysis_appendix}
+
+Extending the results presented in \autoref{sec:action_analysis}, \autoref{fig:actions_per_task} shows the action distribution on each task. The bars represent the sum of all the actions taken by all models on a particular task.
+We notice that RL tasks have the higest action count, while Game Theoretic tasks have the lowest action count. 
+Algorithmic Tasks such as 3-SAT and Game Theory (Blotto, Prisonner's Dilemma and Battle of Sexes) also have the highest amount of validation actions, signifying a quick experimental cycle.
+Similarly, all RL tasks have the most complex codebases among all \mlgym-Bench tasks and thus agent extensively use the \viewer commands.
+\begin{figure*}[!h]
+    \centering
+    \includegraphics[width=\textwidth]{assets/actions_per_task.pdf}
+    % \includegraphics{assets/actions_per_task.pdf}
+    \caption{Action Distribution for each task. We group the actions into categories following the grouping defined in \autoref{tab:tools} and \autoref{sec:action_analysis}.}
+    \label{fig:actions_per_task}
+\end{figure*}
+
+\subsection{Model Rankings}
+\label{sec:raw_results_appendix}
+
+\autoref{tab:ba_ranks} and \autoref{tab:bs_ranks} show each model's ranking based on Best Attempt@4 and Best Submission@4 scores respectively. The aggregate ranks are computed using the BORDA\footnote{\url{https://en.wikipedia.org/wiki/Borda_count}} count method.
+The aggregated rankings computed using BORDA count method align with the AUP score results as shown in \autoref{tab:aup_scores}. However, similar to any ranking-only metric, it does not convey the relative difference between each model's performance.
+
+\begin{table*}[!htb]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+    \begin{NiceTabular}{lllllll}
+        \toprule
+        Rank & 1 & 2 & 3 & 4 & 5 & 6 \\
+        \midrule
+        CIFAR-10 & Claude-3.5-Sonnet & OpenAI O1 & Gemini-1.5-Pro & GPT-4o & Llama3-405b-instruct & Baseline \\
+        Battle of Sexes & OpenAI O1 & Gemini-1.5-Pro & Claude-3.5-Sonnet & Llama3-405b-instruct & GPT-4o & Baseline \\
+        Prisoners Dilemma & Llama3-405b-instruct & Gemini-1.5-Pro & OpenAI O1 & GPT-4o & Claude-3.5-Sonnet & Baseline \\
+        Blotto & Claude-3.5-Sonnet & Gemini-1.5-Pro & OpenAI O1 & GPT-4o & Llama3-405b-instruct & Baseline \\
+        House Price Prediction & OpenAI O1 & Claude-3.5-Sonnet & Gemini-1.5-Pro & Llama3-405b-instruct & GPT-4o & Baseline \\
+        Fashion MNIST & Claude-3.5-Sonnet & GPT-4o & OpenAI O1 & Gemini-1.5-Pro & Llama3-405b-instruct & Baseline \\
+        Language Modeling & OpenAI O1 & Gemini-1.5-Pro & GPT-4o & Claude-3.5-Sonnet & Baseline & Llama3-405b-instruct \\
+        Breakout & Gemini-1.5-Pro & OpenAI O1 & Llama3-405b-instruct & Baseline & Claude-3.5-Sonnet & GPT-4o \\
+        Mountain Car Continuous & OpenAI O1 & Gemini-1.5-Pro & Claude-3.5-Sonnet & Baseline & Llama3-405b-instruct & GPT-4o \\
+        Meta Maze & Claude-3.5-Sonnet & OpenAI O1 & Gemini-1.5-Pro & Llama3-405b-instruct & Baseline & GPT-4o \\
+        3-SAT Heuristic & OpenAI O1 & GPT-4o & Llama3-405b-instruct & Gemini-1.5-Pro & Claude-3.5-Sonnet & Baseline \\
+        BORDA & OpenAI O1 & Gemini-1.5-Pro & Claude-3.5-Sonnet & Llama3-405b-instruct & GPT-4o & Baseline \\
+        \bottomrule
+    \end{NiceTabular}
+    \end{adjustbox}
+    \caption{Individual and Aggregate Ranking of models based on Best Attempt@4. We use the BORDA method to compute the aggregate ranks.}
+    \label{tab:ba_ranks}
+\end{table*}
+
+\begin{table}[!htb]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+    \begin{NiceTabular}{lllllll}
+        \toprule
+        Rank & 1 & 2 & 3 & 4 & 5 & 6 \\
+        \midrule
+        CIFAR-10 & Claude-3.5-Sonnet & OpenAI O1 & Gemini-1.5-Pro & GPT-4o & Llama3-405b-instruct & Baseline \\
+        Battle of Sexes & Gemini-1.5-Pro & OpenAI O1 & Claude-3.5-Sonnet & Llama3-405b-instruct & GPT-4o & Baseline \\
+        Prisoners Dilemma & Gemini-15-Pro & GPT-4o & OpenAI O1 & Claude-3.5-Sonnet & Llama3-405b-instruct & Baseline \\
+        Blotto & OpenAI O1 & Claude-3.5-Sonnet & Gemini-1.5-Pro & GPT-4o & Llama3-405b-instruct & Baseline \\
+        House Price Prediction & OpenAI O1 & Claude-3.5-Sonnet & Llama3-405b-instruct & Gemini-1.5-Pro & GPT-4o & Baseline \\
+        Fashion MNIST & Claude-3.5-Sonnet & GPT-4o & Gemini-1.5-Pro & OpenAI O1 & Llama3-405b-instruct & Baseline \\
+        Language Modeling & OpenAI O1 & Gemini-1.5-Pro & GPT-4o & Claude-3.5-Sonnet & Baseline & Llama3-405b-instruct \\
+        Breakout & Gemini-1.5-Pro & OpenAI O1 & Llama3-405b-instruct & Baseline & Claude-3.5-Sonnet & GPT-4o \\
+        Mountain Car Continuous & OpenAI O1 & Gemini-1.5-Pro & Claude-3.5-Sonnet & Baseline & Llama3-405b-instruct & GPT-4o \\
+        Meta Maze & Claude-3.5-Sonnet & OpenAI O1 & Llama3-405b-instruct & Gemini-1.5-Pro & Baseline & GPT-4o \\
+        3-SAT Heuristic & GPT-4o & OpenAI O1 & Llama3-405b-instruct & Gemini-1.5-Pro & Claude-3.5-Sonnet & Baseline \\
+        BORDA & OpenAI O1 & Gemini-1.5-Pro & Claude-3.5-Sonnet & GPT-4o & Llama3-405b-instruct & Baseline \\
+        \bottomrule
+    \end{NiceTabular}
+    \end{adjustbox}
+    \caption{Individual and Aggregate Ranking of models based on Best Subimission@4. We use the BORDA method to compute the aggregate ranks.}
+    \label{tab:bs_ranks}
+\end{table}
+
+\newpage
+
+\subsection{Memory Utilization}
+\label{sec:raw_results_appendix}
+% \begin{figure}[htb]
+%     \centering
+%     \includegraphics[width=0.8\linewidth]{assets/memory_step3.png}
+%     % \includegraphics[width=0.8\linewidth]{assets/memory_step4.png}
+%     % \includegraphics[width=0.8\linewidth]{assets/memory_step5.png}
+%     % \includegraphics[width=0.8\linewidth]{assets/memory_step6.png}
+%     \caption{Example of retrieving the best training configuration from memory and restarting exploration from it.}
+%     \label{fig:memory_example}
+% \end{figure}
+\autoref{fig:memory_example_1} and \autoref{fig:memory_example_2} show the agent using the memory module to store and retrieve specific experimental results and use them to submit the best possible model.
+
+\begin{figure*}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/memory_s3.png}
+    \vspace{-0.5pt}
+    \includegraphics[width=0.8\textwidth]{assets/memory_s4.png}
+    \caption{Example of retrieving the best training configuration from memory and restarting exploration from it.}
+    \label{fig:memory_example_1}
+\end{figure*}
+\begin{figure*}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/memory_s5.png}
+    \vspace{-0.5pt}
+    \includegraphics[width=0.8\textwidth]{assets/memory_s6.png}
+    \caption{Example of retrieving the best training configuration from memory and restarting exploration from it.}
+    \label{fig:memory_example_2}
+\end{figure*}
+\newpage
+
+\section{Prompts}
+% \begin{lstlisting}[caption={Tools}, label={lst:tools}, captionpos=t]
+%     open:
+%     docstring: opens the file at the given path in the editor. If line_number is provided, the window will be move to include that line
+%     signature: open "<path>" [<line_number>]
+%     arguments:
+%         - path (string) [required]: the path to the file to open
+%         - line_number (integer) [optional]: the line number to move the window to (if not provided, the window will start at the top of the file)
+
+%     goto:
+%     docstring: moves the window to show <line_number>
+%     signature: goto <line_number>
+%     arguments:
+%         - line_number (integer) [required]: the line number to move the window to
+
+%     scroll_down:
+%     docstring: moves the window down 1000 lines
+%     signature: scroll_down
+
+%     scroll_up:
+%     docstring: moves the window down 1000 lines
+%     signature: scroll_up
+
+%     create:
+%     docstring: creates and opens a new file with the given name
+%     signature: create <filename>
+%     arguments:
+%         - filename (string) [required]: the name of the file to create
+
+%     search_dir:
+%     docstring: searches for search_term in all files in dir. If dir is not provided, searches in the current directory
+%     signature: search_dir <search_term> [<dir>]
+%     arguments:
+%         - search_term (string) [required]: the term to search for
+%         - dir (string) [optional]: the directory to search in (if not provided, searches in the current directory)
+
+%     search_file:
+%     docstring: searches for search_term in file. If file is not provided, searches in the current open file
+%     signature: search_file <search_term> [<file>]
+%     arguments:
+%         - search_term (string) [required]: the term to search for
+%         - file (string) [optional]: the file to search in (if not provided, searches in the current open file)
+
+%     find_file:
+%     docstring: finds all files with the given name in dir. If dir is not provided, searches in the current directory
+%     signature: find_file <file_name> [<dir>]
+%     arguments:
+%         - file_name (string) [required]: the name of the file to search for
+%         - dir (string) [optional]: the directory to search in (if not provided, searches in the current directory)
+
+%     edit:
+%     docstring: replaces lines <start_line> through <end_line> (inclusive) with the given text in the open file. The replacement text is terminated by a line with only end_of_edit on it. All of the <replacement text> will be entered, so make sure your indentation is formatted properly. Python files will be checked for syntax errors after the edit. If the system detects a syntax error, the edit will not be executed. Simply try to edit the file again, but make sure to read the error message and modify the edit command you issue accordingly. Issuing the same command a second time will just lead to the same error message again.
+%     signature: edit <start_line>:<end_line>
+%     <replacement_text>
+%     end_of_edit
+%     arguments:
+%         - start_line (integer) [required]: the line number to start the edit at
+%         - end_line (integer) [required]: the line number to end the edit at (inclusive)
+%         - replacement_text (string) [required]: the text to replace the current selection with
+
+%     insert:
+%     docstring: inserts the given text after the specified line number in the open file. The text to insert is terminated by a line with only end_of_insert on it. All of the <text_to_add> will be entered, so make sure your indentation is formatted properly. Python files will be checked for syntax errors after the insertion. If the system detects a syntax error, the insertion will not be executed. Simply try to insert again, but make sure to read the error message and modify the insert command you issue accordingly.
+%     signature: insert <line_number>
+%     <text_to_add>
+%     end_of_insert
+%     arguments:
+%         - line_number (integer) [required]: the line number after which to insert the text
+%         - text_to_add (string) [required]: the text to insert after the specified line
+
+%     submit:
+%     docstring: submits your current code and terminates the session
+%     signature: submit
+
+%     validate:
+%     docstring: validates your current submission file and returns the metrics on test set
+%     signature: validate
+
+%     Please note that THE EDIT and INSERT COMMANDS REQUIRES PROPER INDENTATION.
+%     If you'd like to add the line '        print(x)' you must fully write that out, with all those spaces before the code! Indentation is important and code that is not indented correctly will fail and require fixing before it can be run.
+
+%     RESPONSE FORMAT:
+%     Your shell prompt is formatted as follows:
+%     (Open file: <path>) <cwd>
+
+%     You need to format your output using two fields; discussion and command.
+%     Your output should always include _one_ discussion and _one_ command field EXACTLY as in the following example:
+%     DISCUSSION
+%     First I'll start by using ls to see what files are in the current directory. Then maybe we can look at some relevant files to see what they look like.
+%     ```
+%     ls -a
+%     ```
+% \end{lstlisting}
+
+\begin{lstlisting}[caption={System Propmt}, label={lst:system_prompt}, captionpos=t]
+    SETTING: You are an autonomous machine learning researcher, 
+    and you're working directly in the command line with a special interface.
+
+    The special interface consists of a file editor that shows you 1000 lines of a file at a time.
+    In addition to typical bash commands, you can also use the following commands 
+    to help you navigate and edit files.
+
+    COMMANDS:
+    open:
+    docstring: opens the file at the given path in the editor. If line_number is provided, the window will be move to include that line
+    signature: open "<path>" [<line_number>]
+    arguments:
+        - path (string) [required]: the path to the file to open
+        - line_number (integer) [optional]: the line number to move the window to (if not provided, the window will start at the top of the file)
+
+    goto:
+    docstring: moves the window to show <line_number>
+    signature: goto <line_number>
+    arguments:
+        - line_number (integer) [required]: the line number to move the window to
+
+    scroll_down:
+    docstring: moves the window down 1000 lines
+    signature: scroll_down
+
+    scroll_up:
+    docstring: moves the window down 1000 lines
+    signature: scroll_up
+
+    create:
+    docstring: creates and opens a new file with the given name
+    signature: create <filename>
+    arguments:
+        - filename (string) [required]: the name of the file to create
+
+    search_dir:
+    docstring: searches for search_term in all files in dir. If dir is not provided, searches in the current directory
+    signature: search_dir <search_term> [<dir>]
+    arguments:
+        - search_term (string) [required]: the term to search for
+        - dir (string) [optional]: the directory to search in (if not provided, searches in the current directory)
+
+    search_file:
+    docstring: searches for search_term in file. If file is not provided, searches in the current open file
+    signature: search_file <search_term> [<file>]
+    arguments:
+        - search_term (string) [required]: the term to search for
+        - file (string) [optional]: the file to search in (if not provided, searches in the current open file)
+
+    find_file:
+    docstring: finds all files with the given name in dir. If dir is not provided, searches in the current directory
+    signature: find_file <file_name> [<dir>]
+    arguments:
+        - file_name (string) [required]: the name of the file to search for
+        - dir (string) [optional]: the directory to search in (if not provided, searches in the current directory)
+
+    edit:
+    docstring: replaces lines <start_line> through <end_line> (inclusive) with the given text in the open file. The replacement text is terminated by a line with only end_of_edit on it. All of the <replacement text> will be entered, so make sure your indentation is formatted properly. Python files will be checked for syntax errors after the edit. If the system detects a syntax error, the edit will not be executed. Simply try to edit the file again, but make sure to read the error message and modify the edit command you issue accordingly. Issuing the same command a second time will just lead to the same error message again.
+    signature: edit <start_line>:<end_line>
+    <replacement_text>
+    end_of_edit
+    arguments:
+        - start_line (integer) [required]: the line number to start the edit at
+        - end_line (integer) [required]: the line number to end the edit at (inclusive)
+        - replacement_text (string) [required]: the text to replace the current selection with
+
+    insert:
+    docstring: inserts the given text after the specified line number in the open file. The text to insert is terminated by a line with only end_of_insert on it. All of the <text_to_add> will be entered, so make sure your indentation is formatted properly. Python files will be checked for syntax errors after the insertion. If the system detects a syntax error, the insertion will not be executed. Simply try to insert again, but make sure to read the error message and modify the insert command you issue accordingly.
+    signature: insert <line_number>
+    <text_to_add>
+    end_of_insert
+    arguments:
+        - line_number (integer) [required]: the line number after which to insert the text
+        - text_to_add (string) [required]: the text to insert after the specified line
+
+    submit:
+    docstring: submits your current code and terminates the session
+    signature: submit
+
+    validate:
+    docstring: validates your current submission file and returns the metrics on test set
+    signature: validate
+
+    Please note that THE EDIT and INSERT COMMANDS REQUIRES PROPER INDENTATION.
+    If you'd like to add the line '        print(x)' you must fully write that out, with all those spaces before the code! Indentation is important and code that is not indented correctly will fail and require fixing before it can be run.
+
+    RESPONSE FORMAT:
+    Your shell prompt is formatted as follows:
+    (Open file: <path>) <cwd>
+
+    You need to format your output using two fields; discussion and command.
+    Your output should always include _one_ discussion and _one_ command field EXACTLY as in the following example:
+    DISCUSSION
+    First I'll start by using ls to see what files are in the current directory. Then maybe we can look at some relevant files to see what they look like.
+    ```
+    ls -a
+    ```
+    You should only include a *SINGLE* command in the command section and then wait for a response from the shell before continuing with more discussion and commands. Everything you include in the DISCUSSION section will be saved for future reference. Please do not include any DISCUSSION after your action.
+    If you'd like to issue two commands at once, PLEASE DO NOT DO THAT! Please instead first submit just the first command, and then after receiving a response you'll be able to issue the second command.
+    You're free to use any other bash commands you want (e.g. find, grep, cat, ls, cd) in addition to the special commands listed above.
+    However, the environment does NOT support interactive session commands (e.g. python, vim), so please do not invoke them.
+    Your goal is to achieve the best possible score, not just to submit your first working solution. Consider strategies like validating your answer using the `validate` command, manually spot-checking predictions, building custom validation sets and grading functions, and comparing different algorithms.
+    Once you have exhausted all possible solutions and cannot make progress, you can submit your final solution by using `submit` command.
+    
+    INSTRUCTIONS:
+    Now, you're going to train a model to improve performance on this task. Your terminal session has started and you're in the workspace root directory. You can use any bash commands or the special interface to help you. Edit all the file you need or create a new training script.
+    Remember, YOU CAN ONLY ENTER ONE COMMAND AT A TIME. You should always wait for feedback after every command.
+    When you're satisfied with all of the changes you've made, you can run your training file. Your training file should include the logic for saving the prediction for the `test` set of the task. The submission file should be named `submission.csv` with the instance id and prediction column.
+    A sample submission file is given in the workspace and you can read it to get a better understanding of the submission format.
+    Note however that you cannot use any interactive session commands (e.g. python, vim) in this environment, but you can write scripts and run them. E.g. you can write a python script and then run it with `python <script_name>.py`.
+
+    NOTE ABOUT THE EDIT AND INSERT COMMANDs: Indentation really matters! When editing a file, make sure to insert appropriate indentation before each line!
+
+    IMPORTANT TIPS:
+    1. Always start by trying to understand the baseline script if available. This will give you an idea of one possible solution for the task and the baseline scores that you have to beat.
+
+    2. If you run a command and it doesn't work, try running a different command. A command that did not work once will not work the second time unless you modify it!
+
+    3. If you open a file and need to get to an area around a specific line that is not in the first 100 lines, say line 583, don't just use the scroll_down command multiple times. Instead, use the goto 583 command. It's much quicker.
+
+    4. Always make sure to look at the currently open file and the current working directory (which appears right after the currently open file). The currently open file might be in a different directory than the working directory! Note that some commands, such as 'create', open files, so they might change the current  open file.
+
+    5. When editing files, it is easy to accidentally specify a wrong line number or to write code with incorrect indentation. Always check the code after you issue an edit to make sure that it reflects what you wanted to accomplish. If it didn't, issue another command to fix it.
+
+    6. You have a limited number of actions/steps you can take in the environment. The current step and remaining number of steps will given after every action. Use the remaining steps wisely. If you only have few remaining steps, it is better to submit a working solution then to keep trying.
+
+    7. Your each action should take less than 1800 seconds to complete. If your action doesn't finish within the time limit, it will be interrupted.
+
+
+    (Current Step: 0, Remaining Steps: 50)
+    (Open file: n/a)
+    (Current directory: /home/agent/imageClassificationCifar10)
+    bash-
+\end{lstlisting}
+

@@ -1,0 +1,134 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Exploration}\label{sec:methods:exploration}
+% DRI: Filip + Jie
+
+Exploration is a well-known and well-researched problem in the context of reinforcement learning.\nicetohave{citations-exploration}
+We encourage exploration in two different ways: by shaping the loss (entropy and team spirit) and by randomizing the training environment.
+
+\subsection{Loss function}
+Per \cite{schulman2017proximal}, we use entropy bonus to encourage exploration.
+This bonus is added to the PPO loss function in the form of $c S[\pi_{\theta}](s_t)$, where $c$ is a hyperparameter referred to as entropy coefficient.
+In initial stages of training a long-running experiment like \openaifive or \cleanexpname we set it to an initial value and lower it during training.
+%(for smaller experiments like those in the above sections, we keep it fixed for simplicity).
+Similarly to \cite{schulman2017proximal}, \cite{mnih2016asynchronous}, or \cite{williams1991function}, we find that using entropy bonus prevents premature convergence to suboptimal policy.
+% However we also find, that in a challenging task where goal is to achieve maximum performance at the end of training, it is important to eventually allow policy to converge closer to a deterministic one.
+In \autoref{fig:full-entropy}, we see that entropy bonus of 0.01 (our default) performs best.
+% there is actually a wide range of entropy bonuses that result in similar performance of our agent in early training.
+We also find that setting it to $0$ in early training, while not optimal, does not completely prevent learning.
+
+\begin{figure}
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/full-entropy.pdf}
+    \end{minipage}\hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/full-entropy-speedup.pdf}
+    \end{minipage}
+    \caption{\textbf{Entropy in early training: } \trueskillname and speedup with varied entropy coefficients.
+    % Entropy of 0.01 perform equally well in the very early regime, with regime. 
+    Lower entropy performs worse because the model has a harder time exploring; higher entropy performs much worse because the actions are too random.
+    }
+    \label{fig:full-entropy}
+\end{figure}
+
+\begin{figure}
+    \centering
+        \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/expl-lane-assignments-on-sweep-team-spirit.pdf}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/expl-lane-assignments-on-sweep-team-spirit-speedup.pdf}
+    \end{subfigure} 
+    \caption{\textbf{Team Spirit in early training: } 
+    %Effect of varying team spirit on early training. 
+    Very early in training (\trueskillname<125) the run with team spirit 0 does best; this can be seen by the speedup for lower \trueskillname being highest at team spirit 0.
+    The maximum speedup quickly moves to 0.5 in the medium \trueskillname regime (150 and 175).
+    }
+    \label{fig:team-spirit}
+\end{figure}
+
+\begin{figure}
+    \centering
+    % \begin{subfigure}[t]{0.48\textwidth}
+        % \centering
+        \includegraphics[width=0.5\textwidth]{figures/expl-lane-assignments-comp-team-spirit-0.pdf}
+        % \caption{}
+        % \label{fig:exploration:sweeplaneassignments}
+    % \end{subfigure}
+    % Removing because it's duplicative of multihero appendix.
+    % \hfill
+    % \begin{subfigure}[t]{0.48\textwidth}
+    %     \centering
+    %     \includegraphics[width=\textwidth]{figures/expl-randomizations-off.pdf}
+    %     \caption{}
+    %     \label{fig:exploration:norand}
+    % \end{subfigure}
+    \caption{\textbf{Lane Assignments: } 
+    ``Lane assignments'' randomization on vs. off. In this ablation we see that this randomization actually provided little benefit.
+    % This was run with team spirit 0.
+    %on \ref{fig:exploration:sweeplaneassignments}
+    % , and comparison of the default and two different versions of training on just $5$ heroes on \ref{fig:exploration:norand}.
+    }
+    \label{fig:exploration}
+\end{figure}
+
+%%% TEAM SPIRIT
+
+As discussed in \autoref{appendix:rewards}, we introduced a hyperparameter {\it team spirit} to control whether agents optimize for their individual reward or the shared reward of the team.
+Early training and speedup curves for team spirit can be seen in \autoref{fig:team-spirit}.
+We see evidence that early in training, lower team spirits do better.
+At the very start team spirit 0 is the best, quickly ovdertaken by team spirit 0.3 and 0.5. 
+We hypothesize that later in training team spirit 1.0 will be best, as it is optimizing the actual reward signal of interest.
+
+\subsection{Environment Randomization}
+\label{sec:random}
+We further encouraged exploration through randomization of the environment, with three simultaneous goals:
+
+\begin{enumerate}
+\item If a long and very specific series of actions is necessary to be taken by the agent in order to randomly stumble on a reward, and any deviation from that sequence will result in negative advantage, then the longer this series, the less likely is agent to explore this skill thoroughly and learn to use it when necessary.
+\item If an environment is highly repetitive, then the agent is more likely to find and stay in a local minimum.
+\item In order to be robust to various strategies humans employ, our agents must have encountered a wide variety of situations in training.
+This parallels the success of domain randomization in transferring policies from simulation to real-world robotics\cite{dactyl}.
+\end{enumerate}
+
+\label{sec:lane-assignments}
+We randomize many parts of the environment:
+\begin{itemize}
+\item \textbf{Initial State: }
+In our rollout games, heroes start with random perturbations around the default starting level, experience, and gold, armor, movement speed, health regeneration, mana regeneration, magic resistance, strength, intellect, and agility.
+% This addresses motivation $2$ above.
+\item \textbf{Lane Assignments: }
+From a strategic perspective it makes sense for heroes to act in certain area of the map more than the others.
+Most inter-team skirmishes happen on {\it lanes}  ($3$ distinct paths that connect opposing bases).
+At a certain stage of our work, we noticed that our agents developed a preference to stick together as a group of $5$ on a single lane, and fighting any opponent coming their way.
+This represents a large local minimum, with higher short-term reward but lower long-term one as the resources from the other lanes are lost.
+After that we introduced {\it lane assignments}, which randomly assigned each hero to a subset of lanes, and penalized them with negative reward for leaving those lanes.
+However, the ablation study in \autoref{fig:exploration} indicates that this may not have been necessary in the end.
+% This also addresses motivation $2$ above.
+\item \textbf{Roshan Health: }Roshan is a powerful neutral creature, that sits in a specific location on the map and awaits challengers.
+Early in training our agents were no match for it; later on, they would already have internalized the lesson never to approach this creature.
+In order to make this task easier to learn, we randomize Roshan's health between zero and the full value, making it easier (sometimes much easier) to kill.
+% This addresses motivation $1$ above.
+\item 
+\textbf{Hero Lineup: }
+%When we started training 5v5 version of the game, we initially only trained our agents to play with a fixed set of $5$ heroes.
+%Soon after, we have advanced to playing a set of $18$ heroes.
+In each training game, we randomly sample teams from the hero pool.
+% We have treated that as a necessity to learn to play an $18$-hero (and eventually $100+$-hero) game.
+While the hero randomization is necessary for robustness in evaluations  against human players (which may use any hero teams), we hypothesize that it may serve as additional exploration encouragement, varying the game and preventing premature convergence.
+In \autoref{sec:multihero}, we see that training with additional heroes causes only a modest slowdown to training despite the extra heroes having new abilities and strategies which interact in complex ways.
+\item \textbf{Item Selection: }
+Our item selection is scripted: in an evaluation game, our agents always buy the same set of items for each specific hero.
+In training we randomize around that, swapping, adding, or removing some items from the build.
+This way we expose our agents to enemies playing with and using those alternative items, which makes our agents more robust to games against human players.
+There are shortcomings to this method, e.g. a team with randomly picked items is likely to perform worse, as our standard build is carefully crafted.
+In the end our agent was able to perform well against humans who choose a wide variety of items.
+% It appears that being exposed to those items generalizes easily to playing against strong teams equipped with items.
+\end{itemize}
+\end{document}

@@ -1,0 +1,55 @@
+\section{AgentVerse Framework}
+\label{sec:method}
+
+
+
+A problem-solving process is a sequence of iterative stages within a human group~\citep{Bransford_Stein_1993}. Initially, the group assesses the difference between the current state and the desired goal, dynamically adjusting its composition to enhance collaboration in decision-making, and subsequently executing well-informed actions. In order to enhance the effectiveness of an autonomous multi-agent group in achieving their goals, we simulate the problem-solving processes of a human group to propose the \framework framework, which is composed of four crucial stages: \textbf{Expert Recruitment}, \textbf{Collaborative Decision-Making}, \textbf{Action Execution}, and \textbf{Evaluation}, as shown in~\cref{fig:pipeline}. 
+The entire process can be modeled as a Markov decision process (MDP), characterized as a tuple $(\gS, \gA, \gT, \gR, \gG)$. This encompasses the autonomous agent and environment state space $\gS$, solution and action space $\gA$, transition function $\gT: \gS \times \gA\rightarrow \gS$, reward function $\gR$, and goal space $\gG$.
+
+
+
+\subsection{Expert Recruitment}
+\label{sec:method-recruitment}
+
+Expert Recruitment stage determines the composition of a multi-agent group, playing an important role in deciding the upper bounds of the group's capabilities. Empirical evidence suggests that diversity within human groups introduces varied viewpoints, enhancing the group's performance across different tasks~\citep{collective_intelligence_and_group_performance,williams1998demography}. Parallel findings from recent research suggest that designating specific roles for autonomous agents, similar to recruiting experts to form a group, can augment their efficacy~\citep{DBLP:journals/corr/abs-2303-17760,DBLP:journals/corr/abs-2305-14930,DBLP:journals/corr/abs-2307-07924}. Current methodologies for assigning role descriptions to autonomous agents predominantly involve manual assignment, necessitating prior knowledge and understanding of the task. Consequently, the scalability remains ambiguous, especially in the face of diverse and intricate problem contexts.
+
+In view of this, \framework automates expert recruitment to make agent configuration more scalable. For a given goal $g\in \gG$, a particular agent $M_r$ is prompted as the "recruiter", similar to a human resource manager. Instead of relying on pre-defined expert descriptions, $M_r$ dynamically generates a set of expert descriptions based on $g$. The different agents prompted with these different expert descriptions then form an expert group $\gM = M_r(g)$ on the given goal $g$. Notably, the composition of a multi-agent group will be dynamically adjusted based on feedback from the evaluation stage (\cref{sec:method-feedback}). This allows \framework to employ the most suitable group based on the current state to make better decisions in future rounds.
+
+
+\subsection{Collaborative Decision-making}
+\label{sec:method-deliberation}
+
+This stage engages expert agents in collaborative decision-making. To facilitate effective decision-making, previous research has investigated the impact of different communication structures among agents~\citep{chan2023chateval,zhang2023wider,wu2023autogen}. We focus on two typical communication structures: \textit{horizontal structure} and \textit{vertical structure}, respectively.
+
+\vspace{-0.5em}
+\textbf{Horizontal Structure (\begin{minipage}[b]{0.09\columnwidth}
+    \centering
+    \raisebox{-.1in}{\includegraphics[width=\linewidth]{figs/files/horizontal.pdf}} 
+\end{minipage})} 
+In this democratic structure, each agent, denoted as $m_i\in \gM$, shares and refines its decision $a_{m_i}$. The group's collective decision, $A=f\left(\{a_{m_i}\}_i\right)\in \gA$, emerges as an integration of individual agents' decisions using a function $f$, which might involve techniques like summarization or ensemble. This structure is especially effective in scenarios like consulting and tool using.
+
+\vspace{-0.5em}
+\textbf{Vertical Structure (\begin{minipage}[b]{0.09\columnwidth}
+    \centering
+    \raisebox{-.1in}{\includegraphics[width=\linewidth]{figs/files/vertical.pdf}} 
+\end{minipage})} 
+Conversely, vertical structure has a clear division of roles. An agent, termed the solver $m^*$, proposes an initial decision $a_{0}^*$. Other agents, as reviewers, provide feedback on this proposal, prompting iterative refinements by the solver until a consensus is reached among reviewers or a set number of iterations is exhausted. The final decision $A$ is given as $A=a^*_{k}\in \gA$, with $k$ indicating the number of refinements. 
+Vertical structure is preferable for tasks like math problem-solving and software development, where only one refined decision is required.
+
+
+
+
+
+\subsection{Action Execution}
+\label{sec:method-execution}
+
+
+In the decision-making stage, agents collaboratively contribute to a group decision $A$ containing actions that need to be executed in the current environment. Within the action execution stage, agents then execute the collectively-decided actions in the environment. Depending on the implementation, some agents might not perform any execution. As a result of these actions, the state of the environment transitions from $s_\text{old}$ to $s_\text{new}=\gT(s_\text{old}, A)$.
+
+
+\subsection{Evaluation}
+\label{sec:method-feedback}
+
+The evaluation stage is vital for \framework, guiding improvements for subsequent rounds. At this stage, the feedback mechanism $\gR$ assesses the difference between the current state $s_\text{new}$ and the desired goal $g \in G$. It then offers verbal feedback $r=\gR(s_\text{new}, g)$, detailing areas of shortcoming and suggesting ways to enhance performance. $\gR$ can either be defined by humans (in a human-in-the-loop \citep{Amershi_Cakmak_Knox_Kulesza_2014} setting) or an agent for automatic feedback, depending on the implementation.
+
+If the goal $g$ remains unmet, the feedback $r$ returns to the initial expert recruitment stage. In the next round, the expert recruitment stage will consider both feedback $r$ and the goal $g$ to adjust the group's composition, aiming to evolve a more effective multi-agent group according to the current progress.

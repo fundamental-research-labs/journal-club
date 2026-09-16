@@ -1,0 +1,71 @@
+% \section{Analysis} \label{sec:analysis}
+
+\section{Results and Analysis}
+
+% SoM discussion
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/execution_trace_v2.pdf}
+    % \vspace{-0.32in}
+    \caption{Successful execution trajectory of the GPT-4V + SoM agent on the task for blocking a user that posted a certain picture. The text in red represents the actions output by the agent.} \label{fig:block-user-traj}
+    % \vspace{-0.1in}
+\end{figure*}
+
+
+
+Our main baseline results are summarized in Tab.~\ref{tab:results}. All existing models substantially underperform compared to humans, which indicate significant headroom in \BenchmarkName{} for future work. We discuss some main findings below with the GPT-4V model, with further analysis in the appendix.
+
+\paragraph{Text-based LLMs Perform Poorly} State-of-the-art text-only LLMs generally achieve poor results, with the best model (GPT-4) achieving an overall success rate of 7.25\%. When we augment the LLMs with captions, this considerably improves success rate (7.25\% to 12.75\% for GPT-4). % Other models also see a similar boost in success rate when provided caption information.
+
+\paragraph{Multimodality Helps} Using multimodal agents significantly improves the success rate: GPT-4V (\texttt{gpt-4-1106-vision-preview}) achieves an overall success rate of 15.05\%, substantially improving over the text-only agents. Gemini-Pro also experiences a significant uplift in success rate, from 3.85\% (caption-augmented) to 6.04\% (multimodal). 
+% These results are intuitive, as \BenchmarkName{} was designed to be explicitly visual, and test the ability of models to process and understand visual content. 
+Text-based agents may be limited in their ability to process complex images (e.g., those that require OCR or recognition of non-salient objects). %, thus falling behind multimodal models.
+
+
+
+\paragraph{SoM Improves Navigability} We observe that the SoM representation (Sec.~\ref{sec:som_method}) further improves the performance of GPT-4V over using the accessibility tree, boosting overall success rate ($15.05\% \rightarrow 16.37\%$). We observe particularly substantial improvements on Classifieds and Reddit, from $12.38\% \rightarrow 17.14\%$ and $8.12\% \rightarrow 9.83\%$ respectively. 
+% In contrast, the performance on the Shopping benchmark remains relatively similar. 
+We attribute this to the Classifieds and Reddit websites containing denser visual content. These websites often contain multiple smaller sized images that are arranged very closely (Fig.~\ref{fig:som_figure}). In many of these pages, the accessibility tree does not provide sufficient information to disentangle elements that are spatially close. 
+We hypothesize that the SoM representation is superior for strong VLM agents, which can more accurately disentangle and click on the desired elements. 
+For the other VLMs, SoM does not significantly improve success, which we attribute to the finding from \citet{yang2023som} that only GPT-4V demonstrates the SoM grounding ability (perhaps due to scale or training data). % This motivates future work in imbueing VLM agents with similar abilities.
+
+One GPT-4V + SoM execution trajectory that we found particularly compelling was Reddit task \#139, which requires exact image matching to find a post and block a user (Fig.~\ref{fig:block-user-traj}). The model initially attempts to search for the correct forum, and when this fails it navigates to the list of forums. After navigating correctly to \texttt{/f/memes}, it identifies the offending image out of the many images on the page (Step 3 in Fig.~\ref{fig:block-user-traj}) and blocks the author successfully without any unnecessary actions. 
+
+\subsection{Performance by Task Type}  \label{sec:performance_task_subset}
+
+We analyze the success rate of the best VLM agent baseline (GPT-4V + SoM) across several additional subsets of tasks (Tab.~\ref{tab:analysis_subsets}). We include further analysis for other models in Appendix~\ref{sec:appendix_analysis}.
+%and discussed in the following paragraphs, with
+
+\begin{table}[t] %{r}{6cm}
+% \captionsetup{font=small}
+\centering
+\resizebox{0.85\linewidth}{!}{%
+\begin{tabular}{lcc}
+  \toprule
+  \textbf{Task Subset}\hspace{25mm} & \textbf{\% of Total} & \textbf{SR} ($\uparrow$) \\
+  \midrule
+  OCR required &  17.1\% &  13.4\% \\
+  No OCR required &  82.9\% & \textbf{16.9\%} \\
+  \midrule
+  Exact image match &  8.7\% &  \textbf{18.9\%} \\
+  No exact image match &  91.3\% & 16.2\% \\
+  \midrule
+  Image inputs &  25.2\% &  \textbf{19.0\%} \\
+  No image inputs &  74.8\% & 14.9\% \\
+  \bottomrule
+\end{tabular}
+}
+% \vspace{-0.1in}
+\caption{Success rate (SR) of GPT-4V (SoM) across different types of tasks.}  \label{tab:analysis_subsets}
+% \vspace{-0.2in}
+\end{table}
+
+\paragraph{OCR Tasks} 17.1\% of \BenchmarkName{} require optical character recognition (OCR), such as reading text from product images, or extracting text from an input image. We find that GPT-4V + SoM generally performs worse on tasks that require OCR (13.4\%) compared to tasks which do not (16.9\%), suggesting that OCR may be a bottleneck for current agents.
+
+\paragraph{Exact Image Match} 8.7\% of tasks require exact image matching, which requires agents to identify precise visual matches. GPT-4V + SoM achieves a slightly higher success rate on this subset (18.9\%) compared to other tasks (16.2\%), suggesting that exact image matching is not a primary bottleneck.
+
+
+\paragraph{Image Input Tasks} 25.2\% of \BenchmarkName{} include one or more input images as part of the objective. These tasks generally appear more tractable for the GPT-4V + SoM agent, and it achieves a higher success rate (19.0\%) compared to tasks without image inputs (14.9\%).% In contrast, Gemini-Pro performance deteriorates, and it performs 
+
+
+

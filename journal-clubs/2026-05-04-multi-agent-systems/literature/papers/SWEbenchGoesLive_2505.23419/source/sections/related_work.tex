@@ -1,0 +1,49 @@
+% \section{Related Work}
+% % \paragraph{Software engineering tasks and tools}
+
+
+% \paragraph{Issue-Resolving Benchmarks and Agents} Issue resolving benchmark was proposed as a key milestone moving towards more practical software engineering evaluation. The most representative one is SWE-bench~\cite{jimenez2024swebench} (including full, lite and verified~\cite{swebench-verified}), which focus on fixing GitHub issues from 12 Python repositories.  SWE-bench Multimodal
+% ~\cite{yang2024swebenchmultimodalaisystems} extends the setting to JavaScript repositories with multi-modality input such as UI images, while Multi-SWE-bench~\cite{zan2025multi} further extend 
+% to multiple programming languages, such as Java, Go, and Rust.
+% Over the past years, many approaches have been proposed and achieved outstanding performance on these benchmarks, such as OpenHands~\cite{openhands}, SWE-agent~\cite{yang2024swe}, and Agentless~\cite{xia2024agentless}. Besides, another line of recent studies work on training SWE agents by preparing  training environments~\cite{pan2024trainingsoftwareengineeringagents} and huge number of SWE-bench like instances~\cite{yang2025swesmith,xie2025swe}.
+
+
+% \paragraph{Data Contamination Problem} Since LLMs are mostly pretrained based on public-available corpus, existing public benchmarks often suffer from the ``data contamination'' problem since they might have been embodied into the training data. 
+% % similar patterns on other general benchmarks.
+% Zhang et al.~\cite{zhang2024careful} found that many models may have partially memorized GSM8k~\cite{cobbe2021gsm8k} and  Golchin et al. ~\cite{golchin2023time} concluded that GPT-4 showed contamination on  datasets such as WNLI~\cite{wang2019glue} and XSum~\cite{Narayan2018DontGM}. Researchers also observed the similar problem on SWE-bench. Zhou et al.~\cite{zhou2025lessleak} revealed that SWE-bench and SWE-bench-verified show a high leakage rate of 8.7\% and 10.6\% respectively. It was also uncovered the data leakage problem~\cite{ramos2024large} of certain models also on bug benchmarks including Defects4J~\cite{just2014defects4j} and SWE-bench.
+
+% % An empirical analysis of the SWE-bench dataset~\cite{aleithan2024swe} revealed that solution leakage problem where solutions were directly provided in the issue.
+
+
+
+% \paragraph{Contamination-Free Benchmarks}
+
+
+% LiveCodeBench\cite{jain2024livecodebench} 
+
+% LiveBench \cite{white2024livebench}
+
+% SWE-bench-secret~\cite{kio2024swe} is a private dataset carefully collected with issues from 3 popular GitHub repositories.
+
+
+% \cz{Consider to Merge with code benchmark and code agent}
+
+
+
+\section{Related Work}
+
+
+\paragraph{Coding Benchmarks.}
+Early benchmarks for program synthesis and bug fixing focused on \emph{single‑file, synthetic} tasks such as HumanEval \cite{chen2021evaluating} and MBPP \cite{austin2021program}, which do not reflect the complexity of real repositories.  To move closer to practice, SWE-bench~\cite{swebench} introduced the \emph{issue‐resolving} task, requiring a model to generate a validated patch for a GitHub repositories issue.  Numerous extensions have since appeared—including Multimodal SWE‑bench for JavaScript and UI screenshots~\cite{yang2024swebenchmultimodalaisystems}, Multi-SWE-bench for multiple languages such as Java and Rust~\cite{zan2025multi}.  Despite their impact, all of these datasets are \emph{static}: they are collected once, cover at most a few dozen repositories, and depend on labor‑intensive environment construction.  These yield two limitations. First, models can overfit to the fixed test set, inflating apparent progress.   Second, public tasks may lead to \textit{data contamination}, where benchmark instances leak into pre‑training corpora \cite{zhang2024careful, golchin2023time}.
+% as observed on  GSM8K~\cite{zhang2024careful, golchin2023time} and GLUE/XSum~\cite{golchin2023time}. 
+% Existing studies uncovered data leakage rates exceeding 8\% for SWE‑Bench and SWE‑Bench‑Verified~\cite{zhou2025lessleak}.  
+Recent ``live'' datasets such as LiveCodeBench~\cite{jain2024livecodebench} mitigate contamination by streaming \emph{algorithmic} problems after their release dates, yet they do not address the harder \emph{repository‑level} setting that demands multi‑file reasoning and execution inside a faithful environment. \benchmark is the first open, continuously updating benchmark that fulfills these requirements. 
+% It automatically mines 1319 issues from 93 repositories since 2024, builds Dockerised test harnesses without manual effort, and therefore offers a contamination‑resistant, ever‑fresh evaluation bed for software‑engineering LLMs.
+
+\paragraph{Coding Agents.}
+On top of the above benchmarks, a recent line of work has been working creating autonomous \emph{code agents} that search, edit, and test large codebases.  Representative systems include SWE‑Agent~\cite{yang2024swe}, OpenHands~\cite{openhands}, Agentless~\cite{xia2024agentless}, and training frameworks that synthesize thousands of SWE‑bench‑like instances~\cite{pan2024trainingsoftwareengineeringagents,yang2025swesmith,xie2025swe}.  These agents report remarkable headline numbers, yet their evaluations rely almost exclusively on static offline datasets.  As a consequence, improvements may partially stem from memorisation of leaked solutions or configuration quirks, rather than genuine advances. \benchmark closes this gap by pushing agents to fix \emph{previously unseen, continuously arriving} real‑world bugs under fully reproducible Docker images, it reveals failure modes hidden by stale test suites and provides a trustworthy yard‑stick for code agents and LLMs.
+
+
+
+
+

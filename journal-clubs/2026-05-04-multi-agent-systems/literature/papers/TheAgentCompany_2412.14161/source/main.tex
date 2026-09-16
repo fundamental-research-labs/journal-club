@@ -1,0 +1,576 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2025
+
+% The authors should use one of these tracks.
+% Before accepting by the NeurIPS conference, select one of the options below.
+% 0. "default" for submission
+ % \usepackage{neurips_2025}
+ % \usepackage[dandb]{neurips_2025}
+% the "default" option is equal to the "main" option, which is used for the Main Track with double-blind reviewing.
+% 1. "main" option is used for the Main Track
+%  \usepackage[main]{neurips_2025}
+% 2. "position" option is used for the Position Paper Track
+%  \usepackage[position]{neurips_2025}
+% 3. "dandb" option is used for the Datasets & Benchmarks Track
+ % \usepackage[dandb]{neurips_2025}
+% 4. "creativeai" option is used for the Creative AI Track
+%  \usepackage[creativeai]{neurips_2025}
+% 5. "sglblindworkshop" option is used for the Workshop with single-blind reviewing
+ % \usepackage[sglblindworkshop]{neurips_2025}
+% 6. "dblblindworkshop" option is used for the Workshop with double-blind reviewing
+%  \usepackage[dblblindworkshop]{neurips_2025}
+
+% After being accepted, the authors should add "final" behind the track to compile a camera-ready version.
+% 1. Main Track
+ % \usepackage[main, final]{neurips_2025}
+% 2. Position Paper Track
+%  \usepackage[position, final]{neurips_2025}
+% 3. Datasets & Benchmarks Track
+ % \usepackage[dandb, final]{neurips_2025}
+% 4. Creative AI Track
+%  \usepackage[creativeai, final]{neurips_2025}
+% 5. Workshop with single-blind reviewing
+%  \usepackage[sglblindworkshop, final]{neurips_2025}
+% 6. Workshop with double-blind reviewing
+%  \usepackage[dblblindworkshop, final]{neurips_2025}
+% Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote.
+% For workshops (5., 6.), the authors should add the name of the workshop, "\workshoptitle" command is used to set the workshop title.
+% \workshoptitle{WORKSHOP TITLE}
+
+% "preprint" option is used for arXiv or other preprint submissions
+\usepackage[preprint]{neurips_2025}
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2025}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\input{math_commands.tex}
+\input{macro}
+
+% Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote. 
+\title{\tac: Benchmarking LLM Agents on Consequential Real World Tasks}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+\author{%
+Frank F. Xu$^1$\thanks{Equal contribution.} \quad
+  Yufan Song$^2$\footnotemark[1] \quad
+  Boxuan Li$^2$\footnotemark[1] \quad
+  \textbf{Yuxuan Tang$^2$} \quad
+  \textbf{Kritanjali Jain$^1$}  \\ 
+  \textbf{Mengxue Bao$^2$} \quad
+  \textbf{Zora Z. Wang$^1$} \quad
+  \textbf{Xuhui Zhou$^1$} \quad
+  \textbf{Zhitong Guo$^1$} \quad 
+  \textbf{Murong Cao$^2$} \\  
+  \textbf{Mingyang Yang$^2$} \quad 
+  \textbf{Hao Yang Lu$^2$} \quad 
+  \textbf{Amaad Martin$^1$} \quad 
+  \textbf{Zhe Su$^1$} \quad 
+  \textbf{Leander Melroy Maben$^1$} \quad \\
+  \textbf{Raj Mehta$^1$} \quad 
+  \textbf{Wayne Chi$^1$} \quad
+  \textbf{Lawrence Jang$^1$} \quad
+  \textbf{Yiqing Xie$^1$} \quad
+  \textbf{Shuyan Zhou$^3$} \quad
+  \textbf{Graham Neubig$^1$} \\ 
+  $^1$Carnegie Mellon University \ \
+$^2$Independent \ \
+$^3$Duke University \ \
+ \\
+  \texttt{\{fangzhex, gneubig\}@cs.cmu.edu}, \texttt{\{yufans, boxuanli\}@alumni.cmu.edu}\\
+}
+
+\begin{document}
+
+
+\maketitle
+
+
+\begin{abstract}
+We interact with computers on an everyday basis, be it in everyday life or work, and many aspects of work can be done entirely with access to a computer and the Internet.
+At the same time, thanks to improvements in large language models (LLMs), there has also been a rapid development in AI agents that interact with and affect change in their surrounding environments.
+But how performant are AI agents at accelerating or even autonomously performing work-related tasks?
+The answer to this question has important implications both for industry looking to adopt AI into their workflows and for economic policy to understand the effects that adoption of AI may have on the labor market.
+To measure the progress of these LLM agents' performance on performing real-world professional tasks,
+in this paper we introduce \tac, an extensible benchmark for evaluating AI agents that interact with the world in similar ways to those of a digital worker: by browsing the Web, writing code, running programs, and communicating with other coworkers.
+We build a self-contained environment with internal web sites and data that mimics a small software company environment, and create a variety of tasks that may be performed by workers in such a company.
+We test baseline agents powered by both closed API-based and open-weights language models (LMs), and find that the most competitive agent can complete 30\% of tasks autonomously.
+This paints a nuanced picture on task automation with LM agents--in a setting simulating a real workplace, a good portion of simpler tasks could be solved autonomously, but more difficult long-horizon tasks are still beyond the reach of current systems. We release code, data, environment, and experiments on \url{https://the-agent-company.com}.
+
+\begin{center}
+\begin{tabular}{rll}
+    \browse & \textbf{\small{Website}} & \url{https://the-agent-company.com} \\
+    \github & \textbf{\small{Code}} & \url{https://github.com/TheAgentCompany/TheAgentCompany} \\
+    \desktop & \textbf{\small{Evaluations}} & \url{https://github.com/TheAgentCompany/experiments}\\
+\end{tabular}
+\end{center}
+
+\end{abstract}
+
+
+
+
+\section{Introduction}
+\label{sec:intro}
+
+We are in the midst of a technological transformation.
+With the rapid month-by-month progress brought about by large language models (LLMs), we are seeing AI-based assistance or automation become commonplace in tasks that were unthinkable only years ago.
+In fact, the pace of progress is so fast that some have gone so far as to claim that the majority of human labor may be automatable within the next couple of years \citep{eloundou2023gpts,fridman_amodei_2024}.
+On the other hand, others are skeptical, claiming that language models cannot truly reason \citep{kambhampati2024llms}, do not generalize well to novel tasks \citep{chollet2024arcprize2024technical}, and may only have an impact on a small minority of the labor market \citep{wittenstein2024ai}.
+
+\begin{figure*}[t]
+\vspace{-6mm}
+    \centering
+    \includegraphics[width=0.8\textwidth]{./figs/teaser.pdf}
+    \caption{An overview of \tac benchmark. It features a reproducible and self-hosted environment, simulated colleagues to test agent communication capabilities, checkpoint and execution-based evaluation, and a set of 175 diverse, realistic and professional tasks in a software engineering company setting.}
+    \label{fig:teaser}
+    \vspace{-6mm}
+\end{figure*}
+
+What is the reason for this disconnect?
+We argue that it is, in part, due to a lack of objective benchmarks that not only demonstrate the power of existing LLM-based agents to accelerate a wide variety of repetitive tasks encountered in every-day workplaces, but also provide appropriate caveats about the tasks that agents cannot do.
+This is a pressing issue, because the commercial and policy implications of diverse and effective acceleration or automation of work-related tasks will be broad, both positive (e.g.~increase of quality of life and accelerated scientific discovery) and negative (e.g.~potential displacement or loss of jobs and increase in wealth disparities).
+In this paper, we take some first steps towards resolving this gap and providing a clearer view of where we are now with respect to acceleration or automation of consequential work-related tasks, and a litmus test for future development in this direction.
+
+% Most of the existing work evaluate agents on tasks like ``retrieving simple pieces of information from the web'', or ``navigating environments following simple and clear instructions'' (see \autoref{sec:existing_benchmarks}) (e.g. the code-grounded and web-grounded environments in AgentBench, WebShop, Mind2Web, WebArena, etc.). 
+% These tasks, while realistic, are clearly much more limited than the extreme capabilities. 
+% If the next generation of LLM agents is able to perform such tasks perfectly, it would not necessarily be obvious how close they are to performing more consequential tasks.
+% As a result, compared to WebArena benchmark which focuses on less professional  yet more daily life oriented tasks, we motivate  the need for a new benchmark as to answer the following question in the agent development future to come:
+% whether and when LLM agents will be able to impact the real world on a very large scale, and in more detail: whether and when LLM agents will be able to: replace or outperform humans in professions which account for a large share of the labor market, or hugely accelerate the pace of technological research and development, by automating steps in the R\&D process that were previously major bottlenecks.
+
+Concretely, we propose a benchmark, \emph{\tac} (\autoref{fig:teaser}) that estimates the ability of AI agents to perform tasks encountered in everyday workplaces.
+We create a simulated software development company where agents must perform tasks related to software engineering, project management, financial analysis, and other typical tasks encountered in such business settings.
+The agents must browse the web, code, and interact with other simulated co-workers to achieve success on the provided tasks.
+\tac's environment is based entirely on open-source software and self-hostable for reproducibility purposes, and we create rigorous evaluators that also assign partial credit when the agent gets the answer partially correct.
+
+We perform experiments using \nummodels large language model backbones, including closed models such as Anthropic Claude \citep{TheC3}, OpenAI GPT-4o \citep{gpt4o}, Google Gemini \citep{team2023gemini}, Amazon Nova \citep{amazon2024nova}, plus open models like Meta Llama \citep{dubey2024Llama} and Alibaba Qwen \citep{yang2024qwen2}.
+All models are run with OpenHands agent framework \citep{wang2024openhandsopenplatformai},\footnote{\url{https://github.com/All-Hands-AI/OpenHands}} which provides a stable and strong agent harness for both web browsing and coding.
+We find in experiments that the best performing model, Gemini 2.5 Pro was able to autonomously perform 30.3\% of the provided tests to completion, and achieve a score of 39.3\% on our metric that provides extra credit for partially completed tasks.
+
+These results present a nuanced picture of the current ability of AI agents to perform tasks.
+Agents powered by the current gold-standard AI techniques are able to autonomously perform a wide variety of tasks encountered in everyday work.
+However, they are not close to automating every task encountered in a workspace, even on the subset of tasks presented in \tac, which are well-scoped administrative and coding tasks encountered in a software company's day-to-day work.
+
+% In the rest of this paper, we explain detail comparisons to other existing benchmarks (\autoref{sec:existing_benchmarks}), how we set up realistic and reproducible environments  (\autoref{sec:environment}), how we define tasks (\autoref{sec:task_structure}) and how we create them (\autoref{sec:task_creation}), our baseline agent (\autoref{sec:baseline_agent}), experimental results (\autoref{sec:results}), and finally implications and future directions (\autoref{sec:future_directions}).
+
+% In summary, we design the new benchmark, \emph{\tac} with the following properties in mind:
+% \begin{enumerate}
+%     \item Represents how much impact LLM agents will have on the real world in the near future. The benchmark consists of tasks that arise in a real-world profession. Some elements of the LLM agent’s environment may need to be artificially simulated for practicality, efficiency, or safety - but we try our best to keep deviations from the corresponding real world environment to a minimum.
+%     \item The most difficult tasks in the task suite are clearly consequential. Ideally, a wide range of researchers would agree that an agent that could solve these difficult tasks would have a massive economic impact and/or pose massive risks if misaligned or misused by humans. For example, an LLM agent that can autonomously make a million dollars (e.g., by starting its own online business) is likely to have a massive impact on the economy and pose massive risks. This is similar to what Anthropic proposed for a good benchmark as described in \cite{kinniment2023evaluating}: \emph{``The purpose of these evaluations is to quantify the risk that a model is capable of accumulating resources (e.g. through fraud), navigating computer systems, devising and executing coherent strategies, and surviving in the real world while avoiding being shut down. The tasks will be chosen to have a difficulty level that a domain expert (not world class) human could complete each in roughly 2 to 8 hours.''}. In other words, our proposed benchmark contains one or more difficult tasks that would take a typical human domain expert (in a relatively widely held and lucrative profession) a few hours or more to perform. However, similar to daily jobs, most tasks in the suite will be shorter and simpler than the most consequential tasks.
+%     \item The benchmark should have a continuous scale of performance. The final results are likely to improve relatively continuously as LLMs and agent architectures improve. This is to prevent that agent performance on the benchmark to either perform very poor (<10\%) or fairly strong (>50\%). Having a more continuous scale will more sure we see more nuanced improvements of agents over specific abilities included in the task suite execution to better serve as a lighthouse for agent development.
+% \end{enumerate}
+
+% To measure the progress of these LLM agents' performance on performing real world professional tasks that are more than just everyday daily life tasks,
+% in this paper, we introduce \tac, an extensible benchmark for evaluating AI agents that interact with the world in similar ways to those of a human digital worker: by writing code, interacting with a command line, communicating with other co-workers, and browsing the Web.
+% We incorporate simulated humans to assess the social ability of AI agents to interact with colleagues, which is a skill commonly required for professional work.
+% We describe how we created the tasks, the environment that mimics a small start-up company environment, to simulate a more realistic professional job setting.
+% \tac is an open-source and easy to extend benchmark that focuses on the professional work related tasks.
+% We test baseline agents that can operate on all the interfaces, with competetive frontier and open-source foundation models, and found that the best performing models are still far lacking in terms of fully completing real-world job tasks autonomously.
+
+
+\section{Benchmark Desiderata and Comparison to Other Benchmarks}
+\label{sec:existing_benchmarks}
+
+In order to evaluate the ability of agents to perform tasks in complex real-world settings, we built \tac with a number of desiderata in mind.
+The comparison with several existing prominent agent benchmarks with respect to these desiderata is in \autoref{tab:comparison}. More details of the benchmark construction can be found in \autoref{app:benchmarkconstruction}.
+
+\noindent \textbf{Coverage of Multiple Work-related Tasks:} \quad In order to make any valid statements about the potential of AI to accelerate or automate various types of real-world work, we should have tasks that are motivated by real-world work across multiple job categories. Many benchmarks are not relevant to real-world work (e.g.~MiniWob++~\citep{liu2018reinforcement}) or very relevant to real-world work, but only over a limited scope of tasks (e.g.~SWE-Bench~\citep{jimenez2024swebench}).
+In contrast, \tac contains a set of more diverse, realistic, and professional tasks that would typically be completed by multiple job roles in a software engineering company.
+
+\noindent \textbf{Requirement for Interaction} \quad If agents are integrated into real-world workplaces, they need to communicate with the other human members of the workspace.
+Most other benchmarks do not measure communication or interactivity, except for $\tau$-bench \citep{yao2024tau} that only measures interaction in customer service scenarios.
+\tac is a better testbed for communication, as asking and providing information to colleagues as part of many more complex tasks.
+
+\noindent \textbf{Long-horizon Tasks with Checkpoints} \quad In real-world settings, many tasks require many steps to achieve a higher-level goal. One novel contribution of \tac is that we both (1) contain tasks that require an agent to perform significantly more consecutive work (\ie involving more steps and realistically taking human professionals longer to accomplish) than previous benchmarks, and (2) provide granular evaluators that measure the ability of models to perform subtasks of larger tasks.
+
+
+\noindent \textbf{Versatile Environment Interface:} \quad In order to handle a diversity of tasks in real-world settings, we minimally should be able to interact with the tools that real-world workers use -- including web interfaces, programs, command-line terminals, and communication tools. \tac covers all of these interfaces, while most previous benchmarks focus only on one or two.
+
+\noindent \textbf{Self-hosted and Reproducible:} \quad In order to allow for careful comparisons between different methods that remain constant over time, the benchmark should be fully self-hosted and reproducible. This contrasts with existing benchmarks that do not have execution environments (e.g.~Mind2Web~\citep{deng2023mindweb}) or require the usage of third-party hosted platform (e.g.~WorkArena~\citep{workarena2024}, CRMArena~\citep{huang2024crmarena}).
+
+
+\section{\tac Environment Setup}
+\label{sec:environment}
+
+Our benchmark is set in an imaginary software engineering startup called \tac, hence the benchmark's name. 
+We create tasks inspired by tasks handled by workers inside such companies.
+More details about the company's imaginary background, overview and employees can be found in \autoref{app:envdetail}.
+The benchmark environment contains multiple components. 
+
+\noindent \textbf{Local Workspace} \quad
+The local workspace runs locally on the agent's host, which is analogous to a human professional's local workspace, \eg their work laptop computer.
+This environment is created as a sandboxed Docker environment to provide a safe execution environment that will not affect other parts of the evaluation machine. %~\citep{wang2024openhandsopenplatformai}.\footnote{\url{https://docs.all-hands.dev/modules/usage/how-to/custom-sandbox-guide}} 
+This environment is where agents work on the task, and within this environment the \tac baseline agent (\autoref{sec:baseline_agent}) uses a browser, code editor and a Linux terminal with typical software preinstalled.%
+\footnote{
+Other options would include using a GUI-based desktop environment with office software \citep{xie2024osworld}, but we opt to build a baseline solution that is entirely web-based, reflecting the recent trend of more enterprise software moving to the cloud. Despite this, we also provide a virtual machine OS image with the entire environment pre-packaged.
+}
+
+\noindent \textbf{Intranet} \quad
+This part of the environment mimics the company's internal websites that host code, documents, project management software, and communications software.
+To achieve a reproducible, self-contained environment, we follow WebArena \citep{zhou2023webarena}, in using open-source, self-hostable software to host our environment.
+The environment mainly contains the following websites:
+\begin{enumerate}[leftmargin=*,itemsep=0em,topsep=0em]
+    \item GitLab,\footnote{\url{https://about.gitlab.com/install/}} an open-source alternative to source-code repositories such as GitHub. This is used for hosting \tac's code repositories and tech-oriented wiki pages.
+    \item OwnCloud,\footnote{\url{https://doc.owncloud.com/}} an open-source alternative to office software such as Google Drive or Microsoft Office. This to save and share files, especially for document storage and collaborative editing.
+    \item Plane,\footnote{\url{https://github.com/makeplane/plane}} an open-source alternative to task management software such as Jira or Linear. This is used to track issues, run sprints cycles, and manage product roadmaps.
+    \item RocketChat,\footnote{\url{https://www.rocket.chat/install}} an open-source alternative to communication software such as Slack. This is a company-internal real-time messaging tool that facilitates collaboration between employees.
+\end{enumerate}
+
+All the websites hosted are reproducible and reset-able with mock data inspired by that from a software engineering company.
+The data inside these company internal websites are populated with real-world software project data, as well as data manually curated by co-authors who have some experience in the relevant corporate roles.
+
+\noindent \textbf{Simulated Colleague Communication} \quad
+One major aspect of working in a company is communicating with other company members, and in \tac we also test the ability of models to perform this type of communication.
+Specifically, we allow agents to use RocketChat to message other company members and obtain information that may not be available in the original task description. 
+% This mirrors real-world workplace scenarios, where communication is often related to task completion. 
+To create these simulated colleagues, we rely on the Sotopia platform \citep{zhou2024sotopia}, which supports the creation of simulated human characters with LLMs.
+% These simulated colleagues are designed to respond only to relevant questions, ensuring AI agents demonstrate proper communication skills to obtain the necessary information.
+Each simulated colleague is equipped with a detailed profile that includes their name, role, responsibilities, and project affiliations (e.g., Sarah Johnson, who serves as the CTO, oversees technical strategy planning and R\&D team leadership, with access to all technical channels). 
+Agents can interact with these simulated colleagues through direct messages or in specific channels, as is standard in RocketChat and other platforms.
+By default, all simulated human characters are backed by the \texttt{Claude-3-5-Sonnet-20241022} LLM across experiments, as we found that it provided the best results during preliminary experiments. The detailed error analysis with respect to the introduction of LLM as Colleageus is given in \autoref{app:npcanalysis}. 
+For example conversations between the agent and the simulated colleagues drawn from empirical experiments, please refer to~\autoref{app:npcexamples}.
+
+
+\section{Task Structure}
+\label{sec:task_structure}
+The tasks in \tac include a task intent, a list of checkpoints the agent must achieve, a programmatic evaluator to check success on these checkpoints, and code to initialize and finalize the environment.
+We show some examples in \autoref{app:exampletask} (\autoref{tab:tasks}), and detail each aspect below.
+
+
+\noindent \textbf{Task Intent} \quad
+Each task begins with an English description, simulating how a user would instruct an LLM-based agent to perform a real-world task.
+In general, we aim for these tasks to be clear enough so that a human worker would be able to complete the task without asking for further instructions directly from the user (although they may need to ask questions of their other co-workers).
+
+\noindent \textbf{Checkpoints} \quad
+Tasks are divided into checkpoints representing intermediate milestones, each assigned a point value to measure progress. Each checkpoint is awarded a certain number of points based on its significance to the overall completion of the task.
+Checkpoints are written in English, and typically specify one or more of the following:
+\begin{itemize}[leftmargin=*,topsep=0em,itemsep=0em]
+\item \textbf{Action Completion:} Verifying whether required actions, such as using tools, navigating to URLs, or collecting data, were carried out successfully. \item \textbf{Data Accuracy:} Evaluating the correctness and completeness of the output, such as extracted data or formatted documents.
+\item \textbf{Collaboration:} Assessing interactions with simulated colleagues or sharing of output, such as posting messages or asking for additional information to complete the task.
+\end{itemize}
+
+
+\noindent \textbf{Evaluators} \quad
+Checkpoints are created in the task design phase, but for actual evaluation, each of the checkpoints must be concretely implemented through an \emph{evaluator} -- a program that checks the completion of the checkpoint.
+These evaluators are implemented by examining environment states, such as the local workspace, intranet status, simulated colleague interactions, or by analyzing agent trajectories, like verifying browsing history or action sequences.
+
+In most cases, these evaluators are deterministic and written as simple Python functions.
+For instance, in the SWE task in \autoref{tab:tasks}, the checkpoints are deterministic: verifying if the JanusGraph repository is cloned, the binary file is built, and the server is launched with an HTTP endpoint.
+However, for tasks with more complex and unstructured deliverables, such as in \autoref{tab:tasks}, the last checkpoint in the Finance task requires contacting the correct finance director (David Wong) to resolve ambiguous questions, which involves a judgment from a (simulated) human colleague, deterministic evaluation can be challenging due to subjectivity and variability.
+In such cases, we employ LLM-based evaluation. This involves prompting LLMs with predefined rubrics or reference outputs to assess the agent's deliverables, enabling a more nuanced and flexible evaluation of these tasks. Same as the NPC backbone, all LLM-based evaluators are backed by the \texttt{Claude-3-5-Sonnet-20241022}. For an error analysis with respect to the LLM evaluator, refer to \autoref{app:llm-as-a-judge}.
+
+\subsection{Evaluation Metrics}
+\label{sec:evalmetrics}
+\vspace{-1mm}
+Due to our checkpoint-based evaluation scheme and the need for showcasing both the progress of the agent's capability improvement as well as the eventual goal completion ability, we calculate two scalar agent capability metrics and two efficiency metrics.
+
+\noindent \textbf{Full completion score} \quad
+We define the \textbf{full completion score} \( S_{\text{full}} \) as:
+\[
+S_{\text{full}} = 
+\begin{cases} 
+1 & \text{if all checkpoints are successfully passed}, \\
+0 & \text{otherwise}.
+\end{cases}
+\]
+This binary metric evaluates if the agent successfully completed the task by passing all checkpoints.
+
+\noindent \textbf{Partial completion score} \quad
+To provide a more nuanced measure that rewards partial task completion while strongly incentivizing full task completion, we define \textbf{partial completion score} as:
+$S_{\text{partial}} = 0.5 \cdot \frac{\text{Result}}{\text{Total}} + 0.5 \cdot S_{\text{full}}$, where:
+``Result'' is sum of awarded points across all checkpoints (including partial credit), ``Total'' is sum of the total points for all checkpoints, \( \frac{\text{Result}}{\text{Total}} \) is fractional progress toward full completion, and \(S_{\text{full}}\) is binary indicator equal to \( 1 \) when the task is fully completed.
+
+This formulation ensures that agents are awarded partial credit in proportion to the points achieved, reflecting their progress toward task completion. At the same time, full task completion is strongly incentivized by incorporating an additional 50\% credit, which is awarded only when all checkpoints are successfully completed. This design ensures that agents achieving partial progress receive scores scaled linearly with their performance, while those reaching 100\% completion are distinctly rewarded to emphasize the importance of achieving the end goal.
+
+\noindent \textbf{Number of steps} \quad
+The number of steps is defined as the total number of LLM calls made during the task execution. This metric quantifies the operational effort required to perform the task.
+
+\noindent \textbf{Cost per instance} \quad
+We measure the monetary cost of querying the underlying LLMs via API. Assuming no prompt caching, we calculate the cost as: $\text{Cost} = (\text{Prompt token count} \times \text{Prompt token cost}) + (\text{Completion token count} \times \text{Completion token cost})$.
+This efficiency metric reflects the computational expense of task completion based on token usage.
+
+
+\subsection{Workflow} 
+\vspace{-1mm}
+Each task typically follows a workflow with three stages. 
+\textbf{Initialization:} The agent sets up its workspace and prepares to execute the task.
+\textbf{Execution:} The agent completes subtasks, such as navigating tools, collecting or processing data, or if required by the task, the agent interacts with simulated colleagues or shares results via communication platforms.
+\textbf{Finalization:} The agent produces and submits the final output for evaluation.
+A detailed example task can be found in~\autoref{app:exampletask}.
+
+
+
+
+
+\section{Task Creation}
+\label{sec:task_creation}
+
+% \gncomment{There are many many benchmarks that we cited in \autoref{sec:existing_benchmarks}, not just WebArena, and some of them are inspired by real-world tasks. I think we should expand the discussion a bit to not just focus on this one benchmark.}
+
+\subsection{Choosing Task Categories}
+\vspace{-1mm}
+Many previous agent benchmarks discussed in \autoref{sec:existing_benchmarks} were created to evaluate agents on tasks people perform in daily life~\citep{zhou2023webarena,lù2024weblinxrealworldwebsitenavigation,deng2023mindweb}, or tasks that accomplish digital chores~\citep{yoran2024assistantbenchwebagentssolve,trivedi2024appworld}.
+Obtaining realistic tasks for the benchmark poses challenges. 
+Some benchmark~\citep{xie2024osworld,workarena2024,yoran2024assistantbenchwebagentssolve} crowdsourced tasks based on predetermined interfaces, platforms, and services available to the agent.
+They adopt a strategy to first gather task templates and then instantiate more task instances by filling in the variables.
+Some benchmark~\citep{zhou2023webarena,koh2024visualwebarena,bonatti2024windows} took a semi-systematic approach of reviewing the action history of the research team and choosing tasks that reflected the types of task that the researchers carried out in their daily life.
+There are several obvious issues with this if we want to evaluate agents with broader implications in the \tac benchmark.
+Despite some grounding in realistic data, the process of creating tasks from these data was susceptible to heuristic, and no consideration was made for how important or time-consuming the tasks are.
+The tasks are biased towards those important for academics in computer science and do not reflect the tasks performed by the entire population.
+
+In \tac, we attempt to cover a wide variety of tasks \emph{motivated by real-world work}.
+While it is highly challenging to create a representative sample of tasks, fortunately we can rely on existing resources created for other purposes as a reference.
+Specifically, we start by referencing the 29.1 release of O*NET  database~\citep{onetonlinedb,rounds1999development}, which is a database of jobs performed by workers in the US created by the US Department of Labor. 
+It also contains information about tasks performed within the context of each job, abilities required to perform each task, whether the task is a major or minor task for that job category, and other pieces of relevant information.
+Based on this data, we first identified a few categories of occupation categories to focus on.
+First, based on statistics from O*NET, we identified job categories that have a large number of people performing this job.
+Then, we used median salary information for each of these job categories from the US department of labor statistics, and multiplied the number of employees in that category to estimate the aggregate value of performing this job.
+Based on this, we identified several categories of jobs such as ``General and Operations Managers'', ``Registered Nurses'', ``Software Developers'', and ``Financial Managers'' that have both a high population and high average salary.
+Because \tac is designed to be a non-embodied benchmark in the digital domain, we excluded the categories that require extensive physical labor such as ``Registered Nurses'', and eventually settled on the setting of a software company, which would allow us to cover tasks from the other categories.
+
+\subsection{Choosing Tasks}
+\vspace{-1mm}
+Next, within this setting we chose tasks to implement.
+In this setting, we attempted to create a diversity of tasks, but mostly focused on concrete tasks that have well-defined goals and success criteria.
+These tasks were created through a combination of referencing the O*NET task list, introspection based on paper co-authors who had experience in each task category, and brainstorming lists with language models.
+It is important to note that \emph{in no cases have we covered an extensive list of all the tasks that are performed in a particular occupational category}, and therefore we caution against making any assumptions about whether a particular \emph{job} may be in danger of full automation based solely on \tac.
+Rather, it may provide insight into whether certain \emph{tasks within jobs} may be accelerated or automated, and inform further analysis by labor professionals into this question.
+
+\subsection{Manual Task Curation}
+\vspace{-1mm}
+Once we set up the environment required for our desired jobs and task categories (\autoref{sec:environment}), we return to the curated list, and perform a manual curation process for tasks.
+For each task, this consists of the following steps:
+We first create a description of task intent, checkpoints, and how to evaluate each checkpoint.
+We then identify and import the required data for the task that are currently missing in the company Intranet services and create any necessary data.
+We then write scripts to configure the required initialization state in the local workspace. 
+Finally, we implement the checkpoint evaluators that calculate the scalar scores for each checkpoint.
+
+All tasks were created by coauthors of the paper.
+Overall, it took 20 computer science students, software engineers, and project managers over 2 months,
+consuming approximately 3,000 person-hours in total.
+Some of the more complex tasks take more than 10 hours each to design, implement, test, and verify.
+To ensure quality control of the task creation process, we implement several check and verification processes.
+For each task implementation, we require screenshot proof that the evaluator is valid and that the task is able to get a full score when successfully completed.
+We also encourage including tests for the implemented evaluator programs.
+Each task contribution is also code reviewed by a panel of lead authors before merging into the benchmark.
+After creating all tasks, a final round of manual human double-check of required environment data, evaluator behavior, and checkpoint scoring for every task is performed to ensure quality.
+During the process, a person who has not curated the tasks checks all the checkpoint score assignments to make sure that the importance scoring is consistent over all the tasks and correlates reasonably with the relative importance of the checkpoint within the task.
+
+\section{Baseline Agents}
+\label{sec:baseline_agent}
+
+To test the current state-of-the-art performance on the \tac benchmark, we need agents that can at least perform tasks using a browser, operate a local workspace using a terminal, and write and execute programs to perform most of the tasks.
+We adopt OpenHands' main agent~\citep{wang2024openhandsopenplatformai,wang2024executable,song2024beyond}, CodeAct Agent with Browsing\footnote{More specifically, version 0.14.2 and 0.28.1 (to accommodate newer models). Full details can be found in \url{https://github.com/All-Hands-AI/OpenHands/releases}}, as well as OWL-RolePlay~\citep{owl2025}, a multi-agent framework designed for real-world task automation.\footnote{For OWL RolePlay, we tested only with the recommended model configuration using branch \url{https://github.com/camel-ai/owl/tree/gaia58.18}}
+%
+An overview of the OpenHands agent architecture is illustrated in~\autoref{fig:agent_overview}, with more details in~\autoref{app:baselineagent}.
+
+\section{Experimental Results}
+\label{sec:results}
+We evaluate popular foundation models, both closed and open, on \tac benchmark.
+We use OpenHands CodeAct agent and OWL-Roleplay (\autoref{sec:baseline_agent}) for all experiments.
+This serves as a baseline for future development of both the foundation LLMs and the agent infrastructure.
+Note that since LLM evaluators and NPCs are part of the environment rather than the agent being evaluated, we fix their backbone LLM to \texttt{Claude-3-5-Sonnet-20241022}, which demonstrated the best qualitative accuracy in simulating human colleagues and judging deliverables in preliminary experiments. 
+
+% \begin{table}[h!]
+\begin{wraptable}[17]{r}{0.65\textwidth}
+\centering
+\scriptsize
+\vspace{-6mm}
+\caption{Performance comparison of various foundation models on \tac.}
+\label{tab:main_table}
+\vspace{-1mm}
+\begin{tabular}{l|l|rrrr}
+\toprule
+\multicolumn{1}{c|}{\bf Agent} & \multicolumn{1}{c|}{\bf Model} & \textbf{Success} & \textbf{Score} & \textbf{Steps} & \textbf{Costs} \\
+\midrule
+\multicolumn{6}{c}{\textit{API-based Models}} \\
+\midrule
+OpenHands 0.28.1 & Gemini-2.5-Pro & 30.3\% & 39.3\% & 27.2 & \$4.2 \\
+OpenHands 0.28.1 & Claude-3.7-Sonnet & 26.3\% & 36.4\% & 27.8 & \$4.1 \\
+OpenHands 0.14.2 & Claude-3.5-Sonnet & 24.0\% & 34.4\% & 29.2 & \$6.3\\
+OpenHands 0.14.2 & Gemini-2.0-Flash & 11.4\% & 19.0\% & 39.9 & \$0.6 \\
+OpenHands 0.14.2 & GPT-4o &  8.6\% & 16.7\% & 14.6 & \$1.3\\
+% TODO: OWL eval hasn't fully finished yet, only partial result
+OWL RolePlay & GPT-4o, o3-mini & 4.0\% & 11.3\% & N/A & N/A \\ 
+OpenHands 0.14.2 & Gemini-1.5-Pro  & 3.4\% & 8.0\% & 22.1 & \$6.8 \\
+OpenHands 0.14.2 & Amazon-Nova-Pro-v1 & 1.7\% & 5.7\% & 19.6 & \$1.6\\
+\midrule
+\multicolumn{6}{c}{\textit{Open-weights Models}} \\
+\midrule
+OpenHands 0.14.2 & Llama-3.1-405b & 7.4\% & 14.1\% & 23.0 & \$3.2 \\
+OpenHands 0.14.2 & Llama-3.3-70b & 6.9\% & 12.8\% & 20.9 & \$0.9\\
+OpenHands 0.14.2 & Qwen-2.5-72b & 5.7\% & 11.8\% & 24.0 & \$1.5\\
+OpenHands 0.14.2 & Llama-3.1-70b & 1.7\% & 6.5\% & 19.2 & \$0.8\\
+OpenHands 0.14.2 & Qwen-2-72b & 1.1\% &  4.2\% & 23.7 & \$0.3\\
+\bottomrule
+\end{tabular}
+\end{wraptable}
+
+
+
+\subsection{Result Overview}
+\vspace{-1mm}
+\autoref{tab:main_table} shows the evaluation results of both closed and open foundation models on the full evaluation set of \tac (175 tasks).
+We can see that Gemini-2.5-Pro is the clear winner across all models.
+However, even with the strongest frontier model, it only manages to complete 30\% of the total tasks and achieves a score of 39\% taking into account partial completion credits. 
+Note that this result comes at a cost: It requires an average of almost 27 steps and more than \$4 to complete each task, making it an expensive model to run both in time and in cost.
+This is expected as most of the tasks in our benchmark are of long-horizon nature.
+The Gemini 2.0 Flash model that comes fourth in terms of capability requires 40 steps on average to complete the tasks, which is time consuming, yet only to achieve one-third of the success rate compared to the top-performing model.
+Surprisingly, its cost is less than \$1, making it a very cost-efficient, yet relatively strong model.
+A qualitative examination demonstrated that this was due to instances where the agent got stuck in a loop or aimlessly explored the environment.
+
+Both using GPT-4o, OpenHands (8.6\%) and OWL RolePlay (4.0\%) show varied performance due to differences in their technical designs. OpenHands CodeAct is a single agent that is better at maintaining consistency in a long-horizon task, while OWL RolePlay adopts multi-agent collaboration and experiences difficulty in preserving progress and context. For example, the main agent in OWL delegates browsing tasks to a dedicated browsing agent that often cannot finish the task within the step limit. Although the main agent then starts another round of delegation with a revised plan, the browsing agent often fails to pick up its previous progress due to UI complexity. This is very common in modern websites where not every browsing action results in a change in web URL.
+
+Among the open-weight models, Llama 3.1 (405B) achieves the highest performance, nearly on par with OpenAI's GPT-4o model, though still having a big gap behind the leading Gemini 2.5 Pro.
+Interestingly, comparing the number of steps and costs between the open Llama 3.1 (405B) model and the closed OpenAI GPT-4o model, Llama 3.1 takes more steps and costs nearly 2x more to run, while having a lower success than GPT-4o.
+Anecdotally, our inspection showed that GPT-4o seems to be better at giving up early, saving steps and costs if the task is clearly out of the capacity range of the agent.
+This suggests that open-weight models are not always the most cost-effective choice in agents given the serving cost, especially with highly complex tasks.
+
+On the other hand, the newer generation, Llama 3.3 (70B), achieves a considerably high performance of 6.9\% success rate, on par with the much larger (405B), older generation (Llama 3.1) model.
+This model also costs significantly less because of its smaller size.
+This suggests a promising future for LLM development, as smaller and more efficient models begin to catch up in agent performance.
+
+\vspace{-1mm}
+\subsection{Analysis}
+\vspace{-1mm}
+\noindent \textbf{How well do agents operate on different platforms?} \quad
+\autoref{fig:data-viz} (left) shows the result breakdown on tasks on different platforms in \tac (more detailed results in \autoref{app:detailedresults}, \autoref{tab:split_result}).
+A task is categorized under a platform if it requires that platform.
+We see that most models struggle with RocketChat and ownCloud.
+RocketChat is where all social interaction with peers occurs, and the low scores suggest that LLMs still lack communication skills.
+ownCloud provides online Office suite functionality, and due to the complexity of the UI of web-based Office software, it is expected that current LLMs fail badly. % This suggests that the browsing capability of the agents, especially on more complex websites, still needs improvement.
+These results underscore the inherent challenges of performing tasks in real-world work environments, with social interactions, or understanding of complex web interfaces.
+
+\begin{figure*}
+     \centering
+     \begin{subfigure}{0.38\linewidth}
+         \centering
+         \includegraphics[height=4cm]{figs/platform.pdf}
+         \vspace{-6mm}
+         % \caption{Success rate across platforms}
+         \label{fig:data-viz-platform}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}{0.58\linewidth}
+         \centering
+         \includegraphics[height=4cm]{figs/task_cate.pdf}
+         \vspace{-3mm}
+         % \caption{Success rate across task categories}
+         \label{fig:data-viz-cate}
+     \end{subfigure}
+\caption{Comparing OpenHands success rate across platforms (left) and task categories (right).}
+\label{fig:data-viz}
+\vspace{-3mm}
+\end{figure*}
+
+
+
+\noindent \textbf{How well do agents perform on different type of tasks?} \quad
+\autoref{fig:data-viz} (right) presents the performance breakdown for different types of tasks in \tac (more details in \autoref{app:detailedresults}, \autoref{tab:split_result_cate}).
+Depending on the nature of the task, \ie what kind of professionals are usually assigned to the task, the tasks in \tac can be categorized into various departments of jobs. Software Development Engineering (SDE), Project Management (PM), Data Science (DS), Administrative (Admin), Human Resources (HR), Financial (Finance) and all the remaining (Other).
+From the success rate, we can see that DS, Admin, and Finance tasks are the lowest, with many LLMs completing none of the tasks successfully, and even the strongest Gemini model achieving lower scores than other tasks.
+On the other hand, software engineering tasks, which may seem like much harder tasks for many humans, result in a higher success rate.
+This suggests that there exists a gap between the perceived difficulty of the tasks for humans versus the difficulty for LLM agents.
+
+For example, some Admin and Finance tasks involve making spreadsheets, collecting and filling in a lot of information from various people, or understanding images scanned by employees.
+These tasks are arguably easier conceptually for humans in terms of professional skill sets than software engineering, as SDE jobs usually have a higher barrier of entry and more prerequisites for certain knowledge.
+However, most LLMs achieve a much higher score on the SDE tasks.
+LLMs fail these seemingly easier tasks due to lack of ability to understand documents, communicate with other people, navigate complex software and tedious processes, and autonomously automate repetitive tasks.
+We hypothesize that part of the reason lies in the fact that current LLM development is heavily based on software engineering abilities, such as coding, due to several high profile benchmarks that measure this capability (\eg HumanEval, SWE-Bench) as well as the abundance of publicly available training data related to software.
+On the other hand, administrative and financial tasks, are usually private data within companies, not readily available for training LLMs.
+
+\subsection{Common Agent Failures}
+\vspace{-1mm}
+Overall, the agent performance on \tac is still low and a majority of tasks are failed. Among those, we try to find some common and interesting agent mistakes that are often surprising because they are usually not made by humans.
+
+\noindent \textbf{Lack of social skills} \quad
+Sometimes, the agent fails to understand the implications and goals in the social conversations with  colleagues in \tac.
+For example, one task involves asking Alex for help, and the agent first successfully asks the right question ``Could you tell me who I should introduce myself to next on the team?''
+Then the simulated colleague Alex replied ``You should introduce yourself to Chen Xinyi next. She's on our frontend team and would be a great person to connect with!''
+At this point, a human would then talk to Chen Xinyi, but instead the agent then decides to not follow up with her, and prematurely considers the task accomplished. 
+
+\noindent \textbf{Incompetence in browsing} \quad
+Oftentimes, the biggest obstacle in tasks is the parts that require browsing the Web.
+This is expected as browsing is still hard for agents given the complexity of modern-day web UIs and the numerous distractions on a webpage.
+For example, on many tasks that involve ownCloud, a closable welcome popup has become an obstacle for OpenHands agent which uses text-based browsing. OpenHands agent gets stuck and fails to click on the 'x' to close the popup, while OWL RolePlay, which uses visual browsing, suffers less from this problem. On the other hand, OWL gets lost in complex web UIs more easily and clicks on wrong elements more often than OpenHands, although both agents share the same problem.
+
+\noindent \textbf{Deceiving oneself} \quad
+Interestingly, we find that for some tasks, when the agent is not clear what the next steps should be, it sometimes try to be clever and create fake ``shortcuts'' that omit the hard part of a task.
+For example, during the execution of one task, the agent cannot find the right person to ask questions on RocketChat.
+As a result, it then decides to create a shortcut solution by renaming another user to the name of the intended user.
+
+
+\section{Implications and Future Directions}
+\label{sec:future_directions}
+\vspace{-1mm}
+In this paper, we present \tac, a new benchmark that stands out because it specifically focuses on real-world tasks that would be tackled within the context of real-world work.
+Unsurprisingly, current state-of-the-art agents fail to solve a majority of the tasks, suggesting that there is a big gap for current AI agents to autonomously perform most of the jobs a human worker would do, even in a relatively simplified benchmarking setting.
+Looking at how different models perform on different types of tasks, we argue that tasks that involve social interaction with other humans, navigating through complex user interfaces designed for professionals, and tasks that are typically performed in private, without a significant open and publicly available resources, are the most challenging.
+However, we believe that currently new LLMs are making significant progress: not only are they becoming more and more capable in terms of raw performance, but also more cost-efficient (\eg Gemini 2.0 Flash).
+Open-weights models are closing the gap between proprietary frontier models too, and the newer models are getting smaller (\eg Llama 3.3 70B) but with equivalent performance to previous huge models, also showcasing that efficiency will further improve.
+
+That said, this is just a first step towards forming a firmer grasp on how AI may affect the tasks performed within a workspace, and it has its limitations.
+First, our tasks are generally on the more straightforward side due to the need to automatically evaluate with programs and test cases, and we do not cover more complex creative tasks such as brainstorming new product ideas or designing system architectures.
+Second, we are only using two agent scaffolds as the baseline performance, and others may differ in performance.
+Third, while it would be interesting to know the actual performance of human professionals on these tasks to understand how LLM agents perform in comparison, due to resource limitations we were not able to perform this comparison in the current iteration of \tac.
+Fourth, the topic and content of the tasks were mostly created through introspection by people familiar with these workspaces, which may result in some disconnect with actual tasks performed in enterprise settings.
+
+Based on this, there are many future directions for further improvement of \tac or other related benchmarks in this space.
+These include further expanding the benchmark tasks to those encountered in other industries, or tasks that require physical labor.
+Benchmarking may also be expanded with tasks that have more vague intents to better simulate real-world scenarios where the goal is not immediately clear at the very beginning.
+Further, benchmarks could also be expanded to include higher-level longer-horizon tasks such as conceptualizing a new product and carrying it to execution.
+We hope that \tac provides a first step, but not the only step, towards these goals, and that we or others may build upon the open source release of \tac to further expand in these promising directions.
+
+% \section*{Author Contributions}
+% This work was an open source collaborative effort between multiple institutions and many independent individuals. 
+% We used a point-based system to determine contributions and award authorship. 
+% Frank Xu, Boxuan Li and Yufan Song led the project, coordinating overall development and paper writing efforts. Detailed contributions were as follows:
+
+% \begin{itemize}[noitemsep,topsep=0pt,parsep=2pt,partopsep=0pt,leftmargin=18pt]
+% \item \textbf{Task Design:} Frank Xu, Yufan Song, Boxuan Li, Zora Wang, Shuyan Zhou, Graham Neubig
+% \item \textbf{Infrastructure Development:} Yufan Song, Boxuan Li
+% \item \textbf{Experiment:} Boxuan Li, Frank Xu, Yufan Song
+% \item \textbf{Sotopia Integration:} Yufan Song, Xuhui Zhou
+% \item \textbf{Task Development:} Boxuan Li, Yufan Song, Frank Xu, Graham Neubig, Yuxuan Tang, Mengxue Bao, Kritanjali Jain, Zhitong Guo, Murong Cao, Mingyang Yang, Hao Yang Lu, Amaad Martin, Zhe Su, Leander Melroy Maben, Raj Mehta, Yiqing Xie, Zora Wang, Xuhui Zhou, Wayne Chi, Lawrence Jang
+% \item \textbf{Ideation, Discussion and Formulation:} Frank Xu, Shuyan Zhou, Xuhui Zhou, Zora Wang, Wayne Chi, Yufan Song, Boxuan Li, Lawrence Jang, Graham Neubig
+% \item \textbf{Advising}: Graham Neubig advised the project, providing guidance, resources, and substantial paper editing. 
+
+% \end{itemize}
+
+\section*{Acknowledgments}
+This work was supported by a grant from Open Philanthropy.
+We thank Daniel Fried, Ruslan Salakhutdinov, Chris Donahue, Jing Yu Koh, Brandon Trabucco, Julie Nys, Olga Rogunova, Aditya Soni, Alex Lawsen, Laurence Ales and Stephen McAleer for their insightful discussions in various stages of the project.
+
+\bibliography{custom}
+\bibliographystyle{icml2025}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\appendix
+\input{sections/appendix}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}

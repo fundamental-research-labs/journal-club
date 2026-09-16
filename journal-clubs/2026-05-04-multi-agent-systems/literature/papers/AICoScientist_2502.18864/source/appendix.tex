@@ -1,0 +1,548 @@
+
+\clearpage
+% \onecolumn
+
+
+\renewcommand{\thesection}{A.\arabic{section}}
+\renewcommand{\thefigure}{A.\arabic{figure}}
+\renewcommand{\thetable}{A.\arabic{table}} 
+\renewcommand{\theequation}{A.\arabic{equation}} 
+\renewcommand{\theHsection}{A\arabic{section}}
+
+\setcounter{section}{0}
+\setcounter{figure}{0}
+\setcounter{table}{0}
+\setcounter{equation}{0}
+% \setcounter{page}{1}
+
+% \appendix
+
+\noindent \textbf{\LARGE{Appendix}}\\
+
+
+In the following sections, we report additional details on the following topics:
+\begin{itemize}[leftmargin=1.5em,rightmargin=0em]
+    \item Glossary of terminology and concepts (\cref{sec:glossary})
+    \item Prompts for the specialized agents in the AI co-scientist system (\cref{sec:prompts})
+    \begin{itemize}
+        \item Prompts for the Generation agent (\cref{sec:prompts_1_generation})
+        \item Prompt for the Reflection agent (\cref{sec:prompts_2_reflection})
+        \item Prompts for the Ranking agent (\cref{sec:prompts_3_ranking})
+        \item Prompts for the Evolution agent (\cref{sec:prompts_4_evolution})
+        \item Prompt for the Meta-review agent (\cref{sec:prompts_5_meta})
+    \end{itemize}
+    \item Examples of the AI co-scientist system inputs, intermediate outputs, and final results (\cref{sec:supp_ex})
+    \item Supplementary information for drug repurposing evaluation (\cref{sec:supp_drug_repurposing})
+    \begin{itemize}
+        \item Datasets (\cref{sec:eval_data})
+        \item Computational biology analyses (\cref{sec:eval_compbio})
+        \item \textit{In vitro} wet-lab validation (\cref{sec:eval_wetlab})
+        \item Additional wet-lab results (\cref{sec:result_wetlab})
+    \end{itemize}
+    \item Supplementary information for the co-scientist drug repurposing Specific Aims evaluation (\cref{sec:supp_aims})
+    \begin{itemize}
+        \item Specific Aims count distribution (\cref{sec:specific_aims_count})
+        \item Specific Aims evaluation rubric (\cref{sec:specific_aims_rubric})
+        \item Examples of co-scientist generated Specific Aims with expert evaluation (\cref{sec:ex_specific_aims})
+    \end{itemize}
+    \item Detailed AI co-scientist output for a validated AML repurposing candidate (\cref{sec:drug_output})
+    \item An example of tool use in the AI co-scientist with AlphaFold (\cref{sec:alphafold})
+\end{itemize}
+
+
+\section{Glossary of terminology and concepts}
+\label{sec:glossary}
+
+\begin{itemize}
+    \item \textbf{Novel repurposing candidate.} An existing drug (a chemical compound that binds to a target), with an established safety profile, proposed for use in a disease or condition for which it is not currently approved or widely used. This approach of repurposing existing drugs differs significantly from traditional drug discovery, which involves identifying novel chemical compounds that can bind to specific targets implicated in a disease state.
+    \item \textbf{Novel target.} A biological entity (e.g., gene, protein, pathway) not previously known as a therapeutic target for a specific disease.
+    \item \textbf{Novel mechanistic explanation.} A newly proposed pathway, interaction, or biological process that explains a phenomenon (e.g., disease progression, antimicrobial resistance) in a way that is not explicitly described in prior literature.
+\end{itemize}
+
+
+\clearpage
+\section{Prompts for the specialized agents in the AI co-scientist system}
+\label{sec:prompts}
+\input{prompts_1_generation}
+\include{prompts_2_reflection}
+\include{prompts_3_ranking}
+\include{prompts_4_evolution}
+\include{prompts_5_meta}
+
+\clearpage
+\include{examples}
+
+
+\section{Supplementary information for drug repurposing evaluation}
+\label{sec:supp_drug_repurposing}
+
+\subsection{Datasets}
+\label{sec:eval_data}
+
+\paragraph{Cancer type dataset}
+A list of 33 cancer types, along with their corresponding abbreviations, was constructed based on a curated text string derived from the \href{https://www.cancer.gov/tcga}{TCGA project} (Appendix \cref{tab:cancer_type}). This list includes 10 rare cancers.
+
+\begin{table}[ht!]
+\centering
+\begin{tabular}{cc}
+\toprule
+\textbf{Cancer Name Abbreviation} & \textbf{Cancer Name} \\
+\midrule
+LAML & Acute Myeloid Leukemia \\
+ACC & Adrenocortical carcinoma \\
+BLCA & Bladder Urothelial Carcinoma \\
+LGG & Brain Lower Grade Glioma \\
+BRCA & Breast invasive carcinoma \\
+CESC & Cervical squamous cell carcinoma and endocervical adenocarcinoma \\
+CHOL & Cholangiocarcinoma \\
+LCML & Chronic Myelogenous Leukemia \\
+COAD & Colon adenocarcinoma \\
+CNTL* & Controls \\
+ESCA & Esophageal carcinoma \\
+FPPP & FFPE Pilot Phase II \\
+GBM & Glioblastoma multiforme \\
+HNSC & Head and Neck squamous cell carcinoma \\
+KICH & Kidney Chromophobe \\
+KIRC & Kidney renal clear cell carcinoma \\
+KIRP & Kidney renal papillary cell carcinoma \\
+LIHC & Liver hepatocellular carcinoma \\
+LUAD & Lung adenocarcinoma \\
+LUSC & Lung squamous cell carcinoma \\
+DLBC & Lymphoid Neoplasm Diffuse Large B-cell Lymphoma \\
+MESO & Mesothelioma \\
+MISC* & Miscellaneous \\
+OV & Ovarian serous cystadenocarcinoma \\
+PAAD & Pancreatic adenocarcinoma \\
+PCPG & Pheochromocytoma and Paraganglioma \\
+PRAD & Prostate adenocarcinoma \\
+READ & Rectum adenocarcinoma \\
+SARC & Sarcoma \\
+SKCM & Skin Cutaneous Melanoma \\
+STAD & Stomach adenocarcinoma \\
+TGCT & Testicular Germ Cell Tumors \\
+THYM & Thymoma \\
+THCA & Thyroid carcinoma \\
+UCS & Uterine Carcinosarcoma \\
+UCEC & Uterine Corpus Endometrial Carcinoma \\
+UVM & Uveal Melanoma \\
+\bottomrule
+\end{tabular}
+\vspace{0.1cm}
+\caption{\textbf{TCGA cancer type.} We consider all cancer types except CNTL and MISC while exploring the drug repurposing candidates with preclinical evidences. *Not a cancer type.}
+\label{tab:cancer_type}
+\end{table}
+
+\paragraph{Drug repurposing proposals.}
+We used the co-scientist to generate drug repurposing proposals for different types of cancer from a subset of 2300 drugs curated with the \href{https://platform.opentargets.org/downloads}{Open Targets Platform}. The proposal for each drug candidate includes a generated hypothesis, a review of the hypothesis, and a description of the possible mechanism of action. For each drug, the co-scientist assigned a drug repurposing likelihood score indicating how likely this drug can be successfully repurposed for a given cancer across all 33 TCGA cancer types.
+
+
+\subsection{Computational biology analyses}
+\label{sec:eval_compbio}
+To enhance our drug repurposing hypothesis generation, verification, and evaluation processes, we integrated a computational biology approach utilizing DepMap (Cancer Dependency Map). DepMap is a project focused on identifying genetic vulnerabilities in cancer cells~\citep{depmap2024}. By systematically perturbing genes in a large panel of cancer cell lines using techniques like CRISPR and observing the resulting phenotypic effects, researchers are able to construct a comprehensive map of genetic dependencies for different cancers. This resource can be leveraged to identify promising drug targets for cancer therapies.
+
+Specifically, DepMap generates perturbational data from CRISPR screens that are subsequently used to calculate DepMap dependency scores. These scores represent the probability of gene essentiality for a given cancer cell line. A high DepMap score indicates a high probability that a gene is required for cell survival and proliferation, thereby highlighting it as a potential therapeutic target. A DepMap score of 1.0 indicates a very strong signal, and any novel drug repurposing hypotheses with a high DepMap score would be interesting targets to explore.
+
+For our experiments, we utilized the Q2 2024 data release of DepMap and used the default DepMap dependency probability. We first observed a significant correlation between DepMap score and the co-scientist score. As shown in Appendix~\cref{fig:cos_depmap}, drug-cancer pairs scored highly by the co-scientist also have high average DepMap score. We then leveraged DepMap data to assess the novelty of high-scoring proposals generated by the co-scientist. Candidates selected for expert review were required to meet stringent criteria, exhibiting both co-scientist review score $\geq 4$ and a DepMap score $\geq 0.99$.
+
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=0.6\textwidth,keepaspectratio]{figures/fig_cos_depmap.png}
+\vspace{0.1cm}
+\caption{\textbf{The co-scientist review score is concordant with the DepMap score.} We demonstrate the distribution of the DepMap score across five AI co-scientist review score groups. The group with the co-scientist score of 5 has the highest median DepMap score, and the group with co-scientist score of 1 has the lowest. All pairwise comparisons between the group of AI co-scientist score of 5 and each of the other groups are statistically significant (Two-sided Wilcoxon rank-sum test, $p < 0.001$).}
+\label{fig:cos_depmap}
+\end{figure}
+
+
+\subsection{\textit{In vitro} wet-lab validation}
+\label{sec:eval_wetlab}
+We tested expert selected drug candidates for AML repurposing by measuring the half-maximal inhibitory concentration (IC50), the concentration of drug required to inhibit cell viability by 50\%, of each drug on representative AML cell lines for the respective cancer indication. IC50 is a value commonly used as a way to quantify the effectiveness of a drug at inhibiting cellular processes, and can be measured by treating cells across a broad range of drug concentrations and fitting the dose response to a sigmoidal curve to determine 50\% of maximal inhibition~\cite{sebaugh2011guidelines}. For our measurements, cells were plated in 96-well cell culture-treated plates, seeding 5000 cells per well, and treated with the respective drug concentrations for 48 hours. Subsequently, cell viability was assayed using an MTS assay (CellTiter 96 AQueous One Solution Cell Proliferation Assay, Promega). After 1 hour incubation with the MTS reagent at 37°C, absorbance at 490 nm was measured in each well using a plate reader. Each condition was performed in triplicate. Dose response curves were background corrected (subtracted the smallest response), normalized (divided by the largest response), fit, and plotted using the Quest Graph™ IC50 Calculator (AAT Bioquest, Inc). The cell lines used (MOLM13, HL60, and KG-1) were generous gifts from the lab of Dr. Ravi Majeti (Stanford University).
+\begin{itemize}
+    \item MOLM-13 cells are a human AML cell line that were derived from bone marrow samples of a 62-year-old woman with AML.
+    \item HL60 cells are a human cell line from a patient with acute promyelocytic leukemia (APL), often used to study the development and proliferation of normal and leukemic cells. 
+    \item KG-1 cells are a human cell line isolated from the bone marrow aspirate of a 59-year-old, white male with erythroleukemia that evolved into AML.
+\end{itemize}
+
+
+\subsection{Additional wet-lab results}
+\label{sec:result_wetlab}
+This section provides additional \textit{in vitro} laboratory results of drug repurposing. Appendix \cref{fig:fig_wetlab_appendix} shows dose-response curves of Binimetinib in KG-1 and HL-60 cell lines. Appendix \cref{fig:fig_wetlab_appendix_failed} shows the does response curves of drug repurposing candidates for AML suggested by the AI co-scientist with little to no effect on MOLM-13 cells.
+
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=0.8\textwidth,keepaspectratio]{figures/fig_bini.pdf}
+\vspace{0.1cm}
+\caption{\textbf{Dose-response of drug repurposing candidate Binimetinib in other AML cell lines.} Binimetinib demonstrates activity inhibiting cell viability in KG-1 and HL-60 cell lines. X-axis is the drug concentration (nM), and Y-axis is normalized cell viability (arbitrary unit).}
+\label{fig:fig_wetlab_appendix}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=\textwidth,keepaspectratio]{figures/fig_failed.pdf}
+\vspace{0.1cm}
+\caption{\textbf{Dose-response of the drug repurposing candidates with little to no effect on MOLM-13.} Of the expert-selected drug repurposing candidates, Pravastatin and DMF showed little to no effect on the MOLM-13 cell line across the concentrations tested. Of the novel drug repurposing candidates, Leflunomide and Nanvuralat showed little to no effect on the MOLM-13 cell line across the concentrations tested. X-axis is the drug concentration (nM), and Y-axis is normalized cell viability (arbitrary unit).}
+\label{fig:fig_wetlab_appendix_failed}
+\end{figure}
+
+
+
+\clearpage
+\section{Supplementary information for the co-scientist drug repurposing Specific Aims evaluation}
+\label{sec:supp_aims}
+
+\subsection{Specific Aims count distribution}
+\label{sec:specific_aims_count}
+
+\begin{table}[htbp!]
+\centering
+\begin{tabular}{cc}
+\toprule
+\textbf{Repurposed Cancer} & \textbf{Count} \\
+\midrule
+Acute Myeloid Leukemia (LAML) & 13 \\
+Colon adenocarcinoma (COAD) & 10 \\
+Breast invasive carcinoma (BRCA) & 10 \\
+Skin Cutaneous Melanoma (SKCM) & 8 \\
+Lung adenocarcinoma (LUAD) & 6 \\
+Head and Neck squamous cell carcinoma (HNSC) & 5 \\
+Bladder Urothelial Carcinoma (BLCA) & 5 \\
+Pancreatic adenocarcinoma (PAAD) & 4 \\
+Stomach adenocarcinoma (STAD) & 3 \\
+Rectum adenocarcinoma (READ) & 3 \\
+Esophageal carcinoma (ESCA) & 3 \\
+Uveal Melanoma (UVM) & 2 \\
+Uterine Corpus Endometrial Carcinoma (UCEC) & 2 \\
+Prostate adenocarcinoma (PRAD) & 2 \\
+Lung squamous cell carcinoma (LUSC) & 1 \\
+Cervical squamous cell carcinoma and endocervical adenocarcinoma (CESC) & 1 \\
+\midrule
+Grand Total & 78 \\
+\bottomrule
+\end{tabular}
+\vspace{0.1cm}
+\caption{\textbf{Count distribution of the cancer types in the Specific Aims drug repurposing proposals generated by the AI co-scientist.} }
+\end{table}
+
+
+\subsection{Specific Aims evaluation rubric}
+\label{sec:specific_aims_rubric}
+A pilot evaluation framework was developed by oncologists at a US institute, inspired by the axes used in evaluating research proposals in their field (for example, the NIH Specific Aims review criteria). While such original criteria serve as a gold standard for the review of in-depth proposals written by human domain experts, a context-specific approach is needed for AI systems such as the AI co-scientist because there are AI-specific limitations to consider.
+
+The evaluation framework therefore focused on enabling assessment of similar axes of proposal quality viewed to be important by collaborating oncologists, while additionally accounting for unique limitations and capabilities of LLM-based systems.
+
+For instance, while precedent real-world criteria assume deep domain expertise and the ability to cite contemporary unpublished work, the pilot framework presented here emphasizes the evaluation of logical consistency and the appropriate use of publicly available scientific knowledge. This acknowledges that LLMs, unlike human experts, may struggle to draw upon tacit knowledge or recent unpublished findings in their field.
+
+The resulting pilot framework explores two domains: (1) clinical significance and (2) scientific rigor and methodology, with 5 and 10 questions respectively, for a total of 15 evaluation criteria.
+
+A 5-point Likert-type scale is used for each item (Strongly Disagree, Disagree, Neutral, Agree and Strongly Agree). The approach used here represents a pilot framework only and would require considerable further research if it were to be developed into a reproducible or valid ratings instrument, including assessment of validity and reliability, inter and intra-observer variance, and correlation of ratings with ground truths or well-established prior frameworks not designed to evaluate AI systems.
+
+The ``clinical significance'' domain addressed some fundamental aspects of drug repurposing proposals, including unmet clinical needs, therapeutic landscape analysis, and scientific rationale. Items in this domain aimed to assess the clinical relevance and theoretical foundation of proposals, and how AI systems integrate and synthesize publicly available information.
+
+The ``scientific rigor and methodology'' domain aimed to evaluate technical quality of proposals, including hypothesis formation, methodological clarity, translational potential, overall scientific accuracy as reflected by the quality of preclinical experimental design and the presence of well-defined clinical endpoints. Special attention was paid to evaluating LLM-specific concerns, such as the assessment of factual accuracy and the avoidance of hallucinated content. This pilot framework is not comprehensive and is not intended to mirror the full breadth and depth of grant design evaluations. For example, omitted axes of quality could be addressed by future works, including absence of detailed criteria for experimental design (for example, review of power calculation or study design methodologies).
+
+\subsection*{Significance and innovation (5 questions)}
+\begin{enumerate}
+    \item The proposal adequately identifies significant unmet clinical needs that could be addressed through drug repurposing of this pharmacological agent.
+    \item The proposal effectively bridges an important gap in the current therapeutic landscape for the target disease by repurposing this drug.
+    \item The proposal presents a scientifically rigorous rationale for repurposing the drug, grounded in current evidence and literature.
+    \item The scientific background integrates relevant prior studies and preliminary data to support the proposed drug repurposing.
+    \item The proposal avoids over-extrapolation or speculative conclusions beyond the supporting evidence.
+\end{enumerate}
+
+\subsection*{Rigor and feasibility (10 questions)}
+\begin{enumerate}
+    \item Does each Specific Aim have a clear hypothesis, and specific methodological approaches?
+    \item Are the Specific Aims clearly stated and logically organized?
+    \item There is a clear path from the proposed research to clinical application, including consideration of necessary pre-clinical and clinical studies.
+    \item The proposal includes well-defined and clinically relevant endpoints.
+    \item The pre-clinical experiments are designed to yield meaningful insights into the drug's potential efficacy and safety in its new therapeutic role.
+    \item The proposal includes a well-described translational component to assess the drug's efficacy in its new indication.
+    \item The proposal avoids factual inaccuracies or hallucinations, presenting information that is accurate and reliable.
+    \item The assumptions made within the proposal regarding the drug's efficacy, mechanism, and potential outcomes are grounded in current scientific evidence.
+    \item The proposal demonstrates originality in thought and approach, employs precise and appropriate scientific terminology and avoids ambiguous or generic statements.
+    \item The proposal is clearly written, with well-organized sections and a logical flow of ideas that enhances comprehension and ensures the aims are easily understood.
+\end{enumerate}
+
+\newpage
+
+\vspace{-0.2cm}
+\subsection{Examples of co-scientist generated Specific Aims with expert evaluation}
+\label{sec:ex_specific_aims}
+
+\vspace{-0.2cm}
+\begin{figure}[htbp!]
+\caption{\textbf{Example of co-scientist generated Specific Aims drug repurposing proposal for AML.}}
+\label{fig:aim1_1}
+\vspace{0.1cm}
+\begin{tcolorbox}[title=Givosiran for AML]
+\footnotesize
+\textbf{Disease Description}\\
+Acute myeloid leukemia (AML) is an aggressive hematological malignancy with an incidence rate of approximately 4.3 per 100,000 persons per year in the United States, predominantly affecting older adults.  AML arises from a complex interplay of genetic mutations, epigenetic alterations, and dysregulated signaling pathways, disrupting normal hematopoiesis by blocking myeloid differentiation and promoting uncontrolled blast proliferation.  This leads to bone marrow failure, infections, bleeding, and other life-threatening complications.  The current standard of care includes intensive chemotherapy, often combined with targeted therapies or hematopoietic stem cell transplantation.  However, these treatments are often associated with significant toxicity, high relapse rates, and limited efficacy in certain patient populations, particularly in relapsed/refractory or high-risk AML.\\
+
+\textbf{Unmet Need}\\
+Despite advancements, significant unmet needs persist in AML treatment.  Current therapies often cause severe side effects, particularly in older or frail patients, limiting their tolerability and effectiveness.  Relapse rates remain high, and treatment options for relapsed/refractory AML are limited and often less effective.  Many patients fail to achieve complete remission or experience only short-lived responses, underscoring the urgent need for novel, less toxic, and more effective therapies, especially for patients with relapsed/refractory or high-risk disease.\\
+
+\textbf{Proposed Solution}\\
+Givosiran sodium is an RNA interference (RNAi) therapeutic approved for acute hepatic porphyria (AHP). It targets aminolevulinate synthase 1 (ALAS1) mRNA, the rate-limiting enzyme in heme biosynthesis, reducing the production of heme precursors $\delta$-aminolevulinic acid (ALA) and porphobilinogen. This prevents the accumulation of neurotoxic heme intermediates in AHP.
+
+Repurposing givosiran for AML stems from the crucial role of heme biosynthesis in AML pathogenesis.  Several studies suggest that disrupting heme biosynthesis offers a therapeutic advantage in AML. The proposed approach addresses the unmet need by targeting AML cells dependent on increased heme biosynthesis, particularly those with MYCN overexpression [1]. Modulating heme levels could influence oxidative stress [5, 6], apoptosis [1, 2], and drug sensitivity in AML [2]. Givosiran's ALAS1 inhibition aligns with this approach, offering a novel therapeutic strategy.
+
+We hypothesize that givosiran, by inhibiting ALAS1 and reducing heme biosynthesis, will suppress AML cell growth and survival, particularly in those with upregulated heme biosynthesis. This is supported by preclinical evidence demonstrating that altering heme levels impacts AML cell proliferation, apoptosis, and drug sensitivity [2]. Abstract [1] suggests that elevated heme biosynthesis in MYCN-driven AML is a therapeutic vulnerability.  Reducing ALA and porphobilinogen accumulation via givosiran can mitigate oxidative stress [6], a factor implicated in AML progression.
+
+Overall, our goal is to evaluate the efficacy and safety of givosiran as a novel therapeutic strategy for AML by exploiting the crucial role of heme biosynthesis in its pathogenesis and the drug's ability to modulate heme levels and downstream effects on AML cell proliferation, survival, and drug sensitivity.\\
+
+\textbf{Specific Aims 1}\\
+\textbf{Overarching goal:}\\
+Determine the anti-leukemic activity of givosiran in MYCN-driven AML models.\\
+\textbf{Hypothesis:}\\
+Givosiran treatment will decrease the viability and proliferation of MYCN-overexpressing AML cells in vitro and reduce tumor growth in MYCN-driven AML xenograft mouse models.\\
+\textbf{Reasoning:}\\
+MYCN-driven AML frequently exhibits upregulated heme biosynthesis [1], creating a potential dependency on this pathway. Givosiran, by inhibiting ALAS1, could disrupt this dependency, leading to decreased heme and growth inhibition. This is supported by preclinical data showing that inhibiting heme biosynthesis impacts AML cell growth and survival [1, 2].\\
+\end{tcolorbox}
+\end{figure}
+
+\begin{figure}[htbp!]
+\caption{\textbf{Example of co-scientist generated Specific Aims drug repurposing proposal for AML (continued).}}
+\label{fig:aim1_2}
+\vspace{0.1cm}
+\begin{tcolorbox}[title=Givosiran for AML (continued)]
+\footnotesize
+\textbf{Specific Aims 2}\\
+\textbf{Overarching goal:}\\
+Elucidate the impact of givosiran on oxidative stress and drug sensitivity in AML.\\
+\textbf{Hypothesis:}\\
+Givosiran treatment will modulate oxidative stress levels and enhance the cytotoxic effects of standard AML chemotherapeutics (e.g., cytarabine) in AML cell lines and primary patient samples.\\
+\textbf{Reasoning:}\\
+Heme plays a role in oxidative stress regulation, and its modulation by givosiran could influence AML cell chemosensitivity.  Abstracts [5, 6] highlight oxidative stress in AML and the potential for ALA accumulation to contribute to it. By reducing ALA and heme, givosiran could alter reactive oxygen species (ROS) levels and potentially sensitize AML cells to chemotherapy-induced death.\\
+
+\textbf{Specific Aims 3}\\
+\textbf{Overarching goal:}\\
+Characterize the safety and tolerability of givosiran in preclinical AML models, focusing on its impact on liver function.\\
+\textbf{Hypothesis:}\\
+Givosiran treatment will be well-tolerated in AML mouse models, with minimal adverse effects on liver function and drug metabolism, at doses that effectively inhibit ALAS1 and reduce heme biosynthesis.\\
+\textbf{Reasoning:}\\
+Given givosiran's hepatic target (ALAS1), evaluating its safety profile in AML is crucial. Abstracts [7, 8] highlight the clinical significance of liver function in AML patients. This aim will assess potential hepatotoxicity and drug-drug interactions, ensuring safe translation to clinical trials. We will evaluate relevant liver function markers and givosiran's impact on standard AML chemotherapeutic metabolism.\\
+
+\textbf{Pilot Evaluation}\\
+A pilot study in a human AML xenograft mouse model will assess givosiran's in vivo efficacy and safety.  Givosiran will be administered at various doses, monitoring tumor growth, survival, and liver function. The primary endpoint will be tumor growth inhibition. Secondary endpoints include survival, changes in heme levels, oxidative stress markers, and liver function tests. Existing safety data from givosiran's use in AHP will inform dose selection and monitoring. While givosiran is approved for AHP, its use in AML requires an Investigational New Drug (IND) application to the FDA before clinical trials.  Existing safety data might facilitate a streamlined review process.\\
+
+\textbf{Articles}
+
+[1] Upregulated heme biosynthesis, an exploitable vulnerability in MYCN-driven leukemogenesis
+Summary: This study demonstrates increased heme biosynthesis in MYCN-driven leukemias, suggesting it as a therapeutic target.
+Relevance: Supports the rationale for targeting heme biosynthesis in MYCN-driven AML and provides a rationale for the proposed mechanism of action of givosiran in this context.
+
+[2] Systematic Dissection of the Metabolic-Apoptotic Interface in AML Reveals Heme Biosynthesis to Be a Regulator of Drug Sensitivity
+Summary: This study highlights the role of heme biosynthesis in regulating apoptosis and drug sensitivity in AML.
+Relevance: Supports the potential for givosiran to impact AML cell survival and treatment response by modulating heme biosynthesis.
+
+[3] 3113 – IDENTIFICATION OF HEME AS A CRITICAL REGULATOR OF LEUKEMOGENESIS
+Summary: This abstract points to the importance of heme levels in AML, especially in leukemic stem cells, and suggests targeting heme biosynthesis.
+Relevance: Reinforces the rationale for targeting heme biosynthesis as a therapeutic strategy in AML.
+
+...
+
+ [8] Acute myeloid leukemia with hepatic infiltration presenting as obstructive jaundice
+Summary: This abstract shows liver dysfunction in AML and the need to consider liver health in treatment.
+Relevance: Reinforces the importance of monitoring liver function in AML patients treated with givosiran, further supporting the rationale for Aim 3.
+\end{tcolorbox}
+\end{figure}
+
+
+\begin{figure}[htbp!]
+\caption{\textbf{Example of co-scientist generated Specific Aims drug repurposing proposal for colon cancer.}}
+\label{fig:aim2_1}
+\vspace{0.1cm}
+\begin{tcolorbox}[title=Selinexor for colon cancer]
+\footnotesize
+\textbf{Disease Description}\\
+Colon adenocarcinoma (COAD) is a significant public health concern, with an estimated incidence rate of over 1.9 million new cases and 935,000 deaths globally in 2020. COAD arises from the epithelial lining of the colon and is driven by a complex interplay of genetic mutations (e.g., APC, KRAS, BRAF, TP53) and epigenetic alterations, leading to uncontrolled cell proliferation, impaired apoptosis, and chronic inflammation. These molecular changes disrupt crucial cellular pathways like Wnt/$\beta$-catenin signaling, cell cycle control, and DNA damage repair, ultimately driving tumor progression. COAD typically progresses through stages, from localized polyps to invasive tumors with potential for metastasis. Current standard of care involves surgery, chemotherapy, radiation therapy, and targeted therapies, but treatment resistance and recurrence remain major challenges, highlighting the need for new therapeutic approaches.
+
+\textbf{Unmet Need}\\
+Current COAD treatments have limitations, including acquired resistance to chemotherapy, significant toxicities, and incomplete responses in advanced disease. Patients often experience diminished quality of life due to treatment side effects and disease burden. High recurrence rates and limited effective treatment options after progression contribute to poor long-term outcomes.  This unmet need underscores the urgency for novel therapeutic strategies that can overcome resistance, improve response rates, and minimize toxicity, ultimately extending survival and enhancing quality of life for COAD patients.
+
+\textbf{Proposed Solution}\\
+Selinexor, a first-in-class selective inhibitor of nuclear export (SINE), is currently approved for the treatment of multiple myeloma and diffuse large B-cell lymphoma. It specifically targets XPO1 (Exportin 1), a key protein responsible for the nuclear export of tumor suppressor proteins, oncoproteins, and RNA. By binding to XPO1, Selinexor blocks the nuclear export of these molecules, leading to their accumulation in the nucleus and restoration of tumor suppressor function, cell cycle arrest, and apoptosis induction.
+
+Repurposing Selinexor for COAD is rationally supported by its mechanism of action and the molecular characteristics of the disease. Overexpression of XPO1 is common in various cancers, including COAD [1, 2, 6]. Selinexor inhibits XPO1, preventing the nuclear export and restoring the function of key tumor suppressors (p53, RB, FOXO, APC) frequently dysregulated in COAD [2, 3, 4, 5]. Furthermore, Selinexor can suppress constitutively activated NF-$\kappa$B signaling, a driver of chronic inflammation and tumor progression in COAD, by blocking I$\kappa$B export and increasing its nuclear accumulation [7, 8]. These mechanisms align with key aspects of COAD pathogenesis and offer opportunities for therapeutic intervention.
+
+We hypothesize that Selinexor will effectively inhibit COAD cell growth and enhance apoptosis by restoring tumor suppressor function and modulating crucial signaling pathways. Selinexor has shown anti-tumor activity in solid tumors in a Phase I trial [3], with observations of nuclear accumulation of tumor suppressor proteins [3, 6]. While not specific to COAD, these findings, coupled with evidence of Selinexor's efficacy in other cancers driven by XPO1 overexpression [3, 6], suggest that a similar mechanism could be effective in COAD. Further supporting our hypothesis, XPO1 overexpression has been linked to NF-$\kappa$B activation and increased proliferation in COAD [7].
+Overall, our goal is: to demonstrate that Selinexor’s XPO1 inhibitory activity can effectively target key oncogenic drivers and restore tumor suppressor functions in COAD, ultimately leading to tumor growth inhibition and improved patient outcomes.
+
+\textbf{Specific Aims 1}\\
+\textbf{Overarching goal:}\\
+Determine the in vitro efficacy of Selinexor in inhibiting COAD cell growth and inducing apoptosis.\\
+\textbf{Hypothesis:}\\
+Selinexor treatment will significantly reduce the viability and increase apoptosis in a panel of COAD cell lines, including those with varying genetic backgrounds (e.g., APC, KRAS, TP53 mutations).\\
+\textbf{Reasoning:}\\
+Selinexor's inhibition of XPO1 leads to nuclear accumulation of tumor suppressors like p53, a key regulator of apoptosis [2, 6]. Restoration of p53 function and suppression of NF-$\kappa$B, a pro-survival pathway [7, 8], are expected to induce apoptosis in COAD cells. We will evaluate this hypothesis using cell viability and apoptosis assays in diverse COAD cell lines to assess the impact of genetic background on Selinexor's efficacy.\\
+\end{tcolorbox}
+\end{figure}
+
+\begin{figure}[htbp!]
+\caption{\textbf{Example of co-scientist generated Specific Aims drug repurposing proposal for colon cancer (continued).}}
+\label{fig:aim2_2}
+\vspace{0.1cm}
+\begin{tcolorbox}[title=Selinexor for colon cancer (continued)]
+\footnotesize
+\textbf{Specific Aims 2}\\
+\textbf{Overarching goal:}\\
+Elucidate the mechanisms by which Selinexor inhibits COAD cell growth, focusing on XPO1-mediated restoration of tumor suppressor function.\\
+\textbf{Hypothesis:}\\
+Selinexor treatment will increase nuclear accumulation of p53, RB, and FOXO proteins and decrease nuclear export of I$\kappa$B, leading to cell cycle arrest and decreased NF-$\kappa$B activity in COAD cells.\\
+\textbf{Reasoning:}\\
+Selinexor blocks XPO1, preventing nuclear export of key tumor suppressors (p53, RB, FOXO) [2, 4, 5] and the NF-$\kappa$B inhibitor I$\kappa$B [7, 8]. Increased nuclear localization of these proteins should restore their growth regulatory functions, leading to cell cycle arrest and reduced NF-$\kappa$B-driven proliferation. We will evaluate this hypothesis using immunofluorescence and western blotting to assess protein localization and activity.
+
+\textbf{Specific Aims 3}\\
+\textbf{Overarching goal:}\\
+Characterize the potential synergistic effects of Selinexor in combination with standard-of-care chemotherapies for COAD.\\
+\textbf{Hypothesis:}\\
+Combination treatment with Selinexor and 5-fluorouracil (5-FU) will synergistically reduce COAD cell viability compared to either treatment alone.\\
+\textbf{Reasoning:}\\
+XPO1 inhibition can sensitize cancer cells to chemotherapy [9]. Combining Selinexor with 5-FU, a common COAD chemotherapy, may enhance cellular stress and improve treatment response. We will test this hypothesis using cell viability assays and investigate the underlying mechanisms of synergy.
+
+\textbf{Pilot Evaluation}\\
+A pilot study will evaluate Selinexor's efficacy in a patient-derived xenograft (PDX) model of COAD. The primary objective is to determine the effect of Selinexor on tumor growth. The study will utilize an open-label, single-arm design with escalating Selinexor doses in established COAD PDX models. Inclusion criteria: established COAD PDX models. Exclusion criteria: none. Primary endpoint: tumor volume change. Secondary endpoints: changes in biomarkers (p53, Ki67, NF-$\kappa$B) within the tumor. Selinexor's established safety profile in other cancers provides a basis for evaluating its safety in this new indication. Potential for expedited review through existing regulatory pathways will be explored.\\
+\\
+\textbf{Expert rating}\\
+1. Strongly Agree (unmet clinical needs)\\
+2. Agree (bridges therapeutic gap)\\
+3. Strongly Agree (scientifically rigorous rationale)\\
+4. Agree (integrates prior studies)\\
+5. Agree (avoids over-extrapolation)\\
+6. Strongly Agree (clear hypotheses and methods)\\
+7. Strongly Agree (clearly stated aims)\\
+8. Agree (path to clinical application)\\
+9. Agree (well-defined endpoints)\\
+10. Agree (meaningful pre-clinical experiments)\\
+11. Agree (translational component)\\
+12. Strongly Agree (avoids inaccuracies)\\
+13. Strongly Agree (evidence-based assumptions)\\
+14. Agree (originality and terminology)\\
+15. Strongly Agree (clear writing and organization)\\
+\end{tcolorbox}
+\end{figure}
+
+
+
+\begin{figure}[htbp!]
+\caption{\textbf{Example of co-scientist generated Specific Aims drug repurposing proposal for colon cancer.}}
+\label{fig:aim3_1}
+\vspace{0.1cm}
+\begin{tcolorbox}[title=Lapatinib for colon cancer]
+\footnotesize
+\textbf{Disease Description}\\
+Colon adenocarcinoma (COAD) is a significant public health concern, with an estimated incidence rate of over 150,000 new cases annually in the United States [19]. COAD arises from the epithelial lining of the colon, and its pathogenesis involves a complex interplay of genetic and environmental factors. Key molecular mechanisms include mutations in genes such as APC, KRAS, BRAF, and PIK3CA, as well as dysregulation of signaling pathways like Wnt, RAS/RAF/MEK/ERK, and PI3K/AKT/mTOR [8, 9, 12]. These alterations drive uncontrolled cell proliferation, evade apoptosis [14], promote angiogenesis [15], and ultimately lead to tumor growth, invasion, and metastasis [16]. The disease typically progresses through a series of stages, from localized tumors to regional lymph node involvement and distant metastasis. Current standard of care involves surgery, chemotherapy, and targeted therapies such as anti-EGFR antibodies. However, these treatments have limitations, including acquired resistance and significant toxicity.
+
+\textbf{Unmet Need}\\
+A major unmet need in COAD treatment is the development of effective therapies for patients who progress on or are refractory to standard treatments, particularly those with resistance to anti-EGFR therapy [2]. Despite available therapies, many patients experience disease recurrence and metastasis, leading to poor outcomes and diminished quality of life. There's a critical need for new therapeutic options that can overcome resistance mechanisms, improve response rates, and offer better tolerability profiles. Specifically, addressing resistance driven by KRAS mutations [10] and exploring alternative therapeutic targets remains crucial.
+
+\textbf{Proposed Solution}\\
+Lapatinib is an orally available small molecule tyrosine kinase inhibitor currently approved for use in combination with capecitabine for the treatment of HER2-positive metastatic breast cancer. It reversibly inhibits the intracellular tyrosine kinase domains of both EGFR (ErbB1) and HER2 (ErbB2), thereby blocking downstream signaling cascades, including RAS/RAF/MEK/ERK and PI3K/AKT/mTOR. This inhibition leads to decreased cell proliferation and increased apoptosis.
+
+Repurposing lapatinib for COAD is rationalized by the shared ErbB signaling pathway between breast cancer and a subset of COAD. EGFR is commonly overexpressed in COAD [1], and while HER2 overexpression is less frequent than in breast cancer, it occurs in a clinically relevant subset [3, 17] and is associated with resistance to anti-EGFR therapy [2]. Lapatinib can directly inhibit both EGFR and HER2, potentially disrupting crucial oncogenic signaling [13, 14] including PLC$\gamma$ [7].
+
+We hypothesize that lapatinib can effectively inhibit ErbB signaling in COAD, leading to decreased cell proliferation, increased apoptosis, and suppression of metastasis. Preclinical studies demonstrate synergistic antitumor activity of lapatinib with HDAC inhibitors in COAD models [6], and lapatinib has also been shown to sensitize COAD cells to TRAIL-induced apoptosis via an off-target mechanism [5]. Studies have also investigated HER2 as a therapeutic target in CRC, especially after failure of anti-EGFR therapy [2, 18]. Although lapatinib as a single agent has shown limited efficacy in unselected CRC populations, this could be attributed to the heterogeneity of COAD and the presence of resistance mechanisms like KRAS mutations. We anticipate that patient stratification based on molecular profiles will identify subgroups that derive greater benefit.
+
+Overall, our goal is: to demonstrate the efficacy of lapatinib in specific molecular subtypes of COAD, potentially in combination with other targeted therapies, to address the unmet need for new treatment options, particularly in patients resistant to standard therapies.
+
+\textbf{Specific Aims 1}\\
+\textbf{Overarching goal:}\\
+To determine the efficacy of lapatinib in inhibiting HER2/EGFR signaling and suppressing cell proliferation in a panel of well-characterized COAD cell lines.\\
+\textbf{Hypothesis:}\\
+Lapatinib will inhibit cell proliferation in HER2-amplified/overexpressing and/or EGFR-overexpressing COAD cell lines.\\
+\textbf{Reasoning:}\\
+Lapatinib directly inhibits both HER2 and EGFR, key drivers of cell proliferation in a subset of COAD. Inhibition of these receptors should lead to reduced downstream signaling through the RAS/RAF/MEK/ERK and PI3K/AKT/mTOR pathways, ultimately suppressing cell growth [6].\\
+\end{tcolorbox}
+\end{figure}
+
+\begin{figure}[htbp!]
+\caption{\textbf{Example of co-scientist generated Specific Aims drug repurposing proposal for colon cancer (continued).}}
+\label{fig:aim3_2}
+\vspace{0.1cm}
+\begin{tcolorbox}[title=Lapatinib for colon cancer (continued)]
+\footnotesize
+\textbf{Specific Aims 2}\\
+\textbf{Overarching goal:}\\
+To elucidate the impact of lapatinib on apoptosis and key signaling pathways in COAD models.\\
+\textbf{Hypothesis:}\\
+Lapatinib will induce apoptosis and modulate key signaling pathways (RAS/RAF/MEK/ERK, PI3K/AKT/mTOR, and PLC$\gamma$) in COAD cell lines, especially those with HER2/EGFR alterations.\\
+\textbf{Reasoning:}\\
+Inhibition of HER2/EGFR by lapatinib disrupts pro-survival signaling, potentially promoting apoptosis [14].  Additionally, lapatinib can indirectly modulate downstream pathways [4, 7], even demonstrating synergistic effects with other agents [6]. This aim will explore the extent of this modulation in various COAD subtypes.
+
+\textbf{Specific Aims 3}\\
+\textbf{Overarching goal:}\\
+To identify predictive biomarkers for lapatinib response and explore potential combination strategies in COAD.\\
+\textbf{Hypothesis:}\\
+A combination of lapatinib with a MEK inhibitor will enhance antitumor activity in KRAS-mutant COAD cell lines compared to lapatinib alone.\\
+\textbf{Reasoning:}\\
+KRAS mutations are a known mechanism of resistance to EGFR/HER2 targeted therapies [10]. Combining lapatinib with a MEK inhibitor may overcome this resistance by blocking the downstream MAPK pathway activation, leading to enhanced antitumor efficacy.
+
+\textbf{Pilot Evaluation}\\
+A pilot study will be conducted to evaluate the safety and preliminary efficacy of lapatinib in patients with HER2-positive metastatic COAD who have progressed on standard therapy. This open-label, single-arm study will enroll 15-20 patients with confirmed HER2 overexpression/amplification and KRAS wild-type status. Key exclusion criteria will include prior treatment with lapatinib and significant comorbidities. The primary endpoint will be progression-free survival, and secondary endpoints will include overall response rate, duration of response, and safety. Lapatinib's known safety profile from its use in breast cancer will inform the monitoring plan. Expedited regulatory review may be possible due to lapatinib's existing approval.
+
+\textbf{Articles}
+
+[1] Targeting the EGFR signalling pathway in metastatic colorectal cancer\\
+Summary: Details the importance of EGFR signaling in CRC and how targeting it is a crucial therapeutic strategy.\\
+Relevance: Provides context for lapatinib's action as it targets EGFR.
+
+[2] HER2 as an Emerging Oncotarget for Colorectal Cancer Treatment After Failure of Anti-Epidermal Growth Factor Receptor Therapy\\
+Summary: Discusses HER2 as a target in CRC, especially in the context of anti-EGFR therapy resistance.\\
+Relevance: Directly relevant to lapatinib's mechanism and potential in COAD.
+
+...
+
+[19] United States Cancer Statistics\\
+Summary: Provides official U.S. cancer incidence and mortality statistics.\\
+Relevance: Source of epidemiological data for colon adenocarcinoma.\\
+\\
+\textbf{Expert rating}\\
+1.	Strongly Agree (unmet clinical needs)\\
+2.	Agree (bridges therapeutic gap)\\
+3.	Strongly Agree (scientifically rigorous rationale)\\
+4.	Strongly Agree (integrates prior studies)\\
+5.	Strongly Agree (avoids over-extrapolation)\\
+6.	Strongly Agree (clear hypotheses and methods)\\
+7.	Strongly Agree (clearly stated aims)\\
+8.	Strongly Agree (path to clinical application)\\
+9.	Agree (well-defined endpoints)\\
+10.	Neutral (meaningful pre-clinical experiments)\\
+11.	Strongly Agree (translational component)\\
+12.	Strongly Agree (avoids inaccuracies)\\
+13.	Strongly Agree (evidence-based assumptions)\\
+14.	Strongly Agree (originality and terminology)\\
+15.	Agree (clear writing and organization)\\
+\end{tcolorbox}
+\end{figure}
+
+
+\clearpage
+\subsection{Detailed AI co-scientist output for a validated AML repurposing candidate}
+\label{sec:drug_output}
+\input{examples_kira6}
+
+
+\clearpage
+\section{An example of tool use in the AI co-scientist with AlphaFold}
+\label{sec:alphafold}
+The AI co-scientist is a general purpose system broadly applicable across different areas of science and medicine. To better understand the capabilities and limitations of the system, we task it with the goal of suggesting protein sequences with specific properties. Determining the correct primary amino acid sequence with the desired properties is an essential part of protein engineering. While LLM-based systems can predict protein properties and suggest modifications~\citep{wang2025large}, they can sometimes generate incorrect sequences (i.e., hallucinations). To address this, we integrate AlphaFold~\citep{jumper2021highly}, a specialized AI system for predicting protein 3D structure, into our co-scientist. AlphaFold acts as a validation tool, evaluating the structural plausibility of sequences proposed by the co-scientist and provides feedback. This increases the reliability of the sequence design optimization process, which can be further validated with wet laboratory experiments. The approach to integrate tools highlights how specialized AI models can work in collaboration with more general AI systems like the AI co-scientist, facilitating the solution of complex challenges like protein design.
+
+As an illustrative example, we used AlphaFold to assess a co-scientist's proposed modification to the OCT4 (octamer-binding transcription factor 4) protein (Appendix \cref{fig:fig_af}), one of the four Yamanaka factors~\citep{takahashi2007induction}, to increase binding affinity of its DNA binding domain. The co-scientist suggested adding a mechano-sensitive loop to the POU domain (a family of eukaryotic transcription factors) and a dynamic phosphorylation site outside of it. The co-scientist first verified the proposed sequence against the UniProt database via web-search. AlphaFold then predicted the 3D structure of the modified protein, suggesting that the modifications maintained structural stability. These predictions were used to refine the co-scientist's hypothesis, allowing it to improve its protein sequence design in subsequent iterations. We also independently validated the modification using ESM-2 \citep{lin2022language} and RoseTTAFold \citep{baek2021accurate}. ESM-2 predicted an increased log-likelihood ratio and a similar predicted local distance difference test (pLDDT), and RoseTTAFold predicted similar confidence score (GDT), compared to the original sequence. The insertion and modification did not seem to disrupt SOX2 and OCT4 interactions, indicated by the similar pLDDT scores between the original and modified OCT4 sequences. However, this example is for demonstration purposes only. Further \textit{in silico} analysis (e.g., predicting binding affinity and off-target effects), and thorough laboratory validation are necessary to confirm that the proposed modifications actually improve the complex roles of OCT4 binding, while maintaining SOX2 interaction integrity, during pluripotency.
+
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=0.92\textwidth,keepaspectratio]{figures/fig_af_mechano.pdf}
+\vspace{0.1cm}
+\caption{\textbf{AlphaFold predicted protein 3D structure and metrics for original OCT4 and AI co-scientist suggested modifications.} (left panel) original OCT4 sequence with SOX2 and DNA binding (right panel) modified OCT4 sequence with SOX2 and DNA binding. The left 3D structure in each panel is the POU domain of the corresponding OCT4 sequence. The predicted template modeling (pTM) score, the interface predicted template modeling (ipTM), and predicted local distance difference test (pLDDT) are derived from the AlphaFold outputs.}
+\label{fig:fig_af}
+\end{figure}
+\vspace{-0.3cm}
+
+Combining AlphaFold with the co-scientist framework offers a powerful approach for both improving existing proteins and designing entirely new ones. This integrated system allows researchers to iteratively optimize protein sequences for enhanced properties (e.g., stability, binding affinity, or catalytic activity) or putatively to create proteins with novel functions. It enables exploration of protein design while ensuring structural feasibility. Future work will focus on experimentally validating these capabilities and applying them to targeted protein design efforts as well as expansion to integration of other specialized AI tools with the co-scientist.
+
+\newpage
+\setlength\bibitemsep{3pt}
+\printbibliography
+\balance
+\clearpage
+

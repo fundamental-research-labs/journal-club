@@ -1,0 +1,274 @@
+\section{Evaluation and Results}
+
+We now discuss the methods for evaluating the AI co-scientist system and the corresponding results. The initial evaluations aim to benchmark and verify the choice of the strategies and metrics underpinning the co-scientist. We then proceed to perform a small-scale evaluation with domain experts to assess the quality of the system.
+
+Furthermore, to assess the practical utility of the system's novel predictions, we also perform end-to-end wet-lab validations (laboratory experiments) of the co-scientist-generated hypotheses and research proposals in three key biomedical applications: drug repurposing, discovering novel treatment targets, and elucidating the mechanisms underlying antimicrobial resistance. The varying complexity and nature of these applications enable a more comprehensive assessment of the system. Notably, all three validations involved expert-in-the-loop guidance and prioritization of experiments. These applications are summarized in Table \ref{tab:task_summary}.
+
+\begin{table}[htbp!]
+\centering
+\resizebox{1.0\textwidth}{!}{
+\begin{tabular}{cccc}
+\toprule
+\textbf{Application} & \textbf{Drug repurposing} & \textbf{Novel treatment target discovery} & \textbf{\begin{tabular}[c]{@{}c@{}}Explain mechanism of \\ gene transfer evolution\end{tabular}} \\
+\midrule
+Challenge & Combinatorial search & Identifying novel targets & Understanding complex systems \\
+\midrule
+Complexity & Medium & High & Very high \\
+\midrule
+Scale & Moderate, data-limited & Moderate, experiment-limited & Large, data and computation-limited \\
+\midrule
+Unknown elements & Constrained & Large & Vast and dynamic \\
+\bottomrule
+\end{tabular}
+}
+\vspace{0.1cm}
+\caption{{Three real-world applications in biomedicine for end-to-end validation of the AI co-scientist.}}
+\label{tab:task_summary}
+\end{table}
+
+
+\subsection{The Elo rating is concordant with high quality AI co-scientist results}
+\label{sec:result_quality}
+
+The Elo auto-evaluation rating is a key metric that guides the self-improvement feedback loops within the co-scientist system. Therefore, it's necessary to measure and ensure higher Elo ratings correlate with higher quality results. To assess this, we analyzed the concordance between the Elo rating and the system's accuracy on the GPQA benchmark dataset. Ideally, higher Elo ratings should correlate with a higher probability of correct answers.
+
+The GPQA dataset is a challenging, multiple-choice question answering benchmark developed by experts in biology, physics, and chemistry~\citep{rein2023gpqa}. To ensure that the co-scientist Elo rating serves as an objective metric reflecting the validity and correctness of results from the system, we utilized questions within the GPQA diamond set, a subset of the GPQA dataset known for its high difficulty, framing each question as a research goal into our AI system to elicit responses. For each question, we first compared each co-scientist response against the ground truth answer to evaluate its correctness. Then, we categorized all generated responses across all considered questions based on their Elo rating into discrete buckets: Elo rating of 1001-1050, 1051-1100, 1101-1150, etc. in 50 point increments, until the highest rating achieved. Finally, we calculated the average accuracy for each Elo rating bucket, as the percentage of correct responses within each bucket.
+
+We employed the underlying Gemini 2.0 models in the AI co-scientist to create a reference baseline. The reference is necessary because responses within a particular Elo rating bucket are not uniformly distributed across the GPQA questions - some of which are inherently more challenging than others. This non-uniformity could introduce bias into the analysis and potentially lead to erroneous conclusions. We therefore used the reference to generate 32 responses for each GPQA question. The fraction of correct responses from Gemini 2.0 was used as a reference accuracy on that particular question. To determine reference accuracy for a specific Elo bucket, we averaged the reference accuracy of the GPQA questions that had co-scientist responses within that bucket. We also computed the co-scientist accuracy on the GPQA diamond set by using the result with the highest Elo rating for each question and comparing it against the ground truth.
+
+\begin{figure}[htbp!]
+\centering\includegraphics[width=0.5\textwidth,keepaspectratio]{figures/fig_gpqa.png}
+\vspace{0.1cm}
+\caption{\textbf{Concordance of the auto-evaluation Elo metric with AI co-scientist performance on GPQA.} The blue line in the figure shows the average accuracy of co-scientist responses, grouped by their Elo rating. The red line indicates the average accuracy of the corresponding reference Gemini 2.0 responses to the same set of GPQA questions, grouped by Elo rating. Note that Elo metric is auto-evaluated and not based on the ground truth.}
+\label{fig:fig_gpqa}
+\end{figure}
+
+Our analysis using questions from the GPQA diamond set reveals a concordance between the Elo rating and averaged accuracy of generated co-scientist results, as depicted in~\cref{fig:fig_gpqa}. By selecting the top-rated co-scientist result for each question, the co-scientist achieves a top-1 accuracy of 78.4\%.
+
+
+\subsection{Scaling test-time compute improves scientific reasoning of the AI co-scientist}
+\label{sec:result_ttc}
+To evaluate the effects of test-time compute scaling and the co-scientist's progress during iterative scientific reasoning and hypothesis generation, we measured the Elo ratings of the co-scientist generated hypothesis and proposals over the course of the tournament. This analysis was done across 203 distinct research goals curated across broad scientific topics (predominantly in biomedicine, but also included other topics such as mathematics and physics) and entered into the co-scientist system until February 3, 2025.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.95\textwidth,keepaspectratio]{figures/fig_elo_all.pdf}
+\vspace{0.1cm}
+\caption{\textbf{Impact of scaling test-time compute on AI co-scientist as measured by Elo auto-evaluation.} 
+The co-scientist's research hypotheses and proposals were partitioned into ten temporal buckets of equal size, with the last bucket corresponding to the most recently generated results from the system. For each bucket, we determined the maximum individual Elo rating (the ``best Elo'') and the average Elo rating of the top 10 hypotheses across 203 unique research goals. The resulting upward performance trends, across both metrics, suggest improvements in the co-scientist result quality with scaling of test-time compute. Note that the Elo metric is auto-evaluated and not based on independent ground truth.}
+\label{fig:fig_elo_all}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.95\textwidth,keepaspectratio]{figures/fig_elo_15.pdf}
+\vspace{0.1cm}
+\caption{\textbf{Comparison of the AI co-scientist with other baselines as measured by Elo auto-evaluation on a subset of 15 challenging expert-curated research goals.} The AI co-scientist's research hypotheses and proposals were partitioned into ten equal-sized temporal buckets, with the last bucket representing the most recent system-generated results. For each bucket, we calculated the maximum individual Elo rating (``best Elo'') and the average Elo rating of the top 10 hypotheses across 15 challenging research goals, curated by biomedical experts. These metrics were then compared to the performance of several baselines: Gemini 2.0 Pro Experimental, Gemini 2.0 Flash Thinking Experimental 12-19, OpenAI o1, OpenAI o3-mini-high, DeepSeek R1, and the ``best guess'' hypotheses provided by the expert curators. These baseline performances are represented by colored dashed lines. On this expert-curated subset of research goals, we consistently observed upward performance trends with increased test-time compute. Furthermore, the co-scientist significantly outperformed both the human experts and the other state-of-the-art LLM baselines, as measured by the Elo metric. It's important to note that the Elo metric is auto-evaluated and not based on independent ground truth. This auto-evaluation metric may favour results with attributes that do not necessarily align with scientists' preferences, quality, or accuracy.}
+\label{fig:fig_elo}
+\end{figure}
+
+The co-scientist's research hypotheses and proposals were partitioned into ten temporal buckets of equal size. Each bucket corresponded to a sequential 10\% of the total generation time with the first bucket containing the earliest 10\% of generated co-scientist results, while the tenth bucket comprised the most recent 10\%. For each bucket, we determined the average Elo rating of the top 10 hypotheses and the maximum individual Elo rating (the ``best Elo''). These average and best Elo ratings were averaged across 203 research goals and their corresponding tournaments. The resulting performance trends as seen in \cref{fig:fig_elo_all}, across both metrics, serves as a measure of the co-scientist's quality improvement over time. The most recent results demonstrated a significant quality enhancement compared to the initial outputs. Notably, although the Elo rating is not the direct optimization target, its progressive increase emerges from the system's self-improvement feedback loops.
+
+To further contextualize this observation, we focused our analysis on a subset of 15 research goals, curated as challenging problems by seven biomedical experts in their respective fields of expertise. These experts held doctoral degrees in biological or life science disciplines and were actively working as postdoctoral researchers or faculty members at academic biomedical research institutes. These research goals were consistently structured and formatted, encompassing a research title, a clear set of goals, preferences specifying biological or disease areas of interest, desirable solution attributes, and constraints on experimental techniques.
+
+In addition to the research goals, the experts provided their ``best guess'' hypotheses or solutions. We then included outputs from other state-of-the-art LLMs and reasoning models—--Gemini 2.0 Pro Experimental, Gemini 2.0 Flash Thinking Experimental 12-19, OpenAI o1, OpenAI o3-mini-high, and DeepSeek R1—in a tournament along with the expert ``best guess'' and co-scientist for each curated goal. Performance was assessed using the co-scientist Elo rating metric.
+
+The trends previously observed with test-time compute scaling in \cref{fig:fig_elo_all} were consistent within this subset. Furthermore, as shown in \cref{fig:fig_elo}, the co-scientist surpassed the other frontier LLMs and reasoning models in Elo rating with increased computational resources for iterative improvement. Notably, newer reasoning models, such as OpenAI o3-mini-high and DeepSeek R1, demonstrated competitive performance while requiring significantly less compute and reasoning time. Finally, we observed no evidence of performance saturation as measured by Elo, suggesting that further scaling of test-time compute in this paradigm could yield continued improvements in result quality of the co-scientist system. Its worth noting again that the co-scientist architecture is model agnostic and is likely to benefit from further advancements in frontier and reasoning LLMs.
+
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=0.5\textwidth,keepaspectratio]{figures/fig_co_sem.png}
+\vspace{0.1cm}
+\caption{\textbf{AI-augmented expertise with the co-scientist through Elo-based auto-evaluation.} Through its self-improvement process, the co-scientist refines and enhances expert ``best guess'' solutions over time, as measured by the Elo rating on a subset of 15 curated research goals. It is important to note that the Elo metric is auto-evaluated and not based on independent ground truth.}
+\label{fig:fig_co}
+\end{figure}
+
+Building upon the co-scientist system's ability to combine, refine and improve research hypotheses and proposals iteratively, we investigated its potential to improve upon expert ``best guess'' solutions. Consistent with our previous observations, the co-scientist demonstrated the capacity to enhance expert's ``best guess'' solutions over time, as evidenced by the Elo metric in \cref{fig:fig_co}. Notably, the improvement trends initially mirrored those of the co-scientist's autonomously generated solutions but subsequently surpassed them. While this is a preliminary finding requiring further validation, it suggests a promising avenue for capable AI systems, such as the co-scientist, to augment and accelerate the work of expert scientists.
+
+
+\subsection{Experts consider the AI co-scientist results to be potentially novel and impactful}
+
+To obtain expert feedback and assess preferences, we conducted a small-scale expert evaluation on 11 of the 15 previously curated research goals. We asked the experts who curated the research goals to assess outputs from the AI co-scientist, Gemini 2.0 Flash Thinking Experimental 12-19, Gemini 2.0 Pro Experimental, and OpenAI o1 models. Specifically, they provided a preference ranking (1 being most preferred and 4 being least preferred) and rated the novelty and impact of the proposed solutions on a 5-point scale, ranging from 1 (worst) to 5 (best) following this rubric:
+\begin{itemize}
+    \item \textbf{Novelty:} Higher-ranked outputs should propose hypotheses that, to the best of the expert's knowledge, have not been previously published in any form. Hypotheses similar to existing proposals, even with minor modifications, should rank lower, and exact replicas of previously proposed and performed experiments should receive the lowest ranking.
+    \item \textbf{Impact:} Higher-ranked outputs should address significant open questions in the field and have the potential to substantially advance scientific understanding or lead to practical applications.
+\end{itemize}
+
+Across 11 expert-evaluated research goals, outputs generated by the AI co-scientist were most preferred and rated higher in novelty and impact axes compared to the other baseline models. Specifically, the co-scientist received an average preference rank of 2.36, and novelty and impact ratings of 3.64 and 3.09 (out of 5) as shown in~\cref{fig:fig_human}. These evaluations reflect subjective expert assessments, not objective ground truth. Notably, the human expert preferences also appear to be concordant with relative Elo ratings as can be inferred from~\cref{fig:fig_elo} and~\cref{fig:fig_human}.
+
+We also conducted the same preference ranking evaluation between co-scientist and other LLM and reasoning model baselines using the OpenAI o3-mini-2025-01-31, o1-preview-2024-09-12, Gemini 2.0 Pro Experimental and Gemini 2.0 Flash Thinking Experimental 01-21 as judges. The co-scientist outputs were the most preferred by both the o3-mini, o1 and Gemini 2.0 Pro Experimental models as shown in (\cref{fig:fig_llm_rank}). Due to the small scale of these evaluations, further large-scale studies are necessary for any reliable conclusions. We present a more comprehensive clinical expert evaluation focused on co-scientist proposals for drug repurposing formatted in the NIH Specific Aims Page format in~\cref{sec:result_aims}. 
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=0.45\textwidth,keepaspectratio]{figures/fig_human_ni.png}
+\includegraphics[width=0.45\textwidth,keepaspectratio]{figures/fig_human_rank.png}
+\vspace{0.1cm}
+\caption{\textbf{Expert evaluation of AI co-scientist and other LLM baselines.} Left: Average expert ratings on novelty and impact of the model responses across 11 expert curated research goals. Higher numbers indicate better ratings (1-5). Right: Average expert preference ranking of the results across 11 expert curated research goals generated by AI co-scientist, Gemini 2.0 Flash Thinking Experimental 12-19, Gemini 2.0 Pro Experimental, and OpenAI o1, respectively. Lower numbers indicate better rankings (1-4). The human expert preferences also appear to be concordant with relative Elo ratings as can be inferred from~\cref{fig:fig_elo}. At the same time, its worth noting that these preferences and ratings reflect subjective expert assessments, not objective ground truth.}
+\label{fig:fig_human}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.45\textwidth,keepaspectratio]{figures/fig_o3_rank.png}
+\includegraphics[width=0.45\textwidth,keepaspectratio]{figures/fig_o1_rank.png}
+\includegraphics[width=0.45\textwidth,keepaspectratio]{figures/fig_g2p_rank.png}
+\includegraphics[width=0.45\textwidth,keepaspectratio]{figures/fig_g2f_rank.png}
+\vspace{0.1cm}
+\caption{\textbf{LLM preference ranking auto-evaluation of AI co-scientist and other baselines.} Averaged preference ranking of results across 11 expert curated research goals generated by AI co-scientist, Gemini 2.0 Flash Thinking Experimental 12-19, Gemini 2.0 Pro Experimental, and OpenAI o1, using four different LLM evaluators: OpenAI o3-mini-2025-01-31 (upper left), OpenAI o1-preview-2024-09-12 (upper right), Gemini 2.0 Pro Experimental (lower left), and Gemini 2.0 Flash Thinking Experimental 01-21 (lower right). Lower numbers indicate better rankings.}
+\label{fig:fig_llm_rank}
+\end{figure}
+
+
+\subsection{Safety evaluation of the AI co-scientist using adversarial research goals}
+\label{sec:result_safety}
+The AI co-scientist is designed to empower scientists and accelerate research. However, it's crucial to ensure the system is designed with robust safety principles, given the potential for misuse. This includes addressing dangerous research goals, dual-use objectives, scenarios where safe goals lead to unsafe hypotheses, misleading claims, and inherent biases. While this topic requires extensive investigation beyond the scope of this work, we employed adversarial testing strategies to conduct a preliminary safety analysis of the system. Specifically, we curated a set of 1200 adversarial examples, ranging in complexity, across 40 biomedical and scientific topics using frontier LLMs. We then evaluated whether the AI co-scientist could robustly reject these research goals. In this preliminary analysis, the system successfully passed all checks. Given the sensitive nature of these adversarial research goals, we will not be publicly releasing the dataset, but it can be made available upon request. Collectively, the benchmark, automated, and expert evaluations presented in this section provide compelling evidence of the system's strong capabilities.
+
+
+\subsection{Drug repurposing with the AI co-scientist}
+\label{sec:result_drug}
+As previously noted, a rigorous assessment of a system's ability to generate novel hypotheses and predictions for complex research problems necessitates end-to-end validation through wet-lab experiments. However, due to the challenging, time-consuming, and resource-intensive nature of such endeavors, large-scale experimental validation is infeasible. Instead, we strategically selected diverse yet critical biomedical topics to serve as a strong benchmark for the end-to-end system evaluation. Detailed descriptions of these topics follow. Importantly, all three experimental validations were conducted in collaboration with expert scientists, who provided guidance to the co-scientist and prioritized wet-lab experiments.
+
+We begin the discussion of the end-to-end validation of the AI co-scientist with a drug repurposing application. As introduced earlier, drug repurposing is the process of identifying novel therapeutic indications for existing, approved drugs beyond their original use. This approach can accelerate the discovery of treatments for complex and rare diseases, as repurposed drugs have established safety profiles and are readily available. From a technical standpoint, this is a combinatorial search problem involving a large but finite set of drug-disease pairs as noted in \cref{tab:task_summary}. 
+
+Given the co-scientist's ability to synthesize and integrate information across a vast body of scientific and clinical literature, we hypothesized that drug repurposing would be an ideal test of the system's capabilities. The system is general-purpose, capable of providing highly detailed and explainable predictions across all known drug-disease pairs. Here, we focused on the computational biology and wet-lab validation of our co-scientist system in the area of drug repurposing for cancer treatment.
+
+We initially investigated drug-cancer pairs with existing preclinical evidence to validate the plausibility of the hypotheses and predictions generated by the co-scientist (\cref{sec:result_drug_pre}), before expanding to completely novel drug repurposing hypotheses (\cref{sec:result_drug_novel}). The validation of the co-scientist's predictions was performed using a multi-faceted approach, incorporating computational biology analyses, oncologist expert feedback, and \textit{in vitro} wet-lab experiments using cancer cell lines.
+
+\subsubsection{The AI co-scientist suggests plausible drug repurposing candidates as rated by experts}
+\label{sec:result_drug_pre}
+We constrained the AI co-scientist to explore potential repurposing hypotheses from a curated list of 2300 approved drugs across 33 cancer types (Appendix \cref{sec:eval_data}). To achieve this, we modified the prompts used in the Generation and Ranking agent stages to ensure hypotheses generation in this constrained search space; however, the core co-scientist logic remained unchanged. When formulating the research goal for the co-scientist, we explicitly emphasized the following preferences related to drug repurposing:
+\begin{itemize}
+    \item Elucidate the known mechanisms of action and impacted biological pathways of the drug.
+    \item Identify potential diseases or cancer types that could be treatment targets for the drug.
+    \item Explain the potential mechanisms by which the drug could exert therapeutic effects.
+    \item Propose alternative mechanisms of action through which the drug might function in the proposed therapeutic context.
+    \item Identify the diseases / cancers for which the drug is currently approved.
+    \item List the most promising disease / cancer type candidates for repurposing.
+    \item Discuss prior research and challenges associated with repurposing the drug.
+\end{itemize}
+
+For each drug-cancer pair, we also extracted the Cancer Dependency Map (DepMap) probability of dependency (``DepMap score'')~\citep{depmap2024} (Appendix \cref{sec:eval_compbio}). The DepMap score represents the probability of essentiality for a gene in a given cancer cell lines. We ranked all drug-cancer pairs using a combined metric of the co-scientist review score (ranging from 1 to 5) and the DepMap score (ranging from 0.0 to 1.0). To prioritize the most relevant hypotheses for expert review, we selected only pairs where the co-scientist review score $\geq 4$ and the DepMap score $\geq 0.99$. Note that the DepMap score is primarily meant to function as a sanity check and filter out obviously incorrect candidates but is unlikely to be predictive of efficacy.
+
+Expert oncologists then reviewed the top-ranked drug-cancer pairs, provided feedback, and selected promising repurposing candidates for \textit{in vitro} wet-lab validation (Appendix \cref{sec:eval_wetlab}).
+
+\paragraph{Clinical expert evaluation of drug repurposing proposals in NIH Specific Aims Page format.}
+\label{sec:result_aims}
+To rigorously evaluate whether the co-scientist-generated hypotheses for drug repurposing fulfill the needs of physicians and scientists, we restructured the co-scientist hypotheses into the NIH-style grant proposal Specific Aims Page (examples in Appendix \cref{fig:aim1_1}-\ref{fig:aim3_2}), and asked a team of six expert hematologists \& oncologists to evaluate the specific aims. 
+
+The NIH Specific Aims Page format follows a standard structure, including disease description, unmet need, proposed solutions, and specific aims. This format was selected because it provides a standardized framework that is widely recognized in the research community, allowing for systematic presentation of complex scientific topics in a manner that facilitates rigorous peer review and enables efficient assessment of scientific merit. The specific aims, which outline the overarching goal, hypothesis, and rationale, requires extensive scientific expertise, comprehensive literature analysis, and robust domain knowledge. We generated cancer drug repurposing hypotheses derived from the co-scientist in the format of NIH Specific Aims Page with additional constrained decoding and self-critique stages to ensure format consistency. The resulting format contextualizes proposed repurposing candidates within known mechanisms based on current literature and then extrapolates to a new disease state. An expert oncologist methodically evaluated and excluded hypotheses that were deemed clinically implausible or had limited potential for successful translation, as well as those falling outside the expertise of the assembled specialist evaluators. This initial screening process employed multiple evidence-based criteria including: (1) pharmacological mechanism incompatibility with tumor biology; (2) unfavorable pharmacokinetic profiles for oncological applications; (3) prohibitive toxicity profiles documented in prior clinical use; (4) confounding effects where apparent survival benefits were attributable to improved management of treatment-related morbidity rather than direct anti-neoplastic activity; and (5) insufficient preclinical evidence supporting antitumor efficacy at clinically achievable concentrations. For example, bisphosphonate agents like pamidronate, while associated with improved outcomes in observational studies of patients with bone metastases, were excluded after critical evaluation revealed their benefits stemmed primarily from reduction of skeletal-related events (such as pathological fractures, spinal cord compression, and bone pain requiring radiation) rather than from disease modifying activity of the drug-candidate. 
+
+Six board-certified hematologists \& oncologists from a single institution - including four domain-specific oncologists specializing in gastrointestinal (GI), breast, gynecologic (GYN) and genitourinary (GU) cancers and two general hematologist \& oncologists, with an average of eight years of clinical experience - evaluated 78 unique drug repurposing hypotheses presented in the NIH Specific Aims Page format (for specific indication distribution and counts, see Appendix~\cref{sec:specific_aims_count}).
+
+The expert raters evaluated the generated Specific Aims based on a modified NIH grant proposal evaluation rubric, consisting of 15 axes focusing on (1) importance of research (significance and innovation) and (2) approach (rigor and feasibility). The raters indicated their agreement level using a five-point scale: ``Strongly Agree'', ``Agree'', ``Neutral'', ``Disagree'', and ``Strongly Disagree''. For each axis, we included several questions covering different aspects of the NIH evaluation criteria. The evaluation rubric is further detailed in the Appendix~\cref{sec:specific_aims_rubric}. Specifically, we ask raters to focus on evaluating the clinical relevance and potential for clinical translation, and not for translational capacity or the design of clinical trials.
+
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=0.8\textwidth,keepaspectratio]{figures/fig_aims.pdf}
+\vspace{0.1cm}
+\caption{\textbf{Clinical expert evaluation for the co-scientist generated drug repurposing hypotheses in the NIH Specific Aims Page format.} Six expert hematologists \& oncologists reviewed 78 drug repurposing research proposals, which the co-scientist had formatted as NIH Specific Aims Pages. The evaluation followed an adapted NIH grant proposal evaluation rubric, detailed in Appendix~\cref{sec:specific_aims_rubric}. Overall, the oncologists judged the Specific Aims proposals from the AI co-scientist to be of high quality across all axes of the rubric.}
+\label{fig:fig_aim}
+\end{figure}
+
+We observed that expert raters consistently assigned high ratings (``Strongly Agree'' or ``Agree'') to the Specific Aims proposed by the co-scientist across various evaluation criteria (\cref{fig:fig_aim}). Of note, the favorable assessments of co-scientist-generated hypotheses may be partially attributed to expert pre-screening, wherein a clinician eliminated non-viable candidates prior to expert evaluation. Three examples of generated Specific Aims and their respective expert review ratings are detailed in Appendix \cref{fig:aim1_1}-\ref{fig:aim3_2}. 
+
+The generated Specific Aims were assessed by clinical hematologists \& oncologists from a single-center, which might bias the interpretation of the evaluation results, as it may introduce institutional perspectives shaped by local practice patterns, clinical experiences, and research frameworks unique to that setting. While some Specific Aims may be supported by preclinical data, it is important to note that none of the proposed drug candidates have undergone randomized phase III clinical trials necessary to establish efficacy and secure regulatory approval for repurposing to a new indication.
+
+\subsubsection{The AI co-scientist identifies novel drug repurposing candidates for acute myeloid leukemia}
+
+Building upon the positive feedback from clinical experts, we conducted \textit{in vitro} wet-lab validation experiments for drug repurposing hypotheses generated by the co-scientist for acute myeloid leukemia (AML). AML is an aggressive and relatively rare blood cancer characterized by the rapid proliferation of abnormal white blood cells (myeloblasts) in the bone marrow, which displaces healthy blood cells. We focused on this indication due to its aggressive nature and the limited availability of effective therapeutic interventions~\citep{dohner2015acute}.
+
+The cell-line based experiments conducted here serve as an initial biological validation step for co-scientist hypotheses, with intentionally straightforward methodology following established protocols. The simplicity in experimental design is purposeful; our focus is on evaluating the merit of AI co-scientist generated hypotheses rather than developing novel laboratory techniques. Positive results from these experiments should be interpreted as preliminary evidence warranting further investigation through comprehensive pre-clinical studies (e.g., \textit{in vivo} models) and potentially clinical evaluation.
+
+It is important to emphasize that these wet-lab experiments function as a viability checkpoint in the drug repurposing pipeline - not as a replacement for the rigorous pre-clinical and clinical assessment typically required for therapeutic validation. They provide an efficient biological reality check that helps bridge the gap between computational predictions and potential clinical applications, allowing us to rapidly triage AI-generated hypotheses before committing to more resource-intensive validation studies necessary for clinical translation.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.91\textwidth,keepaspectratio]{figures/fig_preclinical_molm13.pdf}
+\vspace{0.1cm}
+\caption{\textbf{Dose response curve of the expert selected repurposing drugs with existing evidence.} Binimetinib, Pacritinib, and Cerivastatin inhibit MOLM-13 cell viability. X-axis is the drug concentration (nM), and Y-axis is normalized cell viability (arbitrary unit). Lower cell viability indicates that the selected drug has a stronger inhibition on AML cells.}
+\label{fig:fig_wetlab_preclinical}
+\end{figure}
+
+\paragraph{Drug repurposing candidate selection process for acute myeloid leukemia.}
+The candidate selection for wet-lab experiments was performed with meticulous expert oversight. Thirty top-ranked drug candidates hypotheses were shared with expert oncologists (an example detailed co-scientist output is provided in \cref{sec:drug_output}). The experts evaluated the hypotheses, selecting drug candidates based on their potential to modulate key molecular signaling pathways associated with disease progression and resistance. Note that we did not preclude any hypotheses based on whether single-agent therapy has been studied before, or if the phase III has been approved. The primary selection criterion favored compounds with multi-pathway activity, specifically those influencing dysregulated inflammatory signaling, metabolic reprogramming, and aberrant cell proliferation. Emerging research indicates that these shared biological processes play a critical role in relapse and treatment resistance~\citep{guo2024nf}. Candidates were also chosen based on preclinical mechanistic insights and their relevance to AML biology, including their hypothesized effects on leukemic cell survival, microenvironment interactions, and resistance mechanisms.
+
+Based on potential mechanisms of action, five drug repurposing candidates---Binimetinib, Pacritinib, Cerivastatin, Pravastatin, and Dimethyl fumarate (DMF)---were selected for further wet-lab validation in AML. 
+
+Briefly, Binimetinib is an inhibitor of MEK1 and MEK2, key kinases in the RAS–RAF–MEK–ERK signaling pathway. By inhibiting MEK1/2, binimetinib prevents the activation of ERK (extracellular signal-regulated kinase), thereby blocking downstream signaling that promotes cell proliferation and survival~\citep{van2019biomarker}. Although RAS mutations typically emerge as late events in AML pathogenesis, Binimetinib was included to investigate its potential to modulate RAS-MEK-ERK signaling in treatment-naive AML, where baseline expression levels of this pathway can influence sensitivity to conventional chemotherapeutic agents~\citep{ball2021prognosis}. 
+
+Pacritinib is an oral tyrosine kinase inhibitor that selectively targets JAK2 and FLT3 kinases~\citep{verstovsek2015comprehensive}. By blocking JAK2's kinase activity, pacritinib suppresses the overactive JAK-STAT signaling that drives pathogenic cell proliferation and cytokine production in diseases such as myelofibrosis. It was selected for repurposing due to the dual inhibition of growth signaling pathways: the JAK2/STAT pathway, critical in hematopoietic cell growth and inflammatory signaling, and FLT3-driven proliferative signaling that regulates leukemic cell survival and also facilitates the development of escape pathways to targeted therapies~\citep{perrone2023acute}. 
+
+Dimethyl fumarate (DMF) is an immunomodulatory drug that activates the Nrf2 (nuclear factor erythroid 2–related factor 2) pathway via covalent modification of the cysteine residues on Keap1, the cytosolic protein that normally binds Nrf2 and targets it for degradation. By oxidizing or alkylating the thiol groups of Keap1, DMF destabilizes the Keap1–Nrf2 complex, allowing Nrf2 to escape ubiquitination and translocate into the nucleus. In parallel, DMF also inhibits NF$\kappa$B mediated transcription and was chosen for repurposing due to clinically relevant activity of NF$\kappa$B in AML ~\citep{bosman2016constitutive,hou2023phf6}. 
+
+Finally, the statins (Cerivastatin and Pravastatin) were selected for their potential to induce metabolic reprogramming and directly modulate vesicular transport mechanisms in rapidly proliferating cells~\citep{banker2004cholesterol}.
+
+\paragraph{Laboratory \textit{in vitro} validation of expert-selected drugs with existing evidence.}
+Of the five drugs tested, Binimetinib, Pacritinib, and Cerivastatin demonstrated inhibition of cell viability (\cref{fig:fig_wetlab_preclinical}). Notably, Binimetinib, which is already approved for the treatment of metastatic melanoma, exhibited an IC50 as low as 7 nM in AML cell lines (\cref{fig:fig_wetlab_preclinical} and Appendix \cref{fig:fig_wetlab_appendix}). This result shows that the drugs proposed by the co-scientist hold promise as clinically viable drug repurposing candidates. Moreover, this opens the possibility that the co-scientist may be able to expand its hypotheses to novel drug repurposing candidates.
+
+\paragraph{The AI co-scientist proposal of novel drug repurposing candidates for acute myeloid leukemia.}
+\label{sec:result_drug_novel}
+We aimed to demonstrate the co-scientist's capacity to autonomously propose novel drug repurposing candidates without oversight. Towards this, the system was directed to generate a ranked list of repurposing candidates for AML, including drugs that were not previously repurposed for the target indication and without any prior preclinical evidence. Specifically, we tasked the co-scientist with generating potential novel drug repurposing hypotheses for AML without explicitly relying on additional external inputs, such as the DepMap scores or human expert feedback. We then determined if these novel candidates suggested by co-scientist could be validated in the laboratory, and may therefore have the potential to be repurposed for AML. 
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.91\textwidth,keepaspectratio]{figures/fig_kira6.pdf}
+\vspace{0.1cm}
+\caption{\textbf{Dose response curve of novel drug repurposing candidate for AML.} KIRA6 activity inhibiting KG-1, MOLM-13, and HL-60 cell viability all in nM range of drug concentration. X-axis is the drug concentration (nM), and Y-axis is normalized cell viability (arbitrary unit). Lower cell viability indicates that the selected drug has a stronger inhibition on AML cells.}
+\label{fig:fig_wetlab_novel}
+\end{figure}
+
+For \textit{in vitro} laboratory validation of novel repurposing drugs, the domain experts selected the top 3 candidates from the ranked list, using the criteria that no prior preclinical or clinical data existed with respect to their use to treat AML - Nanvuranlat, KIRA6, and Leflunomide. 
+
+
+To demonstrate the hypothesis and the rationale given by the AI co-scientist for these drug repurposing candidates, the detailed AI co-scientist output, including the novelty review, is provided in~\cref{sec:drug_output} for KIRA6. As can be the seen, the system identifies that targeting IRE1$\alpha$ in the context of AML has been explored before but not with the specific drug, KIRA6. The system suggests an overall moderate level of novelty for the hypothesis.
+
+
+Of the three drugs tested, treatment with the IRE1$\alpha$ inhibitor KIRA6 showed inhibition of cell viability in three different AML cell lines, KG-1, MOLM-13, and HL-60 cells (\cref{fig:fig_wetlab_novel}). IC50s of KIRA6 were all in nM range, but significantly more effective in KG-1 cells, which had an IC50 of 13 nM, compared to MOLM-13 and HL60 cells, which had IC50s of 517 nM and 817 nM, respectively. Thus, co-scientist was able to suggest a novel candidate for drug repurposing for AML, beyond those that may have been selected through other existing approaches and expert sources. This suggests that the co-scientist system may therefore be capable of generating new, promising hypotheses for researchers to investigate, that may in the future bring new treatments to patients for complex and challenging diseases such as AML.
+
+Translating these insights from co-scientist's drug repurposing hypotheses into clinical practice will be highly challenging, as the complexity of a disease model, patient heterogeneity, and disease variability cannot be fully captured in such limited \textit{in vitro} experiments. Even if a hypothesis generated by co-scientist is well-reviewed by oncologists and supported by preclinical rationale and strong \textit{in vitro} experiments, this does not guarantee \textit{in vivo} efficacy or clinical success. Factors such as drug bioavailability, pharmacokinetics, off-target effects, and patient selection criteria can all impact onward clinical trial outcomes. Moreover, in case of hematological malignancies, the tumor microenvironment and systemic interactions may introduce unforeseen resistance mechanisms, further complicating translation from hypothesis to clinical benefit.
+
+
+\subsection{The AI co-scientist uncovers novel therapeutic targets for liver fibrosis}
+\label{sec:result_liver}
+Liver fibrosis is a severe disease that can progress to liver failure and hepatocellular carcinoma, which has few treatment options due to the limitations of available animal and \textit{in vitro} models. However, a recently developed method for producing human hepatic organoids coupled with a live cell imaging system for liver fibrosis provides a new avenue for identification of new treatments for liver fibrosis~\citep{guan2021human,guan2024live,guan2024hepatic}. The AI co-scientist was asked to produce experimentally testable hypotheses concerning the role of epigenetic alterations in liver fibrosis (``A Novel Hypothesis Regarding Myofibroblast Generation in Liver Fibrosis''); and to identify drugs targeting epigenetic modifiers that could be used for treatment of liver fibrosis.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.6\textwidth,keepaspectratio]{figures/fig_liver.png}
+\vspace{0.1cm}
+\caption{\textbf{The co-scientist discovers the novel treatment targets for liver fibrosis.} Four drugs (Suggested 1-4) based on three epigenetic targets suggested by the co-scientist decrease the fold change of the fibroblast activity. The experiments were conducted in the human hepatic organoid system, the fibroblast activity was measured by the percentage fold change of fluorescence labelled on the myofibroblast. `Untreated' indicates the normal control, the fibrosis inducer is the fibrogenic agent TGF-$\beta$, the fibrosis inhibitor indicates the fibrogenic stimulated myofibroblast treated with the fibrogenic agent inhibitor (i.e., TGF-$\beta$ inhibitor), and four suggested drugs indicate the fibrogenic stimulated myofibroblast treated with each of the four drugs based on three AI co-scientist suggested epigenetic targets. The red line in each box is the median fold change of the group. The $p$-value indicates the statistical significance between the fibrosis inducer group and the given group. These results will be further detailed in an upcoming report.}
+\label{fig:fig_liver}
+\end{figure}
+
+The experts selected three (from fifteen) top-ranked co-scientist generated research hypotheses with a comprehensive research proposal (i.e., experimental design, evaluation methodology, and anticipated results) for exploring the role of epigenetic modifications in liver fibrosis. The co-scientist identified three novel epigenetic modifiers with supporting preclinical evidence that could be targeted by existing agents and provide new treatments for liver fibrosis. Drugs targeting two of the three epigenetic modifiers exhibited significant anti-fibrotic activity in hepatic organoids without causing cellular toxicity (\cref{fig:fig_liver}). Since one of them is an FDA-approved drug for another indication, this creates an opportunity to re-purpose a drug for treatment of liver fibrosis. These results will be detailed in an upcoming technical report.
+
+
+\subsection{The AI co-scientist recapitulates a breakthrough in antimicrobial resistance}
+\label{sec:result_amr}
+Understanding the mechanisms of antibiotic resistance is crucial for researchers to develop effective treatments against infectious diseases. We focused on capsid-forming phage-inducible chromosomal islands (cf-PICIs), which play a pivotal role in antibiotic resistance. These mobile genetic elements, unlike typical phages and other PICIs, possess a remarkable ability to transfer between diverse bacterial species, carrying with them virulence and antibiotic resistance genes. We sought to understand the evolutionary rationale behind the existence of cf-PICIs across multiple bacterial species in order to develop solutions to combat antimicrobial resistance.
+
+The primary objective was to leverage the AI co-scientist to generate a research proposal aimed at elucidating the molecular mechanisms of bacterial evolution underlying the broad host range of cf-PICIs and developing strategies to curb the spread of antibiotic resistance. We specifically focused on the observation that identical cf-PICIs, such as PICIEc1 and PICIKp1, are found in clinically relevant bacterial species, including WHO priority pathogens like \textit{Escherichia coli} and \textit{Klebsiella pneumoniae}.
+
+In a co-timed study~\citep{he2023large} currently undergoing the peer-review process at an established journal in the field, genomic and experimental studies revealed a novel mechanism explaining how identical cf-PICIs can be found in different bacterial species. Knowing the answer to that question (but without it yet being available in the public domain), we investigated whether the co-scientist could independently discover the same, or similar, research hypotheses. We provided the co-scientist with a single-page document containing general information, including a brief background on phage satellites and two relevant research articles. The first paper described the original discovery of cf-PICIs~\citep{alqurainy2023widespread}, and the second paper introduced a computational technique for identifying phage satellites in bacterial genomes~\citep{de2023identification}. We then challenged co-scientist to address the question of why cf-PICIs, but not other types of PICIs or satellites, are readily found across diverse bacterial species, and what mechanism underlies this phenomenon.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=\textwidth,keepaspectratio]{figures/fig_amr.pdf}
+\vspace{0.1cm}
+\caption{\textbf{Timeline of the conventional experimental validation and the AI co-scientist-assisted hypothesis development for capsid-forming phage-inducible chromosomal islands (cf-PICIs), key to antibiotic resistance (AMR).} Blue box: Scientist inputs. Red box: The AI co-scientist system. Red text: wet lab experimental setting. Blue text: research hypothesis generation.}
+\label{fig:fig_amr}
+\end{figure}
+\vspace{-0.3cm}
+
+The co-scientist independently and accurately proposed a groundbreaking hypothesis---that cf-PICIs elements interact with diverse phage tails to expand their host range---as its top-ranked suggestion~\citep{penades2025ai}. This finding was experimentally validated in the independent research study, which was unknown to the co-scientist during hypothesis generation~\cite{he2025chimeric}. Its worth noting that while the co-scientist generated this hypothesis in just two days, it was building on decades of research and had access to all prior open access literature on this topic.
+
+(\cref{fig:fig_amr}). Specifically, the co-scientist suggested the following research topics for the given research goal regarding cf-PICIs:
+
+\begin{itemize}
+    \item \textbf{Capsid-tail interactions.} Investigate the interactions between cf-PICI capsids and a broad range of helper phage tails. This topic aligns precisely with the unpublished manuscript's primary finding: that cf-PICIs interact with tails from different phages to expand their host range, a process mediated by cf-PICI-encoded adaptor and connector proteins.
+    \item \textbf{Integration mechanisms.} Examine the mechanisms by which cf-PICIs integrate into the genomes of diverse bacterial species.
+    \item \textbf{Entry mechanisms.} Explore alternative cf-PICI entry mechanisms beyond traditional phage receptor recognition.
+    \item \textbf{Helper phage and environmental factors.} Investigate the role of helper phages and broader ecological factors in cf-PICI transfer.
+    \item \textbf{Alternative transfer and stabilization mechanisms.} Explore other potential transfer mechanisms, such as conjugation, extracellular vesicles, and unique stabilization strategies, that might contribute to cf-PICI's broad host range.
+\end{itemize}
+
+The convergence of the conventional and AI co-scientist approaches on the same novel finding underscores the potential of the co-scientist to augment, complement and accelerate scientific endeavors (\cref{fig:fig_amr}). Further results and comprehensive details are available in the companion report~\citep{penades2025ai}.

@@ -1,0 +1,127 @@
+\section{SlopCodeBench}
+\label{sec:benchmark}
+
+\scb{} contains 20 language-agnostic problems spanning 93 checkpoints. Each problem is specified only through observable behavior at a CLI or API boundary, so it can be evaluated in any implementation language. The experiments in this paper report the Python implementation track. An agent implements the first specification from scratch, then repeatedly modifies and extends \emph{its own prior code} as specifications evolve. The benchmark measures correctness and tracks code quality across that trajectory.
+
+We use the \codesearch{} problem as a running example throughout this section\label{sec:running-example} because its checkpoints apply escalating architectural pressure to early design decisions. The agent builds a CLI tool for semantic source-file search, inspired by \href{https://ast-grep.github.io}{ast-grep}, across five checkpoints:
+\begin{itemize}
+    \item[$\ckpt{1}$ -] Python-only exact and regex matching.\footnote{Here ``Python-only'' refers to the source files being searched at $\ckpt{1}$, not the language used to implement the solution.} Establishes the core CLI contract and rule format.
+    \item[$\ckpt{2}$ -] Multi-language support (JavaScript, C++).
+    \item[$\ckpt{3}$ -] AST-based pattern matching with metavariable capture.
+    \item[$\ckpt{4}$ -] Selector rules and auto-fix functionality.
+    \item[$\ckpt{5}$ -] Add support for Go, Rust, and Java.
+\end{itemize}
+An agent that hardcodes language-specific logic at $\ckpt{1}$ faces cascading rewrites at $\ckpt{2}$ and $\ckpt{5}$; one that builds an extensible parser interface does not. These structural choices at the first checkpoint determine whether slop accumulates or stays contained. The full problem specifcations can be found in \autoref{sec:appendix-code-search}.
+
+\subsection{Design Principles}\label{sec:design-principles}
+
+The core goal of \scb{} is to force agents to make design decisions that will directly influence the ease at which they can add more features. For this, we have a core set of design principles that every problem must follow. Without these, leakage corrupts any potential signal on long horizon tasks. They are:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{No prescribed internal interfaces.} Existing benchmarks such as \citep{humaneval, mbpp, bigcodebench,evocodebench, repobench} prescribe signatures or library APIs. \scb{} specifies only the external contract (CLI arguments or API I/O), so the agent's \emph{architectural decisions} become part of what we measure.
+    \item \textbf{No explicit test suite.} The dominant SWE evaluation paradigm provides fail-to-pass tests~\citep{swe-bench, swe-bench-plus, multi-swe-bench, rust-swe-bench, swe-rebench-v2, omnicode, longcli-bench, recode-h}. \scb{} agents see only specification prose and embedded examples, never the actual test suite or its feedback. They must infer unstated edge cases from the specification alone.
+    \item \textbf{Black-box, language-agnostic problem design.} Problems constrain only observable behavior, not implementation language or ecosystem. Following the principle that evaluation should not depend on a specific language's ecosystem~\citep{babelcode, ide-bench, fea-bench}, outputs are evaluated purely through CLI or API interfaces, with normalization removing inconsequential formatting and ordering differences. We evaluate only on Python due to cost constraints.
+\end{enumerate}
+
+\paragraph{Specification guidelines.} For \codesearch{}, $\ckpt{1}$ specifies the CLI contract: \texttt{<root\_dir> --rules <file> [--encoding <name>]}, with output as JSON lines containing fields \texttt{rule\_id}, \texttt{file}, \texttt{start}, \texttt{end}, and \texttt{match}. The only prescribed internals are the input/output structures the harness needs to supply inputs and parse outputs. Specifications add normalization guidance only where arbitrary choices could cause false failures, such as key ordering, text casing, or match-span sorting. In $\ckpt{3}$, for example, an example fixes the sort order for multiple pattern matches even though the rule is not stated explicitly. This prevents penalizing inconsequential implementation choices.
+
+\subsection{Evaluation Protocol}\label{sec:eval-setup}
+
+Each problem $\problem$ is an ordered list of checkpoints $[\ckptinit,\ldots,\ckpt{n}]$. A checkpoint $\ckpt{i}$ pairs a specification $\spec{i}$ with a test suite $\testsuite{i}$. The agent $\agent$ receives the current specification and its previous workspace, then produces an updated workspace $\solution{i}$. At $\ckpt{1}$ the agent starts from the empty workspace $\solutioninit$.
+\begin{equation}\label{eq:problem-setup}
+    \begin{aligned}
+        \solution{1} &= \agent(\spec{1}, \solutioninit) \\
+        \solution{2} &= \agent(\spec{2}, \solution{1})\\
+        \ldots \\
+        \solution{i} &= \agent(\spec{i}, \solution{i-1})
+    \end{aligned}
+\end{equation}
+Each checkpoint is a fresh feature starting from the prior checkpoint's workspace. The agent must reason about changes solely from the code's current structure as we do not provide the prior conversation's context. A bad architectural choice at checkpoint $i$ becomes the foundation for checkpoint $i+1$, and the agent must build on top of it. If a reference solution replaces the agent's code between turns, the causal chain from early decisions to later degradation is removed. CodeFlowBench~\citep{codeflowbench} supplies gold-standard code for prior turns, so the agent never inherits the consequences of its own design. MaintainCoder~\citep{maintaincoder} applies a single modification, so trajectories never form. EvoClaw~\citep{evoclaw} preserves the agent's own code but measures only pass/fail, leaving quality degradation unobserved. In \scb{}, the agent's own code carries forward, specifications evolve across multiple checkpoints, and quality is measured at every step.
+
+A $\ckpt{1}$ solution for \codesearch{} that inlines file iteration and hardcodes \texttt{*.py} passes all tests, but $\ckpt{2}$ then forces the agent to extract a file-discovery helper and restructure \texttt{main} before multi-language support can be added. \scb{} captures \textbf{local optimalities that pass tests yet incur future costs}.
+
+\paragraph{Progress phases.} Problems range from 3 to 8 checkpoints, so raw checkpoint indices are not directly comparable across problems. For aggregation and visualization we map each trajectory onto five \emph{progress phases}. The first checkpoint is always \textbf{Start} and the last is always \textbf{Final}. The remaining interior checkpoints are divided into three equal-sized groups labeled \textbf{Early}, \textbf{Mid}, and \textbf{Late}; when the count does not divide evenly, the earlier groups receive one extra checkpoint. All per-phase statistics in this paper use this binning.
+
+\subsection{Measuring Code Quality}\label{sec:quality-dims}
+
+In \codesearch{}, the compact $\ckpt{1}$ implementation and the later version whose \texttt{find\_matches\_in\_file()} has tripled in branching and duplication can pass the same suite, even as defensive scaffolding accumulates. Standard quality models decompose software quality into broad characteristics such as maintainability, reliability, and portability~\citep{iso25010}. We narrow this to two metrics designed to be computable at every checkpoint and comparable across agents and problems, so that compounding effects become visible rather than averaging away. \emph{Structural erosion} measures how concentrated complexity becomes. \emph{Verbosity} measures code growth that adds no functionality.
+
+\begin{figure}[t]
+\begin{lstlisting}[caption={Structurally eroded \texttt{find\_matches\_in\_file()} in \codesearch{} at $\ckpt{5}$ (117 lines total). Nearly all decision-point mass ends up in one function.},label={fig:dispatch-erosion}]
+def find_matches_in_file(text, path, language, rules):
+    ...
+    for rule in rules:
+        if kind == "exact":
+            ...
+        elif kind == "regex":
+            ...
+        elif kind == "pattern":
+        else: ...
+
+        if iterable is not None:
+            for match in iterable:
+                ...
+        if kind == "pattern":
+            for match in iter_pattern_matches(...):
+                ...
+        for node in iter_tree_nodes(source_root):
+            if not node_matches_selector(selector, node):
+                ...
+    return matches
+\end{lstlisting}
+\end{figure}
+
+\paragraph{Structural erosion.} Agents under iteration tend to patch new logic into existing functions rather than distributing it across focused callables, as exemplified by \autoref{fig:dispatch-erosion}. In the iterative paradigm, the clearest notion of erosion is haphazard edits to a function that patch functionality. These edits compound slowly until there are massive functions that become challenging to work on. Thus, we define erosion as \textbf{the fraction of the codebase's total complexity mass that resides in high-complexity functions}. To this end we first assign each callable a \emph{complexity mass} that accounts for both its cyclomatic-complexity(CC)~\citep{mccabe1976-complexity} and its size:
+\begin{equation}
+\label{eq:mass}
+\text{mass}(f) = \text{CC}(f) \times \sqrt{\text{SLOC}(f)}
+\end{equation}
+where $\text{CC}(f)$ is the cyclomatic complexity of callable $f$ and $\text{SLOC}(f)$ is its source lines of code. The square root compresses the size factor so that complexity dominates rather than pure lines of code. Erosion is then the share of total mass held by functions exceeding a high-complexity threshold:
+\begin{equation}
+\label{eq:erosion}
+\text{Erosion}
+=  \frac{\sum_{\substack{f \in \mathcal{F} \\ \text{CC}(f) > 10}} \text{mass}(f)}{\sum_{f \in \mathcal{F}} \text{mass}(f)}
+\end{equation}
+where $\mathcal{F}$ is the set of all callables. We use a cutoff of 10 for CC following the established bounds in the popular code analysis tool \href{https://radon.readthedocs.io/en/latest/}{Radon}. In \codesearch{}, the problem is not just that later checkpoints add branches; it is that more of the decision-point load collapses into \texttt{find\_matches\_in\_file()}, driving its mass share upward even as the agent adds other functions around it.
+
+\begin{figure}[t]
+\begin{lstlisting}[caption={Overly verbose code from \codesearch{}. Identity list comprehension instead of \texttt{filter}, empty checks instead of building around iteration, and single-use variables.},label={fig:verbosity-example}]
+for posix_path, full_path, language in source_files:
+    applicable_rules = [
+        r for r in all_compiled_rules
+        if language in r["languages"]
+    ]
+    if not applicable_rules:
+        continue
+    with open(full_path, "r", encoding=encoding) as f:
+        content = f.read()
+    matches = find_matches_in_content(
+        content, applicable_rules, language
+    )
+    if not matches:
+        continue
+    match_list.extend(matches)
+all_matches = deduplicate_matches(match_list)
+return all_matches
+\end{lstlisting}
+\end{figure}
+\paragraph{Verbosity.} The other dimension of slop is code that is too \emph{verbose}: copy-pasted or unnecessary lines that do not add anything to the overall codebase. \autoref{fig:verbosity-example} shows a typical example where the code is overly verbose not only because of the local syntax, but also because it introduces intermediate structure that carries little information. To capture both effects, we use a static verbosity score with two parts. First, we measure clear patterns of wasteful code generated by agents through constructing 137 targeted \href{https://ast-grep.github.io}{AST-Grep} rules. These rules are emblematic of code that could be semantically condensed. Second, we measure structural duplication: clone lines normalized by LOC. The resulting score is
+\begin{equation}
+\label{eq:verbosity}
+\text{Verbosity}
+= \frac{\{\text{AST-Grep Flagged Lines} \cup \text{Clone Lines}\}}{\text{LOC}}
+\end{equation}
+We deduplicate lines hit by multiple AST-grep rules before counting. This score is bounded in $[0,1]$ and thus comparable across runs, and independent of erosion. The two metrics measure different failure modes, so tracking both gives a fuller picture of the ``slop'' agents generate.
+
+
+\paragraph{Black-box testing.}\label{sec:black-box-testing} Every checkpoint's tests interact with the solution only through \texttt{subprocess} or its served API. Test suites normalize outputs where needed and maintain held-out tests beyond the specification's examples. Each test is categorized as:
+\begin{itemize}
+    \item \textbf{Core} --- Functionality explicitly mentioned or shown in the specification.
+    \item \textbf{Error} --- Failure-mode behaviors.
+    \item \textbf{Functionality} --- Hidden tests that exhaustively check correctness.
+    \item \textbf{Regression} --- All tests from prior checkpoints. $\ckpt{1}$ has no regression tests.
+\end{itemize}
+
+$\solution{i}$ is \textbf{correct} if all tests pass. Because regression tests carry earlier requirements forward, a mistake at $\ckpt{2}$ can zero out later checkpoints even if later code partly works. To separate implementation quality from cascading failures, we also report \textbf{correct in isolation (ISO)} if $\solution{i}$ passes all non-regression tests for $\ckpt{i}$, and \textbf{core correct (CORE)} if it passes only the core tests. A problem is \textbf{Partially} solved if at least one checkpoint is strictly solved.
+
+When an agent fails or crashes mid-problem, remaining checkpoints receive a correctness score of zero. Erosion and verbosity are computed only for checkpoints where the agent produced a workspace; missing checkpoints are excluded rather than imputed.

@@ -1,0 +1,281 @@
+
+\section{Experiments}\label{sec:exp}
+
+
+
+\noindent \textbf{Tasks and Datasets.} We primarily evaluate OMAC across three task domains: code generation, general reasoning, and arithmetic reasoning. For code generation, we utilize the HumanEval benchmark \cite{human-eval}, which contains human-authored function-level code completions accompanied by unit tests. We employ Pass@1 as the evaluation metric, representing the proportion of generated code solutions that successfully pass the unit tests. For general reasoning tasks, we leverage the MMLU dataset \cite{mmlu}, which comprises multiple-choice questions across humanities, social sciences, hard sciences, and other fields. We measure performance using answer accuracy. For arithmetic reasoning, we use the MATH dataset \cite{hendrycksmath2021}, encompassing mathematical problems spanning seven subareas, again employing accuracy as our evaluation metric. Additional details on tasks and datasets can be found in Appendix \ref{sec:exp_setup}. Besides these classic benchmarks, we further conducted experiments on more complex benchmarks, MBPP~\cite{austin2021program} on crowd-sourced Python programming tasks, and GAIA~\cite{mialon2023gaia} with hard real-world open questions. Due to the space limitation, we report relevant results on MBPP and GAIA in Appendix \ref{sec:mbpp}.
+
+
+
+% Human: by sampling  80  MMLU: 68  MATH: 140
+
+
+\input{sections/tables_1}
+
+\input{sections/tables_2}
+
+
+\noindent \textbf{Baselines.} As prior studies typically adopt different agent functionalities and collaboration structures tailored to specific applications, we incorporate distinct baselines for each task domain. Specifically, we compare against single-agent methods, multi-agent methods with fixed configurations, and latest MAS optimization methods including
+DyLAN \cite{dylan}, ADAS \cite{hu2024automated}, and AFlow \cite{aflow}. Specifically, DyLAN and ADAS are prompt evolution–based baselines, while AFlow is a MCTS-based, supervised optimization method.
+
+
+% As prior studies typically adopt different agent functionalities and collaboration structures tailored to specific applications, we incorporate distinct baselines for each task domain. Specifically, we compare against single-agent methods, multi-agent methods with fixed configurations, and DyLAN \cite{dylan} which incorporates structural optimization, on each dataset. 
+
+
+% For code generation tasks, we select CodeT \cite{chen2023codet} as the single-agent baseline, alongside two multi-agent methods, CAMEL \cite{li2023camel} and AgentVerse \cite{chen2023agentverse}, which are adapted for coding tasks. For general reasoning and arithmetic reasoning tasks, we utilize a single agent directly generating answers as the single-agent baseline, denoted as Single Execution (SE). For multi-agent baselines, we include LLM Debate \cite{debate1-mit} and LLM-Blender \cite{jiang2023llm}. All baseline approaches retain their original configurations to ensure fair comparisons.
+
+For code generation tasks, we select CodeT \cite{chen2023codet} as the single-agent baseline and AgentVerse \cite{chen2023agentverse} as the multi-agent approach. For general reasoning and arithmetic reasoning tasks, we utilize a single agent directly generating answers as the single-agent baseline, denoted as Single Execution (SE). For multi-agent baseline, we compare LLM Debate \cite{debate1-mit}. All baseline approaches retain their original configurations and/or optimization procedure to ensure fair comparisons.
+
+\noindent \textbf{OMAC Setup.} OMAC is designed to optimize the functionality and collaboration structure of an existing MAS. 
+As such, we adopt the agent designs and collaboration structures from DyLAN \cite{dylan} as the default configuration for OMAC across all datasets. Specifically, the default MAS includes 7 agents for code generation, 7 agents for general reasoning, and 4 agents for arithmetic reasoning tasks. 
+Names and functionalities of these agents are detailed in Appendix~\ref{sec:exp_setup}.
+The default collaboration structure is ``fully-connected'', meaning all existing agents participate in each step, and each agent in the current step receives all outputs from agents in the previous step as input. We utilize the same evaluation metrics on each dataset described above to construct positive-negative pairs, setting thresholds $l = h = 0.5$ consistently. Regarding other hyperparameters, the Semantic Initializer generates an initial collection of size 3, and we set the maximum number of contrastive reasoning iterations to 3. For fair comparisons, we employ {\small \texttt{gpt-3.5-turbo-1106}} with temperature of 0.8 as the base LLM across all baselines and our OMAC. Experiments with other base LLM are reported in Appendix \ref{sec:diff_llm}. All experiments are repeated three times, and the mean and standard deviation are reported.
+More implementation details are provided in Appendix \ref{sec:exp_setup}.
+
+
+\subsection{Single-Dimension Optimization Results}
+
+% We first employ OMAC to individually optimize any of the five dimensions we defined in Section \ref{sec:five_dim}. Especially, for str-1, we can optimize each existing agents in the default MAS, resulting several sub structural dimensions as Str-1.1 to Str-1.7 for code generation and general reasoning tasks. For arithmetic reasoning task, we follow the setting of DyLAN to adopt four agents with same prompts and few-shot examples. As a result, we can either optimize the instruction prompt or the examples for the existing agents, resulting in sub dimensions as Str-1.1 and Str-1.2. Table \ref{tab:single_1}, Table \ref{tab:single_2}, and Table \ref{tab:single_3} shows the results on each dataset respectively. 
+
+% The results demonstrate that optimizing each of the five dimensions can bring in significant performance improvement on all three tasks in most cases. Even for the few cases where the improvement is not prominent (like Str-1 for arithmetic reasoning), optimizing by OMAC is still always positive, not bring negative effects for the existing MAS. The results demonstrate the rational of our outlines of the five optimization dimensions for multi-agent collaboration, as well as the effectiveness of our proposed algorithm for single dimension optimization. Also, the comparison between approaches with single agent and multiple agents shows the benefits of incorporating multiple agents for resolving complex tasks. Moreover, while optimizing the collaboration structure by both DyLAN and OMAC help to improve the performance, our approach is more effective by leveraging the supervised signals obtained from evaluations on the training data.
+
+
+\input{sections/tables_3}
+
+
+\begin{figure*}[t]
+\centering
+\begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=0.9\linewidth]{figs/multi_1.png}
+\end{minipage}
+\begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=0.9\linewidth]{figs/multi_2.png}
+\end{minipage}
+%\qquad
+%让图片换行，
+\caption{Performance during iterative optimization for multiple dimensions on arithmetic reasoning tasks. The X-axis represents the dimensions undergoing three iterations of optimization, while each point indicates the MAS's performance with the optimized dimensions on the test set.}
+% Each figure includes two dimensions optimized over three iterations, resulting in six data points in total.}
+\label{fig:mul_dim}
+\vspace{-2mm}
+\end{figure*}
+
+
+
+We first employ OMAC to individually optimize each of the five dimensions defined in Section \ref{sec:five_dim}. Specifically, for Fun-1, we optimize each existing agent in the default MAS separately, leading to sub-dimensions denoted as Fun-1.1 to Fun-1.7 for 7 agents in general reasoning and code generation tasks. For arithmetic reasoning tasks, we follow DyLAN to employ four agents sharing the same prompts and few-shot examples; hence, we optimize either the instruction prompts or few-shot examples for all of them, resulting in sub-dimensions Fun-1.1 and Fun-1.2. Table \ref{tab:single_2}, Table \ref{tab:single_1}, and Table \ref{tab:single_3} present results on each benchmark respectively.
+
+The results indicate that optimizing each of the five dimensions individually leads to significant performance improvements across all three tasks in most cases. 
+% Even in few cases where improvements are not prominent (e.g., Str-1 on arithmetic reasoning tasks), OMAC's optimization remains consistently beneficial and does not negatively impact the existing MAS. 
+Note that the average relative optimization gains achieved by OMAC (3.6\%, 2.8\%, and 4.9\% across the three benchmarks per dimension) are significant and comparable to those reported by recent MAS optimization studies, such as DyLAN~\cite{dylan} under similar experimental conditions.
+These results validate our delineation of the five optimization dimensions for multi-agent collaboration and confirm the effectiveness of our single-dimension optimization algorithm. Furthermore, comparisons between single-agent and multi-agent methods highlight the advantages of leveraging multiple agents for complex tasks. Finally, while both DyLAN and OMAC achieve improvements through structural optimization, our approach demonstrates superior efficacy by utilizing supervised signals derived from training data evaluations. More experiments and results examining the effects of hyper-parameters, such as the size of the initial collection, the maximum number of iterations, and the sampling thresholds, are presented in Appendix \ref{sec:hyper_single}.
+
+
+
+
+
+
+\subsection{Multi-Dimension Optimization Results}\label{sec:multi_results}
+
+
+We further experiment on jointly optimizing multiple dimensions with OMAC. Following the strategy outlined in Section \ref{sec:inf_comp}, we selectively incorporate the dimensions exhibiting the most substantial individual performance improvements into our multi-dimensional optimization process. Specifically, we experiment by jointly optimizing the two best-performing dimensions by individual optimization (which, across all tasks, correspond to the two functional dimensions), as well as pairing the best functional dimension with the best structural dimension. These selected dimensions are then iteratively optimized following the procedure illustrated in Section \ref{sec:multi_dim}, repeating for three iterations.
+
+% Figure \ref{} shows the results on arithmetic reasoning tasks. The results on code generation and general reasoning tasks show similar trends, which we present in Appendix \ref{} due to limited space. From these figures, it's clear that iteratively optimizing multiple dimensions together can further enhance the performance of multi-agent collaboration beyond single-dimension optimization. Also, optimizing the dimensions which demonstrate most significant improvement with individual optimization consistently bring in greater benefits than choosing the sub-best dimensions for joint optimization. This demonstrates the effectiveness of our strategy of dimension selection to alleviate the high computation cost for optimizing multiple dimensions together. We further conduct experiments to verify the design of iterative optimization and the effects of optimization iterations, which are presented in Appendix \ref{} due to limited space. 
+
+
+
+Figure \ref{fig:mul_dim} presents the experimental results on arithmetic reasoning tasks. Similar trends were observed in code generation and general reasoning tasks, where the results are provided in Appendix \ref{sec:add_multi}. The figures clearly illustrate that iterative optimization of multiple dimensions \textbf{yields substantially larger performance improvements compared to optimizing only a single dimension} (e.g, improve from 2.9\% to 9.6\% in Figure~\ref{fig:mul_dim}). Furthermore, jointly optimizing dimensions that individually demonstrate the most significant improvements consistently yields greater benefits compared to optimizing suboptimal dimension pairs. This supports the effectiveness of our dimension-selection strategy for mitigating the computational overhead with multi-dimensional optimization. Additional experiments validating the iterative optimization design are reported in Appendix \ref{sec:add_multi}.
+
+
+
+
+\input{sections/tables_4}
+
+
+
+
+
+\subsection{Ablation Study}\label{sec:ablation}
+
+
+% We further conduct experiments to validate the key components of our optimization algorithm, the Semantic Intializer and Contrastive Comparator. Specifically, we introduce an ablation model, OMAC-C, by removing the Contrastive Comparator from the optimization pipeline introduced in Section \ref{sec:indi_opt}. In other words, OMAC-C only contains the Semantic Intializer, which first create the initial sample set of agents or controllers. Then the one with the best performance scores on training set is kept and evaluated on the test set.
+
+
+We further conduct experiments to validate the two actors of our optimization algorithm: Semantic Initializer and Contrastive Comparator. Specifically, we introduce an ablation model, OMAC-C, which excludes the Contrastive Comparator from the optimization pipeline described in Section \ref{sec:indi_opt}. Thus, OMAC-C comprises of only the Semantic Initializer, which generates an initial collection of agents or controllers. Each generated agent/controller is subsequently evaluated through the MAS collaboration process on the training set, after which the agent or controller achieving the highest performance score is selected for evaluation on the test set.
+
+% Table \ref{tab:ablation} shows the results on arithmetic reasoning task. Results on the other two tasks are presented in Appendix \ref{}. The comparison between OMAC-C and OMAC clearly verifies the significant advantages of the Contrastive Comparator, which integrates the contrastive reasoning ability to optimize the generated agents or controllers. However, OMAC-C with each optimization dimension still consistently outperforms the strongest baseline, DyLAN. It demonstrates that merely exploring the semantic space of the optimizable agents or controllers can still bring benefits to improve the performance.
+
+
+Table \ref{tab:ablation} presents the results on arithmetic reasoning tasks. The comparison between OMAC-C and OMAC clearly demonstrates the significant advantage provided by the Contrastive Comparator, which leverages contrastive reasoning to further optimize the agents or controllers generated by the Semantic Initializer. Nevertheless, OMAC-C consistently outperforms the strongest baseline, DyLAN, across all optimization dimensions. It indicates that even solely exploring the semantic space via LLM-based initialization for the agents or controllers in MAS contributes meaningful performance improvements. Additional results for the other two tasks are provided in Appendix \ref{sec:add_abl}.
+
+
+
+\subsection{Computation Cost}\label{sec:computation}
+
+In general, OMAC significantly reduces inference-time computational cost relative to baselines, benefiting from its dynamic agent selection and communication flow optimization. Since inference cost directly impacts both scalability and commercial competitiveness, we identify this as an important practical advantage of OMAC.
+During training, we further investigated the trade-off between training data size and computational cost, leading to valuable insights of OMAC's training efficiency. For completeness, we present the detailed results and discussions in Appendix~\ref{sec:computation_apd}.
+
+% We highlight this as an important advantage of OMAC, since inference efficiency is crucial for the practical deployment of agentic systems in real-world scenarios. Once training is completed, models are typically deployed for user-facing applications, where inference cost directly impacts both scalability and commercial competitiveness.
+
+
+\endinput
+
+
+
+
+
+
+\begin{figure}[h]
+\vspace{-2mm}
+\centering
+\subfloat[RetailRocket]{ 
+    \includegraphics[width=0.495\linewidth]{figs/HR@20Purchae_RT.png}}
+\subfloat[RetailRocket]{
+    \includegraphics[width=0.495\linewidth]{figs/HR@20Click_RT.png}}
+\quad
+\subfloat[Challenge15]{
+    \includegraphics[width=0.495\linewidth]{figs/HR@20Purchae_RC.png}}
+\subfloat[Challenge15]{
+    \includegraphics[width=0.495\linewidth]{figs/HR@20Click_RC.png}}
+\caption{Performance of MOGCSL with different goal scalars.}
+    \vspace{-1mm}
+    \label{fig:scalar}
+\end{figure}
+
+
+
+\begin{figure}[htbp]
+\centering
+\begin{minipage}{0.495\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/HR@20Purchae_RT.png}
+\end{minipage}
+\begin{minipage}{0.495\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/HR@20Click_RT.png}
+\end{minipage}
+%\qquad
+%让图片换行，
+
+\begin{minipage}{0.495\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/HR@20Purchae_RC.png}
+\end{minipage}
+\begin{minipage}{0.495\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/HR@20Click_RC.png}
+\end{minipage}
+\caption{Performance of MOGCSL with different goal scalars.}
+\label{fig:scalar}
+\end{figure}
+
+
+\begin{figure}
+%\setlength{\abovecaptionskip}{0.2cm}
+%\setlength{\belowcaptionskip}{-0.15cm}
+    \captionsetup[subfloat]%{captionskip=-5pt,nearskip=0pt,farskip=0pt}
+    {}
+    \centering
+    \subfloat[RetailRocket.]{%
+    \begin{minipage}{0.495\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/HR@20Purchae_RT.png}
+\end{minipage}
+\begin{minipage}{0.495\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/HR@20Click_RT.png}
+\end{minipage}
+}
+    \subfloat[Challenge15.]{
+    \begin{minipage}{0.495\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/HR@20Purchae_RC.png}
+\end{minipage}
+\begin{minipage}{0.495\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/HR@20Click_RC.png}
+\end{minipage}
+}
+    \caption{Performance of MOGCSL with different goal scalars.}
+     \label{fig:effectmu}
+\end{figure}
+
+
+Share-Fix & $48.57 \pm 0.17$ & $45.79 \pm 0.09$ & $49.47 \pm 0.10$ & $46.01 \pm 0.08$ & $35.51 \pm 0.24$ & $25.85 \pm 0.16$ & $40.15 \pm 0.20$ & $27.03 \pm 0.14$ \\
+    Share-DWA & $48.11 \pm 0.04$ & $45.83 \pm 0.08$ & $48.64 \pm 0.08$ & $45.96 \pm 0.06$ & $34.20 \pm 0.27$ & $25.53 \pm 0.12$ & $38.43 \pm 0.31$ & $26.60 \pm 0.13$ \\
+    Share-PE & $48.67 \pm 0.12$ & $45.94 \pm 0.03$ & $49.42 \pm 0.04$ & $46.13 \pm 0.02$ & $35.69 \pm 0.08$ & $\textbf{26.20} \pm 0.08$ & $40.28 \pm 0.11$ & $\textbf{27.37} \pm 0.07$ \\
+    MMOE-Fix & $47.74 \pm 0.09$ & $44.01 \pm 0.05$ & $48.61 \pm 0.11$ & $44.23 \pm 0.04$ & $35.29 \pm 0.16$ & $25.67 \pm 0.09$ & $40.04 \pm 0.26$ & $26.87 \pm 0.11$ \\
+    MMOE-DWA & $47.78 \pm 0.40$ & $44.57 \pm 0.13$ & $48.44 \pm 0.24$ & $44.79 \pm 0.09$ & $35.68 \pm 0.46$ & $26.13 \pm 0.29$ & $40.22 \pm 0.57$ & $27.28 \pm 0.32$ \\
+    MMOE-PE & $46.58 \pm 0.22$ & $43.72 \pm 0.15$ & $47.37 \pm 0.11$ & $43.94 \pm 0.14$ & $35.39 \pm 0.27$ & $26.19 \pm 0.11$ & $39.78 \pm 0.39$ & $27.31 \pm 0.14$ \\
+    MOPRL & $61.18 \pm 0.19$ & $50.74 \pm 0.10$ & $64.76 \pm 0.25$ & $51.65 \pm 0.02$ & $33.99 \pm 0.11$ & $24.31 \pm 0.08$ & $38.98 \pm 0.08$ & $25.57 \pm 0.08$ \\
+    MOGCSL & $\textbf{65.43} \pm 0.15$ & $\textbf{52.92} \pm 0.11$ & $\textbf{69.28} \pm 0.14$ & $\textbf{53.90} \pm 0.14$ & $\textbf{36.30} \pm 0.25$ & $25.24 \pm 0.15$ & $\textbf{41.92} \pm 0.55$ & $26.67 \pm 0.19$ \\
+
+
+    
+
+In this section, we evaluate the proposed method in VPMCR. We use the following research questions (RQs) to guide our experiment.
+\begin{itemize}[leftmargin=1mm]
+    \item \textbf{RQ1.} How does our AVPPL method perform in comparison to state-of-the-art CRS methods in the VPMCR scenario?
+    \item \textbf{RQ2.} How do the key components contribute to the overall performance of our AVPPL method?
+    \item \textbf{RQ3.} How do the hyperparameters of our method affect its performance?
+    \item \textbf{RQ4.} Can AVPPL effectively make recommendations based on users' vague preferences during the conversation?
+\end{itemize}
+
+\subsection{Dataset Description}
+% Table generated by Excel2LaTeX from sheet 'Sheet2'
+\begin{table}[t]
+  \centering
+  \caption{Statistics of datasets.}
+  \resizebox{\columnwidth}{!}{
+    \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{Dataset} & \multicolumn{1}{l}{\textbf{Yelp}} & \multicolumn{1}{l}{\textbf{LastFM}} & \multicolumn{1}{l}{\textbf{Amazon-Book}} & \multicolumn{1}{l}{\textbf{MovieLens}} \\
+    \midrule
+    \#Users &            27,675  &           1,801  &        30,291  &         20,892  \\
+    \#Items &            70,311  &           7,432  &        17,739  &         16,482  \\
+    \#Interactions &       1,368,609  &         76,693  &       478,099  &       454,011  \\
+    \#Attributes &                590  &           8,438  &             988  &           1,498  \\
+    \#Attribute-types &                  29  &               34  &               40  &               24  \\
+    \midrule
+    \#Entities &            98,576  &         17,671  &        49,018  &         38,872  \\
+    \#Relations &                    3  &                 4  &                 2  &                 2  \\
+    \#Triplets &       2,533,827  &       228,217  &       565,068  &       380,016  \\
+    \bottomrule
+    \end{tabular}%
+    }
+  \label{tab:data}%
+\end{table}%
+
+
+
+
+
+\vspace{-2mm}
+\begin{wrapfigure}{rh}{0.6\textwidth}
+\renewcommand\arraystretch{1.2}
+\centering
+
+\begin{minipage}{0.49\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/HR@20Purchae.png}
+\end{minipage}
+\begin{minipage}{0.49\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/NDCG@20Purchase.png}
+\end{minipage}
+%\qquad
+%让图片换行，
+
+\begin{minipage}{0.49\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/HR@20Click.png}
+\end{minipage}
+\begin{minipage}{0.49\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/NDCG@20Click.png}
+\end{minipage}
+\caption{Comparison between MOGCSL and MOPRLs with different weight combinations.}
+\label{fig:MOPRL}
+\vspace{-2mm}
+
+\end{wrapfigure}

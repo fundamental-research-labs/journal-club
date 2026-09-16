@@ -1,0 +1,190 @@
+
+In this section, we further explore the key components encompassed in ChatEval. We discuss the importance of diverse role prompts in Section~\ref{subsec:diverse_role}, the effect of different communication strategies in Section~\ref{subsec:communication}, and the impact of role numbers and discussion turns in Section~\ref{subsec:role_num_turn}. If not specified otherwise, we choose the FairEval benchmark and ChatGPT as the backbone LLM for the analysis.
+
+
+
+\subsection{The importance of diverse role prompts}\label{subsec:diverse_role}
+
+Previously in Table~\ref{tab:faireval_results} and~\ref{tab:topical_chat_results}, we demonstrate that ChatEval equipped with diverse role configurations can significantly improve the performance of evaluation. We further consider whether it is necessary to design diverse role prompts for the evaluation system. To answer so, we carry out the experiments by replacing all the role prompt with "\textit{You are now an Annotator, one of the referees in the text evaluation task.}" and keeping other prompt unchanged. We experiment with the one-by-one communication strategy and 2 agents with 2 discussion turns. The results in Table~\ref{tab:same_vs_diverse} illustrate that ChatEval with the same role prompt design underperforms that with diverse role prompt design and cannot effectively enhance the performance compared with single-agent setting, highlighting the cruciality of diverse role prompt design in the multi-agent debate framework.
+
+
+\subsection{The study of communication strategies}\label{subsec:communication}
+
+As shown in Figure~\ref{fig:3group_structure}, we also design three different communication strategy termed as \textit{one-by-one}, \textit{simultaneous-talk}, \textit{simultaneous-talk-with-summarizer}. The detailed descriptions and formal formulations can be found in Appendix~\ref{appendix:algorithm}. We experiment with 3 agents and 2 discussion turns with diverse role prompts in this section. As is shown in Table~\ref{tab:different struction}, we can find that the one-by-one communication strategy is more effective than other strategies for ChatGPT setting. Although the other two communication strategies did not perform as robustly as the \textit{one-by-one} strategy, it is noteworthy that they still exceeded the performance of the naive single-agent method. Furthermore, the variations in performance among three different communication strategies underscore the influence of different strategies on the effectiveness of the evaluation process, revealing the potential for further exploration and optimization of ChatEval. Thus, future studies could be aimed at a more comprehensive understanding of different communication strategies, and how they could be effectively employed to enhance performance. This could serve as an avenue for substantial improvements and novel insights in the multi-agent debate framework.  
+
+
+\subsection{The impact of role numbers and discussion turns}\label{subsec:role_num_turn}
+
+We then study the impact of different role numbers and discussion turns.
+From Figure~\ref{fig:sub_agent_nums}, a discernible trend is observed in the relationship between the role number and both Acc. and Kap. within the FairEval dataset. As the role number increases, there is a corresponding growth in Acc. and Kap. This pattern reaches an apex with an Acc. of 62.5\% at role numbers 3 and 4 before declining at role number 5. Despite this decline in accuracy, Kap. continues to ascend between role numbers 3 and 4, underscoring the effectiveness of incorporating diverse roles within ChatEval.
+
+Conversely, no significant upward trend is detected with respect to the increase in discussion turns, as is shown in Figure~\ref{fig:sub_discussion_turns}. This observation aligns with the findings in~\cite{liang2023encouraging, du2023improving}, highlighting a consistent phenomenon where continual discussion often leads to stagnation or even degradation of performance. Such a trend may be attributed to issues associated with the ever-increasing context length, which consequently diminishes the performance. This insight prompts a more nuanced understanding of the balance needed between role differentiation and discussion dynamics to optimize the performance of ChatEval.
+
+
+
+\subsection{qualitative analysis}\label{subsec:qualitative}
+
+Table~\ref{tab:debate_case} showcases the debate process towards the evaluation of two assistants' responses to the open-ended question "\textit{What are the most effective ways to deal with stress?}". \\
+Assistant 1's response is :
+\begin{quote}
+\textit{Here are some effective ways to deal with stress: \\
+1. Exercise regularly: Physical activity can help reduce stress and improve mood. \\
+2. Practice relaxation techniques: Deep breathing, meditation, and yoga are some effective ways to relax and reduce stress levels. \\
+3. Get enough sleep: Lack of sleep can increase stress levels. Try to get at least 7-8 hours of sleep each night. \\
+4. Eat a healthy diet: A well-balanced diet can help reduce stress levels and improve overall health. \\
+5. Connect with others: Spending time with friends and family, joining a support group, or participating in social activities can help reduce stress levels and  improve mood. \\
+6. Time management: Prioritizing tasks and creating a schedule can help reduce stress and increase productivity. \\
+7. Seek professional help: If stress is impacting your daily life, consider seeking professional help such as therapy or counseling. \\}
+\end{quote}
+Assistant 2's response is :
+\begin{quote}
+\textit{Stress can be caused by a variety of factors, including work, relationships, health, and financial issues. Here are some effective ways to manage stress: \\
+1. Exercise: Regular exercise releases endorphins, which are natural stress-relievers. It can be as simple as going for a walk or jog, practicing yoga, or joining a fitness class. \\
+2. Mindfulness: Mindfulness practices, such as meditation or deep breathing, can help to reduce stress and improve focus. \\
+3. Social Support: Spending time with family and friends, or seeking support from a mental health professional, can provide a sense of connection and help to reduce feelings of isolation and loneliness. \\
+4. Healthy Eating: A balanced diet that includes plenty of fruits, vegetables, and whole grains can help to reduce stress levels. \\
+5. Good Sleep: Getting enough sleep is essential for good mental and physical health. Aim for 7-8 hours per night and establish a regular sleep routine. \\
+6. Time Management: Prioritizing tasks and setting realistic goals can help to reduce stress levels by giving a sense of control and direction. \\
+7. Relaxation Techniques: Techniques such as progressive muscle relaxation, aromatherapy, and massage can help to reduce stress levels and promote relaxation. \\
+8. Seek professional help: If stress is interfering with daily life, it may be time to seek professional help from a therapist or counselor. \\}
+\end{quote}
+
+We can find that both of the responses produce similar strategies and equally compelling descriptions for dealing with stress, making it challenging to discern significant disparity in terms of quality. It is in this context of nuanced evaluation that the significance of the ChatEval process emerges. To understand this complexity better, We first outline the ChatEval process and subsequently delve into the agents' constructive behaviors during discussions.
+
+As is shown in Table~\ref{tab:debate_case}, Alice first points out that the response of Assistant 2 contains more detailed information and he prefers to choose Assistant 2 as a better response. Bob then says that she agrees with Alice's assessments, but in the meantime, she also points out that Assistant 1's response is also concise and carries out a thought-provoking question. Carol then gives the feedback that she believes both responses are equally valuable. In the subsequent discussion, Bob indicates that Assistant 1's response is straightforward while Assistant 2's is detailed, suggesting that the effectiveness of the response should depend on the context and individual's needs. At the end of the debate, we finally extract the evaluation results that both responses are of the same quality which is identical to human annotation results. 
+
+From this sequence, we can pinpoint several fascinating behaviors exhibited by the agents: (1) \textbf{Opening Statement}: Alice initiates the debate with a clear stance, establishing the foundational argument and guiding the trajectory of the subsequent discourse. (2) \textbf{Alternative Proposal}: Bob introduces an alternative viewpoint, emphasizing the need to consider diverse interpretations. This not only broadens the discussion but also stimulates critical thinking. In the context of a debate, the introduction of an alternative proposal prevents the stagnation of thought, challenges pre-existing bias, and uncovers considerations that might otherwise be overlooked, ensuring that the discussions are well-rounded. (3) \textbf{Stance Maintenance}: Alice's persistent adherence to her initial stance, even when faced with opposing views, exemplifies commitment and challenges other participants to refine their perspectives. By firmly holding his position, Alice encourages depth in the discourse, prompting others to dive deeper into their arguments and perhaps consider aspects they hadn't previously. It ensures the conversation remains robust, focused, and continually evolving, driving all participants to a higher level of engagement and critical thinking. (4) \textbf{Seeking Consensus}: The discussion's climax reveals a collective agreement amongst the participants, which is reached through mutual understanding and compromise, underlining the value of each presented viewpoint.
+
+
+In light of the above, ChatEval stands out not just as a tool for comparison but as an embodiment of interactive natural language dialogue. By simulating human argumentative interactions, it differentiates itself from static, single-presented opinions. This dynamic interaction showcases the richness and complexity of language, capturing nuances often missed in singular viewpoints. As such, ChatEval offers a reliable evaluation process that not only mirrors human discourse but also highlights the transformative power of collaborative dialogue. This positions it uniquely, underscoring its significant potential to execute text evaluation tasks both reliably and effectively.
+
+
+\begin{table}[hbpt]
+\caption{Effect of diverse role specification on FairEval benchmark.}
+\label{tab:same_vs_diverse}
+\begin{center}
+\begin{tabular}{llll}
+\hline
+\textbf{Evaluator} & \textbf{Methods}                           & \textbf{Acc. (\%)} & \textbf{Kap.} \\ \hline
+ChatGPT   & Single-Agent                      & 53.8      & 0.27     \\
+ChatGPT   & Multi-Agent (Same Role Prompt)    & 53.8      & 0.25    \\
+ChatGPT   & Multi-Agent (Diverse Role Prompt) & 60        & 0.33    
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\begin{table}[t]
+\caption{Comparing of different communication strategies on FairEval benchmark.}
+\label{tab:different struction}
+\begin{center}
+\begin{tabular}{llll}
+\hline
+\textbf{Evaluator} & \textbf{Communication Strategies}                           & \textbf{Acc. (\%)} & \textbf{Kap.} \\ \hline
+ChatGPT   & One-by-One                      & 60     &   0.33   \\
+ChatGPT   & Simultaneous-Talk               & 55     &   0.28   \\
+ChatGPT   & Simultaneous-Talk-with-Summarizer & 55        &  0.27   
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=1\textwidth]{figs/agent_nums.pdf}
+        \caption{Acc. and Kap. vs Role Numbers}
+        \label{fig:sub_agent_nums}
+    \end{subfigure}
+    \vspace{\fill}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=1\textwidth]{figs/discussion_turns.pdf}
+        \caption{Acc. and Kap. vs Discussion Turns}
+        \label{fig:sub_discussion_turns}
+    \end{subfigure}
+
+\caption{\textbf{(a) Performance with Increased Different Roles on FairEval Dataset.} We adopt one-by-one communication strategy and 2 discussion turns. Additional role descriptions are shown in Appendix~\ref{appendix:prompt_template}. \textbf{(b) Performance with Increased Discussion Turns on FairEval Dataset.} We adopt one-by-one communication strategy and 2 different roles.}
+\label{fig:agent_nums_discussion_turns}
+\end{figure}
+
+
+
+
+
+
+
+\begin{table*}[htbp]
+\begin{tabular}{p{13.5cm}}
+\caption{An illustrative example from ChatEval presenting a discussion process involving participants Alice 
+(\begin{minipage}[b]{0.045\columnwidth}
+    \centering
+    \raisebox{-.1in}{\includegraphics[width=\linewidth]{figs/emojis/alice.png}}
+\end{minipage}), 
+Bob 
+(\begin{minipage}[b]{0.045\columnwidth}
+    \centering
+    \raisebox{-.1in}{\includegraphics[width=\linewidth]{figs/emojis/bob.png}} 
+\end{minipage}) 
+and Carol (\begin{minipage}[b]{0.045\columnwidth}
+    \centering
+    \raisebox{-.1in}{\includegraphics[width=\linewidth]{figs/emojis/carol.png}} 
+\end{minipage}). They initiate a group talk with the purpose of determining the superior response from two assistants. Due to spatial constraints within the layout, we use ... to omit some redundant text.}
+\label{tab:debate_case} \\
+\toprule
+\begin{minipage}[b]{0.1\columnwidth}
+    \centering
+    \raisebox{-.2\height}{\includegraphics[width=0.5\linewidth]{figs/emojis/alice.png}}
+\end{minipage}
+Both Assistant 1 and Assistant 2 provided comprehensive and detailed answers. They both suggested similar strategies for dealing with stress, such as exercise, relaxation techniques, getting enough sleep, eating a healthy diet, connecting with others, time management, and seeking professional help. However, Assistant 2 went a step further by mentioning mindfulness social support, and relaxation techniques like progressive muscle relaxation, aromatherapy, and massage. Therefore, I would lean towards Assistant 2 for providing a slightly more detailed response. \\
+\vspace{-1mm}
+\begin{minipage}[b]{0.1\columnwidth}
+    \centering
+    \raisebox{-.2\height}{\includegraphics[width=0.5\linewidth]{figs/emojis/bob.png}}
+\end{minipage}
+I agree with the Alice's assessments. However, I would like to point out that Assistant 1's answer was more concise and to the point that ... . On the other hand, Assistant 2's answer was more detailed and ... . \textbf{In your opinion}, does the additional detail provided by Assistant 2 make its response more helpful, or could the conciseness of Assistant 1's response be seen as more beneficial? \\
+\vspace{-1mm}
+\begin{minipage}[b]{0.1\columnwidth}
+    \centering
+    \raisebox{-.2\height}{\includegraphics[width=0.5\linewidth]{figs/emojis/carol.png}}
+\end{minipage}In terms of consistency with the question, both responses are equally consistent as they both provided effective ways to deal with stress. Assistant 1's response was indeed more concise, while Assistant 2 provided more detailed techniques. The effectiveness of these responses could depend on the individual's preference for brevity or detail. Therefore, I believe both responses are equally valuable. \\
+\vspace{-1mm}
+\begin{minipage}[b]{0.1\columnwidth}
+    \centering
+    \raisebox{-.2\height}{\includegraphics[width=0.5\linewidth]{figs/emojis/alice.png}}
+\end{minipage}
+I appreciate the points made by both of you. While Assistant 1's response was indeed more concise, I believe that the additional detail provided by Assistant 2 could be more beneficial for someone looking for a variety of strategies to manage stress. The inclusion of mindfulness practices and ... . \textbf{Therefore, I still lean towards} Assistant 2's response as being slightly more helpful. \\
+\vspace{-1mm}
+\begin{minipage}[b]{0.1\columnwidth}
+    \centering
+    \raisebox{-.2\height}{\includegraphics[width=0.5\linewidth]{figs/emojis/bob.png}}
+\end{minipage} However, I would like to emphasize that the effectiveness of a response can also depend on the context and the individual's needs. For someone who is overwhelmed and looking for quick, \textit{straightforward advice}, the conciseness of Assistant 1's response might be more beneficial. On the other hand, for someone who is looking for a variety of strategies to try, \textit{the detailed response} of Assistant 2 might be more helpful. Therefore, I believe both responses have their merits and it's difficult to definitively say one is better than the other. \textbf{What do you think about this perspective?} \\
+\vspace{-1mm}
+\begin{minipage}[b]{0.1\columnwidth}
+    \centering
+    \raisebox{-.2\height}{\includegraphics[width=0.5\linewidth]{figs/emojis/carol.png}}
+\end{minipage}
+I agree with the Bob's perspective that the effectiveness of a response can depend on the individual's needs and context. Therefore, I believe both responses are equally valuable and it's hard to definitively say one is better than the other. \\
+\vspace{-1mm}
+\begin{minipage}[b]{0.1\columnwidth}
+    \centering
+    \raisebox{-.2\height}{\includegraphics[width=0.5\linewidth]{figs/emojis/alice.png}}
+\end{minipage}
+\hspace{-1cm}
+\begin{minipage}[b]{0.1\columnwidth}
+    \centering
+    \raisebox{-.2\height}{\includegraphics[width=0.5\linewidth]{figs/emojis/bob.png}}
+\end{minipage}
+\hspace{-1cm}
+\begin{minipage}[b]{0.1\columnwidth}
+    \centering
+    \raisebox{-.2\height}{\includegraphics[width=0.5\linewidth]{figs/emojis/carol.png}}
+\end{minipage}
+After discussing with my co-workers, I believe both Assistants performed equally well in providing comprehensive and accurate responses. \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+
+
+

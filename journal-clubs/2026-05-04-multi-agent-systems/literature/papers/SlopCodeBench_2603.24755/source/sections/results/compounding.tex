@@ -1,0 +1,26 @@
+\subsection{Prompt Strategy as a Quality Lever}
+\label{sec:prompt-strategy}
+Our final question is whether prompt-side pressure can suppress the degradation dynamic. It cannot. Prompt strategies move trajectories onto a cleaner initial baseline, but the drift reappears once agents begin extending their own prior code. Because early architectural choices propagate through the carried workspace, we test whether ``anti-slop'' and ``plan-first'' prompts, detailed in \autoref{sec:prompts}, can improve the initial conditions from which compounding begins. \autoref{fig:prompt-strategy-panel} displays the raw trajectories for both GPT~5.3~Codex and GPT~5.4.
+
+\begin{figure}[t]
+    \centering
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=1.15\textwidth]{figures/prompt_strategy_comparison_main.pdf}%
+    }
+    \caption{\textbf{Prompt strategy trajectories across two models.} Each point shows the mean value at a normalized progress bin. Quality-aware prompts (Anti-Slop and Plan-First) lower the initial verbosity and erosion compared to the Baseline (just-solve), but the trajectories remain largely parallel across progress. Slopes ($m$) indicate the mean degradation per bin. Despite significant gains in structural quality, pass rates (column 3) do not improve consistently on either model ($p > 0.05$ via paired Wilcoxon signed-rank tests). Quality-aware prompting also increases per-checkpoint cost (column 4).}
+    \label{fig:prompt-strategy-panel}
+\end{figure}
+
+\paragraph{Prompts improve the initial quality.}
+\texttt{anti\_slop} forbids verbose patterns, defensive over-engineering, and unnecessary abstractions. \texttt{plan\_first} requires the agent to outline its approach before writing code. On both models, these prompts reduce initial erosion and verbosity. \texttt{anti\_slop} cuts initial verbosity by \psGptFiveFourAntiSlopVerbPctRed\% on GPT~5.4 and \psCodexAntiSlopVerbPctRed\% on GPT~5.3~Codex.
+
+\paragraph{The accumulation of issues persists regardless of prompt.}
+While the intercept is lower, the slope is not. As shown in \autoref{fig:prompt-strategy-panel}, the degradation lines for Anti-Slop and Plan-First track the baseline slope almost exactly. Per-checkpoint erosion and verbosity slopes ($m$) do not differ significantly between strategies on either model. Prompts set cleaner starting points, but compounding resumes at the same rate once iteration begins.
+
+\paragraph{Correctness metrics barely move.}
+Despite large reductions in verbosity and erosion, we do not detect consistent improvements in any pass-rate subtype on either model. On GPT~5.4, \texttt{anti\_slop} lowers verbosity in \psOrthGptFiveFourVerbDecCount{} of \psOrthGptFiveFourNProblem{} problems and erosion in all \psOrthGptFiveFourEroDecCount{}. On GPT~5.3~Codex, verbosity falls in all \psOrthCodexVerbDecCount{} problems and erosion in \psOrthCodexEroDecCount. Paired Wilcoxon signed-rank tests on per-problem trajectory means find no difference in any pass-rate subtype on either model: isolated ($p = \psOrthGptFiveFourIsoPval$ and $\psOrthCodexIsoPval$), functionality ($p = \psOrthGptFiveFourFuncPval$ and $\psOrthCodexFuncPval$), error ($p = \psOrthGptFiveFourErrorPval$ and $\psOrthCodexErrorPval$), and regression ($p = \psOrthGptFiveFourRegrPval$ and $\psOrthCodexRegrPval$). Halving erosion and cutting verbosity by a third leaves every pass-rate subtype unchanged.
+
+
+\paragraph{Cleaner code is not free.}
+GPT~5.4 spends \psGptFiveFourAntiSlopCostPctDiff\% more per run under \texttt{anti\_slop}, \$\psGptFiveFourAntiSlopCost{} vs.\ \$\psGptFiveFourBaselineCost{}, and \psGptFiveFourPlanFirstCostPctDiff\% more under \texttt{plan\_first} at \$\psGptFiveFourPlanFirstCost. On \texttt{dynamic\_buffer}, \texttt{anti\_slop} spends \$\psGptFiveFourAntiSlopDbCost{} vs.\ \$\psGptFiveFourBaselineDbCost{} while pass rates drop from \psGptFiveFourBaselineDbIsoPass\% to \psGptFiveFourAntiSlopDbIsoPass\%. GPT~5.3~Codex sees no cost increase but loses correctness on hard problems: \psCodexAntiSlopIsoPassDiffPp{}pp isolated pass rate under \texttt{anti\_slop} and \psCodexPlanFirstIsoPassDiffPp{}pp under \texttt{plan\_first}.
+

@@ -1,0 +1,61 @@
+## Orchestration as a Control Problem
+
+The history above suggests that mature multi-agent systems should decide when to reason serially, sample, delegate, specialize, verify, train, merge, escalate, or stop. The practical question is not "How many agents should I use?" Agent count is a weak proxy for useful computation.
+
+The control question is:
+
+```text
+For this task, what mix of serial reasoning, parallel search, specialist
+delegation, optimized coordination, external tools, human review, and
+verification gives the most reliable work per unit of cost, risk, and human
+attention?
+```
+
+```{=typst}
+#reviewbox[
+```
+
+**Box 2 | Practical design principles for LLM-driven multi-agent systems.**
+
+- **Budget and task fit.** Compare against strong single-agent, best-of-N, sampling-and-voting, and workflow baselines under matched or reported token, dollar, latency, tool, and context budgets. If the task is tightly coupled, context-fit, cheaply verifiable by one agent, or weakly checkable, a single strong agent or best-of-N may be better.
+- **Mechanism clarity.** State whether the system relies on sampling, diversity, critique, specialization, artifacts, memory, human review, optimized routing, or collaboration training.
+- **Non-redundant search.** Use multiple agents only when they create different evidence, tools, models, prompts, tasks, memories, hypotheses, or artifact branches. Heterogeneous attempts are more valuable than many correlated copies of the same prompt and model.
+- **Verification near the work.** Use tests, validators, retrieval checks, parsers, static analysis, human review, formal constraints, or calibrated judges before errors propagate.
+- **Artifact-centered coordination.** Prefer patches, logs, plans, datasets, rubrics, provenance records, branch histories, and typed state over unstructured conversational agreement.
+- **Isolation and governance.** Use worktrees, sandboxes, scoped memories, permission boundaries, provenance, and reversible state updates so parallel attempts can explore without corrupting shared state.
+- **Human attention accounting.** Measure how much human review, steering, escalation, and integration the system requires, not only model-side tokens and dollars.
+- **Trajectory measurement.** Track repeated-run variance, cost, latency, degradation, maintainability, safety, and preservation over time, not only final-answer accuracy.
+- **Adaptive orchestration.** Learn or search over topology, delegation depth, voting, debate, retrieval, early exit, human escalation, and stopping rules rather than assuming one fixed team works everywhere.
+
+```{=typst}
+]
+```
+
+The resulting design choice is conditional rather than universal: @tbl-orchestration-choice maps common task shapes to the coordination style and evidence standard they demand.
+
+| If the task looks like... | Prefer... | Demand evidence that... |
+|---|---|---|
+| Compact, context-fit, weakly decomposable | One strong agent or best-of-N | Multi-agent overhead beats equal-budget alternatives |
+| Many independent attempts with cheap checking | Sampling, voting, or mixture aggregation | Errors are not highly correlated |
+| Evidence or tools are naturally partitioned | Specialist agents plus routing | Routing preserves global state |
+| Artifact can be isolated and tested | Branch-and-merge workflow | Integration quality is measured |
+| Fixed prompting under-coordinates | Optimized topology, controller, or collaboration training | Learned policy transfers beyond training tasks |
+| Uncertain, irreversible, or high-impact | Human-governed portfolio | Review bandwidth is allocated to the right decisions |
+
+: Task-fit guide for choosing an orchestration strategy and evidence standard. The preferred coordination style depends on task shape, verifier strength, decomposition, risk, and whether added agents beat simpler budget-matched alternatives. {#tbl-orchestration-choice}
+
+Several research programs follow from the control framing. First, how can systems predict task decomposability before spending the budget? A useful system should estimate whether a task benefits from parallel search, specialist tools, optimized collaboration, or serial deep reasoning.
+
+Second, how can useful diversity be measured online? Diversity that produces different wrong answers is not helpful. The system needs signals for independent correct-path evidence, not only semantic variation.
+
+Third, when should coordination be optimized externally and when should agents be post-trained to collaborate? GPTSwarm, DyLAN, MaAS, OMAC, AgentNet, MAS-GPT, ACC-Collab, MAPoRL, and evolving orchestration point to different answers [@gptswarm; @dylan; @maas; @omac; @agentnet; @masgpt; @acccollab; @maporl; @evolvingorchestration]. The field needs stronger transfer tests, reward-hacking analysis, and long-horizon artifact benchmarks for learned coordination.
+
+Fourth, what is the right trace format for multi-agent evaluation? Standard traces should record prompts, model versions, tool calls, costs, messages, memory updates, artifact diffs, verifier outcomes, and human interventions. MASLab shows why comparison infrastructure matters [@maslab]. CAID, Curie, Agent Laboratory, and MLGym show that software and science agents need logs, tests, experiment records, and heterogeneous task artifacts rather than only final text [@caid; @curie; @agentlaboratory; @mlgym].
+
+Fifth, how should human review be allocated? Human-in-the-loop multi-agent systems will often be bottlenecked by review bandwidth. If multi-agent systems are a path to scaling test-time compute into useful work, then the system should route scarce human attention to uncertain, irreversible, high-impact, scientifically novel, safety-sensitive, or integration-heavy decisions.
+
+Sixth, how do safety controls scale with topology? A single-agent sandbox is not enough when agents can contaminate one another through shared state, memories, documents, or tool outputs. Safety controls should scale with the communication graph, the tool graph, and the memory graph [@memma; @gsafeguard].
+
+Finally, how do benchmarks reward durable artifact quality rather than short-lived plausibility? The next generation of evaluations should measure preservation, maintainability, provenance, reproducibility, and degradation across time.
+
+The mature field should therefore optimize not agent count, but allocation: when to run one agent, when to sample many attempts, when to recruit specialists, when to retrieve, when to verify, when to train collaboration, when to ask a human, when to merge, and when to stop. The test is whether that allocation increases reliable work per human, not whether it creates a larger artificial organization.

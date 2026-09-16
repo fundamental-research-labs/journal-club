@@ -1,0 +1,20 @@
+\section{Various Reward Function Designs} 
+\label{appendix_reward}
+{We can shape the reward function with verifiers in several different ways, with the following designs of the reward function.} 
+
+
+\begin{itemize}
+    \item \textbf{Immediate Verification Reward}: The immediate verification reward is defined as \( R_{\btheta} (q, s_{ta}) = \EE[\text{Verifier}(q, s_{ta})] \). This reward is based on the verifier's immediate evaluation of the solution \( s_{ta} \) at turn \( t \) for agent \( a \). It reflects the instantaneous correctness of the solution without considering future steps or contributions from other agents.
+
+    \item \textbf{Cumulative Verification Reward}: The cumulative verification reward is given by 
+    \begin{align}\label{def:cum-veri-reward}
+    R_{\btheta} (q, s_{ta}) = \EE\left[ \frac{1}{\sum_{t' \in [t, T]} \gamma^{t'-t}} \sum_{t' \in [t, T]} \gamma^{t'-t}\text{Verifier}(q, s_{t'a})\right].
+    \end{align}
+    Here, the reward accounts for the verifier's evaluations across all remaining turns from \( t \) to the final turn \( T \). The term \( \gamma^{t'-t} \) represents a discount factor that prioritizes earlier rewards. This cumulative approach encourages solutions that not only perform well in the immediate turn but also lead to favorable outcomes in subsequent turns.
+
+    \item \textbf{Influence-aware Verification Reward}: The influence-aware verification reward function is defined as 
+\begin{align*}
+    &R_{\btheta}(q, s_{ta}) = \EE \bigg[\frac{1}{\sum_{t' \in [t, T]} \gamma^{t'-t}} \biggl( \text{Verifier}(q, s_{ta})+ \sum_{t' \in [t+1, T]}\sum_{j \in [A]} \frac{1}{A}\gamma^{t'-t}\text{Verifier}(q, s_{t'j})\biggr) \bigg].  
+\end{align*}
+    This reward not only considers the verifier's score for the current solution \( s_{ta} \) but also incorporates the impact of this solution on the future answers of all agents. The term \( \sum_{j \in [A]} \frac{1}{A} \) averages the verifier's scores across all agents, reflecting the influence that \( s_{ta} \) has on the collective progress of the multi-agent system.
+\end{itemize}

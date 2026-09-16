@@ -1,0 +1,60 @@
+\section{Intelligence Test Suite Details}
+\label{appendix:transfer_details}
+All evaluation tasks in the intelligence test suite are single-agent tasks.
+In order to align the observations between the hide-and-seek environment and the evaluation tasks, we add fake hider observations, preparation phase observations and set them all to 0.
+
+\subsection{Cognition and memory task}
+All the variations of cognition and memory tasks have a horizon of 120 timesteps, and all boxes are cuboids.
+
+\textbf{Object Counting: } 
+
+An agent is pinned in place and watches as 6 boxes move either to left or right at random. The boxes disappear behind walls such that agent can no longer see them, and the agent is asked to predict how many boxes went left or right far after all the boxes have disappeared. In this test we evaluate the quality of the \textit{existing} representation by holding the agent's policy fixed and only train a new classification head from the agent's LSTM state. The classification head first passes the LSTM state through a layernorm and a single dense layer with 64 units. We then do a 7-class classification predicting whether 0 through 6 boxes have gone to the left.
+
+\textbf{Lock and Return: } 
+
+In this game, the agent needs to navigate towards a hidden box, lock it, and then return to its starting position. 
+
+The game area has 6  randomly generated connected rooms with static walls and 1 box. When the box is locked, the agent will be given a reward of +5. If the agent unlocks the box during the episode, a -5 penalty will be given. Additionally, if the box remains unlocked at the end of the episode, the agent will be given another -5 penalty. A success is determined when the agent returns to its starting location within 0.1 radius and with the box locked. For promoting fast task accomplishment, we give the agent a +1 reward for each timestep of success. We also introduce shaped reward with coefficient of 0.5 for easier learning: at each time step, the shaped reward is the decrement in the distance between the agent location towards the target (either the unlocked box or the starting location). 
+
+\textbf{Sequential Lock: } 
+
+There are 4 boxes and the agent needs to lock all the boxes in an unobserved order sequentially. A box can be locked only if it is locked in the right order.
+
+The game area is randomly partition into three rooms with 2 walls. The 4 boxes are randomly placed in the game area. Each room has a ramp. The agent has to utilize the ramps to navigate between rooms. When a box is successfully locked (according to the order), a +5 bonus is given. If a box is unlocked, -5 penalty will be added. When all the boxes get locked, the agent will receives a +1 per-timestep success bonus. We also use the same shaped distance reward as the \emph{lock and return} task here.
+
+
+\subsection{Manipulation task}
+
+All variations of the manipulation task have 8 boxes, but no ramps.
+
+\textbf{Construction from Blueprint:}
+
+The horizon is at most 240 timesteps, but an episode can end early if the agent successfully finishes the construction. The game area is an empty room. The locations of the construction sites are sampled uniformly at random (we use rejection sampling to ensure that construction sites do not overlap).
+
+For each construction site, agents observe its position and that of its 4 corners. Since there are no construction sites in the hide-and-seek game and the count-based baseline environments, we need to change our policy architecture to integrate the new observations. Each construction site observation is concatenated with $x_{self}$ and then embedded through a new dense layer shared across all sites. This dense layer is randomly initialized and added to the multi-agent and count-based policies before the start of training. The embedded construction site representations are then concatenated with all other embedded object representations before the residual self-attention block, and the rest of the architecture is the same as the one used in the hide-and-seek game.
+
+The reward at each timestep is equal to a reward scale constant times the mean of the smooth minimum of the distances between each construction site corner and every box corner. Let there be $k$ construction sites and $n$ boxes, and let $d_{ij}$ be the distance between construction site corner $i$ and box corner $j$, and let $d_i$ be the smooth minimum of the distances from construction site corner $i$ to all box corners. The reward at each timestep follows the following formula:
+\begin{eqnarray*}
+    d_i &=& \left(\sum_{j=1}^{4n} d_{ij} e^{\alpha d_{ij}}\right) / \sum_{j=1}^{4n}  e^{\alpha d_{ij}} \;\; \forall i = 1,2, \dots, 4k\\
+    rew &=& s_d \left(\sum_{i=1}^{4k} d_i\right) / 4k
+\end{eqnarray*}
+Here, $s_d$ is the reward scale parameter and $\alpha$ is the smoothness hyperparameter ($\alpha$ must be non-positive; $\alpha = 0$ gives us the mean, and $\alpha \rightarrow -\infty$ gives us the regular min function). In addition, when all construction sites have a box placed within a certain distance $d_{min}$ of them, and all construction site corners have a box corner located within $d_{min}$ of them, the episode ends and all agents receive reward equal to $s_c * k$, where $s_c$ is a separate reward scale parameter.
+For our experiment, $n=8$ and $k$ is randomly sampled between 1 and 4 (inclusive) every episode. The hyperparameter values we use for the reward are the following:
+\begin{align*}
+    \alpha &= -1.5 \\
+    s_d &= 0.05 \\
+    d_{min} &= 0.1 \\
+    s_c &= 3
+\end{align*}
+
+
+\textbf{Shelter construction:}
+The goal of the task is to build a shelter around a cylinder that is randomly placed in the play area.
+The horizon is 150 timesteps, and the game area is an empty room. The location of the cylinder is uniformly sampled at random a minimum distance away from the edges of the room (this is because if the cylinder is too close to the external walls of the room, the agents are physically unable to complete the whole shelter). The diameter of the cylinder is uniformly randomly sampled between $d_{min}$ and $d_{max}$. There are 3 movable elongated boxes and 5 movable square boxes. There are 100 rays that originate from evenly spaced locations on the bounding walls of the room and target the cylinder placed within the room. The reward at each timestep is $(-n * s)$, where $n$ is the number of raycasts that collide with the cylinder that timestep and $s$ is the reward scale hyperparameter.
+
+We use the following hyperparameters:
+\begin{align*}
+    s &= 0.001 \\
+    d_{min} &= 1.5 \\
+    d_{max} &= 2
+\end{align*}

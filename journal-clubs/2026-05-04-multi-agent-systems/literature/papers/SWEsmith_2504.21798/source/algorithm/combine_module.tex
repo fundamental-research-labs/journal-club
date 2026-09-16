@@ -1,0 +1,31 @@
+\begin{algorithm}
+\begin{algorithmic}
+\Require $bugs$; $num\_bugs$; $limit\_per\_module$; $max\_combos$; $depth$
+\Ensure $num\_bugs$ $\geq$ 2;
+\Procedure{CombineModuleBugs}{}
+\State $map\_path\_to\_bugs \gets \{\}$
+    \For{each $bug$ in $bugs$}
+        \State $path \gets$ get\_path\_from(bug)
+        \State $map\_path\_to\_patches[path] \gets [bug]$
+    \EndFor
+
+    \State Collapse nested paths based on $depth$
+    
+    \ForAll{$(path, patches)$ in $map\_path\_to\_patches$}
+        \State $combinations$ $\gets$ get\_combos(patches, $num\_bugs$, $max\_combos$)
+        \For{each $combo$ in $combinations$}
+            \State Apply $combo$ to $codebase$
+            \If{success and num\_files\_changed(combo) $\geq 2$}
+                \State Save $combo$ to disk
+                \If{$limit\_per\_module$ reached}
+                    \State \textbf{break}
+                \EndIf
+                \State $combinations$ $\gets$ [c for c in $combinations$ if c $\cap$ $combo$ $=\emptyset$]
+            \EndIf
+        \EndFor
+    \EndFor
+\EndProcedure
+\caption{Combine multiple patches from the same module.}
+\label{alg:combine_module}
+\end{algorithmic}
+\end{algorithm}

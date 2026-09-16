@@ -1,0 +1,921 @@
+
+\pdfminorversion=7
+\documentclass{article} % For LaTeX2e
+\usepackage[]{colm2026_conference} % preprint
+
+% Toggle for arXiv version: uncomment \arxivtrue for wider margins
+\newif\ifarxiv
+% \arxivtrue
+
+\ifarxiv
+  \usepackage[margin=1in]{geometry}
+\fi
+
+\usepackage{microtype}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{makecell}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage{lineno}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usepackage{enumitem}
+% \usepackage{ulem}
+
+\input{shortcut}
+
+\title{
+% Lost in Delegation:\\
+% LLMs Corrupt Your Documents over Long-Horizon Interaction\\
+% \jn{Death by a Thousand Cuts:\\ Accumulated Drift in AI-Assisted Workflows}
+% LLMs Corrupt Documents in Long-Horizon Delegated Workflows
+% LLMs Corrupt User Documents When Completing Editing Tasks on Their Behalf
+% LLMs Corrupt Your Documents, One Edit at a Time
+% LLMs Gradually Corrupt Your Documents When You Delegate
+% LLMs Corrupt User's Document When They Delegate
+LLMs Corrupt Your Documents When You Delegate
+}
+
+% \author{Philippe Laban \quad Tobias Schnabel \quad Jennifer Neville \\
+% Microsoft Research \\
+% \texttt{\{plaban, tobias.schnabel, jenneville\}@microsoft.com}
+% }
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+\newcommand{\pb}[1]{\textcolor{red}{Philippe: #1\newline}}
+\newcommand{\ts}[1]{\textcolor{teal}{Tobias: #1\newline}}
+\newcommand{\jn}[1]{\textcolor{violet}{Jen: #1}}
+
+\begin{document}
+
+\ifcolmsubmission
+\linenumbers
+\fi
+
+\maketitle
+
+\begin{abstract}
+    Large Language Models (LLMs) are poised to disrupt knowledge work, with the emergence of \textit{delegated work} as a new interaction paradigm (e.g., vibe coding). Delegation requires trust -- the expectation that the LLM will faithfully execute the task without introducing errors into documents. We introduce \benchmark{} to study the readiness of AI systems in delegated workflows. \benchmark{} simulates long delegated workflows that require in-depth document editing across 52 professional domains, such as coding, crystallography, and music notation. Our large-scale experiment with 19 LLMs reveal that current models degrade documents during delegation: even frontier models (Gemini 3.1 Pro, Claude 4.6 Opus, GPT~5.4) corrupt an average of 25\% of document content by the end of long workflows, with other models failing more severely. Additional experiments reveal that agentic tool use does not improve performance on \benchmark{}, and that degradation severity is exacerbated by document size, length of interaction, or presence of distractor files. Our analysis shows that \textbf{current LLMs are unreliable delegates: they introduce sparse but severe errors that silently corrupt documents, compounding over long interaction.}
+\end{abstract}
+
+\vspace{-2mm}
+\begin{figure*}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{figures/teaser.pdf}
+    \caption{Illustrative examples of how LLMs corrupt documents over long workflows in the \benchmark{} benchmark. As LLMs edit files that represent graph diagrams, textile patterns or 3D objects, they introduce sparse but severe errors that silently corrupt documents, compounding over long interaction.\protect\footnotemark[1]}
+    \label{fig:teaser}
+\end{figure*}
+\vspace{-2mm}
+\footnotetext[1]{\benchmark{} is a text-only benchmark, visual renderings are for illustrative purposes.}
+
+% \vspace{-1.0\intextsep}
+\section{Introduction} \label{sec:intro}
+% \vspace{-1.0\intextsep}
+
+Recent LLM progress is enabling new interaction paradigms such as \textit{delegated work} \citep{Shao2025FutureOW, Ulloa2025ProductMP}, where knowledge workers supervise LLMs as they complete tasks on their behalf (e.g., ``vibe coding''). Crucially, users delegating work might lack the expertise or time to review changes implemented by the LLM, and must trust that the LLM does not introduce unchecked errors, such as hallucinations, or deletions.
+
+The viability of delegated work hinges on LLMs' ability to carry out tasks and manipulate domain documents without introducing errors. We study, through simulation, the readiness of current LLMs for delegated work across a wide range of professions.
+
+The first contribution of our work is \benchmark{}, a benchmark with 310 work environments across 52 professional domains, including coding, crystallography, genealogy, and music sheet notation. Each environment consists of real documents totaling around 15k tokens in length, and 5-10 complex editing tasks that a user might ask an LLM to carry out. This substantially differs from past work that focuses on tasks within single domain (eg., code editing \citep{Cassano2023CanIE} or text editing \citep{Spangher2022NewsEditsAN}).
+
+Our second contribution is the round-trip relay simulation method, which enables us to simulate long-horizon delegated interaction and evaluate LLM performance without requiring annotation or reference solutions. Specifically, we assume every editing task is reversible, defined by a forward instruction and its inverse. Applying both in sequence forms a backtranslation round-trip that, under a perfect model, recovers the original documents exactly. This lets us evaluate performance by measuring document similarity before and after a round-trip. Round-trips can further be composed sequentially, forming a \textit{relay}. Backtranslation originated as a data augmentation and evaluation technique in machine translation \citep{Sennrich2015ImprovingNM,Somers2005RoundtripTW}, and has recently been adapted to evaluate LLM consistency through chained reversible transformations \citep{Hong2025ConsistencyCheckerTE,Allamanis2024UnsupervisedEO}. We repurpose the technique to study long-horizon delegated interaction. % Prior work on evaluating long-horizon AI interactions has focused on assessing the model's ability to recall facts or user preference from previous sessions (e.g., \citep{Xu2021BeyondGM,Maharana2024EvaluatingVL}). In contrast, we focus on the how long-horizon interactions affect {\em document contents}.
+
+Our third contribution is a large-scale simulation with 19 LLMs on \benchmark{}. Our findings show that current LLMs introduce substantial errors when editing work documents, with frontier models (Gemini 3.1 Pro, Claude 4.6 Opus, and GPT~5.4) losing on average 25\% of document content over 20 delegated interactions, and an average degradation across all models of 50\%. Degradation depends on the domain: LLMs perform better in programmatic domains (Python, Database) and worse in natural language and niche domains (e.g., earning statements, music notation). We define a model as ``ready'' for delegated work in a domain if it achieves a score of 98\% or higher after 20 interactions. Python is the only domain (out of 52) where most models are ready, highlighting the significant gap that remains.
+
+Finally, targeted experiments refine our understanding of current LLM capabilities. We confirm that known factors such as document size, interaction length, and distractor context contribute to degradation \citep{Liu2023LostIT, Shi2023LargeLM}, but these negative effects compound over time, meaning short simulations underestimate their severity. We also find that using a basic agentic harness does not improve the performance of LLMs we test on \benchmark{}, and that performance after two interactions is not predictive of long-horizon performance (20 interactions), validating the importance of long-horizon evaluation. We release \benchmark{} publicly as a tool to monitor AI readiness for delegated work and drive research on long-horizon Human-AI interaction.
+
+\vspace{-1.0\intextsep}
+\section{The \benchmark{} Benchmark} \label{sec:delegate52}
+% we need to leave it here, otherwise it goes into the bottom of the page
+\begin{wrapfigure}{r}{0.35\textwidth}
+    \centering
+    \vspace{-4\intextsep}
+    \includegraphics[width=0.35\textwidth]{figures/round_trip_primitive.pdf}
+    \caption{The backtranslation round-trip primitive.}
+    \label{fig:round_trip_primitive}
+    \vspace{-2\intextsep}
+\end{wrapfigure}
+
+In \benchmark{} we simulate long workflows that could be part of a knowledge worker's tasks. A workflow consists of seed documents along with other content that are transformed via a sequence of complex editing tasks, mirroring the iterative nature of delegated work. We now introduce the framework that allows us to (i) perform evaluation automatically and (ii) scale the length of workflows.
+
+\subsection{Evaluating Without References} \label{sec:def_round_trip}
+
+Figure~\ref{fig:round_trip_primitive} illustrates the round-trip primitive made up from a pair of editing tasks, inspired by backtranslation~\citep{Somers2005RoundtripTW}. Given a seed document $s$, we can define a pair of forward and backward edit instructions ($x^{\rightarrow}, x^{\leftarrow}$) that describe in natural language a transformation of the seed document and its inverse ($\sigma$, $\sigma^{-1}$). First, an LLM applies a forward instruction to the seed document, producing a transformed document $t=\sigma(s)=\textsf{LLM}(s; x^{\rightarrow})$. Second, the LLM applies the backward instruction to the transformed document, producing a reconstructed document $\hat{s}=\sigma^{-1}(t) = \textsf{LLM}(t; x^{\leftarrow})$. Each step is conducted as an independent, single-turn session.
+
+% At the heart of the benchmark lies the idea of backtranslation on a seed document $s$ as illustrated in Figure~\ref{fig:round_trip_primitive}: First, the document is translated forward with an edit instruction $x^{\rightarrow}$ via $t=\sigma(s)=\textsf{LLM}(s; x^{\rightarrow})$, then, a back translation is done with edit instruction $\hat{s}=\sigma^{-1}(t) = \textsf{LLM}(t; x^{\leftarrow})$ resulting in a reconstructed document $\hat{s}$. An important assumption we make is that the forward translation an LLM does cannot be a no-op, i.e., $\sigma(s) \neq s$, otherwise the backtranslation would be trivial as well. This is ensured by xxx.
+
+To measure reconstruction quality, we implement a domain-specific similarity function $\mathrm{sim}(s_i, s_j)$. A perfect model yields $\mathrm{sim}(s, \hat{s}) = 1$, reducing evaluation to semantic equivalence without reference annotations. For backtranslation to be aligned with model performance, models need to genuinely attempt the editing instructions rather than taking shortcuts; we validate this in Appendix~\ref{app:instruction_compliance}. Appendix~\ref{app:backtranslation} discusses other properties, assumptions, and limitations of this framework.
+
+\paragraph{Simulating long workflows.}
+Since each round-trip is designed to return to the seed document $s$, round-trips can be chained into longer workflows. We sample $N$ pairs of forward and backward instructions $(x_1^{\rightarrow}, x_1^{\leftarrow}), \ldots, (x_N^{\rightarrow}, x_N^{\leftarrow})$ from the set of available options, each representing a transformation $\sigma_i(s)$. We simulate an $n$-relay by applying $n$ round-trip edits in sequence:
+% \vspace{-\baselineskip}
+$$\hat{s}_k = \left(\sigma_1 \circ \sigma_1^{-1} \circ \cdots \circ \sigma_n \circ \sigma_n^{-1} \right)(s), \;\;\; 1\leq n\leq N.$$
+Our main metric is the reconstruction score after $k$ interactions (i.e., $k/2$ round-trips):
+$$\textrm{RS}@k(s) = \mathrm{sim}(s, \hat{s}_{k/2}).$$
+% \begin{equation}
+%     \textrm{RS}@k(s) = \mathrm{sim}(s, \hat{s}_k).
+% \end{equation}
+
+\subsection{Benchmark Construction}
+
+%\subsubsection{Domains} \label{sec:domain_selection}
+We selected 52 professional domains to simulate workflows (listed in Figure~\ref{fig:domain_categories}, Appendix~\ref{app:domain_listing}), representing diverse knowledge work professions across five categories: Science \& Engineering, Code \& Configuration, Creative \& Media, Structured Record, and Everyday. A key criterion for inclusion is the existence of a \textit{standard document type} that is textual and unencoded (e.g., .srt for subtitles, .cif for crystallography). Secondary considerations in domain selection are listed in Appendix~\ref{app:domain_brainstorm}.
+
+\subsubsection{Work Environments} \label{sec:work_environments}
+
+For each domain, we construct six work environments constisting of a seed document, a set of 5-10 possible edit tasks, and a distractor context. An example environment for the accounting domain is presented in Figure~\ref{fig:sample_viz}. 
+
+
+\begin{figure*}[t]
+    \centering
+    \vspace{-2\intextsep}
+    \includegraphics[width=0.85\textwidth]{figures/sample_viz.pdf}
+    \caption{Example work environment from the accounting domain in \benchmark{}. The seed document is an accounting ledger of Hack Club, a non-profit organization. The highlighted edit (Category Split) consists in first splitting the seed document \texttt{hack\_club.ledger} into separate files by expense category (forward edit task), and merging it back chronologically into one file (backward edit task).}
+    \label{fig:sample_viz}
+    \vspace{-1\intextsep}
+\end{figure*}
+
+
+\vspace{-1.0\intextsep}
+\paragraph{Seed Documents.} The seed document is the starting point for all simulations. Seed documents are real documents found online (no synthetic data, exemplars, or templates), range from 2-5k tokens\footnote{Based on GPT~4 tiktoken encoder}, and have a permissive license for redistribution. Secondary requirements are listed in \autoref{app:document_desiderata}. The simulations in Figure~\ref{fig:teaser} use three seed documents: a Linux Kernel Architecture Diagram (graph), a 12-shaft Twill Diamond Pattern (textile), and the ActionBoy Palm Tree (3D objects).
+
+\vspace{-1.0\intextsep}
+\paragraph{Edit Tasks.} Edit tasks are pairs of forward and backward instructions defining invertible transformations. The instructions must: (1) represent realistic work tasks that a stakeholder might perform given the document, (2) require, in-depth, non-trivial transformation of the context that goes beyond expansion. In other words, $\sigma(s)$ cannot be decomposed into $[s, \sigma'(s)]$ (concatenation), as this would make the backward edit trivial (cropping). Each edit task is tagged with the semantic operations required to perform the edit (e.g., numerical reasoning, classification, splitting). The accounting work environment in Figure~\ref{fig:sample_viz} has 10 edit tasks, including task that require splitting the ledger into separate files by expense category or reimbursement recipient, converting the amounts to Euro, or formatting the ledger in Beancount format. Appendix~\ref{app:env_scaling} describes the edit creation and tagging process.
+
+\vspace{-1.0\intextsep}
+\paragraph{Distractor Context.} Each work environment includes a distractor context: topically related documents that do not interfere with any of the editing tasks. In the accounting example of Figure~\ref{fig:sample_viz}, the distractor context includes a chart of accounts, the organization expense reimbursement policy, and three other documents from the organization. Distractor contexts range from 8-12k tokens per environment, and are included by default in experiments to enhance simulation realism.
+
+\subsubsection{Domain-Specific Evaluation} \label{sec:domain_specific_evaluation}
+
+\begin{figure*}[t]
+    \vspace{-2\intextsep}
+    \centering
+    \includegraphics[width=\textwidth]{figures/domain_anatomy.pdf}
+    \caption{Top: Domains in \benchmark{} implement a parsing function that converts text documents into a structured representation which is then used by a similarity function to score two parsed instances. Bottom: concrete example for the recipe domain.}
+    \label{fig:domain_anatomy}
+    \vspace{-1\intextsep}
+\end{figure*}
+
+Common textual similarity methods consider either low-level overlap (e.g., Levenshtein ratio \cite{Levenshtein1965BinaryCC}) or semantic distance in a generic embedding space~\cite{Neelakantan2022TextAC}. These do not adequately capture fine-grained semantic changes, so we implement a custom similarity function for each domain, illustrated in \autoref{fig:domain_anatomy}.
+
+Semantic equivalence is measured in two steps: parsing and evaluation. A parsing function converts documents into a structured representation. In \autoref{fig:domain_anatomy}, a recipe is parsed into ingredients (names, quantities, units), steps, and tips. A similarity function then compares two parsed representations and outputs a score in $[0, 1]$. In the recipe domain, similarity is a weighted sum over ingredient lists (40\%), steps (40\%), and tips (20\%).
+
+This flexibility allows for a domain-appropriate weighing of various components of the scoring function. For instance a small surface-level change in an ingredient (e.g., 200 $\to$ 800 g of butter) can severely impact the overall score (as desired). Conversely, the domain-specific parsing allows for robustness in the scoring function: surface-level changes that do not impact semantics (e.g., 200g vs. 0.2kg of butter, or shuffling the order of the ingredient list) do not affect the score.
+
+Implementing robust semantic equivalence for 52 domains is central to our methodology. In Appendix~\ref{app:alt_eval}, we show that generic similarity measures (including LLM-as-a-judge with GPT~5.4) fail to capture nuanced semantic differences, only moderately correlating with our parsing-based metric and capturing at most 25\% of the variance.
+
+\subsubsection{Quality Assurance.} \label{sec:benchmark_qa}
+
+We rely on semi-automated agentic processes to implement domains and work environments. To ensure experimental validity, we performed quality assurance measures at each stage, detailed in Appendix~\ref{app:dataset_creation}, evaluating factors such as (1) parsing robustness, (2) evaluation sensitivity, (3) edit testing, and (4) distractor interference.
+
+\section{Experiments} \label{sec:experiments}
+
+\begin{wrapfigure}{r}{0.35\textwidth}
+    \centering
+    \vspace{-4\intextsep}
+    \includegraphics[width=0.35\textwidth]{figures/twenty_interaction_simulation.pdf}
+    \caption{A \textit{round-trip relay}: a sequence of 10 consecutive round-trip tasks, total: 20 interactions.}
+    \label{fig:twenty_interaction_simulation}
+    \vspace{-1\intextsep}
+\end{wrapfigure}
+\paragraph{Experimental Setup.} \label{sec:exp_design}
+Our main experiment is a \textit{round-trip relay} with $N=10$ consecutive round-trips per environment, simulating 20 delegated interactions. Since most of the constructed environments have fewer than 10 editing tasks, we repeat edits in round-robin fashion (shuffling order at each epoch) to reach 10 round-trips.%, ensuring equal coverage with ordering variability. 
+We compute reconstruction scores RS@$k$ after each round-trip, estimating degradation every two interactions.
+
+\paragraph{Model Selection.} \label{sec:model_selection}
+We select 19 LLMs from six model families: \openai~OpenAI (GPT~4o, GPT~4.1, GPT~5 Nano, GPT~5 Mini, GPT~5 Chat, GPT~5, GPT~5.1, GPT~5.2, GPT~5.4, o1, o3, and GPT~OSS 120B), \claude~Anthropic (Claude 4.6 Sonnet and Claude 4.6 Opus), \gemini~Google Gemini (3 Flash and 3.1 Pro), \mistral~Mistral (Large 3), \xai~xAI (Grok 4), and \moonshot~Moonshot (Kimi K2.5). The selection spans a wide range of capabilities, from smaller to frontier models, enabling us to study how model scale and architecture influence degradation in delegated work. Exact model versions in Appendix~\ref{app:model_details}.
+
+\section{Results} \label{sec:results}
+
+\subsection{Main Results} \label{sec:main_results}
+
+\begin{wraptable}{r}{0.5\textwidth}
+    \vspace{-7\intextsep}
+    \input{tables/overall_by_round}
+    \caption[Round-trip relay results for 19 LLMs on \benchmark{}.]{Round-trip relay results for 19 LLMs on \benchmark{} (20 interactions). All models accumulate errors, leading to significant document corruption. Background color: degradation from the seed document.\protect\footnotemark}
+    \label{tab:overall_by_round}
+    \vspace{-1\intextsep}
+\end{wraptable}
+\footnotetext{Claude results are based on partial runs ($\sim$50\% of environments) due to high cost. We expect to report full results by rebuttal and anticipate overall trends to hold.}
+
+Table~\ref{tab:overall_by_round} details simulation results. At a high level, \textbf{every model sees its performance degrade over the course of interaction, with average degradations of 50\% across tested models by the end of simulation}. Even frontier models (Gemini 3.1 Pro, Claude 4.6 Opus, GPT~5.4) degrade documents by 25\% on average over 20 interactions.
+% The degradation is concave:
+% The degradation dynamics are generally non-linear and concave: earlier interactions cause more severe degradation, and as the document degrades, the marginal degradation from each additional interaction shrinks. However, stronger models exhibit more gradual degradation (round 1-5 / round 5-10 degradation ratios of 3-5x), whereas weaker models often see more extreme degradation from the onset (11-17x).
+
+A per-domain breakdown of end-of-simulation scores (Table~\ref{tab:round10_by_domain} in Appendix~\ref{app:per_domain_results}) reveals that \textbf{models are not ready for delegated workflows in the vast majority of domains, with models severely corrupting documents (at least -20\% degradation) in 80\% of our simulated conditions.} The Python domain is an outlier: a majority of tested models (16/19) achieve lossless manipulation, resonating with recent findings on delegated coding workflows \citep{Pimenova2025GoodVA}. The top model (Gemini 3.1 Pro) is designated as ready (RS@20 $\geq$ 98\%) in 11 of 52 domains.
+
+We find that short-term performance (after 2 interactions) is not always predictive of long-horizon performance. For instance, GPT~5 and Kimi K2.5 achieve near-identical performance after two interactions (91.5 vs. 90.9) but diverge sharply over time (ending at 48.3 vs. 63.8). Conversely, Mistral Large 3 trails Gemini 3 Flash by 6.4 points early on (82.4 vs. 76.0) but overtakes it by end of simulation (35.5 vs. 35.8). \textbf{In other words, short interaction simulations are insufficient to understand long-horizon LLM performance, validating the importance of benchmarks that simulate extended interactions.}
+
+% The results should be interpreted for the scale
+We caution the reader to interpret the absolute scores with respect to the scale of our experimental setting. LLMs are tested in a simulation environment that requires completing work on documents with 3-5k tokens, as well as a distractor context of 8-12k tokens, over the course of 20 interactions. Upcoming subsections use a subset of GPT-family models to study how tool use, document size, interaction length, and distractors affect degradation.
+
+\subsection{Agent (With Tools) vs. LLM (Without Tools)} \label{sec:agentic}
+
+\begin{table*}[t]
+\vspace{-2\intextsep}
+\begin{minipage}[t]{0.48\textwidth}
+\vspace{0pt}
+\centering
+\input{tables/agentic_scores}
+\caption{Tool-use effect on degradation for four LLMs, comparing agentic (\iconagentic) and direct (\icondirect) operation. All models degrade documents more with tools than without.}
+\label{tab:agentic_scores}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\vspace{0pt}
+\centering
+\input{tables/agentic_behavior}
+\caption{Tool-use behavior. Tool use leads to overhead (with tools / no tools): models consume more input tokens (Inp$\times$), produce fewer output tokens (Out$\times$), cost more (\$$\times$), with typically higher latency (Lat$\times$). To edit documents, models can execute code (\iconexec) or write files manually (\iconwrite). \%Dist: the portion of distractor files read.}
+\label{tab:agentic_behavior}
+\end{minipage}
+\vspace{-2\intextsep}
+\end{table*}
+
+In the main experiment, models operate \textit{without tools}, directly outputting modified files. We implemented a basic agentic harness \cite{Yao2022ReActSR} with file reading, writing, and code execution tools (Appendix~\ref{app:agentic_harness}) to compare LLM performance with and without tools. We note this is not an optimized state-of-the-art agent system; future work could explore more sophisticated harnesses.
+
+The results are summarized in Table~\ref{tab:agentic_scores}. The four tested models perform worse when operated agentically with tools than without, incurring an average additional degradation of 6\% by the end of simulation. The best-performing model (GPT~5.4) narrows the gap with an additional degradation of only 3\% (71.5\% vs. 68.3\%).
+
+At first glance, this seems counter-intuitive: tools should give LLMs an advantage. However, there are several factors at play. First, models incur an overhead when using tools (see Table~\ref{tab:agentic_behavior}) due to the interactive nature of the agentic harness; they invoke 8-12 tools on average to complete a task, consuming 2-5x more input tokens than the no-tool alternative. Preserving LLM performance in long context settings is a known challenge for current LLMs~\citep{Liu2023LostIT, Laban2024SummaryOA}. Second, \benchmark{} does not contain tasks that can be trivially completed by executing a short program (such as sorting a spreadsheet) as this would not be representative of a task a user would delegate to an LLM. Tasks can involve computation, but must also require textual understanding and reasoning over the documents. This explains why even in the agentic settings, LLMs favor the file writing tool over code execution (see Table~\ref{tab:agentic_behavior}), which limits the benefits of the agentic harness. Looking at the trend: better models rely more on code execution (10\% for GPT~4.1 vs. 45\% for GPT~5.4), leading to more efficiency in the use of the agentic harness.
+
+In short, \textbf{under our basic harness, the tested LLMs do not benefit from agentic tool use when completing complex editing tasks in diverse textual domains.} This suggests \benchmark{} can serve agentic system developers: it provides diverse domains with complex editing tasks where current LLMs struggle to leverage tooling for precise manipulation.
+
+\subsection{Document Size Effect} \label{sec:context_size}
+
+The main experiment used 3--5k token documents to isolate degradation from long-context effects. We now study how document size affects degradation (details in Appendix~\ref{app:context_size_exp}).
+
+Results from document size variation are summarized in Table~\ref{tab:context_size}. In short, as document size is increased from 1k to 10k tokens, GPT~5.4 degradation levels worsen gradually, with scores at the 10k scale of 59.9\% by end of simulation. Each additional 1,000 tokens in a document degrades GPT~5.4's ability to preserve content by roughly 0.7\% after two interactions, but 3.6\% after 20 interactions: a 5-fold increase over the course of interaction. In a nutshell, \textbf{document size and interaction length compound multiplicatively: the degradation from increased document size snowballs over the course of the interaction.}
+
+\begin{table*}[t]
+\vspace{-2\intextsep}
+\begin{minipage}[t]{0.48\textwidth}
+\vspace{0pt}
+\centering
+\input{tables/context_size}
+\caption{Document size effect on degradation for GPT~5.4. Larger documents degrade more, with the gap widening from 2 to 20 interactions.}
+\label{tab:context_size}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\vspace{0pt}
+\centering
+\input{tables/fifty_rounds}
+\caption{Interaction length effect on degradation, extending relays to 100 interactions. All models show monotonic decline, with no signs of plateauing.}
+\label{tab:fifty_rounds}
+\end{minipage}
+\vspace{-1\intextsep}
+\end{table*}
+
+\subsection{Length of Interaction} \label{sec:fifty_rounds}
+
+The main experiment uses a 10-round-trip relay (20 interactions). In Table~\ref{tab:fifty_rounds}, we extend relays for a subset of models to 50 round-trips (100 interactions). We did not create additional edits, and simply repeat existing edits in round-robin fashion.
+
+We find that degradations continue to accumulate in longer relays, with none of the models showing signs of plateauing. The rate of degradation decelerates: the first half of the extended relay (round-trips 5--25) accounts for roughly 2--3$\times$ more loss than the second half (25--50), but even the strongest model (GPT~5.4) drops below 60\% by the end of a 50-round-trip relay. In summary, \textbf{as we extend relays from 10 to 50 round-trips, performance continues to degrade, with models introducing novel errors even when tasks repeat.}
+
+\subsection{Distractor Effect} \label{sec:distractor}
+
+
+Experiments so far include distractor documents during simulation: this enacts a realistic work environment where retrieved documents are not all necessary to complete the task (i.e., imperfect retrieval precision). We ablate the experiment by running simulations that exclude distractor documents. This simplifies the setting: the LLM is provided exactly the documents it must edit, without having to judge information relevance.
+
+Table~\ref{tab:distractor_effect} summarizes the results for four models, contrasting performance of each model with distractor documents included or excluded. Looking at initial steps in the simulation (interactions 2 and 4), removing distractor documents has a small positive effect, improving scores by 0.4-4\%. However, over the course of interaction the effect of distractors widens, and we observe improvements of 2-8\% by the end of simulation. In other words, \textbf{distractor harm compounds with interaction length, and measuring short-term effect of distractors likely underestimates their effects in long, realistic interactions.} This finding echoes prior work on irrelevant context distraction \citep{Shi2023LargeLM}, and extends it to a long-horizon setting. This is relevant to retrieval system evaluation: long-horizon benchmarks can capture lasting effects of improved retrieval on performance.
+
+% A second interesting observation from the results is that stronger models benefit the most from the removal of distractors compared to weakest tested model (GPT5.4: +6.3\% gain; GPT~4.1: +2.8\% gain). Multiple hypotheses could explain this finding. First, the weaker model's performance degrades rapidly independent of distractors, and might be reaching a floor that is less susceptible to further degradation from distractors. Second, the finding could be related to recent findings from the community finding that stronger models are more susceptible to being jail-broken, due to their improved instruction-following capabilities~\citep{Wei2023JailbrokenHD}. In other words, stronger models might be digesting distractor documents more deeply, and attempting to connect them to the task in a way weaker models do not, leading to deepened degradation. We however caution that the small scale of this experiment does not allow for strong conclusions.
+
+\subsection{Delegation Beyond Textual Documents} \label{sec:image_domain}
+
+\begin{table*}[t]
+\vspace{-2\intextsep}
+\begin{minipage}[t]{0.48\textwidth}
+\vspace{0pt}
+\centering
+\input{tables/distractor_effect}
+\caption{Distractor effect on degradation, with distractor (top) and without (indented). Removing distractors consistently improves scores across all models and rounds.}
+\label{tab:distractor_effect}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\vspace{0pt}
+\centering
+\input{tables/image_domain}
+\caption{Image editing relay results for nine image generation models. Current models degrade images significantly faster than LLMs degrade text.}
+\label{tab:image_domain}
+\end{minipage}
+\vspace{-1\intextsep}
+\end{table*}
+
+To test whether our methodology extends beyond text, we implemented six visual work environments simulating image editing workflows (details in Appendix~\ref{app:image_domain}), testing 9 models with image generation capabilities across up to 20 interactions.
+
+Example edit relay outputs are shown in a gallery in Figure~\ref{fig:image_domain_gallery}, and reconstruction scores are summarized in Table~\ref{tab:image_domain}. We observe that degradations for image manipulation are severely more pronounced than for textual domains. The best models achieve final reconstruction scores of 28-30\%, compared to 70--80\% for textual domains. Even after two interactions, no image generation model exceeds 65\%, worse than text models after 20 interactions. This small-scale experiment suggests that \textbf{image editing models degrade documents far more severely than text models, and are not ready for delegated work.} This proof-of-concept shows our methodology extends to non-textual modalities.
+
+\section{Analysis} \label{sec:understanding_degradation}
+
+\paragraph{Document Characteristics (Appendix~\ref{app:domain_chars}).} We analyzed how various document characteristics affect model performance, finding that \textbf{models perform better in programmatic domains (Python, DBSchema) compared to natural language domains (e.g., Recipe, Fiction)}. Performance is also higher in domains with high repetitiveness and structural density (e.g., Molecule, Chess), and lower in domains with rich unrepeated vocabulary (e.g., Transit, Textile). This echoes prior findings that LLM performance is highest in programmatic or structured domains where verifiable rewards can be defined \citep{Suma2025DeepSeekR1IR}. Through this lens, our work can be interpreted as a process to create verifiable rewards for a wide variety of domains, by building domain-specific parsing and evaluation.
+
+\paragraph{Semantic Operations (Appendix~\ref{app:semantic_ops}).} Editing tasks that require global document restructuring (e.g., split and merge, classification) are significantly harder than tasks involving local operations (e.g., string manipulation, referencing), and tasks that require coordinating multiple operations are more challenging than tasks that involve only one.
+
+\paragraph{Critical Failures (Appendix~\ref{app:critical_errors}).} We define a critical failure as an error that leads to a drop in score by at least 10\%. We find that models are not failing due to ``death by a thousand cuts'' (i.e., many small errors). Instead, they maintain near-perfect reconstruction in some rounds, and experience critical failures in a few rounds, typically losing 10-30+ points in a single interaction. \textbf{These sparse critical failures explain about 80\% of total document degradation we observe.} Stronger models do not avoid small errors better; they delay critical failures and experience them in fewer interactions.
+
+\paragraph{Deletion vs.\ Corruption (Appendix~\ref{app:deletion_corruption}).} We decompose model degradation into two components: deletion of content vs. corruption of existing content. We find that \textbf{weaker models' degradation originates primarily from content deletion, while frontier models' degradation is attributable to corruption of content.}
+
+
+% Focusing on the dynamics of degradation, we observe short-term divergence narrows to a tight band of scores by end of simulation, ranging in the 10-30\% content preservation. The initial advantage of larger models (such as Gemini 3 Pro at 63.2) is largely erased over long interaction, as it gets overtaken by Gemini 3.1 Flash after 20 interactions.
+
+
+% We note that though \benchmark{} comprises of tasks on textual documents, some of these documents represent data from other modalities. For example, the Vector (.svg) and GraphViz (.dot), and Weaving (.wif) domains represent visual data, and Music sheet (.ly) and Audiosyn (.csd) represent audio data. Therefore, we believe that \benchmark{} still evaluates capabilities of LLMs for non-textual knowledge work tasks, due to the breadth of structured textual formats that are used in various knowledge work professions. % this can probably be skipped, it's kind of meta
+
+% \section{Understanding Why and How Models Fail} \label{sec:failure_analysis}
+
+% \subsection{How Models Fail} \label{sec:failure_modes}
+
+% \subsection{Why Models Fail} \label{sec:root_cause}
+
+% \section{Implications} \label{sec:implications}
+
+% % Implications for Model Buildings: Can we use this for training? --> Each domain is a mini-gym, with  Cycle GAN / discuss reward hacking.
+% \paragraph{Implications for LLM Developers.} In this work, we use \benchmark{} primarily as an evaluation tool to understand the capabilities of current LLMs. The work environments we developed could be repurposed to train models, with literature on cycle consistency training \cite{Zhu2017UnpairedIT} providing a potential training framework. Each of the 52 domains can be considered a ``mini-gym'' for online reinforcement learning, a simulation environment where an agent (LLM) can be trained to complete task cycles losslessly. Careful reward design is required to avoid agents learning misaligned behavior (i.e., reward hacking~\citep{Skalse2022DefiningAC}), such as learning to perform the no-op operation (i.e., not editing the document), or concatenating copies of original input to facilitate reconstruction. In short, combining rewards that capture both instruction-following and content preservation jointly could be a promising direction to leverage \benchmark{} to train models in diverse domains where reference solutions are not available.
+
+% % Implications for NLP Practitioners: (1) work on long interaction benchmarks; (2) work on domains beyond math & code (3) with & without tool comparison is important
+% \paragraph{Implications for NLP Practitioners.} Our simulation experiments provide several underexplored research directions that warrant more attention from the community, which we summarize succinctly. First, model performance in short interaction is not always predictive of long-horizon performance, and studying model capabilities for long interaction (beyond memory management) is essential to understanding readiness for realistic delegated workflows: we need more long-horizon benchmarks. Second, efforts to understand model capabilities have been unevenly distributed across domains, disproportionately studying math and code capabilities. Yet, a large proportion of knowledge work occurs in other domains: we need wider benchmarks to close this gap, studying capabilities across diverse professions and domains. Third, the community at times frames ``agent benchmarks'' and ``LLM benchmarks'' as separate fields, but they should be seen as two modes of operations to accomplish tasks: when benchmarking an LLM, we need to consider various modes of operations of the LLM to better understand its capabilities and limitations.
+
+% % Implications for Users of LLMs --  jagged frontier. Vibe Coding, but not Vibe work Yet. Trend of Progress
+% \paragraph{Implications for Users of AI Systems.} When delegating work to AI systems, users of LLMs should be cautious not to generalize the capabilities of the LLM in one domain to other domains. Model capabilities follow a \textit{jagged frontier} \cite{DellAcqua2023NavigatingTJ}, with models exhibiting strong (and sometimes surprising) performance at certain tasks, while making severe errors in others. Current LLMs are ready for delegated workflows in some domains such as Python coding, but not in other less common domains. In general, users still need to closely monitor LLM systems as they operate and complete tasks on their behalf. Our experiments indicate an encouraging trend, for example looking at the GPT family: 16 months separate the GPT~4o and GPT~5.4 models we tested\footnote{Respectively: November, 2024 and March, 2026}, but benchmark performance increased from 14.7\% to 71.5\%, indicative of rapid progress.
+
+\section{Related Work} \label{sec:rel_work}
+
+Our work sits at the intersection of four research areas; we summarize key connections here and provide a comprehensive survey in Appendix~\ref{app:extended_rel_work}.
+
+AI systems are increasingly adopted in knowledge work, yet existing evaluation benchmarks are often misaligned with real-world use \citep{Wang2026HowWD}. Industry-specific benchmarks \citep{Huang2024CRMArenaUT,Drouin2024WorkArenaHC,Xu2024TheAgentCompanyBL,Jha2025ITBenchEA,Chen2025xbenchTA,Mazeika2025RemoteLI} require costly expert annotation, and interaction log analyses \citep{Chatterji2025HowPU,Handa2025WhichET,Tomlinson2025WorkingWA} require access to private data. We propose a simulation-based methodology leveraging real documents across 52 professions for reference-free evaluation at scale.
+
+Existing document editing benchmarks typically focus on a single domain, such as code editing \citep{Cassano2023CanIE,Jimenez2023SWEbenchCL}, text editing \citep{Spangher2022NewsEditsAN,Laban2023SWiPEAD,Raheja2023CoEdITTE}, or structured formats \citep{Nishina2024SVGEditBenchAB,Kapadnis2026ChartEditBenchEG,Ofengenden2025PPTArenaAB}. These benchmarks typically rely on domain-specific curated evaluation. \benchmark{} takes a more generalizable approach across 52 domains using domain-specific parsers and backtranslation-based evaluation.
+
+Backtranslation originated in NMT for data augmentation \citep{Sennrich2015ImprovingNM,Lample2017UnsupervisedMT} and reference-free evaluation \citep{Somers2005RoundtripTW,Zhuo2022RethinkingRT}, and has since been applied to code \citep{Lachaux2020UnsupervisedTO} and LLM alignment \citep{Li2023SelfAlignmentWI}. Recent work chains backtranslation cycles to evaluate LLM consistency \citep{Hong2025ConsistencyCheckerTE,Allamanis2024UnsupervisedEO,Maveli2026CanLC}. We extend this from single round-trips in individual domains to chained sequences across 52 professions, using it to simulate long delegated workflows where errors compound.
+
+Finally, prior work on multi-session evaluation focuses on the \textit{memory} problem \citep{Xu2021BeyondGM,Maharana2024EvaluatingVL,Wu2024LongMemEvalBC}, evaluating the model's ability to recall facts or user preference from previous sessions. With \benchmark{}, we study an orthogonal failure mode: whether repeated LLM interaction \textit{degrades the artifacts being worked on}, and how errors compound in extended interactions.
+
+\section{Limitations} \label{sec:limitations}
+
+\vspace{-0.5\intextsep}
+\paragraph{Single-Turn Interaction.} Our simulations use single-turn sessions where each instruction fully specifies a task without needing clarification. In practice, users underspecify instructions and iteratively refine intent through multi-turn conversation \citep{Herlihy2024OnOM,kim2026discoverllm}, and LLM performance degrades significantly in multi-turn settings \citep{Laban2025LLMsGL}. Extending \benchmark{} to multi-turn, multi-session simulations (e.g., via instruction sharding or user simulation \citep{naous2025flipping}) would likely amplify degradation.
+
+\vspace{-0.5\intextsep}
+\paragraph{Practical Constraints.} Our simulation parameters -- document size (3--5k tokens), distractor context (8--12k tokens), relay length (20 interactions) -- were chosen based on practical cost and context-window limits, and underestimate real-world scale. Experiments show increasing these parameters worsens degradation.
+
+\vspace{-0.5\intextsep}
+\paragraph{Conceptual Constraints.} Our framework relies on (1) backtranslation and (2) domain-specific parsing for reference-free evaluation, which constrains scope in three ways: tasks are limited to document editing (excluding other knowledge work like communication or planning); edits must be reversible (see Appendix~\ref{app:bt_limitations}); and evaluation favors structured domains where parsing is tractable, though we demonstrate with the Fiction domain adaptation to creative writing via a specialized evaluation method \citep{Chakrabarty2025AISlopTA}.
+
+\section{Conclusion} \label{sec:conclusion}
+
+%In this work, we conduct a large-scale simulation of how users might delegate work to LLMs across 52 professional domains. We find that current LLMs are \textit{lossy delegates}: even frontier models lose an average of 25\% of document content after 20 interactions, with Python coding as the only domain where most models achieve near-lossless delegation. Ablation experiments show that degradation compounds with document size, interaction length, and distractor context, and that agentic tool use does not mitigate it. We release \benchmark{} as a public tool to monitor the readiness of AI systems for delegated work across the long tail of knowledge work professions.
+
+In this work, we conduct a large-scale simulation of how users might delegate work to LLMs across 52 professional domains. We find that current LLMs are \textit{unreliable delegates}: even frontier models corrupt an average of 25\% of document content over long workflows, with sparse but severe errors that silently compound over time. Our analysis shows that degradation worsens with document length, interaction horizon, and distractor context, and is not mitigated by agentic tool use. These results highlight a fundamental gap in reliability that undermines trust in delegation. We release \benchmark{} as a public tool to monitor the readiness of AI systems for delegated work in knowledge work professions.
+
+\section*{Ethics Statement} \label{sec:ethics}
+
+\paragraph{AI Use Disclosure.} AI was used in multiple stages of this project. First, AI assisted the authors with developing the codebase and curating benchmark work environments. Second, AI was used in some annex evaluations in LLM-as-a-judge setups (see Appendix~\ref{app:instruction_compliance}), though the evaluation protocol of our main simulation experiment relies on domain-specific parsing and not LLM-based evaluation. Third, AI was used to assist with the writing of the Appendix of the paper, helping document precisely various details of our work. AI was not used extensively for writing the main text, beyond minor typo, fluency fixes, and compression of content to adhere with submission space constraints.
+
+\bibliographystyle{colm2026_conference}
+\bibliography{colm2026_conference}
+
+\clearpage
+\appendix
+\setcounter{figure}{0}
+\setcounter{table}{0}
+\renewcommand{\thefigure}{A\arabic{figure}}
+\renewcommand{\thetable}{A\arabic{table}}
+\renewcommand{\theHfigure}{A\arabic{figure}}
+\renewcommand{\theHtable}{A\arabic{table}}
+
+\section{Instruction Compliance Validation} \label{app:instruction_compliance}
+
+A major risk of backtranslation-based evaluation is over-estimating model capability due to model non-compliance with the instruction. We assume when conducting backtranslation evaluation (a sequence of forward and backward edit steps) that the model makes best-effort attempts to follow instructions. If instead, the model completes a simpler task (such as copying the input, or an easy subset of the instruction) that lead to high reconstruction scores, the evaluation is over-estimating model capabilities.
+
+We conduct an analysis to quantify instruction compliance of models during our simulation. The objective is to determine whether the LLMs are majoritarily making attempts to complete the editing tasks as instructed, or whether they might be taking shortcuts that invalidate the evaluation. Crucially, the analysis does not consider whether the LLM's attempt is correct, but rather whether it attempted the editing task or not. We found through small-scale analysis that measuring instruction compliance is more tractable than judging correctness (the evaluation task, see Appendix~\ref{app:alt_eval}), and we leverage an LLM judge (GPT~5.4) to classify compliance.
+
+\subsection{Methodology}
+
+Each editing step attempted by a model is classified by an LLM judge into one of eight compliance categories: \textit{fully executed} (attempted the full instruction, possibly with errors), \textit{partially executed} (attempted some but not all aspects of the instruction), \textit{truncated attempt} (started executing the task but output was cut short), \textit{hallucinated output} (produced unrelated content), \textit{superficial attempt} (the attempt introduces cosmetic changes only and does not address the full scope of the instruction), \textit{not executed} (returned input unchanged), \textit{empty response} (returned empty or near-empty output), and \textit{instruction infeasible} (the editing instruction is no longer feasible given corrupted input from prior rounds). The judge receives the editing instruction, the input document, and the output document, and must select exactly one category with a justification.
+
+An important confounder of the analysis is the performance of the model on the instruction: we want to study whether the model is attempting the instruction both when it achieved high and low reconstruction scores. For this reason, we drew a stratified sample of round trips from our main experiment (Section~\ref{sec:experiments}), sampling across all models and five reconstruction score bins: \textit{collapsed} $[0, 20)$, \textit{low} $[20, 50)$, \textit{mid} $[50, 80)$, \textit{high} $[80, 98)$, and \textit{perfect} $[98, 100]$. For each sampled round trip, both the forward and backward editing steps are evaluated independently, yielding 12{,}409 individual step-level judgments across 52 domains.
+
+\subsection{Findings}
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+    \vspace{-16pt}
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/compliance_by_score_bin.pdf}
+    \caption{Instruction compliance distribution by reconstruction score bin. Models overwhelmingly attempt to complete instructions in our simulation, validating that round-trip reconstruction aligns with measuring model capabilities at completing the editing tasks.}
+    \label{fig:compliance_by_score_bin}
+    \vspace{-12pt}
+\end{wrapfigure}
+
+Figure~\ref{fig:compliance_by_score_bin} presents the compliance distribution across score bins. Three key findings emerge.
+
+\paragraph{Models overwhelmingly attempt instructions.} Across all score bins, 93.8\% are fully or partially executed. Non-compliance categories (not executed, empty response, hallucinated output) collectively account for only 3.0\% of steps, concentrated in the worst-performing models; among the top-10 best-performing models, non-compliance drops to 1.7\%. This confirms that instruction-following LLMs make genuine best-effort attempts at the editing tasks in \benchmark{}.
+
+\paragraph{Low scores reflect execution errors, not non-compliance.} The critical test is whether steps that produce low reconstruction scores are dominated by non-compliant behaviors. Among steps in the collapsed score bin ($<$20), 82.3\% are classified as fully or partially executed. In other words, models attempted the instruction but made errors severe enough to prevent reconstruction. As reconstruction scores rise, compliance rates also rise.
+
+\paragraph{Non-compliance reasons are model failures.} The lowest score bin (collapsed) shows that the two major non-compliance categories are hallucinated output (6\%) and instructions being infeasible (8\%). The former is a known limitation of LLMs, while the latter is a consequence of the setting of our simulation: errors introduced in early rounds (such as hallucinations) can render later editing tasks infeasible, in cases where the relevant document elements are not present anymore. These two categories do not indicate models taking shortcuts to achieve higher scores, but rather reflect realistic failure modes that arise during delegated workflows.
+
+\paragraph{Partial execution may overstate model capabilities.} Across all judgments, 16.7\% of steps are classified as partially executed, meaning the model attempted some but not all aspects of the instruction. The rate of partial execution rises from 9.5\% in the perfect score bin to approximately 20\% in the mid and low bins. Since a partially executed edit is a simpler transformation than the intended one, it is easier likely easier to reverse, and the resulting round-trip score may lead us to overestimate the model's capability at the full intended task. In roughly one in six steps, models complete a simplified version of the requested edit, and the reconstruction score captures their performance on that simpler task rather than on the original instruction.
+
+Taken together, these results validate the use of backtranslation-based evaluation in \benchmark{}: models predominantly make genuine attempts at the editing tasks, and when they deviate---through hallucination, truncation, or infeasible instructions---the reconstruction score effectively captures the resulting degradation. The non-trivial rate of partial execution further suggests that our reported scores may slightly overstate true model capabilities at the intended tasks.
+
+
+\section{Backtranslation Properties, Assumptions, and Limitations} \label{app:backtranslation}
+
+In Section~\ref{sec:delegate52}, we introduced the round-trip backtranslation primitive as the backbone of evaluation in \benchmark{}. This appendix provides a more thorough discussion of the properties, assumptions, and limitations of this evaluation scheme.
+
+We use the following notation, consistent with the main text. A work environment contains a seed document $s$ and a set of edit tasks, each consisting of a forward instruction $x^{\rightarrow}$ and a backward instruction $x^{\leftarrow}$ defining a transformation $\sigma$ and its inverse $\sigma^{-1}$. An LLM $M$ produces a transformed document $t = M(s; x^{\rightarrow})$ and a reconstructed document $\hat{s} = M(t; x^{\leftarrow})$. A domain-specific similarity function $\mathrm{sim}(s, \hat{s}) \in [0, 1]$ measures reconstruction faithfulness.
+
+\subsection{Properties} \label{app:bt_properties}
+
+We first describe three properties that are inherent to backtranslation-as-evaluation and hold by construction, independent of any assumptions about the LLM being tested.
+
+\paragraph{Reference-free evaluation.} Backtranslation reduces the problem of evaluating LLM editing capability to measuring semantic equivalence between the original document $s$ and the reconstructed document $\hat{s}$. No reference annotations of intermediate states (i.e., the forward-edited document $t$) are required. This is the key property that enables \benchmark{} to scale to 52 domains without per-task annotation, in contrast to benchmarks that require expert-curated reference outputs for each task.
+
+\paragraph{Composability.} Each round-trip is an independent cycle that ideally returns the document to its original state. Round-trips can therefore be chained in any order to simulate arbitrarily long interactions, as formalized in Eq.~1. This composability is what enables us to simulate 20-interaction delegated workflows from a set of 5--10 edit tasks per work environment, by applying round-trips in sequence.
+
+\paragraph{Round-trip as atomic measurement unit.} The evaluation measures the composite operation $M(x^{\leftarrow}; M(x^{\rightarrow}; s))$, i.e., the full round-trip from $s$ through $t$ and back to $\hat{s}$. In other words, the evaluation captures the \textit{net} effect of both editing steps, losing the ability to decompose whether errors were introduced in the forward step, the backward step, or both (see \S\ref{app:bt_limitations}).
+
+\subsection{Assumptions} \label{app:bt_assumptions}
+
+The validity of backtranslation-as-evaluation rests on several assumptions about the edits and the models being tested. We enumerate these assumptions, discuss how our benchmark design enforces or encourages them, and note where they hold empirically.
+
+\paragraph{Stateless execution.} Each call to the LLM is independent: $M(x; s)$ depends only on the instruction $x$ and the document $s$, not on prior interactions. In our experiments, every editing step is conducted as a separate, single-turn session with no conversational history. We argue this design reflects realistic delegated work, where tasks may span different sessions, days, or stakeholders, and the full history of prior work is not always available in the environment. A consequence is that our simulations do not capture multi-turn refinement within a single session (e.g., ``actually, change the third ingredient instead''), which we discuss as a limitation below. In short, \benchmark{} is a multi-session but single-turn benchmark.
+
+\paragraph{Non-triviality.} The model must not treat edit instructions as no-ops: $M(x^{\rightarrow}; s) \neq s$. If a model simply returns the input unchanged, it trivially achieves $\mathrm{sim}(s, \hat{s}) = 1$ without performing any work. We validated empirically in Appendix~\ref{app:instruction_compliance} that models make best-effort attempts at executing instructions in close to 94\% of analyzed cases, confirming that low reconstruction scores reflect genuine execution errors rather than non-compliance. As an additional safeguard, our edit design rules explicitly require transformative edits (not purely expansive operations), making it less likely for a model to produce a no-op that would satisfy the instruction.
+
+\paragraph{Transformative edits.} Edits must require genuine transformation of the document, not merely expanding on the content. Formally, the forward edit $\sigma(s)$ cannot be decomposed into $[s, \sigma'(s)]$ (concatenation of the original with new content), as this would make the backward edit trivial (cropping the appended content). This assumption is enforced by our edit design rules (Rules~3, 4, 9 in Appendix~\ref{app:domain_creation}), which require that edits modify the existing content in place rather than purely extending it. We note that this does not exclude edits to have an expansive component (e.g., adding a new section to a report), as long as they also require modification of existing content (e.g., re-ordering sections).
+
+\paragraph{Order independence.} Round-trips must be composable in any order without affecting the ideal outcome. That is, for any two edit tasks $(\sigma_i, \sigma_i^{-1})$ and $(\sigma_j, \sigma_j^{-1})$, a perfect model should achieve $\mathrm{sim}(s, \hat{s}) = 1$ regardless of whether $\sigma_i$ is applied before or after $\sigma_j$. This is a design constraint on edit creation: edit tasks within a work environment must be mutually independent, so that one edit's forward--backward cycle does not alter state that another edit depends on.
+
+\paragraph{Error faithfulness.} For the round-trip score to be a meaningful measure of LLM capability, errors introduced during the forward step must survive through the backward step and surface in the evaluation. This requires two conditions. First, the backward step must approximately preserve errors: if the forward step introduces an error into $t$, the backward step should not coincidentally correct it. Formally, $M(x^{\leftarrow}; \cdot)$ should be approximately injective --- distinct inputs should produce distinct outputs, so errors are not collapsed. Second, error cancellation must be improbable: if $M(x^{\rightarrow}; s)$ introduces an error $\epsilon$, the probability that $M(x^{\leftarrow}; \cdot)$ introduces exactly $-\epsilon$ should be negligible. LLMs are stochastic and do not produce systematically self-canceling errors. We observe empirically that round-trip evaluation surfaces errors faithfully: in our experiments, low scores consistently correspond to genuine content loss or corruption upon manual inspection.
+
+\subsection{Limitations} \label{app:bt_limitations}
+
+We now discuss inherent limitations of the backtranslation approach: aspects of LLM capability or delegated work that our evaluation framework cannot capture.
+
+\paragraph{Focus on edit-based tasks.} Knowledge work is complex and involves many types of tasks beyond document editing, including information retrieval, decision-making, communication, and planning. Our simulation focuses exclusively on document editing, because edits produce observable changes to artifacts that can be evaluated programmatically. This scope means \benchmark{} does not assess LLM capabilities in other aspects of delegated work, even though such capabilities are equally important for real-world deployment.
+
+\paragraph{Round-trip opacity.} As noted in \S\ref{app:bt_properties}, the evaluation measures the composite round-trip and cannot observe individual editing steps. This has two consequences. First, a high score does not guarantee that the forward edit was performed well: a model could produce a poor or trivial forward edit that happens to be easy to reverse, achieving a high round-trip score without demonstrating genuine editing capability. Therefore, the round-trip score should be interpreted as measuring \textit{content preservation through editing cycles}, not the quality of any individual edit. Second, a low score cannot be decomposed: we cannot determine whether errors arose in the forward step, the backward step, or both. A further consequence is that our findings can only measure degradation every two interactions (i.e., every full round-trip), not after each individual edit.
+
+\paragraph{Reversibility constrains the edit space.} By construction, all edit tasks in \benchmark{} must be reversible: each forward instruction has a corresponding backward instruction that, for a perfect model, returns the document to its original state. This constraint excludes inherently irreversible real-world operations such as lossy compression, content deletion, or stylistic rewriting that is not captured by the domain parsing implementation. We however note that lossy transformations can often be combined with record keeping to create an overall reversible edit. Consider the following: an edit that alters the order of sections in a document is not reversible as order information is lost. But the edit can be made reversible by instructing the model to keep track of the original order in a separate original\_order.csv book-keeping file. We use this book-keeping trick extensively in \benchmark{} to create reversible versions of edits that would otherwise be irreversible.
+
+\paragraph{Single-turn interaction only.} Our stateless execution design means each editing step is a single-turn interaction: the model receives the document and an instruction, and produces a result. Real-world delegated work often involves multi-turn refinement within a session (e.g., a user reviewing an edit and requesting corrections). Our framework does not capture the ability of models to self-correct through iterative dialogue, nor does it test whether models can improve their edits when given feedback. Results from our agentic experiment (Section~\ref{sec:agentic}) offer partial insight, showing that even with tool-mediated iteration, models do not improve over the single-turn baseline. In Section~\ref{sec:limitations}, we discuss possible extensions to \benchmark{} that would allow for a multi-turn, multi-session simulation environment.
+
+\paragraph{Evaluation Imperfection.} The domain-specific similarity function $\mathrm{sim}(\cdot, \cdot)$ serves as ground truth for all measurements. If a parser lacks robustness --- aspects of document semantics it fails to capture --- then errors in those dimensions go undetected, creating a ceiling on evaluation sensitivity. We mitigate this risk through the ablation testing described in Appendix~\ref{app:domain_creation} (removing $K$ of $N$ blocks must reduce the score proportionally) and through the multi-stage QA process that iteratively hardens parsers against edge cases. The post-hoc analysis in Appendix~\ref{app:alt_eval_method} further validates that our domain-specific metrics capture substantially more variance than generic alternatives. However, parsing robustness is a long-tail challenge, and it likely leads to small-scale bias in evaluation.
+
+\paragraph{Subjective or many-to-many edits.} Edits where multiple valid outputs exist (e.g., ``make this recipe more appealing'' or ``improve the writing style'') cannot be reliably round-tripped, because the backward instruction cannot specify a unique inverse. Our edit design rules address this by requiring that edits be precisely specified: the forward and backward instructions must define a unique transformation path, leaving little room for subjective interpretation. This means \benchmark{} tests \textit{precise, task-oriented editing} rather than open-ended creative transformation, which is a distinct and complementary capability.
+
+
+\section{Domain Listing} \label{app:domain_listing}
+
+\benchmark{} spans 52 professional domains organized into five categories: Science \& Engineering, Code \& Configuration, Creative \& Media, Structured Records, and Everyday. Figure~\ref{fig:domain_categories} provides a visual overview of the domain coverage.
+
+\begin{figure*}[h!]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/domain_categories.pdf}
+    \caption{\benchmark{} includes work environments from 52 professional domains organized into five categories: Science \& Engineering, Code \& Configuration, Creative \& Media, Structured Records, and Everyday.}
+    \label{fig:domain_categories}
+\end{figure*}
+
+
+\section{Alternative Evaluation Methods} \label{app:alt_eval}
+
+In Section~\ref{sec:def_round_trip}, we described the domain-specific parsing and evaluation approach used in \benchmark{}. A natural question is whether simpler, generic evaluation methods could serve as adequate substitutes. We present a post-hoc comparison of alternative evaluation methods against the domain-specific scores, assessing whether generic evaluation methods are sufficient for evaluation in the complex textual domains included in \benchmark{}.
+
+\subsection{Evaluation Methodology} \label{app:alt_eval_method}
+
+\paragraph{Sample Selection.} We draw a stratified sample of 9,851 backward evaluation entries from our main experiment results (Section~\ref{sec:experiments}). Entries are stratified by domain ($N{=}52$) and domain-specific score bucket (20 buckets of width 0.05 over $[0, 1]$), sampling up to 10 entries per cell with a fixed random seed. This ensures uniform coverage across both domains and score levels. Entries with evaluation errors are excluded.
+
+\paragraph{Hard Subset.} Not all evaluation instances are equally informative: entries where the candidate is substantially shorter or longer than the reference (e.g., empty or truncated responses) are trivially scored by any method. To isolate genuinely challenging cases, we define a \textit{hard} subset consisting of entries where the character-level length ratio between the candidate and reference falls within $[0.8, 1.2]$. This subset ($N{\approx}4{,}600$, roughly 47\% of entries) filters out cases where length alone provides a strong scoring signal.
+
+\paragraph{Alternative Methods.} We evaluate five classes of generic evaluation methods against the domain-specific scores:
+
+\begin{enumerate}
+    \item \textbf{Levenshtein Ratio}~\cite{Levenshtein1965BinaryCC}: Character-level edit distance normalized by document length, computed via Python's \texttt{SequenceMatcher}. Measures surface-level textual similarity.
+    \item \textbf{ROUGE-L}: Longest common subsequence (LCS)-based F-measure~\cite{Lin2004ROUGEAP}, a standard metric in text generation evaluation. Captures token-level sequential overlap. 
+    \item \textbf{Embedding-based Similarity}: Cosine similarity between document-level embeddings. We evaluate four embedding models: nomic-embed-text-v1.5~\cite{Nussbaum2024NomicET} (run locally), and OpenAI's text-embedding-small and text-embedding-large~\cite{Neelakantan2022TextAC}. All embedding models have capacity for at least 8,000 tokens, which is sufficient for the majority of documents (2--5k tokens). 
+    \item \textbf{BERTScore}~\cite{Zhang2019BERTScoreET}: Token-level contextual embedding matching using RoBERTa-large~\cite{Liu2019RoBERTaAR}, with greedy alignment between candidate and reference tokens. Note that BERTScore's 512-token context window truncates most of our 2--5k token documents, evaluating only document prefixes.
+    \item \textbf{LLM-as-Judge}~\cite{Zheng2023JudgingLW}: LLM prompting approach (GPT~5.4, GPT~5 Nano) to rate semantic equivalence on a 0--100 scale, accounting for domain-specific semantics.
+\end{enumerate}
+
+\noindent For each method, we compute Spearman's $\rho$ against the domain-specific score on both the full sample and the hard subset.
+
+\subsection{Evaluation Findings} \label{app:alt_eval_findings}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/alt_evals_combined.pdf}
+    \caption{Comparison of alternative evaluation methods against domain-specific parsing-based scores. Each subplot shows the scatter of individual entries (gray) with a smoothed calibration curve (rose, median with IQR band). Methods are ranked by Spearman's $\rho$ on the full sample. The dashed diagonal represents perfect calibration.}
+    \label{fig:alt_evals}
+\end{figure*}
+
+Figure~\ref{fig:alt_evals} presents the comparison of alternative evaluation methods against our domain-specific scores. Three key findings emerge:
+
+\paragraph{(1) No method achieves strong correlation, especially on hard examples.} The best-performing method, GPT~5.4 as judge, achieves $\rho_{\mathrm{all}} = 0.634$ on the full sample but only $\rho_{\mathrm{hard}} = 0.474$ on the hard subset, explaining less than 25\% of variance in domain-specific scores ($\rho^2 \approx 0.22$). Surface-level methods (Levenshtein, ROUGE-L, local embedding) converge to $\rho_{\mathrm{hard}} \approx 0.40$, suggesting a ceiling for generic methods on this task. BERTScore performs worst ($\rho_{\mathrm{hard}} = 0.284$), likely due to its 512-token context window truncating most of our 2--5k token documents.
+
+\paragraph{(2) Systematic calibration biases.} The calibration curves in Figure~\ref{fig:alt_evals} reveal characteristic biases. Surface-level methods (Levenshtein, ROUGE-L) tend to over-penalize: documents with high domain-specific scores can receive low surface-level similarity scores when the model makes surface-level changes that do not affect semantics. Conversely, embedding-based methods and LLM judges tend to over-estimate: documents with low domain-specific scores receive high similarity scores because they appear superficially similar despite containing semantically consequential errors. Both bias direction would impose limits on reliable evaluation.
+
+\paragraph{(3) The best method is cost-prohibitive.} GPT~5.4 as judge is the only method with meaningfully higher hard-subset correlation than simple baselines, but at a cost that is impractical for large-scale evaluation. At an estimated cost of about \$4 per 1{,}000 judgments, the total cost would be on the order of the experiment itself, effectively doubling the budget without yielding reliable scores.
+
+These results demonstrate the necessity of domain-specific evaluation in \benchmark{}. Generic evaluation methods fail to capture the fine-grained semantic distinctions that determine whether a document has been correctly preserved across domains. Though the domain-specific parsing approach requires upfront implementation effort, it is both free to run at scale and sensitive to the domain-specific semantics that matter for evaluating delegated work.
+
+
+\section{Per-Domain Results} \label{app:per_domain_results}
+
+Table~\ref{tab:round10_by_domain} presents a per-domain breakdown of end-of-simulation scores across all 19 evaluated models. Each cell indicates the score bucket for a given model--domain pair after 20 interactions. The table reveals substantial variation across domains: programmatic domains such as Python and DB Schema are reliably handled by most models, while natural language and niche domains (e.g., Music, Textile, Transit) exhibit widespread corruption.
+
+\begin{table}[h!]
+\input{tables/round10_by_domain}
+\caption{Visual histogram of end of simulation scores (after 20 interactions), broken down across the 52 domains in \benchmark{}. Scores are binned into buckets: 
+\chbox{D6EEFF}{\checkmark\,$\geq$98} (``\textit{ready}'')\;
+\chbox{FFF9EC}{95--98}\;
+\chbox{FEF2CC}{90--95}\;
+\chbox{FFE3D3}{80--90}\;
+\chbox{F9C6C6}{70--80}\;
+\chbox{E8A0A0}{55--70}\;
+\chbox{D48A8A}{$<$55}. Catastrophic corruption (80 and below) occurs in more than 80\% of model, domain combinations. Python is the only domain where a majority of models achieve the ready status, and the best model (Gemini 3.1 Pro) is ready for delegated workflows in only 11 out of 52 domains.}
+\label{tab:round10_by_domain}
+\end{table}
+
+
+\section{Document Property Analysis} \label{app:domain_chars}
+
+To understand what document properties influence task difficulty for current LLMs, we analyzed the relationship between measurable document properties and reconstruction scores for GPT~5.2. As with the semantic operation analysis (Appendix~\ref{app:semantic_ops}), we use single-round-trip results from the edit testing phase (Appendix~\ref{app:edit_qa}) to isolate document-level effects from multi-round error accumulation.
+
+\subsection{Document Property Metrics}
+
+We compute five properties from the initial document of each work environment, capturing different aspects of document structure and content:
+
+\paragraph{Naturalness.} Ratio of function words (determiners, prepositions, pronouns, conjunctions, and auxiliary verbs) to total words, normalized so that the typical prose rate (${\sim}$45\% function words) maps to 1.0. High values indicate natural language prose; low values indicate code, data, or markup.
+
+\paragraph{Numerical fraction.} Fraction of whitespace-delimited tokens that contain at least one digit. Captures the prevalence of numeric data (coordinates, timestamps, quantities) in the document.
+
+\paragraph{Vocabulary richness.} Type-token ratio: number of unique lowercased words divided by total words. Higher values indicate diverse vocabulary (e.g., prose), while lower values indicate repetitive token usage (e.g., structured records with recurring field names).
+
+\paragraph{Repetitiveness.} Fraction of 5-grams that appear more than once in the document. High values indicate documents with repeated structural patterns (e.g., tabular rows, chemical records); low values indicate documents with mostly unique phrasing.
+
+\paragraph{Structural density.} Fraction of characters that are neither alphabetic nor whitespace (e.g., punctuation, brackets, operators, delimiters). High values indicate markup-heavy or code-heavy content; low values indicate natural prose.
+
+\subsection{Category-Level Overview}
+
+Table~\ref{tab:domain_characteristics} reports mean reconstruction scores and document properties for each of the five domain categories defined in Section~\ref{sec:delegate52}, and Figure~\ref{fig:domain_characteristics} shows the Cohen's $d$ effect sizes for each property on reconstruction score.
+
+\begin{figure*}[h]
+    \centering
+    \begin{minipage}[t]{0.57\textwidth}
+        \vspace{0pt}
+        \centering
+        \input{tables/domain_characteristics}
+        \captionof{table}{Category-level document properties and mean reconstruction scores (GPT~5.2, single round trips). LLMs perform best in Science \& Engineering domains (97.3\%) and worst in Everyday domains (89.9\%).}
+        \label{tab:domain_characteristics}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.41\textwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[width=\textwidth]{figures/domain_characteristics.pdf}
+        \captionof{figure}{Cohen's $d$ effect sizes for document properties on scores. LLMs degrade less on repetitive and numerical documents, and more on natural language documents.}
+        \label{fig:domain_characteristics}
+    \end{minipage}
+\end{figure*}
+
+\subsection{Findings}
+
+Two document properties show the largest effects. \textit{Repetitiveness} ($d = {+}0.261$, $p < 0.001$) is the strongest positive predictor: LLMs degrade less on documents with highly repetitive structure (e.g., tabular data, chemical records). \textit{Naturalness} ($d = {-}0.260$, $p < 0.001$) is the strongest negative predictor: LLMs degrade more on documents dominated by natural language prose.
+
+\textit{Numerical fraction} ($d = {+}0.159$, $p < 0.001$) and \textit{structural density} ($d = {+}0.119$, $p < 0.001$) are also associated with less degradation. \textit{Vocabulary richness} ($d = {-}0.209$) has a notable effect size but does not reach statistical significance ($p = 0.18$), possibly due to its correlation with naturalness.
+
+In summary, LLMs degrade least on documents that are repetitive, numerical, and structurally dense---properties typical of formal and machine-oriented formats---and most on documents that are natural and lexically diverse---properties typical of human-authored prose. This provides actionable advice for knowledge work delegation: current LLMs are more performant at manipulating structured files (Science \& Engineering, Code \& Configuration) than natural language documents (Everyday, Creative \& Media).
+
+
+\section{Semantic Operation Analysis} \label{app:semantic_ops}
+
+Each editing task in \benchmark{} is annotated with the semantic operations it requires (see Appendix~\ref{app:env_scaling}), drawn from a set of 11 operations. We report the distribution of these operations across all editing tasks in the benchmark, and study the relative difficulty of editing tasks based on these operations for current LLMs.
+
+\begin{figure*}[t]
+    \centering
+    \begin{subfigure}[t]{0.37\textwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[width=\textwidth]{figures/semantic_ops_a.pdf}
+        \subcaption{Operation Frequency}
+        \label{fig:semantic_ops_freq}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.23\textwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[width=\textwidth]{figures/semantic_ops_b.pdf}
+        \subcaption{Operations per Task}
+        \label{fig:semantic_ops_dist}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.38\textwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[width=\textwidth]{figures/semantic_ops_c.pdf}
+        \subcaption{Operation Difficulty (GPT~5.2)}
+        \label{fig:semantic_ops_difficulty}
+    \end{subfigure}
+    \caption{Semantic operation analysis of the editing tasks in \benchmark{}.
+    (\subref{fig:semantic_ops_freq})~Operation frequency across editing tasks: some operations (sorting) are more common than others (constraint satisfaction).
+    (\subref{fig:semantic_ops_dist})~Editing tasks typically involve 2 (39\%) or 1 (33\%) operations, but some require up to 5 simultaneously, with a mean of 2.0 operations per task.
+    (\subref{fig:semantic_ops_difficulty})~Point-biserial correlation between operation presence and backward reconstruction score (GPT~5.2 model), with 95\% confidence intervals. Operations requiring global manipulation (split-and-merge, classification, format knowledge) are significantly more challenging than localized operations (string manipulation, referencing).}
+    \label{fig:semantic_operations}
+\end{figure*}
+
+\paragraph{Operation distribution.} Figure~\ref{fig:semantic_ops_freq} shows the frequency of each semantic operation across editing tasks, and Figure~\ref{fig:semantic_ops_dist} shows that most editing tasks involve 1 or 2 semantic operations (72\% combined), and occasionally involve 4 or more (5\%).
+
+\paragraph{Operation difficulty.} To study the relationship between semantic operations and editing difficulty in isolation, we use single-round-trip results from the edit testing phase (Appendix~\ref{app:edit_qa}) rather than sequential multi-round simulations. This isolates the difficulty of each edit task independent of error accumulation from prior rounds in the work environment. We ran individual round trips with GPT~5.2 and compute the point-biserial correlation between each operation's presence (binary) and the backward reconstruction score across 14,973 round trips. Figure~\ref{fig:semantic_ops_difficulty} presents the results as a forest plot.
+
+Three operations are significantly associated with \textit{lower} reconstruction scores: \textit{split and merge} ($r_{pb} = {-}0.080$, $p < 0.001$), \textit{classification} ($r_{pb} = {-}0.076$, $p < 0.001$), and \textit{format knowledge} ($r_{pb} = {-}0.060$, $p < 0.001$). These operations often require \textit{global} document restructuring, where the model must reason about the full document structure and where information can be silently dropped or misrouted.
+
+Conversely, three operations are significantly associated with \textit{higher} scores: \textit{string manipulation} ($r_{pb} = {+}0.068$, $p < 0.001$), \textit{referencing} ($r_{pb} = {+}0.043$, $p < 0.001$), and \textit{context expansion} ($r_{pb} = {+}0.023$, $p < 0.01$). These might involve a larger number of \textit{local} operations where the model can operate on individual tokens or passages without needing global document understanding.
+
+\paragraph{Number of operations.} We further find that number of semantic operations an editing task involves is negatively correlated with reconstruction score (Spearman $r = {-}0.043$, $p < 0.001$). Mean scores decline monotonically from 94.0\% for single-operation tasks to 82.6\% for tasks requiring five simultaneous operations, suggesting that compound tasks are more challenging as operations must be coordinated.
+
+In summary, this analysis suggests that the \textit{type of cognitive operation} the editing task requires influences the difficulty of the task for current LLMs. We note that since this analysis is based on experiments involving a single model, the reported correlations may not generalize to all models. The results should be interpreted as preliminary evidence rather than a generalizable pattern.
+
+
+\section{Critical Error Analysis} \label{app:critical_errors}
+
+\begin{table*}[h]
+    \input{tables/critical_errors}
+    \caption{Critical error analysis (10+ drop within single round). \textit{Left:} cumulative \% of runs with at least one critical error after N interactions. \textit{Right:} share of total degradation from critical errors and average per-run drop magnitudes. Models sorted by round-20 critical error rate (ascending).}
+    \label{tab:critical_errors}
+\end{table*}
+
+We define a \textit{critical error} as a round trip that leads to a degradation of at least 10 points relative to the previous round. Table~\ref{tab:critical_errors} analyzes the prevalence of critical errors in the simulations we conducted.
+
+The first section of the Table (\textit{\% Runs w/ Critical Error by Round}) reports, for each interaction length, the cumulative percentage of runs in which at least one critical error has occurred by that point. The second section (\textit{Degradation Breakdown}) quantifies the share of total degradation attributable to critical errors: \textit{\% Critical} is the pooled ratio of critical-error drops to all drops across runs, while \textit{Avg Drop} and \textit{Avg Crit Drop} report the mean per-run total and critical gross drop (in percentage points).
+
+Across all models, critical errors account for 80--98\% of total degradation, confirming that score loss is dominated by critical single-step failures rather than gradual accumulation of small errors. By round 20, the majority of runs for all models except Gemini 3.1 Pro have experienced at least one such critical error.
+
+In other words, our simulations indicate models are not failing due to ``death by a thousand cuts.'' LLMs don't slowly corrupt content through many small rounding errors. Instead, they maintain near-perfect reconstruction in some rounds, and experience critical failures in a few rounds — typically losing 10-30+ points in a single round-trip. These sparse critical failures explain document degradation in large part. The stronger models (Gemini 3.1 Pro, Claude 4.6, GPT~5.4) aren't avoiding small errors better, they delay critical failures to later rounds and experience them in fewer interactions.
+
+
+\section{Deletion vs.\ Corruption Decomposition} \label{app:deletion_corruption}
+
+When models degrade document content, there are two distinct error categories: \textit{deletion} (dropping content that was present in the original document) and \textit{corruption} (modifying, hallucinating, or otherwise distorting content). Understanding the relative contribution of each is important for designing mitigations: deletion might be more readily noticed as document size shrinks, while corruption requires more careful review to detect.
+
+\subsection{Methodology}
+
+\paragraph{Count-based decomposition.} Our domain-specific evaluators (Figure~\ref{fig:domain_anatomy}) parse documents into structural elements (e.g., ingredients in a recipe, entries in a ledger) and report both reference and generated element counts. Let $n_{\mathrm{ref}}$ and $n_{\mathrm{gen}}$ be the reference and generated element counts, and $s \in [0, 1]$ the reconstruction score. We define \textit{coverage} $= \min(n_{\mathrm{gen}} / n_{\mathrm{ref}},\, 1)$, which captures the fraction of expected elements that are present. The deletion component is $1 - \text{coverage}$ (elements that are missing), and the corruption component is $\text{coverage} - s$ (elements that are present but incorrect). The two components sum to $1 - s$, the total degradation. This analysis is conducted on a subset of 38 of the 52 domains for which element counts meaningfully represents the core element in the domain.
+
+\paragraph{Failure-mode re-aggregation.} In a separate analysis, we tagged failure instances from our simulation with one of 11 failure-mode labels. We group these labels into two buckets: \textit{deletion} (\texttt{content\_loss} and \texttt{truncation}) and \textit{corruption} (the remaining 9 tags: \texttt{hallucination}, \texttt{structure\_change}, \texttt{skipped\_backward\_edit}, \texttt{syntax\_error}, \texttt{mathematical\_error}, \texttt{duplicated\_content}, \texttt{reordering}, \texttt{templated\_completion}, and \texttt{other}).
+
+\subsection{Findings}
+
+\begin{figure*}[h]
+    \centering
+    \begin{minipage}[t]{0.48\textwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[width=\textwidth]{figures/deletion_vs_corruption_counts.pdf}
+        \captionof{figure}{Count-based decomposition of degradation at round 10 into deletion (missing elements) and corruption (present but incorrect elements). Models sorted by total degradation.}
+        \label{fig:del_cor_counts}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[width=\textwidth]{figures/deletion_vs_corruption_failure_modes.pdf}
+        \captionof{figure}{Failure-mode re-aggregation. Each tagged failure instance is classified as deletion or corruption. Deletion share ranges from 28\% (Claude 4.6 Opus) to 43\% (GPT~5 Chat, GPT~4o).}
+        \label{fig:del_cor_fm}
+    \end{minipage}
+\end{figure*}
+
+\paragraph{Weaker models delete more, corruption dominates for frontier models.} In the count-based analysis (Figure~\ref{fig:del_cor_counts}), the models with worse performance (GPT~4o, GPT~5 Nano) 70--73\% of degradation is attributable to deletion, while for current frontier models (Claude 4.6 Opus, Claude 4.6 Sonnet) deletion only explains 22--27\% of observed degradation. The failure-mode analysis (Figure~\ref{fig:del_cor_fm}) corroborates this: deletion accounts for 35\% of all tagged failures, with a narrower range (28--43\%) across models.
+
+In short, current LLMs primarily corrupt user documents in delegated workflows. Degradations observed over repeated editing interaction is primarily attributable to the model altering content in a way that is incorrect, hallucinated or distorted, rather than simply deleting content.
+
+
+\section{Context-Size Experiment} \label{app:context_size_exp}
+
+This section details the experimental setup for the context-size ablation reported in Section~\ref{sec:context_size}, which isolates the effect of document size on degradation during simulated delegated workflows.
+
+\subsection{Domain and Size Selection}
+
+We selected five domains for this experiment, one from each benchmark category: Accounting (Structured Record), Calendar (Everyday), Playlist (Creative \& Media), Satellite (Science \& Engineering), and Spreadsheet (Code \& Configuration). Domains were selected based on their ability to be scaled (they consisted of a list of entries that could be removed without losing document coherence).
+
+For each domain, we produced six document-size variants at approximately 1k, 2k, 4k, 6k, 8k, and 10k tokens, yielding 30 work environment variants in total. The experiment was run with a single model (GPT~5.4) under the same conditions as the main experiment (10 round-trips, no tools), with document size as the only varying parameter.
+
+\subsection{Work Environment Construction}
+
+For each domain, we first constructed a document of approximately 10,000 tokens from a real-world document, sourced in a process that is similar to main work environments in the benchmark. Smaller size variants were then derived from the 10k document through balanced ablation: entries were grouped by a primary categorical field in the domain (e.g., expense category, calendar track, rotation status) and proportionally downsampled at each target size, ensuring that the distribution of categories is preserved and that the resulting document remains well-formed.
+
+A single set of six reversible edits was written per domain based on the 10k token document and shared identically across all six size variants. Edits were designed to be \textit{size-agnostic}: they reference structural properties of the document (e.g., ``split by category,'' ``sort by date'') rather than specific entries or hardcoded counts, so that each edit remains feasible and well-defined at every scale. By construction, the same edit prompts applied to documents ranging from ${\sim}$850 to ${\sim}$10,000 tokens produce analogous transformations, enabling direct comparison of degradation across document sizes. No distractor context was included in this experiment.
+
+
+\section{Image Domain} \label{app:image_domain}
+
+This section details the image editing domain introduced in Section~\ref{sec:image_domain}, which extends \benchmark{} beyond textual documents.
+
+\paragraph{Image Selection.} We selected 6 photographs from Wikipedia (all public domain), spanning diverse visual subjects. Each image was resized to 512$\times$512 pixels (PNG).
+
+\paragraph{Edit Design.} Each work environment has 6--7 forward/backward edit pairs that matches the structure of textual domains. Edits target domain-specific visual transformations such as color changes (e.g., ``change foliage to autumn colors''), style transfers (e.g., ``re-render in Van Gogh's style''), lighting modifications (e.g., ``add Rembrandt lighting''), object replacement (e.g., ``replace chicken with salmon''), and atmospheric effects (e.g., ``add monsoon rain''). Each forward edit is paired with a reverse instruction designed to recover the original image (e.g., ``change autumn foliage to more spring-like green'').
+
+\paragraph{Execution.} We evaluated models with dedicated image generation capabilities. The model receives the current image together with a text prompt describing the requested edit. The prompt template instructs the model to \textit{``change as little as possible apart from what is explicitly requested.''} Each work environment consists of a single 512$\times$512 image with no distractor context.
+
+\paragraph{Evaluation.} We use a composite perceptual similarity metric that compares the generated image against the original reference. The metric combines three components:
+
+\begin{itemize}[nosep]
+    \item \textbf{SSIM} (structural similarity on RGB channels): 50\% weight --- captures structural degradation while preserving sensitivity to color changes.
+    \item \textbf{HSV histogram correlation}: 25\% weight --- captures global color distribution fidelity across hue, saturation, and value channels.
+    \item \textbf{Pixel similarity} ($1 - \text{RMSE} \times 2.5$, clamped to $[0, 1]$): 25\% weight --- captures per-pixel deviations with a steep penalty curve.
+\end{itemize}
+
+\noindent The weights were calibrated through ablation testing to ensure appropriate metric behavior: identical images score 1.0, minor distortions (e.g., JPEG compression, light blur) score 0.87--0.97, moderate transformations (e.g., grayscale conversion) score 0.60--0.80, and severe distortions (e.g., random noise) score below 0.10.
+
+\paragraph{Models.} We tested 9 models with image generation capabilities from four families: Instruct~Pix2Pix~\cite{Brooks2022InstructPix2PixLT}, GPT~Image~1~\cite{Hurst2024GPT4oSC} (OpenAI), Flux~Kontext~\cite{Labs2025FLUX1KF}, Flux2~Dev, Flux2~Klein~4B, and Flux2~Klein~9B~\cite{flux-2-2025} , and Gemini~2.5~Flash~Image, Gemini~3~Pro~Image, and Gemini~3.1~Flash~Image~\cite{Comanici2025Gemini2P} (Google). Figure~\ref{fig:image_domain_gallery} shows representative outputs from all 9 models over 10 round trips on a single work environment, illustrating the visual degradation patterns.
+
+\begin{figure*}[p]
+    \centering
+    \includegraphics[width=\textwidth]{figures/image_domain.pdf}
+    \caption{Image domain gallery: visual degradation over 20 delegated interactions (10 round trips) for 9 image generation models. Each row shows one model's output after each round trip, starting from the original image (left). All models exhibit progressive degradation, with weaker models losing fidelity within the first few interactions.}
+    \label{fig:image_domain_gallery}
+    \label{app:image_domain_gallery}
+\end{figure*}
+
+
+
+\section{Dataset Creation Process} \label{app:dataset_creation}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/dataset_creation_process.pdf}
+    \caption{\benchmark{} was created using a human-directed, semi-automated agentic workflows (delegated work). The project was primarily implemented in Python in Visual Studio Code, with Claude 4.5 Opus and Claude 4.6 Opus as the main LLM agents.}
+    \label{fig:dataset_creation_process}
+\end{figure*}
+
+The creation of \benchmark{} followed an eight-stage pipeline, illustrated in Figure~\ref{fig:dataset_creation_process}. The process combined human-directed oversight with semi-automated agentic workflows: at each stage, LLM-powered subagents performed structured subtasks (brainstorming, classification, prompt writing) while a human researcher reviewed outputs, made design decisions, and triggered iteration. We describe each stage below.
+
+\subsection{Stage 1: Domain Brainstorm} \label{app:domain_brainstorm}
+Domain identification followed a two-phase hierarchical brainstorm. In Phase~1, we enumerated approximately 50 general areas or industries likely to contain domain-specific textual artifacts used in professional knowledge work. In Phase~2, for each general area, subagents independently brainstormed specific document types within that area, evaluating candidates on four criteria: (1)~the area involves creating and editing structured textual artifacts, (2)~the area uses domain-specific file formats or notations (not generic office documents), (3)~real-world examples are publicly available online, and (4)~the domain is distinct from those already selected. This process produced over 100 candidate domains. We shortlisted candidates through additional prioritization filters: well-defined text format with clear syntax, publicly downloadable with minimal friction, support for multiple interesting edit types, moderate complexity (challenging but tractable for evaluation), and diversity across professions. We additionally measured domain popularity on GitHub by counting files with domain-specific extensions, as a proxy for LLM training data density. The final selection of 52 domains spans five categories (Science \& Engineering, Code \& Configuration, Creative \& Media, Structured Record, and Everyday), covering a broad range of structured textual formats from crystallography files to textile patterns.
+
+\subsection{Stage 2: Domain Creation} \label{app:domain_creation}
+For each of the 52 domains, we created an initial work environment consisting of a seed document, a domain-specific parser and evaluator, and a set of initial edit tasks. This stage is broken into three sub-steps.
+
+\textit{First Environment Preparation.} Seed documents were sourced primarily through GitHub code search, filtered by file extension and size. Each candidate was validated against the desiderata listed in \autoref{tab:document_desiderata}. When raw documents exceeded the 2--5k token target, they were preprocessed (trimming, comment removal, normalization) using domain-specific Python scripts. Provenance metadata (source URL, license, search query used) was recorded for each selected document.
+
+\textit{Parser \& Evaluator.} For each domain, we implemented a Python module exposing three methods: \texttt{parse\_context} (converts raw document files into a structured representation), \texttt{compute\_domain\_statistics} (extracts summary metrics), and \texttt{evaluate\_context} (scores semantic equivalence between a candidate and reference document on a $[0, 1]$ scale). Implementation prioritized existing parsing libraries (e.g., \texttt{python-chess} for PGN, \texttt{python-ly} for LilyPond, \texttt{icalendar} for iCal) over custom parsers, to maximize robustness across the diversity of real-world documents. Domain modules also include an optional \texttt{preprocess\_context} method that normalizes common syntax errors observed in small-scale LLM simulations (e.g., extra whitespace, alternate quoting styles, code fences in output, case differences in keywords), making the parser more forgiving of minor syntax-sugar deviations without inflating scores for genuinely incorrect outputs. Each evaluator was validated through ablation testing: removing $K$ out of $N$ logical blocks from a document must produce a score no higher than $1 - K/N$, ensuring proportional sensitivity to content loss.
+
+\textit{Edit Task Ideation.} For the initial environment, we designed 5--7 reversible edit tasks. Edits were brainstormed using a persona-driven approach: for each document, we identified 3--5 realistic personas (e.g., auditor, grant writer, board treasurer for an accounting ledger) and designed edits reflecting the transformations each persona would plausibly request. Each edit task consists of a forward instruction and a backward instruction that must be lossless when composed. Nine rules governed edit design: edits must be domain-specific (Rule~1), fully reversible with no information loss (Rule~2), transformative rather than purely expansive (Rules~3, 4, 9), written in natural language without mentioning reversibility (Rules~5, 6), use wildcards when filenames should not be revealed (Rule~7), and include ordering metadata when splitting or merging (Rule~8). 
+
+\subsection{Stage 3: Domain Quality Assurance} \label{app:domain_qa}
+After creating the initial work environment for each domain, we ran an iterative quality assurance loop to validate and refine the parser, and evaluator of the domain. The loop consists of three sub-steps.
+
+\textit{Edit Testing.} Each forward--backward edit pair was tested in isolation by running round-trip evaluations: starting from the seed document, applying the forward edit with an LLM, then applying the backward edit to the result, and scoring the reconstruction against the original. Tests were run with two models (GPT~5.2 and GPT~5 Mini) for 5 runs per edit pair, providing statistical reliability.
+
+\textit{Failure Triage.} Low-scoring round trips (score $< 0.1$) were inspected and classified into three categories: (a)~\textit{warranted} failures, where the LLM output was genuinely poor, (b)~\textit{parser failures}, where the output was semantically correct but the evaluator rejected it due to minor formatting differences, and (c)~\textit{ambiguous} cases requiring deeper investigation.
+
+\textit{Fix \& Iterate.} Based on the triage, we applied targeted fixes. For parser failures, we added preprocessing normalization to the evaluator (e.g., tolerating whitespace variants, alternate quoting) to reduce false negatives without inflating scores for genuinely incorrect outputs. After fixes, edit testing was re-run to confirm improvements, and the loop repeated until all identified issues were resolved.
+
+\subsection{Stage 4: Environment Scaling} \label{app:env_scaling}
+The domain creation stage produced one work environment per domain. In this stage, we scaled to six work environments per domain by finding five additional seed documents and creating edit tasks for each. The process follows three sub-steps.
+
+\textit{Find Seed Documents.} For each domain, we searched for diverse real-world documents using GitHub code search, public data portals, and open-source project repositories. Diversity was explicitly targeted along four axes: subject matter, structural complexity, size within the 2--5k token range, and authorship style. Each candidate was validated against the document desiderata (\autoref{tab:document_desiderata}), tested for parser compatibility, and documented with full provenance.
+
+\textit{Brainstorm Edits.} Edit tasks for the new work environments were generated using persona-driven ideation, following the same approach as the initial domain creation.
+
+\subsection{Stage 5: Work Environment Completion} \label{app:env_completion}
+Before quality assurance at scale, each work environment was completed with three additional components.
+
+\textit{Prompt Minimization.} Forward and backward prompts were minimized by an LLM to remove redundant information: standard domain conversions that any competent practitioner would know, repeated phrasings, and patterns obvious from a single example. The objective was to ensure each prompt is realistic as users are unlikely to provide obvious information in instructions, and that instructions contain exactly the information needed to perform the edit. Motivational or background context (e.g., ``customers have trouble pronouncing dish names'') was retained in instructions, as real users often include such framing.
+
+\textit{Semantic Tagging.} Each edit task was tagged with the semantic operations it requires, drawn from a set of 11 operations: \textit{numerical reasoning}, \textit{constraint satisfaction}, \textit{split and merge}, \textit{topic modeling}, \textit{classification}, \textit{domain knowledge}, \textit{format knowledge}, \textit{string manipulation}, \textit{sorting}, \textit{context expansion}, and \textit{referencing}. Operations were assigned by an LLM based on the actual prompt text, with strict criteria: an operation was applied only if the edit thoroughly involves it, not merely incidentally. Operations are assigned for an edit task, considering both the forward and backward edit instructions.
+
+\textit{Distractor Context.} For each work environment, we curated 1--5 distractor documents totaling 8--12k tokens. Distractor documents are topically related to the seed document but must not interfere with any edit task. Distractor creation followed eleven criteria (D1--D11), including: topical relatedness, non-interference with edits, heterogeneous file formats, licensed for redistribution, real-world sourced (not synthetic), not overly famous, and at most 50\% sourced from Wikipedia to ensure source diversity. Distractors were sourced from GitHub repositories, Wikipedia, government documents, and open data portals.
+
+\subsection{Stage 6: Edit Task Quality Assurance} \label{app:edit_qa}
+After implementing 310 work environments in 52 domains, we ran edit testing on the 2,125 edit tasks of the benchmark. The process mirrors the domain-level QA (Stage~3) but operates at the dataset level, and focuses on correctness of edit tasks rather than the domain parsing and evaluation.
+
+\textit{Run Testing.} Forward--backward round trips were executed for all edit tasks with two models (GPT~5.2 and GPT~5 Mini), with 5 runs per pair. Results were stored as structured logs for automated analysis.
+
+\textit{Classify Failures.} Edits where all tested models scored below a threshold (80\%) were flagged as problematic. Each flagged edit was classified by an LLM into one of three categories: (a)~\textit{eval\_parser\_error}, where the output is semantically correct but the evaluator fails to capture the similarity, (b)~\textit{prompt\_edit\_error}, where the prompt design makes the round-trip infeasible even for a perfect model, or (c)~\textit{model\_error}, where the prompts are well-defined but the model fails due to its own limitations.
+
+\textit{Fix or Delete.} For edits classified as parser errors, the evaluator was patched with additional preprocessing. For prompt errors, an LLM suggested either a rewrite (clarifying ambiguity, adding preservation instructions) or deletion (if the edit was fundamentally not reversible). After applying fixes, stale test logs were purged and the testing loop was repeated until convergence.
+
+\subsection{Stage 7: Distractor Quality Assurance} \label{app:distractor_qa}
+A dedicated QA stage verified that distractor documents do not interfere with edit tasks. This stage uses an LLM-based detection pipeline.
+
+\textit{Detect Interference.} For each work environment, an LLM reviewed all edit prompts alongside the full set of basic-state and distractor files, classifying each edit as either \textit{no\_interference} or \textit{interference}. Five interference types were checked: filename collision (distractor shares a name with a task file), content confusion (distractor content so similar it could be incorporated into the edit), prompt scope ambiguity (prompt language that could apply to distractors, e.g., ``merge all CSV files''), information leakage (distractor reveals parts of the expected target), and structural interference (distractor alters interpretation of the file set).
+
+\textit{Fix Interference.} Flagged cases were resolved through one of four actions, in order of preference: (a)~\textit{dismiss} the flag as a false positive, (b)~\textit{modify the edit task instructions} to reference files by exact filename rather than generic descriptions, (c)~\textit{delete the problematic distractor file} (provided the remaining distractor context retained at least 5,000 tokens), or (d)~\textit{delete the edit} as a last resort. After fixes, the detection pipeline was re-run to confirm resolution.
+
+\subsection{Stage 8: Final Work Environment Validation} \label{app:final_validation}
+Before finalizing the benchmark, every work environment passed a comprehensive validation suite of 23 automated checks. The checks covered structural integrity (valid JSON, required keys, state graph connectivity, no orphan states), context properties (token count within the 2--5k range, no triple backticks, files exist on disk), edit requirements (minimum 4 forward edits, prompts non-empty and free of reversibility-revealing language), metadata completeness (provenance URL, license, redistribution status, semantic operation tags, state summaries $\leq$25 words), distractor integrity (metadata matches files on disk, token budget met), and domain API verification (self-evaluation of the seed document scores exactly 1.0). The final benchmark comprises 310 validated work environments across 52 domains, totaling 2,125 edit tasks.
+
+
+\section{Model Details} \label{app:model_details}
+
+Table~\ref{tab:model_details} lists the exact model versions and providers used in our experiments.
+
+\begin{table*}[h!]
+\input{tables/model_details}
+\caption{Model details for the 19 LLMs evaluated in \benchmark{}.}
+\label{tab:model_details}
+\end{table*}
+
+
+\section{Agentic Harness (Operating Models with Tools)} \label{app:agentic_harness}
+
+This section details the agentic harness used in the experiments of Section~\ref{sec:agentic}, where models are given tools and allowed to iteratively edit workspace files rather than generating modified documents in a single instruction response.
+
+\subsection{Tools and Execution Environment}
+
+The agentic harness provides the model with five tools via the OpenAI function-calling interface:
+
+\begin{enumerate}
+    \item \texttt{read\_file(filename)}: Read the full contents of a workspace file.
+    \item \texttt{write\_file(filename, content)}: Create or overwrite a file with the given content.
+    \item \texttt{delete\_file(filename)}: Remove a file from the workspace.
+    \item \texttt{run\_python(code)}: Execute a Python script with read/write access to workspace files.
+    \item \texttt{finish()}: Signal completion of the task.
+\end{enumerate}
+
+Files are backed by an in-memory virtual filesystem. The \texttt{run\_python} tool materializes workspace files to a temporary directory, executes the script, and syncs any file changes back to the virtual filesystem. Python execution is sandboxed using \texttt{bubblewrap} (\texttt{bwrap}): system libraries and the Python interpreter are mounted read-only, the script has read-write access only to the temporary workspace directory, and network access is disabled (\texttt{--unshare-net}). Scripts are subject to a 30-second timeout, and their output is truncated to 10,000 characters to prevent context blowup.
+
+\subsection{Iteration Budget and Termination}
+
+The agentic loop runs for a maximum of 25 LLM round-trips (turns), with an additional hard stop at 500,000 cumulative tokens. In practice, all tested models complete their editing tasks well within this budget: the top-performing models reach the \texttt{finish()} signal in over 99\% of runs before exhausting the turn limit.
+
+The harness enforces a \textit{write-before-finish} constraint: the model must perform at least one write operation (\texttt{write\_file} or \texttt{run\_python}) before the \texttt{finish()} tool is accepted. If the model calls \texttt{finish()} prematurely, it receives an error message instructing it to read the files, apply the requested edits, and then call \texttt{finish()}. If the model stops issuing tool calls without having written anything, the harness sends a nudge message asking it to use the tools.
+
+\subsection{Distractor Handling}
+
+In the single-shot setting, the full content of all files (including distractors) is provided in the initial prompt; the model must process the entire context to produce its output. In the agentic setting, only the \textit{filename} of all workspace files (including distractors) is listed in the initial prompt; the model must explicitly call \texttt{read\_file} to inspect any file's contents. The agentic setting is therefore structurally advantaged with respect to distractor handling: the model can choose to read only the files relevant to the task and ignore the rest, whereas the single-shot model is forced to process all content. We log every \texttt{read\_file} call to track which files (including distractors) each model reads, enabling post-hoc analysis of distractor interaction in the agentic setting. We find in our simulations that models tend to read an average of 20\% of distractor files during simulation, confirming the advantage the agentic setting has over the single-shot setting.
+
+At the end of each agentic run, distractor files are stripped from the output snapshot to prevent context bloat across successive round-trips. Distractor files are then reintroduced in the next simulated interaction. In other words, modifications to distractor files by the model are not preserved. 
+
+\subsection{Logging and Metadata}
+
+For each agentic run, we log the following metadata:
+
+\begin{itemize}
+    \item \textbf{Token usage}: Cumulative prompt tokens, completion tokens, and reasoning tokens (when available) across all turns.
+    \item \textbf{Cost}: Total monetary cost in USD, based on model per-token pricing.
+    \item \textbf{Latency}: Wall-clock time for each LLM call and cumulative latency.
+    \item \textbf{Turn count}: Number of LLM round-trips used.
+    \item \textbf{Tool call log}: For each tool invocation, we record the tool name, the turn number, and the argument keys (file contents and code are omitted for compactness).
+    \item \textbf{Operation sequence}: Ordered list of tool names, enabling high-level tracing of the model's editing strategy (e.g., read-read-write-finish vs.\ read-run\_python-finish).
+    \item \textbf{Files read}: Every filename passed to \texttt{read\_file}, used for distractor analysis.
+    \item \textbf{Clean finish}: A boolean indicating whether the model called \texttt{finish()} (or stopped issuing tool calls after writing) versus hitting the turn or token budget.
+\end{itemize}
+
+
+\section{Extended Related Work} \label{app:extended_rel_work}
+
+\paragraph{Evaluating AI Systems for Knowledge Work.}
+
+AI systems are increasingly adopted in knowledge work professions, with \citet{Bick2024TheRA} reporting that around 40\% of working-age Americans used generative AI at work in late 2024, and surveys finding knowledge workers actively integrating LLMs into their workflows \cite{Brachman2024HowKW,Ulloa2025ProductMP}. Yet, existing evaluation benchmarks have been shown to be misaligned with real-world use \cite{Wang2026HowWD}.
+
+The community has been hard at work building benchmarks that better capture real-world work, building industry-specific benchmarks for customer service \cite{Huang2024CRMArenaUT,Yao2024taubenchAB}, enterprise knowledge work \cite{Drouin2024WorkArenaHC,Xu2024TheAgentCompanyBL}, IT operations \cite{Jha2025ITBenchEA}, or spanning multiple professions \cite{Chen2025xbenchTA,Patwardhan2025GDPvalEA,Mazeika2025RemoteLI}. However, such benchmarks require costly expert annotation, often limiting the scope of the benchmark.
+
+Another vein of work has analyzed logs interactions, for example from users of OpenAI's ChatGPT \cite{Chatterji2025HowPU}, Anthropic's Claude \cite{Handa2025WhichET}, or Microsoft's Bing Copilot \cite{Tomlinson2025WorkingWA}. Researchers then can connect interactions with work task taxonomies such as O*NET \cite{Peterson2001UNDERSTANDINGWU}, gaining perspective on current work practices. This research however requires careful handling of privacy-sensitive data, and is limited to the few organizations that have access to interaction logs at scale.
+
+\paragraph{Benchmarking AI Systems for Document Editing.}
+
+Document editing is among the most common tasks in knowledge work \cite{Siu2025AugmentingEC}, and one of the primary use cases of LLM-based systems \cite{Handa2025WhichET,Eloundou2023GPTsAG}. This has spurred active research communities that study AI system capabilities to edit documents.
+
+An established community has built methodologies to study code editing, creating evaluation benchmarks such as CanItEdit \cite{Cassano2023CanIE}, SWE-bench \cite{Jimenez2023SWEbenchCL}, CodeEditorBench \cite{Guo2024CodeEditorBenchEC}, SWE-Refactor \cite{Xu2026SWERefactorAR}.
+
+For non-programmatic domains, where evaluation cannot rely on verifiable execution, more targeted benchmarks have been proposed, for instance to evaluate capabilities for news article editing \cite{Spangher2022NewsEditsAN}, text simplification \cite{Laban2023SWiPEAD}, fiction creative writing \cite{Chakrabarty2024CanAW}, or instruction-following \cite{Raheja2023CoEdITTE,Dwivedi-Yu2022EditEvalAI}. For structured textual domains, prior work has looked at editing graphics files (SVGEditBench \cite{Nishina2024SVGEditBenchAB}, SVGenius \cite{Chen2025SVGeniusBL}), charts and tables (ChartEditBench \cite{Kapadnis2026ChartEditBenchEG}, WikiTableEdit \cite{Li2024WikiTableEditAB}, ChartE3 \cite{Li2026ChartE3AC}), slide decks (PPTArena \cite{Ofengenden2025PPTArenaAB}, DECKBench \cite{Jang2026DECKBenchBM}), or structured output generation across multiple formats \cite{Yang2025StructEvalBL}.
+
+This prior work typically focuses on a single domain, for which custom evaluation is curated. With \benchmark{}, we take a more generalizable approach that enables us to extend our methodology to 52 domains: we develop programmatic domain-specific parsers for each domain, and leverage a backtranslation-based evaluation that circumvents the need for references.
+
+\paragraph{Backtranslation.}
+
+Backtranslation (a.k.a., round-trip translation) has its roots in the neural machine translation (NMT) community, with early work showing that round-trip translation on monolingual corpora could be effectively leveraged to augment data and improve translation performance \cite{Sennrich2015ImprovingNM,Lample2017UnsupervisedMT}. Beyond data augmentation, backtranslation has been used as a direct training signal through dual learning, where forward and backward models are jointly optimized via round-trip consistency \cite{He2016DualLF,Hoang2018IterativeBF}, and as a reference-free evaluation method, where round-trip fidelity serves as a proxy for translation quality \cite{Somers2005RoundtripTW,Zhuo2022RethinkingRT}.
+
+Backtranslation has then been successfully applied in other domains, for instance to the code domain, where it was leveraged to train unsupervised code translation models across programming languages \cite{Lachaux2020UnsupervisedTO,Rozière2021LeveragingAU}, and to jointly train code generation and summarization as dual tasks \cite{Wei2019CodeGA}. More recently, back-translation has been applied to instruction following to improve LLM alignment \cite{Li2023SelfAlignmentWI,Nguyen2024BetterAW}.
+
+Some work has looked at chaining consecutive backtranslation cycles as a way to evaluate consistency or robustness of LLMs, measuring whether models preserve information through sequences of reversible transformations \cite{Hong2025ConsistencyCheckerTE,Min2023BeyondAE,Allamanis2024UnsupervisedEO,Maveli2026CanLC}.
+
+We extend backtranslation-as-evaluation \cite{Zhuo2022RethinkingRT,Allamanis2024UnsupervisedEO} from single round-trips in individual domains to chained sequences across 52 diverse professions, simulating long delegated workflows where errors compound. This reduces evaluation to measuring semantic equivalence with the original document, allowing us to scale evaluation across domains without requiring annotation.
+
+\paragraph{Evaluating Long, Multi-Session Interaction.}
+
+AI systems are most commonly evaluated on independent conversations (single sessions) without prior history or context. \citet{Xu2021BeyondGM} introduced the first multi-session conversation dataset, showing that models trained on single sessions fail to maintain coherent long-term dialogue, and \citet{Jang2023ConversationCT} scaled this to 1M dialogues with diverse temporal dynamics.
+
+Since then, the community has built benchmarks to evaluate memory in LLMs across sessions. \citet{Maharana2024EvaluatingVL} evaluated very long-term conversational memory, and \citet{Wu2024LongMemEvalBC} proposed LongMemEval, benchmarking core memory abilities (retention, retrieval, synthesis) in chat assistants, extended by more recent benchmarks such as EverMemBench \cite{Hu2026EverMemBenchBL} and LifeBench \cite{Cheng2026LifeBenchAB} testing memory across hundreds of interactions and diverse information sources.
+
+Beyond memory, other work has studied LLM personalization across sessions: \citet{Jiang2025KnowMR} benchmarked dynamic user profiling across 60+ sessions, \citet{Li2025TowardMP} studied implicit preference reasoning, and \citet{Mehri2026MultiSessionCollabLU} evaluated how agents learn collaborative preferences over time. Recent work has also extended multi-session evaluation to agentic systems: \citet{Zheng2025LifelongAgentBenchEL} benchmarked lifelong learning in LLM agents, \citet{He2026MemoryArenaBA} tested memory in interdependent multi-session tasks, and \citet{Du2025MemGuideIM} introduced the first multi-session task-oriented dialogue benchmark.
+
+Prior work frames multi-session interaction as fundamentally a \textit{memory} problem: can the system remember, retrieve, or adapt based on past interactions? With \benchmark{}, we study an orthogonal and understudied failure mode: whether repeated LLM interaction \textit{degrades the artifacts being worked on}. We study how model errors in early sessions compound and affect long-horizon performance.
+
+\section{Document Desiderata} \label{app:document_desiderata}
+
+Each document in \benchmark{} was curated according to the desiderata listed in \autoref{tab:document_desiderata}.
+
+\begin{table*}[h!]
+\input{tables/document_desiderata}
+\caption{Desiderata guiding the curation of documents in \benchmark{}.}
+\label{tab:document_desiderata}
+\end{table*}
+
+\end{document}

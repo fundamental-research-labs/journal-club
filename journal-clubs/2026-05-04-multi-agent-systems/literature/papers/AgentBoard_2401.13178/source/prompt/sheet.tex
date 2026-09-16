@@ -1,0 +1,191 @@
+\begin{tcolorbox}[breakable,title=Prompt Details for Sheet]
+\textbf{\textcolor{blue}{System Prompt}}\\ 
+You can use actions to help people solve problems.\\
+\begin{tikzpicture}
+\draw[dashed] (0,0) -- (\linewidth,0); % 绘制一条宽度为\linewidth的虚线
+\end{tikzpicture}
+\textbf{\textcolor{blue}{Instruction}}\\
+We detail name, description, input(parameters) and output(returns) of each action as follows:\\
+Name: open\_sheet(name)\\
+Description: Open a sheet by name\\
+Parameters:\\
+- name (Type: string): The name of the sheet to open.\\
+Returns:\\
+- result (Type: object): The opened worksheet object or an error message.\\
+\\
+Name: del\_sheet(name)\\
+Description: Deletes the specified sheet.\\
+Parameters:\\
+- name (Type: string): The name of the sheet to be deleted.\\
+Returns:\\
+- result (Type: object): Whether the operation was successful.\\
+\\
+Name: freeze\_data(dimension, num)\\
+Description: Freeze rows and/or columns on the worksheet\\
+Parameters:\\
+- dimension (Type: string): The dimension to freeze, either `rows' or `columns'\\
+- num (Type: integer): Number of rows/cols to freeze.\\
+Returns:\\
+- result (Type: object): Whether the operation was successful.\\
+\\
+Name: get\_A1\_annotation(row, col)\\
+Description: Translate the cell position (row,col) into A1 annotation\\
+Parameters:\\
+- row (Type: integer): Row index.\\
+- col (Type: integer): Column index.\\
+Returns:\\
+- result (Type: string): The A1 notation of the cell or an error message.\\
+\\
+Name: insert\_cols(values\_list, col\_idx)\\
+Description: Insert columns into sheet at specified column index\\
+Parameters:\\
+- values\_list (Type: array[array[string]]): A list of lists, each list containing one column's values, which can be expressions\\
+- col\_idx (Type: integer): Start column to update. Defaults to 1.\\
+Returns:\\
+- result (Type: object): The updated worksheet data or an error message.\\
+\\
+Name: insert\_rows(values\_list, row\_idx)\\
+Description: Insert rows into sheet at specified row index\\
+Parameters:\\
+- values\_list (Type: array[array[string]]): A list of lists, each list containing one row's values, which can be expressions\\
+- row\_idx (Type: integer): Start row to update. Defaults to 1.\\
+Returns:\\
+- result (Type: object): The updated worksheet data or an error message.\\
+\\
+Name: delete\_batch\_data(dimension, index\_list)\\
+Description: Delete a batch of data in the sheet\\
+Parameters:\\
+- dimension (Type: string): The dimension to delete, either `row' or `col'.\\
+- index\_list (Type: array[integer]): List of the indexes of rows/cols for deletion.\\
+Returns:\\
+- result (Type: object): The updated worksheet data or an error message.\\
+\\
+Name: update\_cell(position, value)\\
+Description: Update the value of the cell\\
+Parameters:\\
+- position (Type: string): A1 notation of the cell position.\\
+- value: The value to set.\\
+Returns:\\
+- result (Type: object): The updated worksheet data or an error message.\\
+\\
+Name: update\_cell\_by\_formula(start\_position, end\_position, position\_list, result\_position, operator)\\
+Description: Update the value of the target cell by applying formulas on some specified cells. Note: Either specify position\_list or start\_position and end\_position.\\
+Parameters:\\
+- start\_position (Type: string): The starting position of the range. Default: `B1'.\\
+- end\_position (Type: string): The ending position of the range. Default: `D2'.\\
+- position\_list (Type: array[string]): A list of cell positions in A1 notation.\\
+- result\_position (Type: string): The position of the cell where the result of the formula will be stored in. Default: `G2'.\\
+- operator (Type: string): The operator to be applied on selected cells. Choose one from [`SUM', `AVERAGE', `COUNT', `MAX', `MIN', `MINUS', `PRODUCT'].\\
+Returns:\\
+- result (Type: object): The updated worksheet data or an error message.\\
+\\
+Name: update\_range(start\_position, end\_position, values\_list)\\
+Description: Update a range of the cells from a list\\
+Parameters:\\
+- start\_position (Type: string): A1 notation of the start cell.\\
+- end\_position (Type: string): A1 notation of the end cell.\\
+- values\_list (Type: array[array[Any]]): List of values to be inserted, which can be expressions\\
+Returns:\\
+- result (Type: object): The updated worksheet data or an error message.\\
+\\
+Name: sort\_sheet\_by\_col(col\_num, order)\\
+Description: Sorts the current sheet using given sort orders\\
+Parameters:\\
+- col\_num (Type: integer): The index of the sort column.\\
+- order (Type: string): The sort order. Possible values are `asc' or `des'.\\
+Returns:\\
+- result (Type: object): The updated worksheet data or an error message.\\
+\\
+Name: merge\_cells(start\_position, end\_position)\\
+Description: Merge cells in sheet\\
+Parameters:\\
+- start\_position (Type: string): Starting cell position(top left) in A1 annotation.\\
+- end\_position (Type: string): Ending cell position(bottom right) in A1 annotation.\\
+Returns:\\
+- result (Type: object): The updated worksheet data or an error message.\\
+\\
+Name: update\_note(position, content)\\
+Description: Update a note in a certain cell\\
+Parameters:\\
+- position (Type: string): cell position in A1 annotation.\\
+- content (Type: string): The text note to insert.\\
+Returns:\\
+- result (Type: string): The updated note or an error message.\\
+\\
+Name: get\_all\_values()\\
+Description: Display all cell values in current sheet\\
+Returns:\\
+- result (Type: array[array[Any]]): Return all cell values or an error message.\\
+\\
+Name: get\_range\_values(start\_position, end\_position)\\
+Description: Returns a list of cell data from a specified range.\\
+Parameters:\\
+- start\_position (Type: string): Starting cell position in A1 annotation.\\
+- end\_position (Type: string): Ending cell position in A1 annotation.\\
+Returns:\\
+- result (Type: array[array[Any]]): List of cell data from the specified range or an error message.\\
+\\
+Name: get\_cell\_value(position)\\
+Description: Get the value of a specific cell\\
+Parameters:\\
+- position (Type: string): Cell position in A1 annotation.\\
+Returns:\\
+- result : Cell value or an error message.\\
+\\
+Name: get\_value\_by\_formula(start\_position, end\_position, position\_list, operator)\\
+Description: Calculate a value applying formulas on specified cells. Note: Either specify position\_list or start\_position and end\_position.\\
+Parameters:\\
+- start\_position (Type: string): The starting position of the range. Default: `B1'.\\
+- end\_position (Type: string): The ending position of the range. Default: `D2'.\\
+- position\_list (Type: array[string]): A list of cell positions in A1 notation.\\
+- operator (Type: string): The operator to be applied on selected cells. Choose one from [`SUM', `AVERAGE', `COUNT', `MAX', `MIN', `MINUS', `PRODUCT'].\\
+Returns:\\
+- result (Type: string): Calculated result or an error message.\\
+\\
+Name: filter\_cells(query, in\_row, in\_column)\\
+Description: Find all cells matching the query, return all cells' position.\\
+Parameters:\\
+- query (Type: [`string', `re.RegexObject']): A string to match or compiled regular expression.\\
+- in\_row (Type: [`integer', `None']): Row number to scope the search. Default is all rows\\
+- in\_column (Type: [`integer', `None']): Column number to scope the search. Default is all columns\\
+Returns:\\
+- result (Type: array[string]): List of cell addresses that match the query or an error message.\\
+\\
+Name: get\_note(position)\\
+Description: Get the note at the certain cell, or return empty string if the cell does not have a note.\\
+Parameters:\\
+- position (Type: string): Cell position in A1 annotation.\\
+Returns:\\
+- result (Type: string): Note content or an error message.\\
+\\
+Name: finish()\\
+Description: Return an answer and finish the task\\
+Returns:\\
+- result (Type: array[array[Any]]): Return all cell values or an error message.\\
+
+
+\begin{tikzpicture}
+\draw[dashed] (0,0) -- (\linewidth,0); % 绘制一条宽度为\linewidth的虚线
+\end{tikzpicture}
+\textbf{\textcolor{blue}{Examples}}\\
+Goal: ``Sheet90'' saves the clothing inventory information, please delete items with price changed by more than 25\%, update the price of other items.\\
+\\
+Action: get\_all\_values with Action Input: \{\}\\
+Observation: [[`Category', `Brand', `Size', `Price', `Stock', `Price Update'], [`T-shirt', `Nike', `M', `25.00', `100', `20.00\%'], [`Jeans', ``Levi's'', `32', `59.00', `150', `-10.00\%'], [`Shoes', `Adidas', `8', `99.00', `80', `-45.00\%'], [`Bags', `Louis Vuitton', `Universal', `699.00', `20', `30.00\%'], [`Watches', `Omega', `Universal', `999.00', `10', `56.00\%']]\\
+Action: delete\_batch with Action Input: \{``dimension'': ``row'', ``index\_list'': [3, 4, 5]\}\\
+Observation: [[`Category', `Brand', `Size', `Price', `Stock', `Price Update'], [`T-shirt', `Nike', `M', `25.00', `100', `20.00\%'], [`Jeans', ``Levi's'', `32', `59.00', `150', `-10.00\%']]\\
+Action: get\_value\_by\_formula with Action Input: \{``position\_list'': [``D2'', ``F2''], operator=``PRODUCT''\}\\
+Observation: 5\\
+Action: get\_value\_by\_formula with Action Input: \{``position\_list'': [``D3'', ``F3''], operator=``PRODUCT''\}\\
+Observation: -5.9\\
+Action: update\_range with Action Input: \{``start\_position'': ``D2'', ``end\_position'': ``D3'', values\_list=[[25.00 + 5], [59.00 - 5.9]]\}\\
+Observation: [[`Category', `Brand', `Size', `Price', `Stock', `Price Update'], [`T-shirt', `Nike', `M', `30.00', `100', `20.00\%'], [`Jeans', ``Levi's'', `32', `53.10', `150', `-10.00\%']]\\
+Action: finish with Action Input: \{\}\\
+Observation: [[`Category', `Brand', `Size', `Price', `Stock', `Price Update'], [`T-shirt', `Nike', `M', `30.00', `100', `20.00\%'], [`Jeans', ``Levi's'', `32', `53.10', `150', `-10.00\%']]\\
+
+\end{tcolorbox}
+\begin{figure}[!h]
+    \vspace{-0.08cm}
+    \caption{Prompt details for Sheet.}
+    \label{fig:sheet_prompt}
+\end{figure}

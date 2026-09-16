@@ -1,0 +1,465 @@
+\section{Learning to Communicate}
+\label{sec:exp1}
+
+Our first question is whether agents converge to successful
+communication at all. To test this, we run them through a training
+phase of 50k rounds of play and report test performance after each
+round. Figure \ref{fig:exp1_comm} plots the communicative success
+(i.e., proportion of test plays in which the agents successfully
+coordinated) as a function of training rounds. We see that our agents
+do indeed converge to communication, approaching their asymptotes
+after about 1.5K rounds. These results are robust to changing various parameters of the game (sender architecture, image representation, vocabulary size).%with an average success rate of 94$\%$ across
+%models.\COMMENT{is this with probs or fc representations?}
+
+
+\begin{figure}[tb]
+\centering
+\includegraphics[scale=0.4]{figures/fc}
+\caption{Communication success as a function of training iterations for the configurations using fc visual representations.}
+\label{fig:exp1_comm}
+\end{figure}
+
+
+
+% \begin{table}
+% \centering
+% \begin{tabular}{c|c|c|c|c|c|c|c}
+% visual representation&vocab size & used words& sender & commun. success &purity & rand. purity & purity-rand. purity\\\hline
+% probs & 100 & 58 & shared & 1.00 & 0.46        & 0.27 & 0.19\\
+% fc & 100 & 38 & shared & 1.00 & 0.41           & 0.23 & 0.18\\
+% probs & 10 & 10 & shared & 1.00 & 0.35         & 0.18 & 0.18\\
+% fc & 10 & 10 & shared & 1.00 & 0.32            & 0.17 & 0.14\\
+% probs & 100 & 2 & fullyconnected & 0.99 & 0.21 & 0.15 & 0.06\\
+% fc & 10 & 2 & fullyconnected & 0.99 & 0.21     & 0.15 & 0.05\\
+% probs & 10 & 2 & fullyconnected & 0.99 & 0.20  & 0.15 & 0.04\\
+% fc & 100 & 2 & fullyconnected & 0.99 & 0.19    & 0.15 & 0.04\\
+% \end{tabular}
+% \label{tab:exp1_table}
+% \caption{Table with results, no noise}
+% \end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{c|c|c|c|c|c|c|c}
+id & sender   &vis   &voc &used     &comm    &      purity ($\%$)   &obs-chance\\
+ 	&	& rep & size& symbols & success($\%$) &  & purity ($\%$) \\\hline
+1&informed&probs     &100       &58          &100                &46           &0.27 \\
+2&informed&fc        &100       &38          &100                &41           &0.23 \\
+3&informed&probs     &10        &10          &100                &35           &0.18 \\
+4&informed&fc        &10        &10          &100                &32           &0.17 \\
+5&agnostic&probs     &100       &2           &99                 &21           &0.15 \\
+6&agnostic&fc        &10        &2           &99                 &21           &0.15 \\
+7&agnostic&probs     &10        &2           &99                 &20           &0.15 \\
+8&agnostic&fc        &100       &2           &99                 &19           &0.15 \\
+\end{tabular}
+\label{tab:exp1_table}
+\caption{Playing the referential game. \emph{Used symbols} column reports number of distinct vocabulary symbols that were produced at least once in the test phase. See text for explanation of \emph{comm success} and \emph{purity}. All purity values are highly significant ($p<0.001$) compared to simulated chance symbol assignment when matching observed symbol usage. %\textbf{Is this indeed the case? that is, is observed purity above the max chance value for all experiments reported in this table? if not, update accordingly. AL: YES, but I measured in your perl simulations how many times the chance purity was over the observed one.} 
+The \emph{obs-chance purity} column reports the difference between observed purity and expected purity under chance.}
+\end{table}
+
+Table~\ref{tab:exp1_table} shows communication success for various configurations after 5k training rounds. Both sender architectures learn
+to coordinate with the receiver. However, they have very different
+qualitative behavior.  The informed sender, being encouraged to detect
+pairwise relations between images, tends to make use of more symbols
+from the available vocabulary, while the sender without this feature
+coordinates using a very compact vocabulary. This might suggest that
+the informed sender is using more varied and word-like symbols (recall
+that the images depict about 463 objects, so we would expect a
+natural-language-endowed sender to use a wider array of symbols to
+discriminate among them). However, it could also be the case that the
+informed sender vocabulary simply contains higher
+redundancy/synonymy. Figure~\ref{fig:exp1_synonymy} plots the singular
+values and spectral clustering of the informed sender symbol usage
+(with fc input representations and 100 as  symbol vocabulary
+size). We observe that, while there is some redundancy, the vocabulary
+would not be able to get reduced to two symbols with the current
+communication protocol.
+\COMMENT{I did not follow the line of reasoning here: isn't the fact that the vocabulary could be reduced to two singular values a sign that it's indeed very redundant?} AL: Why do you  say that the vocabulary can be reduced to two symbols only? There is some information carried by the other dimensions as well.
+
+\begin{figure}[tb]
+\centering
+\includegraphics[scale=0.35]{figures/singular}
+\caption{Singular values and spectral clustering of symbols}
+\label{fig:exp1_synonymy}
+\end{figure}
+
+\COMMENT{I am commenting out the
+  former description and replacing it with one of what I did. Alex: if
+  the description that follows is wrong, please reinstate yours.}
+
+We now turn to investigating the semantic properties of the emergent
+communication protocol. Recall that the vocabulary that agents use is
+arbitrary and has no initial meaning. Thus, one way to look for the
+emergence of high (vs.~low) level semantics is to look for the
+relationship between symbols and the sets of images they refer to. To
+look for these higher-level properties, we exploit the fact that the
+objects in our images were categorized into \textbf{10} \textbf{AL: Why 10? We have 20...} broader
+categories (such as \emph{weapon} and \emph{mammal}) by
+\cite{McRae:etal:2005}. If the agents converged to intuitive meanings
+for the symbols, we would expect that objects belonging to the same
+category would activate the same symbols, e.g., that, say, when the
+target images depict bayonets and guns, the sender would use the same
+symbol to signal them. To quantify this, we associate each object to
+the symbol that is most often activated when the target images contain
+the object. We then assess the quality of the resulting symbol-based
+clusters by measuring their \emph{purity} with respect to the McRae
+categories. Purity \citep{Zhao:Karypis:2001} is a standard measure of
+cluster quality, reaching 100\% for perfect clustering with respect to
+the gold standard, and approaching 0 as cluster quality deteriorates.
+
+Although purity is far from perfect, it is significantly above chance
+in all cases, and we confirm that the informed-sender is producing
+symbols that are more semantically natural than those of the agnostic
+one. Perhaps surprisingly, purity is not at chance level even when
+only two symbols are used. Qualitatively, in this case the agents seem
+to converge to a (noisy) living-vs-non-living distinction, which,
+intriguingly, has been recognized as the most basic one in the human
+semantic system \citep{Caramazza:Shelton:1998}.
+
+% We then compare this to the expected purity that we would get if class labels were randomly assigned to images. We see that the purity is higher than random, but that the clusters are not completely pure. 
+
+% It is hard to interpret this measure as an absolute one, but we will show in our next experiment that interventions which we expect to raise the utilization of higher order features do, in fact, raise this measure as well.
+
+
+% ALEX FROM HERE
+% We now turn to investigating the natural language properties of the
+% emergent communication protocol. Recall that the vocabulary that
+% agents use is arbitrary and has no initial meaning. Thus, one way to
+% look for the emergence of high (vs.~low) level semantics is to look
+% for the relationship between symbols and the images they refer
+% to.
+
+% %[Discuss number of words used and whether that is necessarily high vs. low level]
+% To look for these higher-level properties, we exploit the fact that
+% each image that we work with already has an ImageNet class and there
+% are many images in our set from each class. The basic idea is to ask
+% whether we can use higher-level attributes of the image (e.g., whether
+% the image is depicting a cat) to predict which vocabulary word the
+% agents use to refer to it. If the agents are using low-level features
+% (e.g., brightness in certain areas of the image), then we should be
+% unable to do so.
+
+% For every image, we look at the most commonly used word when that image is the target. We then treat the ImageNet class (eg. chair, fox, butterfly) as a clustering of images and compute the purity of the cluster by
+
+% %[purity equation here]
+
+% We then compare this to the expected purity that we would get if class labels were randomly assigned to images. We see that the purity is higher than random, but that the clusters are not completely pure. 
+
+% It is hard to interpret this measure as an absolute one, but we will show in our next experiment that interventions which we expect to raise the utilization of higher order features do, in fact, raise this measure as well.
+% ALEX TO HERE
+
+\COMMENT{Assuming my description above is correct, I think the
+  following is a different experiment, and this should be clarified}
+
+We can visualize the clustering patterns as follows. For every
+ImageNet class, we look at the symbol most commonly used by the sender
+when an image of that class is the target. In addition, for each
+class, we generate an embedding by averaging the embeddings of each
+image in the class. We think this captures higher-level class
+semantics for two reasons: first, the top layers of convolutional
+neural networks are often thought to be expressing quite high-level
+features of images \citep{Zeiler:Fergus:2014}. Second, if lower-level
+features (e.g., brightness) are randomly assigned within class then
+this averaging removes lower-level signals and leaves only higher
+level ones.
+
+\COMMENT{I don't understand the line of reasoning above. The aim of the current analysis is to show that the agents are converging to a meaningful code. In this perspective, what is the point of trying to use an external mechanism that is not part of agent's communication, namely averaging across images of objects? I think the latter should simply be justified as a way to improve the visualization, and not in virtue of any denoising function they might have. Perhaps, it would be even better to plot single images randomly selected?}
+
+We then take these class embeddings and inspect if they form natural clusters and whether these clusters align with word usage. To see this, we perform a t-SNE mapping~\cite{Laurens:Hinton:2008} of the class embedding matrix, color-coded  by their majority symbol used. Figure \ref{fig:exp1_tsne} shows the result.
+
+%\COMMENT{These plots should feature labels for a subset of the points, to let the reader understand what's going on.}
+
+\begin{figure}[tb]
+\centering
+\includegraphics[scale=0.39]{figures/informed_fc_10_v1n0}
+\includegraphics[scale=0.39]{figures/informed_fc_10_v1n1}
+\caption{t-SNE plots of configurations without noise (\textbf{left}, 4th row of Table~\ref{tab:exp1_table}) and with noise (\textbf{right}, 2nd row of Table~\ref{tab:exp2_multiinstance}).}
+\label{fig:exp1_tsne}
+\end{figure}
+
+
+
+
+\section{Learning Higher-Level Semantics}
+\label{sec:exp2}
+
+We established that our agents can solve the coordination problem, and
+we have at least tentative evidence that they do so by developing
+symbol meanings that align with our semantic intuition. We turn now to
+a simple way to tweak the game setup in order to encourage the agents
+to further pursue high-level semantics.
+
+Specifically, we remove some aspects of ``common knowledge'' from the game. Common knowledge, in game theoretic parlance, are facts that everyone knows, everyone knows that everyone knows, everyone knows that everyone knows that everyone knows and so on (\cite{brandenburger2014hierarchies}). Coordination can only occur if the basis of the coordination is common knowledge (\cite{rubinstein1989electronic}), therefore if we remove some common knowledge, we will preclude our agents from coordinating on these facts. In our case, we will remove from common knowledge facts pertaining to the details of the input images, thus forcing the agents to coordinate on more abstract properties.
+
+At the same time, we aim to simulate real reference scenarios more
+closely.  In the simulations of Section~\ref{sec:exp1}, both agents
+had access to the exact same visual representation of each
+image. However, this is a highly suspect assumption. If we imagine two
+humans playing this game, there are many reasons we should expect them
+to have different interpretations of each object. At a simple physical
+level, they will not have the same viewpoint of the object (and this
+alone will alter low-level properties such as illumination). At a
+higher cognitive level, each of us has unique interaction histories
+with the world as well as differences in our biology (e.g.,
+color-blindness) and so we perceive and interpret things in different
+ways \cite{}.
+
+We thus remove low-level common knowledge by letting the agents playing the game at the ImageNet class level, by showing them different images
+belonging to the same class (e.g., if the target is \emph{dog}, the
+sender is shown a picture of a Chihuahua and the receiver that of a
+Boston Terrier).
+
+% \begin{table}[tb]
+% \centering
+% \begin{tabular}{c|c|c|c|c|c|c|c}
+% visual representation&vobab size & used words& sender & commun. success &purity & rand. purity & purity-rand. purity\\\hline
+% fc & 100 & shared & 43 & 1.00 & 0.45 & 0.24 & 0.21\\
+% %probs & 10 & shared & 10 & 0.99 & 0.37 & 0.18 & 0.20\\
+% fc & 10 & shared & 10 & 1.00 & 0.37 & 0.18 & 0.19\\
+% %probs & 100 & shared & 62 & 0.99 & 0.46 & 0.28 & 0.18\\
+% fc & 10 & fullyconnected & 3 & 0.98 & 0.28 & 0.16 & 0.12\\
+% %probs & 10 & fullyconnected & 2 & 0.94 & 0.22 & 0.15 & 0.07\\
+% fc & 100 & fullyconnected & 2 & 0.92 & 0.23 & 0.15 & 0.07\\
+% %probs & 100 & fullyconnected & 2 & 0.93 & 0.22 & 0.15 & 0.06\\
+% \end{tabular}
+% \caption{Table with results, multiple instance noise}
+% \label{tab:exp2_multiinstance}
+% \end{table}
+
+\begin{table}[tb]
+\centering
+\begin{tabular}{c|c|c|c|c|c|c|c}
+id &sender   &vis   &voc &used     &comm    &      purity ($\%$)   &obs-chance\\
+ &		& rep & size& symbols & success($\%$) &  & purity ($\%$) \\\hline
+1&informed&fc      &100     &43          &1.00               &0.45         &0.21\\
+2&informed&fc      &10      &10          &1.00               &0.37         &0.19\\
+3&agnostic&fc      &100     &2           &0.92               &0.23         &0.07\\
+4&agnostic&fc      &10      &3           &0.98               &0.28         &0.12\\
+\end{tabular}
+\caption{Playing the referential game with image-level targets. Columns as in Table \ref{tab:exp1_table}. All purity values significant at $p<0.001$.}
+\label{tab:exp2_multiinstance}
+\end{table}
+
+Table~\ref{tab:exp2_multiinstance} presents the results in various
+configurations. We see that the agents are still able to
+coordinate. Moreover, we observe a small increase in symbol usage
+purity, as expected since agents can now only coordinate on general
+properties of concept classes, rather than on the specific properties
+of each image. This effect emerges even more clearly in Figure
+~\ref{fig:exp1_tsne}, reporting a t-SNE based visualization of
+average class embeddings as they emerge in the modified game.
+
+\COMMENT{I have tentatively commented out the discussion of the cross-layer strategy, since it doesn't seem to improve purity, and the table was already commented out. Feel free to reinstate.}
+
+% While effective, the aforementioned  training curriculum requires access to image object annotations and is a bit artificial. A less knowledge-intensive technique for removing low-level common knowledge is to present agents with different representations of the same image. 
+
+% This can be achieved either by using, for the visual representation, a different network architecture or the same architecture trained differently (different seed or training data). 
+
+% Here,  we adopt a simpler way and present agents with representations of the same image coming from the same network but from different layers, e.g., the sender's input representation of an image is the last layer while the receiver's is the second to last layer.  
+
+% We note that this does not exactly remove common knowledge of low level features, since by definition the last layer is a (non-linear) transformation of previous ones. However, it does make coordination on one particular dimension, or simple function of several dimensions, of the embedding much more difficult. 
+
+% Again, we find that this does not impede accuracy very much but does lead to an increase in the purity of our clusters - that is, words used to refer to entities become more predictable by higher level features of the image, eg. its class.
+
+\iffalse
+\begin{table}
+\centering
+\begin{tabular}{c|c|c|c|c|c|c|c}
+visual representation&vobab size & used words& sender & commun. success &purity & rand. purity & purity-rand. purity\\\hline
+fc & 100 & shared & 54 & 0.98 & 0.48 & 0.26 & 0.22\\
+%probs & 100 & shared & 59 & 0.98 & 0.47 & 0.27 & 0.20\\
+%probs & 10 & shared & 10 & 0.96 & 0.35 & 0.18 & 0.18\\
+fc & 10 & shared & 10 & 0.97 & 0.29 & 0.18 & 0.11\\
+%probs & 10 & fullyconnected & 2 & 0.88 & 0.25 & 0.15 & 0.09\\
+fc & 10 & fullyconnected & 2 & 0.89 & 0.24 & 0.15 & 0.09\\
+%probs & 100 & fullyconnected & 2 & 0.87 & 0.22 & 0.15 & 0.06\\
+fc & 100 & fullyconnected & 2 & 0.90 & 0.21 & 0.15 & 0.05\\
+\end{tabular}
+\caption{Table with results, crosslayer noise}
+\label{tab:exp2_crosslayer}
+\end{table}
+\fi
+
+
+\section{Grounding Agents' Communication in Human Language}
+The results in Section~\ref{sec:exp1} show that communication robustly
+arises in our game across various parameters.  The clustering results
+there and in Section~\ref{sec:exp2} suggest moreover that agents are
+developing symbol meanings that are not, altogether, too different
+from conventional word meanings: Symbols come to
+denote broad conceptual properties, such as those that might
+distinguish, say, buildings from vegetables, rather than, say,
+low-level perceptual properties of images. Still, we would like to
+actually make it so that the agents converge on words that
+are fully understandable by humans, as our ultimate goal is to develop
+machines that can hold conversations with us. %
+%  However to ensure the emergence of
+% human-understandable language, it is essential to ensure that agents
+% will not ``drift'' into their own protocol. Agents which begin as
+% tabulae rasae may converge to any ``word'' being used as a reference
+% for any object.
+
+% In section~\ref{sec:exp2} we partially increased the semantic coherence  of the communication protocol, however semantic coherence is not enough for our goals. In our current setup if the agent sender was to be replaced by a human, she would likely not be able to decipher the meaning of the symbols without a training phase, if at all. If we want to eventually train agents which can interact in novel environments and with humans we need to find ways to ground communication in not only high level semantic properties of the images, but also natural language.
+We take inspiration from the recent success story of AlphaGo
+\cite{Silver:etal:2016}, an AI that learned to play Go at the master
+level by combining interactive learning in games of self-play with
+passive supervised learning from a large set of human
+games. Similarly, we combine the usual referential game, in which
+agents interactively develop their communication protocol, with a
+supervised image labeling task, where the sender must learn to assign
+objects the same names that humans use. In this way, the sender will
+naturally be encouraged to such names to discriminate the
+target image when playing the referential game, making their
+communication more transparent to humans. %
+% We propose that one way to move forward in grounding communication in natural language is combining dynamic interactive learning with static statistical learning of patterns from association.  In the context of the specific referential game, our agents will let to evolve a communication protocol, which we will ground in natural language via a supervised task. In this way, the symbols will have a direct correspondence to natural language through the human readable labels used in the classification task. 
+Note that the supervised objective does not aim at improving agents'
+playing performance. Instead, supervision provides them with basic
+grounding in natural language (in the form of image-label
+associations), while concurrent interactive game playing should teach
+them how to effectively use this grounding to communicate.
+
+Specifically, we designed an experiment in which the sender switches,
+equiprobably, between game playing and a supervised image
+classification task. We use the informed sender, fc image
+representations and a vocabulary size of 100. Supervised training is
+based on 100 labels that are a subset of the object names in our
+data-set (see Section \ref{sec:experimental-setup} above). When
+predicting object names, the sender only uses the game-embedding layer
+(second layer from bottom of the network in the middle of Figure
+\ref{fig:players}) and the softmax layer (top layer). These layers are
+shared across the two setups. The units of the shared softmax layer
+will correspond to sender symbols during game playing and to object
+names for image labeling. Consequently, the symbols produced in the
+game can be interpreted by the corresponding object names acquired in
+the supervised phase.
+
+\COMMENT{Mention accuracy in image labeling? \textbf{AL: Do I really have to do this?:-( I measure perplexity and not accuracy... MB: Perplexity is OK: just something to clarify that the agent is learning something also in the image labeling phase.}}
+
+As expected, the supervised objective has no negative effect on
+communication success: the agents are still able to reach full
+coordination after \textbf{10k} training trials.\COMMENT{Does this
+  mean it takes twice as many iteration than when you don't use
+  supervision? Or do the 10K trials also include the supervised ones?}
+Importantly, now symbol purity dramatically increases to 70\% (the
+obs-chance purity difference also increases to 37\%; compare these
+values to those in tables \ref{tab:exp1_table} and
+\ref{tab:exp2_multiinstance} above). The sender is moreover using a
+much higher proportion of symbols than in any previous experiment
+(88\%). Even more importantly, many symbols have now become directly
+interpretable, thanks to their direct correspondence to
+labels. Considering the \textbf{632} image pairs where the target gold
+standard label corresponds to one of the labels that were used in the
+supervised phase, in 47\% of these cases the sender produced exactly
+the symbol corresponding to the correct supervised label for the
+target image (chance: 1\%). \COMMENT{Can you give me access to this
+  subset of data, including the cases where another image was used? I
+  think there might be something interesting there\ldots Are these the data you pasted below, commented out? They are a bit obscure, can you explain?}
+
+%%RESULTS
+  %%%informed	fc	100	88	0.998022	0.695464362850972       0.373091
+%%47.1
+%link with images
+
+Interestingly, the beneficial interpretability effect obtained by
+encouraging the sender to assign a conventional meaning to symbols
+extends to images that do not contain the objects involved in the
+supervised phase. To clearly illustrate this point, we ran a follow-up
+experiment in which, during training, the sender was again exposed (with
+equal probability) to the same supervised classification objective as
+above, but now the agents %
+% We now  turn to  a more challenging setup  aiming at testing  whether this method scales beyond concepts for which supervision is provided. For this experiment, the sender again with probability $p=0.5$ is exposed to  the same  supervised object classification  as before. 
+played the referential game on a different dataset, derived from
+ReferItGame~\citep{Kazemzadeh:etal:2014}. In its general format,
+ReferItGame contains annotations of bounding boxes in real images with
+referring expressions produced by humans when playing the
+game. % This makes the more challenging as the number of depicted objects grows a lot, bounding boxes do not always include salient information etc.
+For our purposes, we constructed \textbf{XX} pairs by randomly
+sampling two bounding boxes, to act as target and distractor.  Again,
+the agents converged to perfect communication after 15k trials, and
+this time used all 100 available symbols in some trial.
+
+For each symbol used by the trained sender, we then randomly extracted
+3 image pairs in which the sender picked that symbol and the receiver
+pointed at the right target. For two symbols, only 2 pairs matched
+these criteria, leading to a set of 298 image pairs.  Recall that, in
+the current setup, each symbol is associated with a word (the
+corresponding gold supervised label), so we annotated each pair with
+the word corresponding to the symbol. Out of the 298 pairs, only 25
+(8\%) included one of the 100 words among the corresponding referring
+expressions in ReferItGame. So, in the large majority of
+cases, the sender had to produce a word that could probably only indirectly
+refer to what is depicted in the target image. %
+%6 12507 17311 bagpipe set(['chair'])
+%7 17193 25296 pheasant set(['chair'])
+%10 2520 43760 chain set(['chair'])
+%21 27623 41370 crocodile set(['chair'])
+%26 41441 17293 pine set(['fence'])
+%47 2714 3410 grape set(['door'])
+%62 40271 42312 melon set(['fence'])
+%95 25227 28021 courgette set(['fence'])
+%101 36865 31277 crow set(['car'])
+%123 31626 5695 cart set(['chair'])
+%135 26423 37803 box set(['car'])
+%182 14044 21946 projector set(['door'])
+%183 16234 9592 projector set(['bike'])
+%185 8220 41414 alligator set(['door'])
+%192 39554 34635 frog set(['sweater'])
+%197 31954 23484 raft set(['fence'])
+%228 30306 3220 rabbit set(['cat'])
+%254 24593 30759 seagull set(['pillow'])
+%265 38925 22486 wand set(['car'])
+%267 33142 6106 dolphin set(['shack'])
+%276 42296 25269 airplane set(['lime'])
+%286 37893 29106 lamb set(['fence'])
+%288 15391 19156 hoe set(['car'])
+%289 38559 37741 hoe set(['rabbit'])
+%296 6514 7256 freezer set(['car', 'train'])
+%0.0838926174497 25 0.0%
+We prepared a crowdsourcing survey using the CrowdFlower
+platform.\footnote{\url{https://www.crowdflower.com/}} For each pair,
+participants where shown the two pictures and the sender-emitted word (see
+examples in Figure \ref{fig:dolphin_fence}). The participants were
+asked to pick the picture that they thought was most related to the
+word. We collected 10 ratings for each pair.
+
+\begin{figure}[tb]
+\centering
+\includegraphics[scale=0.4]{figures/dolphin-fence.pdf}
+\caption{Example pairs from the ReferItGame set, with word produced by
+  sender. Target images framed in green.}
+\label{fig:dolphin_fence}
+\end{figure}
+
+We found that in 68\% of the cases the subjects were able to guess the
+right image. A logistic regression predicting subject choice from
+ground-truth target image position, with subject and word random
+factors added to intercept to control for these sources of
+variability, confirmed the highly significant correlation between the
+true and guessed positions ($z=16.75$, $p<0.0001$). 
+
+Looking at the results qualitatively, we found that very often
+sender-subject communication succeeded when the sender established a
+sort of ``metonymic'' link between the words in its possession and the
+contents of an image. This is illustrated by the typical examples in
+Figure \ref{fig:dolphin_fence}, where the sender produced
+\emph{dolphin} to refer to a picture showing a stretch of sea, and \emph{fence} for a patch of land. Similar semantic shifts are a core characteristic of natural
+language \citep[e.g.,][]{Pustejovsky:1995}, and thus 
+subjects were, in many cases, able to successfully play the
+referential game with our sender (10/10 subjects guessed the dolphin
+target, and 8/10 the fence one).
+
+Although the language developed by the agents will initially be very
+limited and not perfectly overlapping with that of humans, if both
+agents and humans possess the sort of flexibility displayed in this
+last experiment, we might hope that, once humans enter the loop, the
+noisy but shared common ground will suffice to establish basic
+communication, building on which humans could then further educate
+machines.
+
+
+
+
+
+
+
+

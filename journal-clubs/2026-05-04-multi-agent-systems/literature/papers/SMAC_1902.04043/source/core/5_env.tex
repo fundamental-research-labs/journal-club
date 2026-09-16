@@ -1,0 +1,118 @@
+\section{SMAC}
+
+SMAC is based on the popular real-time strategy (RTS) game StarCraft II.
+In a regular full game of StarCraft II, one or more humans compete against each other or against a built-in game AI to gather resources, construct buildings, and build armies of units to defeat their opponents.
+
+Akin to most RTSs, StarCraft has two main gameplay components: macromanagement and micromanagement. \emph{Macromanagement} refers to high-level strategic considerations, such as economy and resource management.
+\emph{Micromanagement} (micro), on the other hand, refers to fine-grained control of individual units.
+
+
+StarCraft has been used as a research platform for AI, and more recently, RL. Typically, the game is framed as a competitive problem: an agent takes the role of a human player, making macromanagement decisions and performing micromanagement as a puppeteer that issues orders to individual units from a centralised controller.
+
+In order to build a rich multi-agent testbed, we instead focus solely on micromanagement.
+Micro is a vital aspect of StarCraft gameplay with a high skill ceiling, and is practiced in isolation by amateur and professional players.
+For SMAC, we leverage the natural multi-agent structure of micromanagement by proposing a modified version of the problem designed specifically for decentralised control.
+In particular, we require that each unit be controlled by an independent agent that conditions only on local observations restricted to a limited field of view centred on that unit (see Figure \ref{fig:obs}). 
+Groups of these agents must be trained to solve challenging combat scenarios, battling an opposing army under the centralised control of the game's built-in scripted AI.
+
+Proper micro of units during battles maximises the damage dealt to enemy units while minimising damage received, and requires a range of skills.
+For example, one important technique is \textit{focus fire}, i.e., ordering units to jointly attack and kill enemy units one after another. When focusing fire, it is important to avoid \textit{overkill}: inflicting more damage to units than is necessary to kill them.
+
+Other common micro techniques include: assembling units into formations based on their armour types, making enemy units give chase while maintaining enough distance so that little or no damage is incurred (\textit{kiting}), coordinating the positioning of units to attack from different directions or taking advantage of the terrain to defeat the enemy. Figure~\ref{fig:SC2maps_2}b illustrates how three Stalker units kite five enemy Zealots units.
+
+\begin{figure}[t!]
+	\centering
+	\subfigure[\texttt{2c\_vs\_64zg}]{
+		\includegraphics[width=0.32\columnwidth]{figures/micro_colossus2}}
+	\subfigure[\texttt{3s\_vs\_5z}]{
+		\includegraphics[width=0.32\columnwidth]{figures/3s_vs_5z}}
+	\subfigure[\texttt{corridor}]{
+		\includegraphics[width=0.32\columnwidth]{figures/micro_corridor}}
+	\caption{\label{fig:SC2maps_2}Screenshots of three SMAC scenarios.}
+		\vspace{-.5cm}
+\end{figure}
+
+SMAC thus provides a convenient environment for evaluating the effectiveness of MARL algorithms. The simulated StarCraft II environment and carefully designed scenarios require learning rich cooperative behaviours under partial observability, which is a challenging task. The simulated environment also provides an additional state information during training, such as information on all the units on the entire map. This is crucial for facilitating algorithms to take full advantage of the centralised training regime and assessing all aspects of MARL methods.
+SMAC is a qualitatively challenging environment that provides together elements of partial observability, challenging dynamics, and high-dimensional observation spaces.
+
+\subsection*{Scenarios}
+
+SMAC consists of a set of StarCraft II micro scenarios which aim to evaluate how well independent agents are able to learn coordination to solve complex tasks. 
+These scenarios are carefully designed to necessitate the learning of one or more micromanagement techniques to defeat the enemy.
+Each scenario is a confrontation between two armies of units.
+The initial position, number, and type of units in each army varies from scenario to scenario, as does the presence or absence of elevated or impassable terrain. Figures \ref{fig:SC2maps_2} include screenshots of several SMAC micro scenarios.
+
+The first army is controlled by the learned allied agents.
+The second army consists of enemy units controlled by the built-in game AI, which uses carefully handcrafted non-learned heuristics.
+At the beginning of each episode, the game AI instructs its units to attack the allied agents using its scripted strategies.
+An episode ends when all units of either army have died or when a pre-specified time limit is reached (in which case the game is counted as a defeat for the allied agents).
+The goal is to maximise the win rate, i.e., the ratio of games won to games played.
+
+The complete list of challenges is presented in Table~\ref{tab:scenario}\footnote{The list of SMAC scenarios has been updated from the earlier version. All scenarios, however, are still available in the repository.}. More specifics on the SMAC scenarios and environment settings can be found in Appendices \ref{appendix:SMAC_scenarios} and \ref{appendix:SMAC_evn_setting} respectively.
+
+\begin{table*}
+	\caption{SMAC challenges.}
+	\scalebox{.9}{
+		\begin{tabular}{ccc}
+			\toprule
+			Name & Ally Units & Enemy Units \\
+			\midrule
+			\texttt{2s3z} &  2 Stalkers \& 3 Zealots &  2 Stalkers \& 3 Zealots \\
+			\texttt{3s5z} &  3 Stalkers \&  5 Zealots &  3 Stalkers \&  5 Zealots \\
+			\texttt{1c3s5z} &  1 Colossus, 3 Stalkers \&  5 Zealots &  1 Colossus, 3 Stalkers \&  5 Zealots \\
+			\hline
+			\texttt{5m\_vs\_6m} & 5 Marines & 6 Marines \\
+			\texttt{10m\_vs\_11m} & 10 Marines & 11 Marines \\
+			\texttt{27m\_vs\_30m} & 27 Marines & 30 Marines \\
+			\texttt{3s5z\_vs\_3s6z} & 3 Stalkers \& 5 Zealots & 3 Stalkers \& 6 Zealots \\
+			\texttt{MMM2} &  1 Medivac, 2 Marauders \& 7 Marines
+			&  1 Medivac, 3 Marauders \& 8 Marines  \\
+			\hline
+			\texttt{2s\_vs\_1sc}& 2 Stalkers  & 1 Spine Crawler \\
+			\texttt{3s\_vs\_5z} & 3 Stalkers & 5 Zealots \\
+			\texttt{6h\_vs\_8z} & 6 Hydralisks  & 8 Zealots \\
+			\texttt{bane\_vs\_bane} & 20 Zerglings \& 4 Banelings  & 20 Zerglings \& 4 Banelings \\		
+			\texttt{2c\_vs\_64zg}& 2 Colossi  & 64 Zerglings \\		
+			\texttt{corridor} & 6 Zealots  & 24 Zerglings \\
+			\bottomrule
+	\end{tabular}}
+	\label{tab:scenario}
+	\vspace{-.3cm}
+\end{table*}
+
+\subsection*{State and Observations}\label{section:state_and_obs}
+At each timestep, agents receive local observations drawn within their field of view. This encompasses information about the map within a circular area around each unit and with a radius equal to the \textit{sight range} (Figure \ref{fig:obs}). The sight range makes the environment partially observable from the standpoint of each agent. Agents can only observe other agents if they are both alive and located within the sight range. Hence, there is no way for agents to distinguish between teammates that are far away from those that are dead.
+
+The feature vector observed by each agent contains the following attributes for both allied and enemy units within the sight range: \texttt{distance}, \texttt{relative x}, \texttt{relative y}, \texttt{health}, \texttt{shield}, and \texttt{unit\_type}. Shields serve as an additional source of protection that needs to be removed before any damage can be done to the health of units.
+All Protos units have shields, which can regenerate if no new damage is dealt.
+In addition, agents have access to the last actions of allied units that are in the field of view. Lastly, agents can observe the terrain features surrounding them, in particular, the values of eight points at a fixed radius indicating height and walkability.
+
+\begin{wrapfigure}{l}{.45\textwidth}
+	\vspace{-.5cm}
+	\centering
+	\includegraphics[width=\linewidth]{figures/smac_agent_obs.jpg}
+	\captionof{figure}{The cyan and red circles respectively border the sight and shooting range of the agent.}
+	\label{fig:obs}
+	\vspace{-1cm}
+\end{wrapfigure}
+
+The global state, which is only available to agents during centralised training, contains information about all units on the map. Specifically, the state vector includes the coordinates of all agents relative to the centre of the map, together with unit features present in the observations. Additionally, the state stores the \texttt{energy} of Medivacs and \texttt{cooldown} of the rest of the allied units, which represents the minimum delay between attacks. Finally, the last actions of all agents are attached to the central state.
+
+All features, both in the state as well as in the observations of individual agents, are normalised by their maximum values. The sight range is set to nine for all agents.
+
+\subsection*{Action Space}
+
+The discrete set of actions that agents are allowed to take consists of \texttt{move[direction]}\footnote{Four directions: north, south, east, or west.}, \texttt{attack[enemy\_id]}, \texttt{stop} and \texttt{no-op}.\footnote{Dead agents can only take \texttt{no-op} action while live agents cannot.}
+As healer units, Medivacs use \texttt{heal[agent\_id]} actions instead of \texttt{attack[enemy\_id]}. The maximum number of actions an agent can take ranges between 7 and 70, depending on the scenario.
+
+To ensure decentralisation of the task, agents can use the \texttt{attack[enemy\_id]} action only on enemies in their \textit{shooting range} (Figure \ref{fig:obs}).
+This additionally constrains the ability of the units to use the built-in \emph{attack-move} macro-actions on the enemies that are far away. We set the shooting range equal to $6$ for all agents. Having a larger sight range than a shooting range forces agents to make use of the move commands before starting to fire.
+
+\subsection*{Rewards}
+
+The overall goal is to maximise the win rate for each battle scenario.
+The default setting is to use the \textit{shaped reward}, which produces a reward based on the hit-point damage dealt and enemy units killed, together with a special bonus for winning the battle.
+The exact values and scales for each of these events can be configured using a range of flags. 
+To produce fair comparisions we encourage using this default reward function for all scenarios.
+We also provide another \textit{sparse reward} option, in which the reward is +1 for winning and -1 for losing an episode.
+

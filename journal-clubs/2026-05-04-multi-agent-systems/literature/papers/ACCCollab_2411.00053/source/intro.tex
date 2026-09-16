@@ -1,0 +1,68 @@
+\section{Introduction}
+\begingroup
+\renewcommand{\thefootnote}{}
+\footnotetext{Code available at \href{https://github.com/LlenRotse/ACC-Collab}{https://github.com/LlenRotse/ACC-Collab}}
+\endgroup
+Recently, large language models (LLMs) have rapidly become a cornerstone in various applications, redefining how we process and generate language at scale \citep{thirunavukarasu2023large,hadi2023survey,jiang2024megascale}. Their ability to handle diverse tasks, from translation \citep{zhu2024multilingualmachinetranslationlarge, otter2020survey} to answering complex questions \citep{zhang2024llm, hao2024llm, havrilla2024glore}, has attracted the attention of both industry as well as academia. 
+However, despite these advancements, LLMs still exhibit notable weaknesses, particularly when it comes to answering factual questions and reasoning \citep{tonmoy2024comprehensive, rawte2023survey, huang2023survey}. 
+
+To address these limitations, several techniques have been proposed, such as Chain-of-Thought (CoT) prompting \citep{wei2022chain}, Self-Reflection \citep{ji2023towards,shinn2023reflexionlanguageagentsverbal}, and Multi-Agent Debate (MAD) \citep{du2023improving}, to name a few. 
+These approaches aim to improve the reasoning abilities of LLMs by guiding them toward more accurate answers through structured thinking or discourse. 
+However, the majority of these techniques do not involve training the model specifically for these tasks but instead rely on zero-shot or few-shot capabilities. 
+
+Similar to most multi-agent paradigms, MAD approaches make use of off-the-shelf general-purpose LLMs, which are not trained to collaborate.
+Such approaches rely on collaboration as an emergent, rather than a learned, behavior. 
+While, in some cases, these emergent behaviors are sufficient, the question remains: Can these methods be improved by imbuing models directly with collaborative abilities? To answer this, we propose training teams of LLMs to solve tasks collaboratively.
+
+A particularly relevant work is DebateGPT \citep{subramaniam2024debategpt}, which employs debate as a mechanism to generate higher-quality fine-tuning data. Unlike our approach, which optimizes LLMs for multi-round collaborative problem-solving, their method focuses on using debate to enhance training data for a single model that produces individual responses.
+
+
+In this paper, we propose a novel framework \textbf{A}ctor-\textbf{C}riti\textbf{c} Collaboration (ACC-Collab) which jointly trains a two-agent team to collaboratively solve problems through iterative conversation; this team consists of an actor-agent, responsible for providing answers for a given task, and a critic-agent, responsible for assisting the actor-agent with feedback on its answers.
+In our training pipeline, we introduce a novel off-policy learning scheme called "Guided-Collaboration" to generate high-quality multi-turn training data to enhance the actor's and critic's performance on challenging tasks.
+
+
+
+
+To summarize, our contributions are as follows:
+\begin{itemize}
+    \item We are the first to propose a framework for jointly training a team of LLM agents (Actor-Critic) within the context of collaborative problem solving.
+    \item We introduce a novel data generation scheme, ``Guided Collaboration Trajectories", which enables the efficient creation of high-quality training data for both the actor and critic roles.
+    \item Our extensive experiments demonstrate that our method, ACC-Collab, significantly outperforms existing state-of-the-art approaches.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Related Work}
+Our research is closely related to the emerging field of multi-agent deliberation, sometimes called Multi-Agent Debate (MAD), which examines how to use groups of models to solve tasks through iterative discussion \cite{chan2023chateval,liang2023encouraging,du2023improving,li2023prd,khan2024debating,michael2023debate,rasal2024llm,pham2023let,abdelnabi2023llm,hong2023metagpt,irving2018ai,li2023theory,li2023metaagents,li2024more,wang2023can,zhang2023exploring}. 
+Many of these works find that language models have naturally collaborative abilities \cite{singhal2023towards,du2023improving,chan2023chateval}, while others have noted that the collaborative ability of off-the-shelf models can be quite limited \cite{wang2024rethinking,smitshould}.
+
+Current approaches to multi-agent deliberation can be broadly cast into two main categories: those that modify model prompts and responses during the discussion \cite{liang2023encouraging,khan2024debating,rasal2024llm,feng2024don,yang2024confidence}, and those that modify the structure of the deliberation process \cite{li2023camel,hong2023metagpt,liu2023dynamic,li2024improving,wang2023unleashing,wu2023autogen,chen2023reconcile,chang2024socrasynth}. 
+Importantly, both categories use off-the-shelf language models (which have not been trained to collaborate) and work by modifying either the inputs or outputs of these models.
+Deviating from this line of work, we aim to specifically train a team of models to collaboratively solve tasks. 
+
+Two works of particular note are that of \cite{subramaniam2024debategpt}, which proposes to use debate data to fine-tune models, and \cite{li2024can}, which trains models for adversarial debate. 
+In the former, debate is used to generate higher-quality fine-tuning data and is not used at inference time; differing from this work, we train models directly to collaborate and use multi-agent discussion both during training and inference.
+In the latter, models are trained to be effective arguers rather than collaborators, i.e., models are trained to give conceiving arguments such that they can \emph{win} a debate against other LLMs. 
+Differing from this work, we train models to collaboratively solve tasks.
+
+
+In the context of multi-agent deliberation, the concept of \emph{divergent opinions} is highly relevant to our method. 
+Several approaches to multi-agent deliberation aim to control the level of disagreement among the agents  \cite{liang2023encouraging,khan2024debating,chang2024evince}. 
+Often, these works dynamically increase disagreement to prevent early convergence of deliberation.
+In our study, we leverage divergent opinions to generate high-quality training data. 
+In particular, we have agents change their opinion during the discussion and measure whether or not that change increases or decreases the likelihood that the agents' discussion converges to a correct answer. Using this signal we can then asses the \emph{value} of a given training example for training the models.
+
+Also closely related to our work are paradigms that aim to use self-generated data to improve model performance, often in the context of reasoning or chain of thought \cite{trung-etal-2024-reft,huang2024key,xiong2024watchstepllmagent, chen2024selfplayfinetuningconvertsweak, pang2024iterativereasoningpreferenceoptimization}. 
+Similar to this line of research, we make use of model generations as training data. However, we are the first work to use such data in the context of multiple models debating collaboratively to solve a given task.

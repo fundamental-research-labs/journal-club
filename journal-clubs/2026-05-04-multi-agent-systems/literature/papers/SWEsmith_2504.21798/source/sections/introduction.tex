@@ -1,0 +1,76 @@
+\section{Introduction}
+
+\begin{figure}[b]
+\centering
+\begin{minipage}[t]{0.49\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/scaling_instances.pdf}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.49\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/scaling_performance.pdf}
+\end{minipage}
+\caption{
+\textbf{Scaling task instances} (left) and \textbf{performance} (right) for SWE-agent's with \bugs{}.
+Using \bugs{}, we can create $100$s to $1000$s of instances for any Python codebase, enabling us to train \texttt{SWE-agent-LM-32B} which achieves $40.2$\% on SWE-bench Verified.
+}
+\label{fig:scaling_teaser}
+\end{figure}
+
+Language Model (LM) agents, such as SWE-agent~\citep{yang_swe-agent_2024} or OpenHands~\citep{wang_openhands_2024}, 
+have made remarkable progress towards automating software engineering (SE) tasks, as tracked by benchmarks such as SWE-bench~\citep{jimenez_swe-bench_2024}.
+However, the most effective agents still rely on proprietary LMs, as building open source LMs for SE remains bottlenecked by the lack of large-scale, high-quality training data.
+To ensure that open research remains relevant in this field, it is critical to develop infrastructure for collecting software engineering training data at scale.
+
+The current open-source ecosystem offers two kinds of data sources to train LMs on SE tasks.
+One simple approach is to crawl pull requests (PRs) and issues from GitHub repositories.
+However, without execution environments or tests, these instances offer no reliable way of validating generated solutions,
+and LMs are limited to learning from the surface form of code~\citep{xie2025swefixertrainingopensourcellms} or via rewards based on superficial string similarity~\citep{wei2025swerladvancingllmreasoning}.
+
+In contrast, SWE-bench provides reliable validation by running unit tests against proposed solutions.
+Another line of work has simply extended the SWE-bench collection strategy to a new set of repositories for training purposes \citep{pan_training_2024}. 
+This produces flexible environments for training and distilling LM agents, since we can generate agent trajectories and filter them based on the unit test results.
+% , resulting in the most promising open-source LMs for software engineering tasks to date.
+However, the scalability of this approach is severely limited by the challenges associated with SWE-bench's collection strategy.
+SWE-bench's filtering process leaves only a small number of PRs that not only resolve a Github issue, but also make meaningful changes to unit tests.
+Also, setting up execution environments for each instance requires a substantial amount of human intervention.
+
+In this paper, we introduce the \bugs{} toolkit, which marries the flexible execution environments of SWE-bench with scalable instance collection (Figure~\ref{fig:scaling_teaser}).
+\bugs{} features several techniques to automatically synthesize bugs in existing GitHub repositories,
+such as (1) generating errant rewrites of functions with an LM, (2) procedurally modifying the abstract syntax tree (AST) of functions, (3) undoing PRs, and (4) combining bugs.
+Our key insight is that execution-based validation can not only validate proposed solutions,
+but also identify bug candidates which cause substantial software regression (i.e., break tests).
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/preview.pdf}
+    \caption{
+    \bugs{} creates training data for software engineering agents by crafting bugs into real codebases.
+    Given a codebase, we employ several strategies to create task instances that break existing tests.
+    Using \bugs{}, we create $50$k+ task instances with execution environments from $128$ real world repositories.
+    }
+    \label{fig:preview}
+\end{figure}
+
+In a nutshell, \bugs{} puts forth the following task creation workflow, as shown in Figure~\ref{fig:preview}.
+Given a codebase, we automatically set up a corresponding environment using SWE-agent~\citep{yang_swe-agent_2024}.
+Within this environment, we then use the aforementioned techniques to synthesize $100$s to $1,000$s of task instances.
+Finally, we craft realistic issue descriptions automatically with LMs.
+\bugs{}'s design significantly reduces the amount of human labor and storage required for constructing execution environments.
+% Beyond this, we alleviate the requirement to connect PRs with GitHub issues by crafting realistic issue descriptions automatically with LMs.
+% Finally, we eliminate the human effort of setting up new repositories by demonstrating that this task can already be largely automated with existing software engineering agents \citep{yang_swe-agent_2024}, enabling scalable environment creation across many repositories.
+% In addition, \bugs{} only requires a single execution environment for all of its instances, drastically reducing storage needs and further simplifying the workflow.
+Using \bugs{}, we create a dataset of $50$k task instances across $128$ real-world GitHub repositories.
+
+Using the \bugs{} dataset, we achieve a new open-weight state of the art result on SWE-bench verified.
+Using the SWE-smith task instances, we generate $5{,}016$ expert trajectories with Claude 3.7 Sonnet and fine-tune Qwen 2.5 Coder Instruct $32$B.
+The resulting LM,  {\tt SWE-agent-LM-32B}, achieves $40.2\%$ (+$33.4$\%) on SWE-bench Verified in a single attempt, without inference-time scaling.
+This sets a new state of the art for open-weight models.
+
+The scale and diversity of the \bugs{} dataset enables us to begin establishing truths and investigate interesting phenomena about developing SWE-agents.
+Training on more instances, bug types, and repositories helps.
+LM generated issue text approximates real ones effectively.
+Using \bugs{}, we find that it's possible to optimize LMs to perform well for specific repositories while only suffering minor generalization loss.
+
+We release \bugs{} as an open-source toolkit --- including instances, environments, and trajectories --- to catalyze the development of stronger open-source LM agents.

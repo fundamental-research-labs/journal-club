@@ -1,0 +1,37 @@
+\vspace{-10pt}
+\section{Technical Background}
+\label{sec:background}
+
+\textbf{Decentralized Partially Observable Markov Decision Processes (Dec-POMDPs).}
+A Dec-POMDP is a multi-agent extension of a partially observable Markov
+decision process \cite{oliehoek_book12}. For $N$ agents, it is defined by a set of
+states $S$ describing possible configurations of all agents, a global reward function
+$R$, a transition probability function $T$, and for each agent $i \in {1,...,N}$ a
+set of allowed actions $A_i$, a set of possible observations $\Omega_i$ and an
+observation function $O_i$.
+At each time step every agent picks an action $a_i$ based on its local observation
+$\omega_i$ following its own stochastic policy $\pi_{\theta_i}(a_i | \omega_i)$.
+The system randomly transitions to the next state $s'$ given the current state and
+joint action $T(s' | s, a_1,...,a_N)$. The agent team receives a global reward
+$r = R(s, a_1,...,a_N)$ while each agent receives a local observation of the new
+state $O_i(\omega_i | s')$. Agents aim to maximize the total expected return
+$J = \sum_{t=0}^T \gamma^t r_t$ where $\gamma$ is a discount factor and $T$ is
+the episode time horizon.
+
+\textbf{Actor-Critic Algorithms.} Policy gradient methods directly adjust the parameters
+$\theta$ of the policy in order to maximize the objective
+$J(\theta) = \mathbb{E}_{s \sim p_{\pi}, a \sim \pi_{\theta}(s)} \left[ R(s, a) \right]$
+by taking steps in the direction of $\nabla J(\theta)$. We can write the gradient
+with respect to the policy parameters as the following:
+$$\nabla_{\theta} J(\theta) = \mathbb{E}_{s \sim p_{\pi}, a \sim \pi_{\theta}(s)} \left[ \nabla_{\theta }\log \pi_{\theta}(a | s) Q_{\pi} (s, a) \right],$$
+where $Q_{\pi} (s, a)$ is the action-value. It is the expected remaining
+discounted reward if we take action $a$ in state $s$ and follow policy $\pi$ thereafter.
+Actor-Critic algorithms learn an approximation $\hat{Q}(s, a)$ of the unknown true
+action-value function by e.g. temporal-difference learning~\citep{sutton_book98}.
+This $\hat{Q}(s, a)$ is the Critic and $\pi_{\theta}$ is the Actor.
+
+\textbf{Multi-Agent Actor-Critic.} \citet{lowe_nips17} propose a multi-agent Actor-Critic
+algorithm adapted to centralized learning and decentralized execution wherein each
+agent learns its own policy $\pi_{\theta_i}(a_i | \omega_i)$ conditioned on local
+observation $\omega_i$ using a central Critic that estimates the joint
+action-value $\hat{Q}(s, a_1, ..., a_N)$ conditioned on all actions.

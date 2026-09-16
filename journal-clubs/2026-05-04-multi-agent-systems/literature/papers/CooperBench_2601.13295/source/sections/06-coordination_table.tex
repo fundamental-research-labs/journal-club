@@ -1,0 +1,90 @@
+\definecolor{info}{RGB}{220,235,255}
+\definecolor{integ}{RGB}{255,235,220}
+\definecolor{struct}{RGB}{220,255,220}
+\definecolor{comm}{RGB}{245,220,245}
+
+\newcommand{\emojiicon}[1]{%
+  \raisebox{-0.05em}{\includegraphics[height=1.15em]{#1}}%
+}
+
+\newcommand{\rootcell}[3]{%
+  \parbox[t]{0.23\textwidth}{%
+    \raggedright%
+    \hspace{0.6pt}\strut%
+    \textbf{\emojiicon{#1}\,#2}\par%
+    \if\relax\detokenize{#3}\relax\else
+      {\scriptsize\textit{#3}}\par%
+    \fi
+    \strut%
+  }%
+}
+
+\begin{table*}[t]
+  \centering
+  \small
+  \caption{Coordination failure causes. Causes reflect distinct coordination capability gaps.}
+  \label{tab:failure_causes}
+
+  \begingroup
+  \setlength{\tabcolsep}{4pt}
+  \setlength{\extrarowheight}{1.5pt}
+  \renewcommand{\arraystretch}{1.25}
+
+  \begin{tabular}{
+    @{\hspace{2pt}}
+    >{\raggedright\arraybackslash}p{0.25\textwidth}
+    >{\raggedright\arraybackslash\footnotesize}p{0.70\textwidth}
+    >{\centering\arraybackslash}p{0.05\textwidth}
+    @{}
+  }
+    \toprule
+    \textbf{Cause} & \textbf{Definition} & \textbf{\%} \\
+    \midrule
+    \rowcolor{info}
+    \rootcell{figs/emoji/1f50d.png}{Expectation}{} & Cases where one agent has clearly communicated what they are doing, but the other agent still treats the situation as if that work is not being done. This reflects a failure to model the state of the other agent's code changes and what that means for the system as a whole. & 62.9 \\
+    \midrule
+    \rowcolor{comm}
+    \rootcell{figs/emoji/1f4e3.png}{Communication}{} & Breakdowns in using language to coordinate. This includes failures in information sharing and decision loops between agents, where agents do not effectively communicate their intentions, questions, or status updates. & 27.5 \\
+    \midrule
+    \rowcolor{integ}
+    \rootcell{figs/emoji/1f9e9.png}{Commitment}{} & Cases where an agent is not doing the things they promised to do. This includes failures to establish or maintain verifiable integration contracts, where agents make commitments but do not follow through on them. & 9.6 \\
+    \bottomrule
+  \end{tabular}
+  \endgroup
+\end{table*}
+
+\begin{table*}[t]
+  \centering
+  \small
+  \caption{Taxonomy of coordination failure symptoms. Symptoms are how coordination failures surface in merged artifacts.}
+  \label{tab:failure_taxonomy}
+
+  \begingroup
+  \setlength{\tabcolsep}{4pt}
+  \setlength{\extrarowheight}{1.5pt}
+  \renewcommand{\arraystretch}{1.25}
+
+  \begin{tabular}{
+    @{\hspace{2pt}}
+    >{\raggedright\arraybackslash}p{0.20\textwidth}
+    >{\raggedright\arraybackslash\footnotesize}p{0.70\textwidth}
+    >{\centering\arraybackslash}p{0.06\textwidth}
+    @{}
+  }
+    \toprule
+    \textbf{Symptom} & \textbf{Meaning} & \textbf{\%} \\
+    \midrule
+    Work overlap & Both agents independently implement the same functionality, duplicating work and overwriting details. & 33.2 \\
+    Divergent architecture & Incompatible design decisions lead to semantic loss even under a clean merge. & 29.7 \\
+    Repetition & Verbose status messages add little new information and reduce signal. & 14.7 \\
+    Unresponsiveness & Direct questions or requests are not answered, breaking the decision loop. & 8.7 \\
+    Unverifiable claims & Agent asserts a change or interface decision without evidence the partner can check (no checkable commitment). & 4.3 \\
+    Broken commitment & Confident completion claims create false shared context when the promised change is absent. & 3.7 \\
+    Dependency access & Missing risk communication leaves agents unable to anticipate merged dependency interactions (e.g., circular imports). & 1.7 \\
+    Placeholder misuse & An explicit integration contract exists but is applied differently than agreed. & 1.5 \\
+    Parameter flow & Ambiguity about a changing interface leaves one agent implementing against an outdated contract. & 1.3 \\
+    Timing dependency & Agents agree on order but fail to communicate an enforceable plan that preserves it after merge. & 1.1 \\
+    \bottomrule
+  \end{tabular}
+  \endgroup
+\end{table*}

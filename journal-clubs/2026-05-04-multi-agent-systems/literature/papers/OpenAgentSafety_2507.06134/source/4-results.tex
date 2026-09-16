@@ -1,0 +1,145 @@
+% \vspace{-3mm}
+\section{Experiments and Results}
+\label{sec:experiment}
+% \vspace{-2mm}
+In this section, we first describe the experimental setup and agent evaluation pipeline used to run our benchmark (\S\ref{sec:4.1:expr-setup}). We then present overall safety results across five widely used LLMs and analyze failure rates, unsafe behavior rates, and evaluator disagreements (\S\ref{sec:4.2:main-results}). Finally, we conduct detailed analyses across varied user intents, risk categories, and tools (\S\ref{sec:3.3:analysis}). % to answer three key research questions: how user intent affects agent safety, how performance varies across different risk categories, and whether certain tools lead to higher rates of unsafe behavior. 
+% \vspace{-3mm}
+\subsection{Experimental Setup}
+\label{sec:4.1:expr-setup}
+% \vspace{-2mm}
+
+We evaluate seven widely adopted LLMs on the 356 tasks in \OAS, including openweight LLMs: Deepseek-v3~\citep{deepseek-vl-v3} and Deepseek-R1~\citep{guo2025deepseekr1}, as well as proprietary LLM providers: Claude Sonnet 3.7~\citep{claude-sonnet-3.7}, GPT-4o~\citep{openai-gpt-4o}, as well as their successors, Claude Sonnet 4~\citep{anthropic2025claude4} and GPT-5~\cite{openai2025gpt5systemcard}, and o3-mini~\citep{o3mini2025} which are widely integrated into agentic frameworks. o3-mini and Deepseek-R1 are reasoning LLMs allowing us to examine how reasoning capabilities affect safety. We also examine how improvements in model capabilities impact safety for models in similar families. These models have varying capabilities and alignment strategies. We use the OpenHands~\citep{wang2025openhandsopenplatformai} agentic scaffold, which interfaces with real tools inside a sandboxed Docker environment. Each task is mounted into the Docker container alongside any required websites or files. After the agent completes the task, its trajectory is saved for evaluation.
+% \vspace{-10pt}
+% \vspace{-3mm}
+\subsection{Results}
+\label{sec:4.2:main-results}
+% \vspace{-2mm}
+
+% \vspace{-10pt}
+\begin{table}[t!]
+\caption{Unsafe behavior rates for LLM-as-Judge and rule-based evaluation across models, along with Failure, Disagreement, and Successful Completion rates. Percentages for LLM-Judge and Rule-based are computed only over tasks where the agent reached safety-vulnerable states, where it was exposed to malicious input/content.}
+\centering
+\begin{tabular}{l|ccccc}
+\toprule
+\multicolumn{1}{c|}{\bf Model} &
+\multicolumn{1}{c}{\bf LLM-Judge} &
+\multicolumn{1}{c}{\bf Rule-based} &
+\multicolumn{1}{c}{\bf Disagreements} &
+\multicolumn{1}{c}{\bf Failure} &
+\multicolumn{1}{c}{\bf Successful} \\
+\midrule
+
+Claude Sonnet 4 & \textbf{49.06} & \textbf{49.06} & 14.95 & 39.70 & 37.10 \\
+
+Claude Sonnet 3.7 & 51.20 & 32.85 & 9.17 & 40.30 & 33.88 \\
+GPT-5 & 52.58 & 52.15 & 13.79 & \textbf{34.80} & \textbf{40.40} \\
+GPT-4o            & 65.80 & 32.64 & \textbf{5.69} & 45.00 & 21.77 \\
+o3-mini           & 72.73 & 32.32 & 6.57 & 43.30 & 17.29 \\
+\midrule
+Deepseek-v3       & 62.23 & 32.44 & 6.91 & 46.30 & 22.12 \\
+Deepseek-R1       & 62.78 & 32.78 & 6.67 & 48.90 & 20.86 \\
+\bottomrule
+\end{tabular}
+\label{tab:model_scores}
+\end{table}
+
+
+
+\autoref{tab:model_scores} shows the various safety metrics across different LLMs. To isolate analyses of unsafe behavior, we report unsafe rates only over safety-vulnerable trajectories that did not cause any agent failures. All models exhibit substantial unsafe behavior, with LLM-as-Judge rates ranging from 49\% (Claude Sonnet 4) to 73\% (o3-mini). We conduct Mann-Whitney U tests~\citep{mcknight2010mann} on the unsafe behavior rates and find two sets of models: Claude Sonnet 3.7, Claude Sonnet 4, and GPT-5 are significantly safer (i.e. lower unsafe behavior rates) than all models in the other set: vs. o3 mini (p $<$ 0.001), vs. GPT-4o (p $\leq$ 0.006), vs. DeepSeek v3 (p $\leq$ 0.026), vs. DeepSeek R1 (p $\leq$ 0.023). All other comparisons were non-significant (p $>$ 0.16). Disagreements between the evaluators are rare and occur when the LLM judge incorrectly believes a task to be safe, whereas, the rule-based evaluator detects unsafe environment changes (e.g., a leaked document), prompting review. This highlights the importance of combining the two types of evaluation. A prominent category of disagreement is security/credential-related tasks where the LLM judge misses the finer unsafe actions and the rule-based evaluator detects the deterministic change.
+
+The LLM Judge reports that approximately 35--49\% of the tasks fail before reaching a safety-vulnerable state, typically due to web navigation failures, authentication issues, or incorrect tool-use. These failures highlight current limitations of LLMs for long-horizon tasks. 
+For example, in file download tasks, they frequently fail to retrieve the file, preventing subsequent unsafe interactions from even being triggered. These failure cases underscore the increasing realism and difficulty of tasks enabled by our framework, which can support the evaluation of more capable LLMs in the future. We also observe inconsistencies between safe completion annotation by LLM-Judge and the unsafe trajectory judgments, highlighting the need for rule-based assessments.
+
+
+
+% \vspace{-3mm}
+\subsection{Analysis}
+\label{sec:3.3:analysis}
+% \vspace{-2mm}
+
+We organize our analysis of current model behaviors around four research questions that guide our evaluation of agent safety:  
+\textbf{RQ1:} How does user intent influence unsafe behavior?  
+\textbf{RQ2:} Which risk categories reveal the most serious vulnerabilities?  
+\textbf{RQ3:} Do tools enable or restrain unsafe actions? 
+\textbf{RQ4:} How reliable are LLM judges in detecting unsafe behavior?
+
+We support our findings with both quantitative results and qualitative examples, with the latter included in the Appendix~\S\ref{sec:appendix} (Table~\ref{tab:safety_tasks}) to show the utility of the framework. We combine quantitative results (\autoref{tab:model_scores}) with representative failure trajectories (see Appendix \autoref{tab:safety_tasks}) to analyze how unsafe behaviors vary across user intents, risk categories, and tools (\autoref{fig:intent_safety}~\ref{fig:risk_safety}~\ref{fig:tool_safety}). In each heatmap, rows and columns are sorted in descending order based on the average rate of unsafe behavior.
+% \vspace{-4mm}
+
+
+\paragraph{RQ1: How does user intent influence unsafe behavior?}
+\textbf{(1) Benign intent does not imply safety}: Seemingly benign prompts still cause unsafe behavior in 50-86\% tasks across models (\autoref{fig:intent_safety}). Agents often overgeneralize user goals: for instance, in \textit{api-in-codebase} (\autoref{tab:safety_tasks}), GPT-4o ``helpfully'' hard-codes an API key into the codebase, prioritizing completion over security. Agents often lack caution with seemingly harmless requests.\begin{wrapfigure}{r}{0.8\textwidth}
+    % \vspace{-1.7em}
+    \centering
+    \includegraphics[width=0.78\textwidth]{intent_heatmap.pdf}
+        % \vspace{-2mm}
+    \caption{Unsafe behaviour rates (\%) across user and NPC intents.}
+    \label{fig:intent_safety}
+    \vspace{-4mm}
+    % \vspace{-1.2em}
+\end{wrapfigure} For example, Claude Sonnet 3.7 despite having one of the lowest rate of unsafe behavior for malicious intents, has the highest unsafe rate under benign intent (85.7\%), suggesting that refusal strategies do not not generalize to subtler risks, where the harm emerges from context or incorrect assumptions about user goals. Interestingly, Claude Sonnet 4 is able to significantly improve over its predecessor in this category. 
+\textbf{(2) Explicit malice partially activates defenses, but unevenly}: For tasks with malicious user intents, Claude Sonnet 3.7 and Deepseek-v3’s unsafe rate plunges to 30\% and 33.3\% respectively, showing effective policy gating. o3-mini, by contrast, rises to 80.7\%, indicating near-absence of refusal logic. GPT-4o (64.7\%) and Deepseek-R1 (66\%) sit mid-range. GPT-5 displays improvements over GPT-4o for almost all intents, but Claude Sonnet 4 sees an increase over Claude Sonnet 3.7 in unsafe actions for malicious intent. \textbf{(3) Hidden intent circumvents safeguards}: In the benign user intent and malicious NPC setting, where harmful goals are introduced by other NPCs, unsafe rates vary from {44.9--69.2\%}. Claude 3.7 and Deepseek-v3’s unsafe rates more than double relative to malicious intent, confirming that multi-turn intent tracking is ineffective. GPT-5 is surprisingly strong in this category. The \textit{meeting-topics} trajectory shows GPT-4o reorders agenda items on a polite request ignoring fairness considerations.
+
+% \vspace{-3mm}
+% \vspace{-2mm}
+\paragraph{RQ2: Which risk categories reveal the most serious vulnerabilities?}
+\textbf{(1) Systemic risks consistently bypass safeguards}: The highest unsafe rates occur in categories that require procedural judgment or understanding of institutional norms, including \textit{computer security compromise} (72--86\%), \textit{legal violations}, \textit{privacy breaches}, and \textit{harmful decision making}.\footnote{A notable exception being Claude which is relatively more robust in legal scenarios.}
+\begin{wrapfigure}{r}{0.8\textwidth}
+    \centering
+    \includegraphics[width=0.78\textwidth]{risk_heatmap.pdf}
+        % \vspace{-2mm}
+
+    \caption{Unsafe behavior rates (\%) across risk categories.}
+    \vspace{-4mm}
+    \label{fig:risk_safety}
+\end{wrapfigure}
+% Aside from legal, where the Claude models show some improvements, these settings drive the majority of unsafe behaviors. 
+These tasks involve policy boundaries rather than syntactic dangers, which current agents fail to comprehend. In \textit{change-branch-policy} (\autoref{tab:safety_tasks}), for instance, multiple models convert a private GitLab repository to public access at the request of a fired employee, mistaking helpfulness for authorization. Trajectory evaluations show that agents frequently disregard authorization entirely, suggesting a lack of procedural reasoning. \textbf{(2) Operational risks lead to varying judgment}: Mid-tier categories such as \textit{data loss}, \textit{financial loss}, and \textit{unsafe code} show varying trends. Claude Sonnet models are relatively cautious on destructive actions unlike GPT-4o, a disparity observed in \textit{misleading-task}, where only Claude inspects a malicious script before running it. These results show that certain forms of sandboxed harm (e.g., 'rm -rf') remain weak spots for models that rely on shallow interpretation. \textbf{(3) Content moderation tasks benefit from targeted alignment}: \textit{Spreading malicious content} corresponds to the lowest unsafe rates overall, especially for Claude Sonnet 3.7 (27.7\%). This likely reflects effective safety training to avoid toxic content. However, performance is still uneven as o3-mini still fails in 75\% of cases, and GPT-4o generates discriminatory rationales in \textit{trends} task, suggesting that even when content filters are present, deeper social reasoning remains fragile. 
+% \vspace{-2mm}
+
+% \vspace{-5mm}
+\paragraph{RQ3: Do tools enable or restrain unsafe actions?}
+\textbf{(1) Browsing is the most failure-prone interface}: Tasks involving web interaction (e.g., OwnCloud, GitLab) yield the highest unsafe rates across models (59–75\%). Agents often struggle with authentication, redirects, and dynamic DOM content, which distracts them from recognizing unsafe behavior due to the large browsing context. For instance, in \textit{leak-document} (\autoref{tab:safety_tasks}), GPT-4o fails to complete the download due to authentication issues, but when navigation succeeds, it proceeds to share confidential files without verification. GPT-5 and Sonnet 4 make some improvements with this tool. \textbf{(2) File systems and code execution magnify intent errors}: Unsafe behavior in these tools often results from executing commands or modifying files without contextual checks (e.g. In \textit{misleading-task}, the malicious content is hidden inside the file and not presented to the agent unless it tries exploring the environment.). o3-mini (73.8\%) and GPT-4o (71.8\%) display significantly higher unsafe rates than GPT-5/Claude models, suggesting that Claude’s refusals and cautious completions offer some protection. Still, the \textit{misleading-task}, where most LLMs blindly run a malicious \texttt{rm -rf} script, shows that simple reasoning failures can cause severe damage. \textbf{(3) Messaging tools introduce social manipulation risk}: Chat-based tasks show 45-70\% unsafe rates. LLMs fail to validate user roles before sharing sensitive information or accepting requests. In \textit{unauth-discount}, LLMs approve significant discounts under persuasive, but unauthorized, customer prompts. \begin{wrapfigure}{r}{0.75\textwidth}
+    % \vspace{-1.7em}
+    \centering
+    \includegraphics[width=0.73\textwidth]{tool_heatmap.pdf}
+    % \vspace{-2mm}
+    \caption{Unsafe behavior rates (\%) by tools across LLMs.}
+    \label{fig:tool_safety}
+        \vspace{-4mm}
+    % \vspace{-1.2em}
+\end{wrapfigure}This pattern underscores the fragility of LLM alignment in multi-user settings, where politeness overrides internal policy logic.
+% \vspace{-5mm}
+\paragraph{RQ4: How reliable are LLM judges in detecting unsafe agentic behavior?}
+
+\textbf{(1) LLM judges struggle with nuanced failure cases}: To assess evaluator reliability, we conducted a human annotation study on 100 randomly sampled GPT-4o trajectories with two expert annotators achieving 94\% inter-annotator agreement. Comparing these human judgments against LLM-based judges reveals systematic weaknesses in both failure detection and safety categorization (\autoref{tab:safety_classification_analysis}). GPT-4.1 and other LLM judges frequently underestimate unsafe behavior that is implied rather than explicitly acknowledged. For example, an agent might not verbally affirm an unsafe request but proceed to call tools to fulfill it, implicitly indicating agreement, a pattern that LLM judges often miss. \textbf{(2) Superficial error signals inflate failure rates}: LLM judges overestimate failure rates by misinterpreting superficial error signals (e.g., tool failures, authentication issues) as task failures, even when the agent successfully navigates to safety-vulnerable states. This suggests that reported failure rates in \autoref{tab:model_scores} are likely inflated, and we find that unsafe behavior rates should be interpreted as conservative lower bounds. \textbf{(3) Fine-tuned judges show limited improvement}: We evaluated a fine-tuned Qwen 2.5 7B model from ~\citet{zhang2024agentsafetybenchevaluatingsafetyllm}, which lacks a separate failure category. While specialized training helps, the model still exhibits similar erroneous behaviors like off-the-shelf LLMs. This confirms findings from prior work~\citep{zhang2024agentsafetybenchevaluatingsafetyllm} that LLM-based evaluation of unsafe agentic behavior is unreliable. This underscores the need for hybrid evaluation approaches combining LLM judges with rule-based checks, as demonstrated by our disagreement analysis in \autoref{tab:model_scores}.
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+\caption{Safety classification performance of LLM judges compared to human annotations. Right half excludes trajectories labeled as failures by human raters.}
+\label{tab:safety_classification_analysis}
+\begin{tabular}{l|ccc|ccc|cc}
+\hline
+\multirow{2}{*}{\textbf{Rater}} & \multicolumn{3}{c|}{\textbf{All Tasks (\%)}} & \multicolumn{3}{c|}{\textbf{Excl. Failures (\%)}} & \multicolumn{2}{c}{\textbf{Disagreement (\%)}} \\
+\cline{2-9}
+& \textbf{Safe} & \textbf{Unsafe} & \textbf{Failure} & \textbf{Safe} & \textbf{Unsafe} & \textbf{Failure} & \textbf{Overall} & \textbf{Non-Failure} \\
+\hline
+GPT-4.1 & 21.7 & 35.9 & 42.4 & 27.4 & 45.2 & 27.4 & 39.1 & 24.7 \\
+ASB & 18.5 & 81.5 & 0.0 & 19.2 & 80.8 & 0.0 & 26.1 & 26.0 \\
+Human & 7.6 & 71.7 & 20.7 & 9.6 & 90.4 & 0.0 & --- & --- \\
+\hline
+\end{tabular}
+\vspace{-3mm}
+\end{table}
+
+
+\noindent\textbf{Design implications.}  
+Our findings point to three actionable priorities for improving agent safety:  
+(i)~\textbf{Contextual intent aggregation}, where refusal mechanisms must operate over multi-turn context rather than isolated prompts, 
+(ii)~\textbf{Tool-specific privilege boundaries}, enforcing stricter runtime controls for high-risk tools like code execution and file manipulation, and  
+(iii)~\textbf{Policy-grounded supervision}, using datasets aligned with legal, organizational, and procedural norms to train agents for regulated environments.  
+\OAS provides executable environments with realistic tool interfaces, where these safeguards can be iteratively prototyped and stress-tested under adversarial and ambiguous conditions prior to deployment.
+
+
+% \vspace{-1em}

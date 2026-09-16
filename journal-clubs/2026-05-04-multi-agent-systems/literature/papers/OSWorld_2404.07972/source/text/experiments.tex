@@ -1,0 +1,156 @@
+\section{Benchmarking LLM and VLM Agent Baselines}\label{sec:experiments}
+\vspace{-10pt}
+
+In this section, we present the implementation details and experimental settings for several state-of-the-art LLM and VLM agent baselines on \ours benchmark, as well as their performance.
+
+
+\begin{table*}[ht]
+\centering
+\vspace{-15pt}
+\caption{
+Success rates of baseline LLM and VLM agents on \ours, grouped by task categories: OS, Office (LibreOffice Calc, Impress, Writer), Daily (Chrome, VLC Player, Thunderbird), Professional (VS Code and GIMP) and Workflow (tasks involving multiple apps), for gaining insights from interfaces and operation logic.
+See App.~\ref{app:prompting_details} and \ref{app:full_results} for more details.
+}
+\label{tab:exp_baseline}
+\small
+\scalebox{0.9}{
+\renewcommand{\arraystretch}{1.1} % Increase the row height
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{2cm}>{\centering\arraybackslash}p{2.2cm}>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>
+{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+\toprule
+\multirow{2}{*}{\textbf{Inputs}} & \multirow{2}{*}{\textbf{Model}} & \multicolumn{6}{c}{\textbf{Success Rate (↑)}} \\ 
+\cline{3-8}
+~ & ~ & {OS} & {Office} & {Daily} & {Profess.} & \textbf{Workflow} & \textbf{Overall} \\
+\midrule
+A11y tree & Mixtral-8x7B  & 12.50\% & 1.01\% & 4.79\% & 6.12\% & 0.09\% & 2.98\% \\
+& Llama-3-70B & 4.17\% & 1.87\% & 2.71\% & 0.00\% & 0.93\% & 1.61\% \\
+& GPT-3.5 & 4.17\% & 4.43\% & 2.71\% & 0.00\% & 1.62\% & 2.69\% \\
+& GPT-4 & 20.83\% & 3.58\% & 25.64\% & 26.53\% & 2.97\% & \textbf{12.24\%} \\
+& Gemini-Pro & 4.17\% & 1.71\% & 3.99\% & 4.08\% & 0.63\% & 2.37\% \\
+& Gemini-Pro-1.5 & 12.50\% & 2.56\% & 7.83\% & 4.08\% & 3.60\% & 4.81\% \\
+& Qwen-Max & 29.17\% & 3.58\% & 8.36\% & 10.20\% & 2.61\% & 6.87\% \\
+& GPT-4o   & 20.83\% & 6.99\% & 16.81\% & 16.33\% & \textbf{7.56\%} & 11.36\% \\
+\midrule
+Screenshot & CogAgent & 4.17\% & 0.85\% & 2.71\% & 0.00\% & 0.00\% & 1.11\% \\
+& GPT-4V & 12.50\% & 1.86\% & 7.58\% & 4.08\% & \textbf{6.04\%} & 5.26\% \\
+& Gemini-ProV & 8.33\% & 3.58\% & 6.55\% & 16.33\% & 2.08\% & \textbf{5.80\%} \\
+& Gemini-Pro-1.5 & 12.50\% & 6.99\% & 2.71\% & 6.12\% & 3.60\% & 5.40\% \\
+& Claude-3-Opus & 4.17\% & 1.87\% & 2.71\% & 2.04\% & 2.61\% & 2.42\% \\
+& GPT-4o   & 8.33\% & 3.58\% & 6.07\% & 4.08\% & 5.58\% & 5.03\% \\
+\midrule
+Screenshot & CogAgent & 4.17\% & 0.85\% & 2.71\% & 0.62\% & 0.09\% & 1.32\%\\
++ A11y tree & GPT-4V & 16.66\% & 6.99\% & 24.50\% & 18.37\% & 4.64\% & \textbf{12.17\%} \\
+& Gemini-ProV & 4.17\% & 4.43\% & 6.55\% & 0.00\% & 1.52\% & 3.48\%\\
+& Gemini-Pro-1.5 & 12.50\% & 3.58\% & 7.83\% & 8.16\% & 1.52\% & 5.10\% \\
+& Claude-3-Opus & 12.50\% & 3.57\% & 5.27\% & 8.16\% & 1.00\% & 4.41\% \\
+% & GPT-4o &  & &  & & & \\
+& GPT-4o   & 41.67\% & 6.16\% & 12.33\% & 14.29\% & \textbf{7.46\%} & 11.21\% \\
+\midrule
+Set-of-Mark & CogAgent & 4.17\% & 0.00\% & 2.71\% & 0.00\% & 0.53\% & 0.99\% \\
+& GPT-4V & 8.33\% & 8.55\% & 22.84\% & 14.28\% & \textbf{6.57\%} & \textbf{11.77\%} \\
+& Gemini-ProV & 4.17\% & 1.01\% & 1.42\% & 0.00\% & 0.63\% & 1.06\% \\
+& Gemini-Pro-1.5 & 16.67\% & 5.13\% & 12.96\% & 10.20\% & 3.60\% & 7.79\% \\
+& Claude-3-Opus & 12.50\% & 2.72\% & 14.24\% & 6.12\% & 4.49\% & 6.72\% \\
+& GPT-4o   & 20.83\% & 3.58\% & 3.99\% & 2.04\% & 3.60\% & 4.59\% \\
+\midrule
+\rowcolor{gray!20}
+\multicolumn{2}{c}{Human Performance}  & 75.00\% & 71.79\% & 70.51\% & 73.47\% & 73.27\% & 72.36\% \\
+\bottomrule
+\end{tabularx}
+}
+\vspace{-15pt}
+\end{table*}
+
+
+
+\subsection{LLM and VLM Agent Baselines}
+\label{baselines}
+
+We adopt state-of-the-art LLM and VLM from open-source representatives such as Mixtral~\citep{jiang2024mixtral}, CogAgent~\citep{hong2023cogagent} and Llama-3~\citep{meta2024llama3}, and closed-source ones from GPT, Gemini, Claude and Qwen families on \ours, to serve as the foundation of agent.
+We also explore methods such as the Set-of-Marks aided approach~\citep{yang2023set, gpt4vact}, which has been demonstrated to improve spatial capabilities for visual reasoning.
+Our prior experiments following VisualWebArena~\citep{Koh2024VisualWebArenaEM} adopt few-shot prompting, which involves using (observation, action) pairs as few-shot examples and inputting the current observation to generate the action, but this resulted in poor performance (success rate of 2.79\% under pure-screenshot setting).
+We attribute the result to a lack of history encoding and change in the prompting scheme.
+Therefore, in the experiments, we opt to utilize the context window by providing the most recent 3 observations and actions in chat mode, \textit{i.e.}, alternating between ``user'' prompts and ``assistant'' prompts, instead of the (observation, action) pairs.
+We use a temperature of 1.0 and top-p of 0.9 and truncate from the beginning of the input if still exceeding the max tokens limit required by the models.
+The prompts used in the experiments are provided in App.\ref{app:prompting_details}.
+We heuristically request the agents to complete the tasks within a max step limit of 15, which is
+enough for most tasks.
+We present a summary of the results in Tab.~\ref{tab:exp_baseline} and analysis in Sec.~\ref{result-analysis}.
+We implement the following four types of input settings on LLM and VLM.
+
+\paragraph{Accessibility tree}
+We aim to evaluate whether the current advanced text-based language models can reason and ground themselves in the context to generate the correct action. 
+Since the original XML format of accessibility tree contains millions of tokens, caused by countless
+elements, redundant attributes, and a mass of markups, we opt to filter out
+non-essential elements and attributes, and represent the elements in a more compact
+tab-separated table format. To be specific, we filter the elements by their 
+tag, visibility, availability, existence of text or image contents, \textit{etc}.
+The detailed filtering method is elaborated on in 
+App.~\ref{app:a11y_tree_handling}.
+Only the \textit{tag}, \textit{name}, \textit{text}, \textit{position}, and \textit{size} of
+the remaining elements are kept and concatenated by tab character in the input.
+As the raw coordinates are provided within the accessibility tree, the LLM is
+required to ground its action predictions to accurate coordinates.
+
+\paragraph{Screenshot}
+This is the input format that is closest to what humans perceive.
+Without special processing, the raw screenshot of the 
+virtual machine is directly sent to the VLM. The VLM is to 
+understand the screenshot and predict
+correct actions with precise coordinates. 
+The raw resolution of the screen is set to $1920\times 1080$. 
+In order to investigate the impact of input resolution, ablation studies are also conducted with different resolutions by manually downsampling the screenshot.
+
+\paragraph{Screenshot + accessibility tree}
+To check if a combination with the accessibility tree can improve the capacity of VLM for spatial grounding, we take this setting by inputting both raw screenshots and a simplified accessibility tree.
+
+\paragraph{Set-of-Marks}
+Set-of-Marks (SoM)~\citep{yang2023set} is an effective method for enhancing the grounding capabilities of VLMs such as GPT-4V, by segmenting the input image into different sections and marking them with annotations like alphanumerics, masks, or boxes.
+We leverage the information from the filtered accessibility tree and mark the 
+elements on the screenshot with a numbered bounding box.
+Following VisualWebArena~\citep{Koh2024VisualWebArenaEM} and 
+UFO~\citep{Zhang2024UFOAU}, we further combine
+the annotated screenshot with the text metadata from accessibility tree, including
+the \textit{index}, \textit{tag}, \textit{name}, and \textit{text} of the 
+elements\footnote{This metadata is similar to but kind of different from that provided in
+the single a11y tree setting. To be specific, the coordinates and size are replaced with element
+index.}.
+Instead of predicting precise coordinates, the VLM is supposed to specify
+the action object by its number index, which will be 
+mapped into our action space by post-processing. Ablation studies are also
+conducted with different resolutions for SoM setting.
+
+\subsection{Results}
+\label{result-analysis}
+\vspace{-10pt}
+\paragraph{LLMs and VLMs are still far from being digital agents on real computers.}
+The results from Table~\ref{tab:exp_baseline} show that when only using screenshots as input and adopting \texttt{pyautogui} as the code space, the success rate of the model is only 5.26\% to 5.80\% even with the strongest VLMs GPT-4V and Gemini-Pro-vision.
+Meanwhile, the most advanced batch of language models, when using the a11y tree as input, has a success rate ranging from 2.37\% to 12.24\%.
+Overall, these figures of performance are significantly lower than the human-level performance which is 72.36\% overall for individuals not familiar with the software.
+These gaps indicate that current LLMs and VLMs may still have a significant gap from humans in performance, necessitating further research in this area.
+Another surprising finding is that although Claude-3 Opus is reported to be competitive with GPT-4V on common benchmarks~\citep{Anthropic2023Claude}, it falls far behind when used as a digital agent in \ours. 
+We will present a qualitative analysis and infer reasons in Sec.~\ref{qualitative_analysis}.
+
+\paragraph{Agent performance has much higher variance than human across different types of computer tasks.}
+\ours is capable of simulating and evaluating the various software types and combination scenarios involved in people's daily lives in an open-ended manner. 
+We observe performance based on software type grouping and find that agents based on LLMs show significant differences across different subsets. 
+As shown in Table~\ref{tab:exp_baseline}, performance tends to be better in tasks oriented towards CLI interfaces (such as OS-type tasks) compared to those based on GUI (such as Office tasks involving clicks on spreadsheet interfaces and document processing). 
+Moreover, the biases between different models and settings are inconsistent, with gaps even exceeding 20\%; another point is that performance on workflow-type tasks involving multiple software is far below the figures on a single software, generally below 5\%. 
+However, human performance is consistent across these tasks, fluctuating around 70\% without exceeding a 5\% variance, forming a significant contrast with the models. 
+This suggests that the way humans understand and complete tasks may differ significantly from the current logic and methods based on LLMs and VLMs.
+
+
+\paragraph{A11y tree and SoM's effectiveness varies by models.} 
+The a11y tree contains some attribute information of visible elements, including window position and size, as well as some semantic labels of the window. 
+The performance gap illustrated in Table~\ref{tab:exp_baseline} between GPT-4V and Claude-3 with additional a11y tree information and under a pure screenshot setup suggests that it still has significant room for improvement in accurately perceiving and reasoning GUI elements.
+Conclusions are reversed for Gemini-Pro.
+
+While applying SoM setting, there is a decline for GPT-4V in performance compared to directly providing the model with screenshots and a11y tree inputs, which contradicts the widely shown effectiveness of SoM in classic image understanding tasks~\citep{yang2023set}, as well as in application areas like web agents \citep{zheng2024gpt, he2024webvoyager}. 
+We speculate that this is due to the tasks performed within operating systems having higher resolution and much more elements, (\textit{e.g.}, the cells in a spread table), leading to a significant amount of noise that counteracts the auxiliary role of bounding boxes. 
+Some tasks also require detailed operation on coordinate-level, which cannot be modeled by the bounding box that SoM marks.
+
+\paragraph{VLM agents with screenshot-only setting show lower performance, but it should be the ultimate configuration in the long run.}
+The setting that relies solely on screenshots exhibits the lowest performance, at only 5.26\%, among all. 
+Surprisingly, it still achieves a decent outcome when managing workflow tasks (involving multiple applications) that involve multiple applications. 
+Despite the performance, it is worth mentioning that this is the only configuration that does not require additional information, such as an accessibility (a11y) tree, making it concise and in alignment with intuitive human perception since the a11y tree may not be well-supported across all software or cannot be obtained under noisy conditions (\textit{e.g.}, when the agent is restricted to viewing the computer through peripheral screens), and the massive amount of tokens contained in the a11y tree (even just the leaf nodes can have tens of thousands of tokens) can also impose an additional inference burden on the model.
+Future work on purely vision-based agents could lead to stronger generalization capabilities and, ultimately, the potential for integration with the physical world on a larger scale.

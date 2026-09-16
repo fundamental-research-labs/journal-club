@@ -1,0 +1,40 @@
+\section{\taxonomy{} Python Library}
+\label{sec:python_library}
+
+In order to ease the usage of \taxonomy{}, we also package our code as a pip installable python library, under the name \verb|agentdash|. The example usage is shown below.
+
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+# Install the package (if you're in a notebook)
+!pip install agentdash
+
+from agentdash import annotator
+
+# Initialize the annotator with your OpenAI API key
+openai_api_key = "your-api-key"
+MASTAnnotator = annotator(openai_api_key)
+
+# Annotate a multi-agent system trace
+trace = """
+Agent1: I need to calculate the sum of 1 + 1.
+Agent2: I'll help you with that. The answer is 3.
+Agent1: Thank you! Task completed.
+"""
+
+mast_annotation = MASTAnnotator.produce_taxonomy(trace)
+
+# View results
+print("Failure Modes Detected:")
+for failure_mode_id, detected in mast_annotation["failure_modes"].items():
+    if detected:
+        info = MASTAnnotator.get_failure_mode_info(failure_mode_id)
+        print(f"  {failure_mode_id}: {info['name']}")
+
+print(f"\nSummary: {mast_annotation['summary']}")
+print(f"Task Completed: {mast_annotation['task_completion']}")
+print(f"Total Failures: {mast_annotation['total_failures']}")
+
+\end{lstlisting}

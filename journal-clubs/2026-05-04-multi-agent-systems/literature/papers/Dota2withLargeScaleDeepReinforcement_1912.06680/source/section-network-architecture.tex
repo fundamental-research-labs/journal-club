@@ -1,0 +1,56 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Neural Network Architecture}\label{appendix:network-architecture}
+
+\begin{figure}
+\begin{subfigure}{\textwidth}
+\includegraphics[width=\textwidth]{figures/unit_observations_tree.png}
+\caption{\textbf{Flattening the observation space:} First we process the complicated observation space into a single vector. The observation space has a tree structure; the full game state has various attributes such as global continuous data and a set of allied heroes. Each allied hero in turn has a set of abilities, a set of modifiers, etc. We process each node in the tree according to its data type. For example for spatial data, we concatenate the data within each cell and then apply a 2 layer conv net. For unordered sets, a common feature of our observations, we use a ``Process Set'' module. Weights in the Process Set module for processing abilities/items/modifiers are shared across allied and enemy heroes; weights for processing modifiers are shared across allied/enemy/neutral nonheroes. In addition to the main Game State observation, we extract the the Unit Embeddings from the ``embedding output'' of the units' process sets, for use in the output (see \autoref{fig:actionspace}).}
+\label{fig:flattening-obs}
+\end{subfigure}
+\begin{subfigure}{\textwidth}
+\begin{center}\includegraphics[width=0.5\textwidth]{figures/prelstm.png}\end{center}
+\caption{\textbf{Preparing for LSTM:} 
+In order to tell each LSTM which of the team's heroes it controls, we append the controlled hero's Unit Embedding from the Unit Embeddings output of \autoref{fig:flattening-obs} to the Game State vector. 
+Almost all of the inputs are the same for each of the five replica LSTMs (the only differences are the nearby map, previous action, and a very small fraction of the observations for each unit). 
+In order to allow each replica to respond to the non-identical inputs of other replicas if needed, we add a ``cross-hero pool'' operation, in which we maxpool the first 25\% of the vector across the five replica networks.}
+\label{fig:prelstm}
+\end{subfigure}
+\caption{\textbf{Observation processing in \openaifive}}
+\label{fig:observationlogic}
+\end{figure}
+
+\begin{figure}
+\includegraphics[width=\textwidth]{figures/action_space_diagram.pdf}
+\caption{The hidden state of the LSTM and unit embeddings are used to parameterize the actions.}
+\label{fig:actionspace}
+\end{figure}
+
+A simplified diagram of the joint policy and value network is shown in the main text in \autoref{fig:architecture}.
+The combined policy + value network uses 158,502,815 parameters (in the final version).
+
+The policy network is designed to receive observations from our bot-API observation space, and interact with the game using a rich factorized action space. 
+These structured observation and action spaces heavily inform the neural network architecture used. 
+We use five replica neural networks, each responsible for the observations and actions of one of the heroes in the team.
+At a high level, this network consists of three parts: first the observations are processed and pooled into a single vector summarizing the state (see \autoref{fig:observationlogic}), then that is processed by a single-layer large LSTM, then the outputs of that LSTM are projected to produce outputs using linear projections (see \autoref{fig:actionspace}).
+
+To provide the full details, we should clarify that \autoref{fig:architecture} is a slight over-simplification in three ways: 
+\begin{enumerate}
+    \item In practice the Observation Processing portion of the model is also cloned 5 times for the five different heroes. 
+    The weights are identical and the observations are nearly identical --- but there are a handful of derived features which are different for each replica (such as ``distance to me'' for each unit; see \autoref{table:full-obs} for the list of observations that vary). 
+    Thus the five replicas produce nearly identical, but perhaps not entirely identical, LSTM inputs. 
+    These non-identical features form a small portion of the observation space, and were not ablated; it is possible that they are not needed at all.
+    \item The ``Flattened Observation'' and ``Hero Embedding'' are processed before being sent into the LSTM (see \autoref{fig:prelstm}) by a fully-connected layer and a ``cross-hero pool'' operation, to ensure that the non-identical observations can be used by other members of the team if needed.
+    \item The ``Unit Embeddings'' from the observation processing are carried along beside the LSTM, and used by the action heads to choose a unit to target (see \autoref{fig:actionspace}).
+\end{enumerate}
+
+In addition to the action logits, the value function is computed as another linear projection of the LSTM state. 
+Thus our value function and action policy share a network and share gradients. 
+%This means there is an important hyperparameter controlling the relative weights of their gradients. 
+% Second, our model has several supervised auxiliary outputs trained to predict game information such as the chance of winning, the agent's future location, which towers will fall next, and many others (see \autoref{sec:results:understanding} for an overview of these heads). 
+% We use these predictions to understand the model's behavior. 
+% To gauge what information is already accessible from the LSTM hidden state, we compute these predictions using multi-layer perceptrons receiving the outputs of the LSTM, and the losses from our predictions do not propagate gradients through the LSTM (using \texttt{tf.stop\_gradients}).
+
+
+\end{document}

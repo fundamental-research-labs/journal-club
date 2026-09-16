@@ -1,0 +1,55 @@
+\section{Introduction}
+\label{sec:Introduction}
+% \vspace{-3mm}
+Recent advances in large language models (LLMs) have fueled the development of AI agents which are now being deployed for software engineering~\citep{wang2025openhandsopenplatformai}, web browsing~\citep{zhou2023webarena}, and customer service tasks~\citep{langchain2024state} among others. The rapid pace of their development has far outpaced progress in ensuring their safety. Agents are increasingly granted access to powerful tools that enable them to perform complex, multi-step tasks autonomously. Driven by competitive pressure and a large economic incentive to deploy, many agentic systems have been released without a thorough investigation into their failure modes or societal impacts~\citep{langchain2024state, plaat2025agenticlargelanguagemodels}. The gap between capability advancement and safety assurance continues to widen, making agents vulnerable to both catastrophic failures and subtle but pervasive harms that could prove difficult to reverse once embedded in societal systems~\citep{zhang2024agentsafetybenchevaluatingsafetyllm}.
+\begin{figure*}[t!]
+    % \vspace{-10pt}
+    \centering
+    \includegraphics[width=.9\textwidth]{pipeline.pdf}
+        % \vspace{-2pt}
+    \caption{An overview of the \OpenAgentSafety framework.}
+    \label{fig:oas_overview}
+    \vspace{-10pt}
+\end{figure*}
+% \vspace{-5mm}
+
+To mitigate and address these risks, we introduce \textbf{\OpenAgentSafety} (\OAS, \S\ref{sec:method}), a comprehensive and open-source simulation framework for evaluating the safety of AI agents in realistic, high-risk scenarios.
+Built on a robust and modular infrastructure, \OAS supports:
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=0pt]
+    \item \textbf{Real-world, comprehensive tool suite:} Agents interact with actual file systems, command line, code execution environments, and self-hosted web interfaces in a sandboxed environment to prevent any real-world harm.
+    \item \textbf{Diverse user intentions:} Tasks simulate user behavior ranging from benign ambiguity to adversarial manipulation.
+    \item \textbf{Multi-turn, multi-agent dynamics:} Scenarios include extended interactions involving users and secondary actors (NPCs) such as colleagues and customers with conflicting goals.
+\end{itemize}
+With these features, \OAS substantially improves upon existing benchmarks which are often limited in scope as they rely on toy environments or simulated tool APIs, focus on narrow domains like browsing or coding, or omit multi-turn, multi-user interactions (\autoref{tab:benchmark_comparison}). These gaps hinder evaluation of agent behavior in realistic settings. As capabilities grow, benchmarks must capture real-world challenges---diverse tools, varied user behavior, and long-horizon tasks.
+
+
+% \vspace{-20mm}
+To demonstrate the utility of our framework, we craft over \textbf{350} executable tasks, simulating multi-turn interactions with users exhibiting benign, ambiguous, or adversarial intent, where adversarial users may appear co-operative but subtly aim to induce harmful agent behavior. 
+Inspired by coding benchmarks~\citep{guo2024redcoderiskycodeexecution,jimenez2024swebenchlanguagemodelsresolve}, each \OAS task is implemented as a modular Docker container that includes the task description, multiple user goals, social dynamics, and customized evaluators, including both:
+\textit{rule-based evaluator} that detects harmful actions by examining the state of the environment (for e.g. deletion of an important file), and \textit{LLM-as-judge} to analyze the agent’s reasoning to flag attempted unsafe actions, despite being potentially incomplete or eventually unsuccessful. This allows for efficient environment reuse and flexible task extension.
+
+\begin{wrapfigure}{r}{0.67\textwidth}
+    % \vspace{-1.5em}
+    \centering
+    \includegraphics[width=0.55\textwidth]{main.pdf}
+    \vspace{-0.5em}
+    \caption{Unsafe agent behaviour rates of various LLMs measured using the \OpenAgentSafety framework when navigating conflicting user and NPC instructions.}
+    \label{fig:main_sim}
+    \vspace{-1em}
+\end{wrapfigure}
+We evaluate seven prominent LLMs on \OpenAgentSafety and find that exhibit a wide range of unsafe behaviors across complex\footnote{We define complexity as introducing both social dynamics with multiple actors and more steps required to complete a task than previous benchmarks.} realistic, multi-turn scenarios (\S\ref{sec:experiment}) when used as the backbone of agentic systems. Unsafe actions occur in 49\% to 73\% of safety-vulnerable tasks (\autoref{fig:main_sim}). 
+Our analysis, which examines the impact of different risk categories, user intents, and tool usage, reveals \textit{new failure modes} that are underexplored in existing safety benchmarks (e.g., \autoref{fig:main_sim}): we observe agents frequently fail to reason over extended multi-turn interactions, which results in individually safe steps compounding into unsafe outcomes; they disregard legal, privacy, and security policies even in high-risk settings; and they show structurally unsafe behavior patterns across diverse user intents and tool types.
+We also confirm prior findings that access to the browsing tool can increase the risk of unsafe behavior by overloading the agent’s context~\citep{tur2025safearenaevaluatingsafetyautonomous}. 
+% Unlike prior studies, we analyze the impact of different risk categories, user intents, and tool usage, allowing us to uncover patterns in unsafe agent behavior which cannot be captured by existing benchmarks with a limited scope.
+
+% \vspace{-1mm}
+\noindent\textbf{Our research contributions are as follows:}
+% \vspace{-1mm}
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=0pt]
+    \item We introduce \OpenAgentSafety, a modular and extensible evaluation framework with 350+ executable tasks spanning eight key safety risk categories. Tasks vary systematically in user intent (benign vs. malicious) and NPC behavior, capturing how different interaction patterns give rise to unsafe outcomes.
+    \item Our framework is designed for extensibility, allowing researchers to easily add new tasks, simulated environments (e.g., websites), complex social dynamics (e.g., negotiation with a customer), and customized evaluators.
+    \item We conduct a detailed empirical analysis across seven LLMs, uncovering failure modes and vulnerabilities in realistic deployment scenarios. We find that (i) seemingly benign inputs that allow for ``easy but unsafe`` solutions drive a large share of unsafe behaviors, and (ii) models consistently struggle with systemic risks that require understanding institutional norms.
+\end{itemize}
+
+
+% \vspace{-10pt}

@@ -1,0 +1,57 @@
+
+
+\section{Appendix}
+
+In this appendix, we provide additional analysis and visualizations of the debates used in the main paper in \sect{sect:additional_results}. We further provide detailed experimental details on each dataset in \sect{sect:evaluation}.
+
+\subsection{Additional Results}
+\label{sect:additional_results}
+
+\input{figText/consensus}
+\vspace{3pt}
+\myparagraph{Consensus Between Agents.} In \fig{fig:consensus}, we illustrate the consensus between agents using either short or long consensus prompts discussed in \fig{tbl:prompt}. The use of debate prompts that encourage agents to adapt more to the opinions of other agents improves consensus. 
+
+
+
+\myparagraph{Additional Qualitative Visualizations.} We added additional qualitative visualizations of the debate process. In \fig{fig:gsm-1}, \fig{fig:gsm-2}, \fig{fig:gsm-3}, \fig{fig:gsm-4}, \fig{fig:gsm-5}, we illustrate debates between agents in the GSM8K dataset which result in the correct answer. In \fig{fig:gsm-6}, \fig{fig:gsm-7}, \fig{fig:gsm-8}, we further illustrate debates in GSM8K which lead to the incorrect answer. We further provide an example illustration of debate in arithmetic in \fig{fig:result_math}, arithmetic with summarization of individual responses of agents in \fig{fig:result_math_summarize}, MMLU in \fig{fig:result_mmlu}, a debate with the full contents biographies in \fig{fig:result_biography}, and debate in chess in \fig{fig:result_chess}. In general, we found that debate improved the performance of final generated answers, though sometimes answers would converge to the incorrect value.
+
+\subsection{Evaluation Details}
+\label{sect:evaluation}
+
+We provided detailed evaluation details for each setting in the paper. We run all experiments using the \texttt{gpt-3.5-turbo-0301} model. We provide a table listing the prompts used to prompt models and initialize debate in \tbl{tbl:prompt_appendix}.
+
+\myparagraph{Arithmetic.} To evaluate the arithmetic task, we generated six random integers for each task between 0 and 30. We then evaluated the extent to which the correct integer answer was correctly obtained. We evaluated models on one hundred generated arithmetic tasks.
+
+\myparagraph{Grade School Math.} To evaluate the GSM8K task, we evaluated the accuracy at which models were able to obtain the final correct answer, as extracted from a box. We evaluated models on one hundred grade school math problems.
+
+\myparagraph{Chess.} To evaluate the chess reasoning task, we used chess games from \url{https://www.pgnmentor.com/players/Adams.zip}. We asked chatGPT to predict the next move for white to move at turn 14 and  reported the relative Stockfish pawn score with search depth 20 after executing the suggested move from chatGPT.  We evaluated models on three hundred selected chess games.
+
+\myparagraph{Biographies.} To evaluate the biographies task, we compare each generated bullet point biography for a person with a ground truth set of facts about the person extracted from Wikipedia. We iteratively loop through each ground truth fact, and validate the extent to which the generated biography matches a particular bullet by prompting chatGPT with the prompt: \emph{Consider the following biography of <person>: <generated biography>  Is the above biography above consistent with the fact below? <ground truth bullet> Give a single-word answer, yes, no, or uncertain.} We then evaluate and report the percentage of ground bullets that chatGPT returns either yes or no on. We ignored ground truth bullets that chatGPT returns returned uncertain.
+
+We found this evaluation metric provided a fast way to evaluate how relatively correct a generated bullet point biography is. However, we found that generated facts could contain incorrect information that was not captured in the ground truth bullet and thus could not be validated through this metric. Nevertheless, we believe this evaluation scheme estimates the relative accuracy of a generated biography.
+
+\myparagraph{MMLU.} To evaluate MMLU, we measured the accuracy in which models were able to select the correct multiple-choice answer in each problem. We evaluated models on one hundred selected MMLU questions randomly distributed across each of the subject areas.
+
+\myparagraph{Chess Validity.} To evaluate chess validity, we consider the BIG-Bench Chess-State Tracking Benchmark ~\cite{srivastava2022beyond}, where we used the hardest reported task in the benchmark \texttt{synthetic\_short}. Each generated answer was deemed correct as long as it was one of the valid answers in the sequence. We evaluated models of one hundred selected chess validity tasks.
+
+\input{tables/prompt_settings}
+
+
+\input{figText/apx-gsm-1}
+\input{figText/apx-gsm-2}
+\input{figText/apx-gsm-3}
+\input{figText/apx-gsm-4}
+\input{figText/apx-gsm-5}
+
+\input{figText/apx-gsm-6}
+\input{figText/apx-gsm-7}
+\input{figText/apx-gsm-8}
+
+\input{figText/apx-math}
+\input{figText/apx-math-summarize}
+\input{figText/apx-mmlu}
+\input{figText/apx-biography}
+\input{figText/apx-chess}
+
+
+

@@ -1,0 +1,195 @@
+\section{Experiments}
+\label{sec:exp}
+
+\safevspace{-1.5mm}
+\subsection{Datasets}
+\safevspace{-1mm}
+
+We evaluate \oursspace on  two benchmark NLP tasks to validate its performance in both mathematical reasoning and logical natural language inference. The details are summarized as follows:
+\safevspace{-2mm}
+
+\paragraph{GSM8K \citep{cobbe2021training} and TinyGSM \citep{liu2023tinygsm}.} 
+GSM8K is a benchmark dataset designed to assess a model's mathematical reasoning abilities, requiring models to solve high-school-level mathematics problems. TinyGSM is an augmented version of GSM8K, generated using GPT-3.5-turbo, where solutions are provided in Python. Importantly, we did not utilize the reasoning processes from GSM8K or TinyGSM but rely solely on their final answers. For training the verifier model, we used 7,463 samples from GSM8K. Additionally, we incorporated the first 12,800 synthetic samples from TinyGSM for \ours\footnote{We divided the dataset for training the verifier and training \ours~to prevent overfitting LLMs to the trained verifiers.}. For evaluation, we hold out 1,319 samples from GSM8K as a test set. 
+
+\paragraph{Adversarial Natural Language Inference (ANLI)~\citep{nie2019adversarial}.}
+ANLI is designed to evaluate a model’s natural language understanding by presenting adversarial examples that challenge even the state-of-the-art models. To train the verifier model, we used first 10,000 training examples. Furthermore, we used the next 12,800 examples for \ours~training and 1,200 samples for testing.
+
+\paragraph{Evaluation Method.} 
+After all turns are completed, the final answer is determined using a majority voting scheme among the agents' responses. The accuracy is based on whether the majority-selected response is correct.
+In cases where no clear majority winner emerges (e.g., a tie in vote counts), we adopt an expectation-based approach by weighting the correctness of each tied response proportionally. For example, if two agents receive an equal number of votes, the final score is adjusted as the expected accuracy of selecting the first agent’s answer as the final result. This ensures a continuous evaluation metric rather than an arbitrary tiebreaker.
+
+
+\subsection{Models}
+We primarily use the Microsoft Phi-3-mini-128k-instruct (3.4B) model~\citep{abdin2024phi}, together with Qwen2.5-3B-instruct~\citep{yang2024qwen2} and Llama-3-8B-instruct~\citep{dubey2024llama} for  the experiments. Due to computational constraints, we mainly use quantized models and fine-tuned them with QLoRA~\citep{dettmers2024qlora}. We defer the training details to \Cref{appendix:training}. When evaluating on GSM8K and ANLI, we set the max token length to 300 and 250, respectively.
+
+
+
+\subsection{Experiment 1: Vanilla Collaboration by Off-the-shelf LLMs Cannot Improve Performance, While \ours-Trained LLMs Can}
+\label{sec-exp1}
+We first compare the collaboration performance of off-the-shelf LLMs with \ours-trained LLMs. The training was conducted with two agents collaborating over three turns. An overview of the trained system is provided in \Cref{fig1:problem-setting}. In Experiment 1, we trained the model starting from turn \( t \geq 2 \) for two reasons: (a) the first turn primarily focuses on knowledge acquisition from each dataset, and (b) to ensure a fair comparison with off-the-shelf LLMs. We focus on enhancing collaboration skills rather than teaching specific task knowledge. For this experiment, we used Phi-3-mini-128k-instruct and evaluate the trained models in a three-agent and three-turn collaboration environment.
+
+We observe that even when the off-the-shelf LLM is allowed to generate longer reasoning (600 tokens, twice the output length of our \ours-trained model  model), its accuracy did not improve across turns. 
+This aligns with prior findings in the literature, particularly for models that are not sufficiently strong. For instance, \citet[Table 7]{huang2023large} provided  evidence that additional turns do not necessarily improve the  performance significantly. 
+Similarly, our results show that off-the-shelf LLMs' performance may not benefit from additional turns. In contrast, LLMs trained using \ours~exhibit improved performance as the number of collaboration turns increased, as shown in \Cref{fig:turn-performance-gsm9k-anli}.
+
+\begin{figure}[!h]
+       \centering
+        \includegraphics[width=\linewidth]{figs/exp1-combined_plots.pdf}
+    \safevspace{-4mm}
+    \caption{Performance comparison of different LLMs across tasks (left: GSM8k, right: ANLI) under various settings. We evaluate collaboration ability in five conditions: (1) off-the-shelf LLMs collaborating and (2) models trained using \oursspace collaborating (with all incentive parameters (\Cref{sec:exp2}) $\alpha, \beta = 0,1, 2$, respectively).}
+    \label{fig:turn-performance-gsm9k-anli}
+\end{figure}
+\safevspace{-2mm}
+
+\begin{remark}[Domain-Specific Knowledge Acquisition vs. Collaboration Ability Improvement]
+\upshape
+One might question whether the performance gains observed in \ours-trained models stem from acquiring domain-specific knowledge rather than improved collaboration ability. To address this, we compare off-the-shelf LLMs and \ours-trained models by testing how well they perform on questions without any collaboration, providing \ours-trained models only the original question -- without interaction history -- to check if their performance is solely due to domain knowledge learned during training. The results are as follows:
+
+\begin{table}[h!]
+\small
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline & \textbf{Phi-3} & \textbf{\oursspace T2} & \textbf{\oursspace T3} \\
+\hline
+GSM8k & 0.609 & 0.604 & 0.611 \\
+\hline
+ANLI & 0.451 & 0.458 & 0.453 \\
+\hline
+\end{tabular}
+\end{table}
+Here, we provide the same questions to the off-the-shelf Phi-3 model, the \ours-trained turn-2 model, and the \ours-trained turn-3 model. The similar performance across these models suggests that \oursspace training did not enhance task-specific knowledge but rather improved the models' ability to collaborate effectively. 
+\end{remark}
+
+\safevspace{-3mm}
+We also provide the changes in the fraction of responses that transition their correctness over multiple turns of \ours. The fraction of Incorrect $\to$ Incorrect responses decreased, and the fraction of Correct $\to$ Incorrect responses also decreased, indicating that \oursspace enhanced effective collaboration.
+
+\safevspace{-6mm}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/exp2-GSM.pdf}
+\safevspace{-1mm}
+    \caption{Changes in the fraction of responses that transition their correctness over multiple turns of \oursspace on GSM8k.} 
+    \label{fig:chart-GSM}
+\end{figure}
+\safevspace{-6mm}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/exp2-ANLI.pdf}
+    \caption{Changes in the fraction of responses that transition their correctness over multiple turns of \oursspace on ANLI.}
+    \label{fig:chart-ANLI}
+\end{figure}
+
+\safevspace{-4mm}
+\subsection{Experiment 2: Reward Shaping with Collaboration Incentives}
+\label{sec:exp2}
+In addition to the multi-agent independent PPO framework, we then investigate the auxiliary incentive mechanism designed to enhance collaborative interactions. 
+To analyze the impact of the incentive parameters (\(\alpha\) and \(\beta\), \Cref{sec:incentive-coll}), we simplify our experimental setup by limiting the total number of debate turns to 2 and analyze the following cases. Here, \(\alpha_0\) and \(\alpha_1\) correspond to incentives for an agent’s own revision, capturing \textit{critical reasoning} (extracting useful information from incorrect answers) and \textit{persuadability} (accepting correct information), respectively. Meanwhile, \(\beta_0\) and \(\beta_1\) correspond to incentives for influencing others, where \(\beta_0\) encourages providing incorrect but useful responses, and \(\beta_1\) reflects an agent’s ability to \textit{persuade others} with correct answers.
+
+To analyze the impact of the incentive parameters (\(\alpha\) and \(\beta\), \Cref{sec:incentive-coll}), we simplify our experimental setup by limiting the total number of debate turns to 2 and analyze the following cases. Here, \(\alpha_0\) and \(\alpha_1\) correspond to the incentives related to an agent's own revision of the answer, while \(\beta_0\) and \(\beta_1\) correspond to the incentives related to the agent's influence on other agents' answers.
+\begin{table}[h]
+    \centering
+    \resizebox{\linewidth}{!}{  
+    \begin{tabular}{ccccccc}
+        \toprule
+        ($\alpha_0, \alpha_1$) & RWR & RWW  & WRW & WRR & $\Delta_0$ & $\Delta_1$ \\ 
+        \midrule
+        (0, 0) &0.0529 & 0.0563 & 0.1244 & 0.2286 & 0.1757 &0.0661 \\
+        (0, 2) & 0.0270 & 0.0521 & 0.1259 & 0.2194 & 0.1924 &0.0738 \\
+        (2, 0) & 0.0500  & 0.0563 & 0.1241 & 0.2272 & 0.1772 &0.0678  \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{Analysis of answer revision patterns under different $\alpha$ parameters. The columns RWR through WRR show the proportion of each transition type, where the three letters indicate Answer(t), Answer(t+1), and Majority(t) respectively. {R and W stand for right and wrong answer.} $\Delta_0$ measures the difference in transitions from wrong to right answers when the majority is wrong (WRW $-$ RWW) which is related to $\alpha_0$, while $\Delta_1$ measures transitions when the majority is right (WRR $-$ RWR) which is related to $\alpha_1$. }    \label{tab:alpha_analysis}
+\end{table}
+\safevspace{-3mm}
+
+\paragraph{Analysis of $\alpha_0$ and $\alpha_1$.}
+We compare baseline $(\alpha_0, \alpha_1) = (0,0)$ against two configurations: $(0,2)$ and $(2,0)$. When $\alpha_1$ was increased to 2, we observe a 9.5\% improvement in $\Delta_1$, indicating that incentivizing agents to follow correct majority opinions effectively improved performance. When $\alpha_0$ was increased to 2, we observed a smaller (2.57\%) improvement in $\Delta_0$, suggesting that rewarding agents for deviating from incorrect majority opinions had a positive but limited effect.
+\begin{table}[h]
+    \centering
+    \resizebox{\linewidth}{!}{  
+    \begin{tabular}{ccccccc}
+        \toprule
+        ($\beta_0, \beta_1$) & RWR & RWW  & WRW & WRR & $\Delta_0$ & $\Delta_1$ \\ 
+        \midrule
+        (0, 0) &0.0070 & 0.0453& 0.0226 & 0.0221 & 0.0151 &-0.0227\\
+        (0, 2) & 0.0686 & 0.0461 & 0.0231 & 0.0230& 0.0161 &-0.0230 \\
+        (2, 0) & 0.0011  & 0.0360 & 0.0161 & 0.0188& 0.0177&-0.0199 \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{Analysis of majority opinion influence under different $\beta$ parameters. Meaning of the column is the same as Table~\ref{tab:alpha_analysis}.
+    }    \label{tab:beta_analysis}
+\end{table}
+
+\vspace{-6mm}
+
+\paragraph{Analysis of $\beta_0$ and $\beta_1$.}
+We compare baseline $(\beta_0, \beta_1) = (0,0)$  against configurations $(0,2)$ and $(2,0)$. Increasing $\beta_1$ to 2 resulted in a slight decrease in $\Delta_1$ (-1.32\%), indicating that incentivizing agents based on their influence when correct did not improve outcomes. However, increasing $\beta_0$ to 2 lead to a substantial improvement in $\Delta_0$ (17.2\%), suggesting that rewarding agents for constructive influence even when wrong (providing useful incorrect answers that lead to better future responses) significantly enhanced collaborative performance.
+
+
+{For a total debating turns of 3, we also plot the collaboration performance  using models trained with \(\alpha_i = \beta_i = 0, 1, 2\) for \(i = 1, 2\) on the GSM8K and ANLI tasks (\Cref{fig:turn-performance-gsm9k-anli}). The results showed some performance improvement, though the gain was relatively modest.}
+
+\safevspace{-2mm}
+
+
+
+
+
+\subsection{Experiment 3: Collaboration Ability Acquired by \ours~Is Transferable}
+Here, we investigate the transferability of collaboration abilities acquired through \oursspace across different datasets not used during training. We evaluate LLMs trained with \oursspace on one dataset when applied to tasks from other datasets. For instance, we assesse models trained on ANLI when solving tasks from GSM8k, along with other dataset combinations.
+The results, presented in Table \ref{table:transfer-stacked}, demonstrate that collaboration abilities learned through \ours~are indeed transferable across datasets. This suggests that the models acquire a \textit{meta}-capability for effective collaboration, even when encountering novel, unseen tasks.
+\vspace{-3mm}
+
+
+\begin{table}[!ht]
+  \centering
+  \resizebox{\columnwidth}{!}{%
+    \begin{tabular}{llccc}
+      \toprule
+      \textbf{Training} $\rightarrow$ \textbf{Evaluation} & \textbf{Model} 
+          & \textbf{Turn 1} & \textbf{Turn 2} & \textbf{Turn 3} \\
+      \midrule
+      \multirow{2}{*}{\textbf{ANLI} $\rightarrow$ \textbf{GSM8K}} 
+         & Off-the-shelf & 0.677 & 0.688 & 0.640 \\
+         & Trained       & 0.677 & 0.712 & 0.720 \\
+      \midrule
+      \multirow{2}{*}{\textbf{GSM8K} $\rightarrow$ \textbf{ANLI}} 
+         & Off-the-shelf & 0.482 & 0.486 & 0.468 \\
+         & Trained       & 0.482 & 0.499 & 0.507 \\
+      \bottomrule
+    \end{tabular}
+  }
+  \caption{Performance comparison (Accuracy) of 3-agent collaboration using 
+           \textit{off-the-shelf} vs.\ \textit{trained} LLMs. 
+           For each dataset pair (rows in bold), the first row shows 
+           the off-the-shelf performance and the second row shows the 
+           trained model performance, across Turns 1--3.}
+  \label{table:transfer-stacked}
+\end{table}
+
+
+
+These findings demonstrate that models trained through \ours~on one task can effectively generalize their collaborative capabilities to different, unrelated tasks. This generalization ability suggests that \ours~develops fundamental collaborative skills that transcend specific task domains.
+
+
+
+\subsection{{Experiment 4: \oursspace with Heterogeneous LLMs Can Help}}
+\label{sec:exp4}
+In this experiment, we investigate collaborative learning between different foundation models, specifically examining co-training between (Phi3 3.4B and Qwen2.5 3B) and (Phi3 3.4B and Llama3-8B) pairs. In single-model evaluations, both Phi3 and Qwen2.5 3B demonstrate stronger performance compared to Llama3-8B. Due to GPU memory constraints necessitating simultaneous loading of two base models, we conduct experiments in a two-agent, two-turn environment. This setup enables us to explore whether models with heterogeneous capabilities could effectively collaborate to enhance the overall performance (\Cref{fig:turn-performance-diff}). The synergistic effects are particularly evident when models with different strengths worked together, suggesting that diverse model partnerships can yield better outcomes than individual model performance alone when we have \ours. 
+
+
+\subsection{Experiment 5: Naïve Supervised Fine-Tuning Using High-Quality Collaboration Samples May Not Induce Collaborative Behaviors} 
+\label{sec:exp3}
+In this experiment, we investigate whether models could learn collaborative behavior through SFT on high-quality debate trajectories. We generated 12,800 trajectories using the multi-agent system (\Cref{fig1:problem-setting}) with off-the-shelf LLMs to match the training sample size used in \oursspace for GSM8K. To provide favorable conditions for SFT, we allow a maximum of 600 tokens per response, which exceeded the token limit used in our \oursspace experiments.
+We selected the top 10\% of trajectories using the following criteria: 1) excluding trajectories without well-formatted answers, 2) filtering out trajectories where the final majority voting result was incorrect, and 3) selecting 1,280 trajectories based on the verifier's score of the final answer, which evaluates both correctness and reasoning quality. Interestingly, the results indicate that SFT not only failed to enhance collaborative behaviors,  but also led to a decline in performance compared to the off-the-shelf model. Specifically, for turn-2, accuracy dropped to 0.578 (\(\Delta = -0.111\)), and for turn-3, it further decreased to 0.525 (\(\Delta = -0.114\))\footnote{Initially, these unexpected results led us to validate our findings through multiple experiments with varying temperatures  for language generation. The consistent performance degradation across turns was observed in all the cases. This pattern suggests fundamental challenges in using SFT to maintain collaborative performance across multiple debate turns.}. 
+ This suggests that either substantially more training data would be required to learn effective collaborative behaviors, or that SFT might not be an effective approach for inducing such behaviors. {Contemporaneously, \citet{subramaniam2025multiagent} and \citet{zhao2025sirius} enhance multi-agent performance by incorporating new techniques into iterative SFT with their own data augmentation to generate effective collaboration examples, demonstrating its potential when combined with additional refinements. In contrast, our approach does not leverage data augmentation, but uses RL.}
+
+
+
+
+
+
+

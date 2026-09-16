@@ -1,0 +1,32 @@
+\section{Experiments}
+\label{sec:experiments}
+To explore the utility of \bugs{} for training software engineering agents, we use rejection sampling fine-tuning~\citep{yuan2023scalingrelationshiplearningmathematical} as the primary procedure for improving a base LM with \bugs{}.
+Our experiment workflow is as follows.
+First, we curate a subset of \bugs{} task instances.
+Next, we run an agent system with an expert model on this subset.
+At this step, the trajectory corresponding to each run is recorded.
+Then, we fine-tune the base (or ``student") model on the trajectories corresponding to resolved instances.
+Finally, we evaluate the agent system run with the student model on a separate, test split.
+
+\textbf{Models.} For expert models, we use \texttt{claude-3-7-sonnet-20250219}~\citep{anthropicclaude37}.
+For fair comparisons with prior works~\citep{pan_training_2024}, we also use \texttt{claude-3-5-sonnet-20240620} and \texttt{gpt-4o-2024-08-06}.
+We use the \texttt{Qwen-2.5-Coder-Instruct}~\citep{hui2024qwen25codertechnicalreport} $7$B and $32$B series as the base models.
+Training and hyperparameter details are in \S\ref{appx:experiments:train_details}.
+
+\textbf{Agent system.} We use SWE-agent~\citep{yang_swe-agent_2024}, an agent system for solving GitHub issues.
+SWE-agent provides a base LM with an Agent Computer Interface (ACI) that enables more effective interactions with a codebase.
+At each turn, SWE-agent prompts an LM to generate a ReAct~\citep{yao_react_2023} style (thought, action) pair, where the action either edits a file or executes a shell command.
+We choose SWE-agent because, at the time of writing, SWE-agent with Claude 3.7 Sonnet is the top open source solution on SWE-bench.
+When generating trajectories with expert models, we run SWE-agent for at most $75$ steps and \$$2.00$ cost limit.
+For inference of student models, we impose the same $75$ step maximum and fix temperature at $0.0$.
+Full configuration details are in \S\ref{appx:experiments:train_details}.
+
+\textbf{Evaluation metrics.}
+We evaluate on the SWE-bench Lite and Verified~\citep{chowdhuryintroducing} subsets.
+SWE-bench evaluates AI systems on their ability to solve software issues from $12$ real world GitHub repositories.
+The Lite split is a subset of $300$ instances, curated to be an easier evaluation set that's less costly to run.
+The Verified split is a human-curated subset of $500$ instances, selected for clearer problem statements and more reliable evaluation.
+To assess generalization beyond Python, we also evaluate on SWE-bench Multilingual, a new dataset introduced in this paper.
+SWE-Bench Multilingual consists of $300$ task instances that cover $9$ additional programming languages.
+See \S\ref{appx:experiments:eval_datasets} for more details.
+We report the \textbf{\% resolved} metric, the proportion of successfully resolved instances.

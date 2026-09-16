@@ -1,0 +1,146 @@
+\section{Learning to Communicate}
+\label{sec:exp1}
+
+Our first question is whether agents converge to successful
+communication at all. We see that they do: agents almost perfectly coordinate in the 1k rounds following the 10k training games for every architecture and parameter choice (Table \ref{tab:exp1_table}).
+
+We see, though, some differences between different sender architectures. Figure \ref{fig:exp1_comm} (left) shows performance on a sample of the test set as a function of the first 5,000 rounds of training. The agents converge to coordination quite fast, but the informed sender reaches higher levels more quickly than the agnostic one.%with an average success rate of 94$\%$ across
+%models.\COMMENT{is this with sm or fc representations?}
+
+% \COMMENT{Isn't there a mismatch between figure \ref{fig:exp1_comm} and
+%   table \ref{tab:exp1_table}? the table reports almost perfect comm
+%   success for agnostic after 5K trials, but from the figure it looks
+%   still at around 90\% success after 5K trials\ldots AL: yes, two points: 1) the curves are reported on just 1000 test items for speed. Moreover, the FFN is at 94\% at 5K and reaches 97=98\% at 50k.}
+
+\begin{figure}[tb]
+\centering
+\includegraphics[scale=0.39]{figures/fc}
+\hspace{15pt}
+\includegraphics[scale=0.34]{figures/bla}
+\caption{\textbf{Left:} Communication success as a function of training iterations, we see that informed senders converge faster than agnostic ones.
+ \textbf{Right:} Spectrum of an example symbol usage matrix: the first few dimensions do capture only partial variance, suggesting that the usage of more symbols by the informed sender is not just due to synonymy.}
+\label{fig:exp1_comm}
+\end{figure}
+
+
+
+% \begin{table}
+% \centering
+% \begin{tabular}{c|c|c|c|c|c|c|c}
+% visual representation&vocab size & used words& sender & commun. success &purity & rand. purity & purity-rand. purity\\\hline
+% sm & 100 & 58 & shared & 1.00 & 0.46        & 0.27 & 0.19\\
+% fc & 100 & 38 & shared & 1.00 & 0.41           & 0.23 & 0.18\\
+% sm & 10 & 10 & shared & 1.00 & 0.35         & 0.18 & 0.18\\
+% fc & 10 & 10 & shared & 1.00 & 0.32            & 0.17 & 0.14\\
+% sm & 100 & 2 & fullyconnected & 0.99 & 0.21 & 0.15 & 0.06\\
+% fc & 10 & 2 & fullyconnected & 0.99 & 0.21     & 0.15 & 0.05\\
+% sm & 10 & 2 & fullyconnected & 0.99 & 0.20  & 0.15 & 0.04\\
+% fc & 100 & 2 & fullyconnected & 0.99 & 0.19    & 0.15 & 0.04\\
+% \end{tabular}
+% \label{tab:exp1_table}
+% \caption{Table with results, no noise}
+% \end{table}
+
+\begin{table}
+\centering
+\small
+\begin{tabular}{c|c|c|c|c|c|c|c}
+id & sender   &vis   &voc &used     &comm    &      purity ($\%$)   &obs-chance\\
+ 	&	& rep & size& symbols & success ($\%$) &  & purity ($\%$) \\\hline
+1&informed&sm     &100       &58          &100                &46           &27 \\
+2&informed&fc        &100       &38          &100                &41           &23 \\
+3&informed&sm     &10        &10          &100                &35           &18 \\
+4&informed&fc        &10        &10          &100                &32           &17 \\
+5&agnostic&sm     &100       &2           &99                 &21           &15 \\
+6&agnostic&fc        &10        &2           &99                 &21           &15 \\
+7&agnostic&sm     &10        &2           &99                 &20           &15 \\
+8&agnostic&fc        &100       &2           &99                 &19           &15 \\
+\end{tabular}
+
+\caption{Playing the referential game: test results after 50K training games. \emph{Used symbols} column reports number of distinct vocabulary symbols that were produced at least once in the test phase. See text for explanation of \emph{comm success} and \emph{purity}. All purity values are highly significant ($p<0.001$) compared to simulated chance symbol assignment when matching observed symbol usage. %\textbf{Is this indeed the case? that is, is observed purity above the max chance value for all experiments reported in this table? if not, update accordingly. AL: YES, but I measured in your perl simulations how many times the chance purity was over the observed one.} 
+  The \emph{obs-chance purity} column reports the difference between observed and expected purity under chance.}
+  \label{tab:exp1_table}
+\end{table}
+
+The informed sender makes use of more symbols from the available vocabulary, while the agnostic
+sender constantly uses a compact 2-symbol vocabulary. This suggests
+that the informed sender is using more varied and word-like symbols
+(recall that the images depict 463 distinct objects, so we would
+expect a natural-language-endowed sender to use a wider array of
+symbols to discriminate among them). However, it could also be the
+case that the informed sender vocabulary simply contains higher
+redundancy/synonymy. To check this, we construct a (sampled) matrix where rows are game image pairs, columns are symbols, and entries represent how often that symbol is used for that pair. We then decompose the matrix through SVD. If the sender is indeed just using a strategy with few effective symbols but high synonymy, then we should expect a $1$- or $2$-dimensional decomposition. Figure~\ref{fig:exp1_comm} (right) plots the normalized spectrum of this matrix. While there is some redundancy in the matrix (thus potentially implying there is synonymy in the usage), the language still requires multiple dimensions to summarize (cross-validated SVD suggests 50 dimensions).
+
+We now turn to investigating the semantic properties of the emergent
+communication protocol. Recall that the vocabulary that agents use is
+arbitrary and has no initial meaning. One way to understand its
+emerging semantics is by looking at the relationship between symbols
+and the sets of images they refer to. 
+
+The objects in our images were categorized into 20 broader
+categories (such as \emph{weapon} and \emph{mammal}) by
+\cite{McRae:etal:2005}. If the agents converged to higher level semantic meanings
+for the symbols, we would expect that objects belonging to the same
+category would activate the same symbols, e.g., that, say, when the
+target images depict bayonets and guns, the sender would use the same
+symbol to refer to them, whereas cows and guns should not share a
+symbol. 
+
+To quantify this, we form clusters by grouping objects by the symbols that
+are most often activated when target images contain them. We then
+assess the quality of the resulting clusters 
+by measuring their \emph{purity} with respect to the McRae
+categories. Purity \citep{Zhao:Karypis:2001} is a standard measure of
+cluster ``quality''. The purity of a clustering solution is the proportion of category labels in the clusters that agree with the respective cluster majority category. This number reaches 100\% for perfect clustering and we always compare the observed purity to the score that would be obtained from a random permutation of symbol assignments to objects. Table \ref{tab:exp1_table} shows that purity, while far from perfect,
+is significantly above chance in all cases. We confirm moreover that
+the informed sender is producing symbols that are more semantically
+natural than those of the agnostic one. 
+
+Still, surprisingly, purity is
+significantly above chance even when the latter is only using two
+symbols. From our qualitative evaluations, in this case the agents converge to a
+(noisy) characterization of objects as ``living-vs-non-living'' which, intriguingly, has been recognized as the most basic one in the human semantic system \citep{Caramazza:Shelton:1998}.
+
+Rather than using hard clusters, we can also ask whether symbol usage reflects the semantics of the visual space. To do so we construct vector representations for each object (defined by its ImageNet label) by
+averaging the CNN fc representations of all category images in our
+data-set (see Section \ref{sec:experimental-setup} above).  Note that the fc layer, being near the top of a deep CNN, is expected to capture high-level visual properties of objects
+\citep{Zeiler:Fergus:2014}. Moreover, since we average across many
+specific images, our vectors should capture rather general, high-level
+properties of objects. 
+
+We map these average object vectors to 2
+dimensions via t-SNE mapping \citep{Laurens:Hinton:2008} and we
+color-code them by the majority symbol the sender used for images
+containing the corresponding object. Figure
+\ref{fig:exp1_tsne} (left) shows the results for the current experiment. We see that objects that
+are close in CNN space (thus, presumably, visually similar) are
+associated to the same symbol (same color). However, there still appears to be quite a bit of variation.
+% OLD FROM HERE
+% We can visualize the clustering patterns as follows. For every
+% ImageNet class, we look at the symbol most commonly used by the sender
+% when an image of that class is the target. In addition, for each
+% class, we generate an embedding by averaging the embeddings of each
+% image in the class. We think this captures higher-level class
+% semantics for two reasons: first, the top layers of convolutional
+% neural networks are often thought to be expressing quite high-level
+% features of images \citep{Zeiler:Fergus:2014}. Second, if lower-level
+% features (e.g., brightness) are randomly assigned within class then
+% this averaging removes lower-level signals and leaves only higher
+% level ones.
+
+% \COMMENT{I don't understand the line of reasoning above. The aim of the current analysis is to show that the agents are converging to a meaningful code. In this perspective, what is the point of trying to use an external mechanism that is not part of agent's communication, namely averaging across images of objects? I think the latter should simply be justified as a way to improve the visualization, and not in virtue of any denoising function they might have. Perhaps, it would be even better to plot single images randomly selected?}
+
+% We then take these class embeddings and inspect if they form natural clusters and whether these clusters align with word usage. To see this, we perform a t-SNE mapping~\cite{Laurens:Hinton:2008} of the class embedding matrix, color-coded  by their majority symbol used. Figure \ref{fig:exp1_tsne} shows the result.
+
+%\COMMENT{These plots should feature labels for a subset of the points, to let the reader understand what's going on.}
+%OLD TO HERE
+
+
+\begin{figure}[tb]
+\centering
+\includegraphics[scale=0.37]{figures/informed_fc_10_v1n0}
+\includegraphics[scale=0.37]{figures/informed_fc_10_v1n1}
+\caption{t-SNE plots of object fc vectors color-coded by majority symbols assigned to them by informed sender. Object class names shown for a random subset. \textbf{Left:} configuration of 4th row of Table~\ref{tab:exp1_table}. \textbf{Right:} 2nd row of Table~\ref{tab:exp2_multiinstance}.}
+\label{fig:exp1_tsne}
+\end{figure}
+

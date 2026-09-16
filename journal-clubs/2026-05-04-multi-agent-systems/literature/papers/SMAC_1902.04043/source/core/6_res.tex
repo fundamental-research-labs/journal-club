@@ -1,0 +1,102 @@
+\section{Results}
+In this section, we present results for scenarios included as part of SMAC. The purpose of these results is to demonstrate the performance of the current state-of-the-art methods in our chosen MARL paradigm.
+
+
+The evaluation procedure is similar to the one in \cite{rashid_qmix:_2018}. The training is paused after every $10000$ timesteps during which $32$ test episodes are run with agents performing action selection greedily in a decentralised fashion. The percentage of episodes where the agents defeat all enemy units within the permitted time limit is referred to as the \textit{test win rate}.
+
+The architectures and training details are presented in Appendix~\ref{appendix:exp_setup}.
+A table of the results is included in Appendix~\ref{sec:table_results}.
+Data from the individual runs are available at the SMAC repo (\url{https://github.com/oxwhirl/smac}).
+
+\begin{figure*}[h!]
+	\centering
+	\includegraphics[width=0.45\textwidth]{figures/results/median_test_win.png}
+	\includegraphics[width=0.45\textwidth]{figures/results/maps_best.png}
+	\caption{Left: The median test win \%, averaged across all 14 scenarios. Heuristic's performance is shown as a dotted line. Right: The number of scenarios in which the algorithm's median test win \% is the highest by at least $1/32$ (smoothed).}
+	\label{fig:median_test_win}
+\end{figure*}
+
+Figure \ref{fig:median_test_win} plots the median test win percentage averaged across all scenarios to compare the algorithms across the entire SMAC suite. 
+We also plot the performance of a simple heuristic AI that selects the closest enemy unit (ignoring partial observability) and attacks it with the entire team until it is dead, upon which the next closest enemy unit is selected. This is a basic form of \textit{focus-firing}, which is a crucial tactic for achieving good performance in micromanagement scenarios.
+The relatively poor performance of the heuristic AI shows that the suite of SMAC scenarios requires more complex behaviour than naively focus-firing the closest enemy, making it an interesting and challenging benchmark.
+
+Overall QMIX achieves the highest test win percentage and is the best performer on up to eight scenarios during training. 
+Additionally, IQL, VDN, and QMIX all significantly outperform COMA, demonstrating the sample efficiency of off-policy value-based methods over on-policy policy gradient methods. 
+
+Based on the results, we broadly group the scenarios into 3 categories: 
+\textit{Easy},
+\textit{Hard}, and
+\textit{Super-Hard} based on the performance of the algorithms.
+
+\begin{figure*}[h!]
+	\centering
+	\includegraphics[width=0.32\textwidth]{figures/results/Base_NoLegend/test_battle_won_mean/2s_vs_1sc_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/Base_NoLegend/test_battle_won_mean/2s3z_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/Base_NoLegend/test_battle_won_mean/3s5z_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/Base_NoLegend/test_battle_won_mean/1c3s5z_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/Base/test_battle_won_mean/10m_vs_11m_test_battle_won_mean_median.png}
+	\caption{Easy scenarios. The heuristic AI's performance shown as a dotted black line.}
+	\label{fig:easy_map_results}
+\end{figure*}
+
+Figure \ref{fig:easy_map_results} shows that IQL and COMA struggle even on the \emph{Easy} scenarios, performing poorly on four of the five scenarios in this category.  This shows the advantage of learning a centralised but factored centralised $Q_{tot}$. 
+Even though QMIX exceeds $95\%$ test win rate on all of five \emph{Easy} scenarios, they serve an important role in the benchmark as sanity checks when implementing and testing new algorithms. 
+
+\begin{figure*}[h!]
+	\centering
+	\includegraphics[width=0.32\textwidth]{figures/results/Base_NoLegend/test_battle_won_mean/2c_vs_64zg_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/Base_NoLegend/test_battle_won_mean/bane_vs_bane_test_battle_won_mean_median.png}
+	\\
+	\includegraphics[width=0.32\textwidth]{figures/results/Base_NoLegend/test_battle_won_mean/5m_vs_6m_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/Base/test_battle_won_mean/3s_vs_5z_test_battle_won_mean_median.png}
+	\caption{Hard scenarios. The heuristic AI's performance shown as a dotted black line.}
+	\label{fig:hard_map_results}
+\end{figure*}
+
+The \textit{Hard} scenarios in Figure \ref{fig:hard_map_results} each present their own unique problems.
+\textit{2c\_vs\_64zg} only contains 2 allied agents, but 64 enemy units (the largest in the SMAC benchmark) making the action space of the agents much larger than the other scenarios.
+\textit{bane\_vs\_bane} contains a large number of allied and enemy units, but the results show that IQL easily finds a winning strategy whereas all other methods struggle and exhibit large variance.
+\textit{5m\_vs\_6m} is an asymmetric scenario that requires precise control to win consistently, and in which the best performers (QMIX and VDN) have plateaued in performance.
+Finally, \textit{3s\_vs\_5z} requires the three allied stalkers to \textit{kite} the enemy zealots for the majority of the episode (at least 100 timesteps), which leads to a delayed reward problem.
+
+\begin{figure*}[h!]
+	\centering
+	\includegraphics[width=0.32\textwidth]{figures/results/Base_NoLegend/test_battle_won_mean/3s5z_vs_3s6z_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/Base_NoLegend/test_battle_won_mean/6h_vs_8z_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/Base_NoLegend/test_battle_won_mean/27m_vs_30m_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/Base_NoLegend/test_battle_won_mean/MMM2_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/Base/test_battle_won_mean/corridor_test_battle_won_mean_median.png}
+	\caption{Super Hard scenarios. The heuristic AI's performance shown as a dotted black line.}
+	\label{fig:super_hard_map_results}
+\end{figure*}
+
+The scenarios shown in Figure \ref{fig:super_hard_map_results} are categorised as \textit{Super Hard} because of the poor performance of all algorithms, with
+only QMIX  making meaningful progress on two of the five.
+We hypothesise that exploration is a bottleneck in many of these scenarios, providing a nice test-bed for future research in this domain.
+
+\begin{figure*}[h!]
+	\centering
+	\includegraphics[width=0.32\textwidth]{figures/results/maps_with_qtran/no_legend/2s_vs_1sc_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/maps_with_qtran/no_legend/2s3z_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/maps_with_qtran/legend/3s5z_test_battle_won_mean_median.png}
+	\caption{3 scenarios including QTRAN.}
+	\label{fig:qtran_results}
+		\vspace{-.5cm}
+\end{figure*}
+
+We also test QTRAN \cite{son2019qtran} on three of the easiest scenarios, as shown in Figure \ref{fig:qtran_results}. 
+QTRAN fails to achieve good performance on \textit{3s5z} and takes far longer to reach the performance of VDN and QMIX on \textit{2s3z}.  
+In preliminary experiments, we found the QTRAN-Base algorithm slightly more performant and more stable than QTRAN-Alt. 
+For more details on the hyperparameters and architectures considered, please see the Appendix. 
+
+Additionally, we compare the necessity of using an agent's action-observation history by comparing the performance of an agent network with and without an RNN in Figure \ref{fig:ff_vs_rnn}.
+On the easy scenario of \textit{3s5z} we can see that an RNN is not required to use action-observation information from previous timesteps, but on the harder scenarios of \textit{3s\_vs\_5z} it is crucial to being able to learn how to kite effectively. 
+
+\begin{figure*}[h!]
+	\centering
+	\includegraphics[width=0.32\textwidth]{figures/results/ff/3s5z_test_battle_won_mean_median.png}
+	\includegraphics[width=0.32\textwidth]{figures/results/ff/3s_vs_5z_test_battle_won_mean_median.png}
+	\caption{Comparing agent networks with and without RNNs (QMIX-FF) on 2 scenarios.}
+	\label{fig:ff_vs_rnn}
+	\vspace{-.5cm}
+\end{figure*}

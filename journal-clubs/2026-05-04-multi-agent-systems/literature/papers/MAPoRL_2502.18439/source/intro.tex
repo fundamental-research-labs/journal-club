@@ -1,0 +1,56 @@
+\safevspace{-4mm}
+\section{Introduction}
+
+
+
+
+\safevspace{-2.2mm}
+Recent advances in large language models (LLMs) have highlighted their potential for collaboration, particularly within the {\it multi-agentic} framework  \citep{du2023improving, li2023camel, kim2024adaptive}. The shift from single-agent to multi-agent systems introduces new dimensions and challenges in enabling effective collaboration among LLM agents. 
+Recent approaches to  multi-LLM  collaboration mostly rely on 
+{{\it prompting} {\it pre-trained} models. However,} such approaches struggle with achieving genuine collaboration among the agents. For example, multi-agent debate does not consistently lead to improved performance with additional turns \citep{huang2023large}.
+
+
+\safevspace{-1.5mm}
+
+This limitation may be somewhat expected -- while LLMs are able to {\it simulate} collaboration procedures, they were  {\it not} explicitly {\it trained} to achieve effective cooperation.
+{In theory, it is not hard to imagine that single-agent training is insufficient for collaboration -- an {\it untrained} and {\it non-strategic} opponent can fail to act in a way that promotes  collaboration. 
+Instead,} 
+achieving collaborative behaviors requires interactive training environments where each agent actively engages with others, and dynamically optimizes the strategy \citep{gagne1974instruction,macy1991learning, hertz2013learning}. Moreover, conventional approaches such as supervised fine-tuning (SFT), as we will show, are inadequate for this purpose, either:  
+merely mimicking multi-agent interactions from training data may not lead to effective collaboration. 
+
+\safevspace{-1.5mm}
+
+To develop more effective collaborative agents, we propose {\bf M}ulti-{\bf A}gent {\bf P}ost-c{\bf o}-training for collaborative LLMs with {\bf R}einforcement {\bf L}earning (\textbf{\ours}), a {\it co-training} paradigm for multiple LLMs using multi-agent reinforcement learning (MARL). In \ourstwo, within the  pre-defined frameworks for multi-agent collaboration ({e.g.}, the debate framework \citep{du2023improving}), each agent receives rewards for their responses during collaboration, based on the quality of their answers and interactions. The objective for each agent in  \ourstwo~ is to maximize their own value function, defined as the expected cumulative sum of rewards over the course of the collaboration.
+
+\safevspace{-1.5mm}
+To further encourage cooperation in \ourstwo, we incorporate incentives for successful interactions and penalties for collaboration failures, steering the LLMs toward more effective and aligned behaviors. Through a simplified game-theoretic example, we validate the following insights: 1) single-agent training alone is insufficient to produce genuinely cooperative agents, and 2) co-trained agents can reach an equilibrium that exhibits cooperative behavior.
+
+\safevspace{-1.5mm}
+To assess the effectiveness of \ourstwo, we conduct  experiments across diverse tasks and evaluation strategies. Specifically, we train multi-agent LLMs for tasks such as mathematical reasoning (GSM8k \citep{cobbe2021training}) and natural language inference (ANLI \citep{nie2019adversarial}), comparing their performance against baseline approaches. Additionally, we evaluate the robustness of our method by testing agents on out-of-domain tasks (e.g., training on a NLI task and evaluating on a math dataset), demonstrating the generalization capabilities of our approach. We also explore the collaboration among agents of varying capabilities, by analyzing the impact of training {\it heterogeneous} LLMs together.
+
+\safevspace{-1.5mm}
+
+To the best of our knowledge, this study is \textit{among the first works to explore the training of multi-LLM  systems as a whole}\footnote{Together with the contemporaneous works \citet{subramaniam2025multiagent} and \citet{zhao2025sirius},  both of which were released within the past month while preparing this paper.
+In contrast to \ourstwo, the algorithms therein were based on (iterative) SFT, instead of RL. Also, \citet{motwani2024malt} provided a method to train verifier-generation-refiner system with DPO. },  
+using RL, for multi-LLM collaboration. 
+
+
+
+
+
+
+
+\begin{figure*}[t]  %
+  \centering
+  \includegraphics[width=\textwidth]{figs/Multi-agent_System_fig-1.pdf}
+  \vspace{-5mm}
+  \caption{
+  \oursspace can be applied to any multi-{LLM}  system with a scorer/verifier. In the illustrated example, it is integrated into a collaborative debate system for mathematical problem-solving. LLMs generate responses based on the multi-agent system pipeline, and a scorer/verifier evaluates their outputs. The reward for each LLM is determined based on these scores, which may include both current and future pipeline evaluations. Multi-Agent RL is employed to maximize each agent's value function.}
+  \vspace{-0.35cm}
+  \label{fig1:problem-setting}
+\end{figure*}
+
+\safevspace{-2.2mm}
+\safevspace{-1.5mm}
+
+

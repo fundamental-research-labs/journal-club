@@ -1,0 +1,67 @@
+\csname documentclass\endcsname[../main.tex]{subfiles}
+\begin{document}
+\vspace{-30pt}
+
+\section{Introduction}
+\vspace{-5pt}
+Most achievements in modern civilization arise from individuals working cooperatively, from the construction of cathedrals to the development of open-source software \citep{raymond1999cathedral,woolley2010evidence}.
+In human societies, such cooperation relies on social intelligence: the ability to communicate intentions, understand others' goals, and negotiate mutually compatible solutions \citep{humphrey1976social}. 
+This capability is often viewed as what makes us uniquely human and the basis of human thinking \citep{tomasello2014natural}.
+As we deploy AI agents in cooperative settings, whether strong individual capabilities translate to effective cooperation with either humans or agents remains an open question.
+In this paper, we empirically demonstrate that for current AI systems, there is a curse of coordination: \emph{agent cooperation perform much worse than a single agent given the same total workload.} 
+This deficit presents a fundamental barrier to deploying AI systems that can work alongside humans or other agents.
+We theorize that at a fundamental level, effective human–AI and agent–agent cooperation rely on the same coordination abilities. 
+
+\begin{tcolorbox}[
+  colback=gray!5,
+  colframe=gray!50,
+  arc=2pt,
+  boxrule=0.5pt,
+  left=6pt,
+  right=6pt,
+  top=4pt,
+  bottom=4pt,
+  title={\small\textbf{Glossary}},
+  fonttitle=\sffamily
+]
+\small
+\begin{description}[leftmargin=0pt, labelsep=0.5em, itemsep=2pt]
+  \item[Cooperation:] When two or more agents/humans work together towards a shared goal, where an agent may altruistically help another achieve things outside their original responsibility.
+  \item[Collaboration:] When two or more agents/humans work together towards a shared goal.
+  \item[Coordination:] The capability to act and communicate in accordance with other agents/humans.
+\end{description}
+% \vspace{-5pt}
+% \emph{We use cooperation and collaboration interchangeably, preferring ``cooperation'' to emphasize that agents may take over parts of others' tasks through coordination.}
+\end{tcolorbox}
+
+Existing research on automating human tasks and multi-agent systems largely sidesteps this challenge by either providing more scaffolds \citep{fourney2024magenticonegeneralistmultiagentsolving, pan2025why, zhang2025agentorchestraorchestratinghierarchicalmultiagent, zhuge2024languageagentsoptimizablegraphs}, enforcing strict workflows \citep{hong2023metagpt, nguyen2024agilecoderdynamiccollaborativeagents, cheng2025hawkhierarchicalworkflowframework}, or providing active supervision and verification \citep{huang2025aiwork, xiang2025guardagentsafeguardllmagents, zheng2025webguardbuildinggeneralizableguardrail}. 
+These systems rely on developer- or user-provided scaffolding to manage coordination, which limits flexible cooperation and places additional burden on humans.
+
+We present \dataset, the first benchmark designed to measure how well agents can cooperate when handling individual tasks with potential conflicts. 
+Considering software engineering as a realistic domain where humans typically need to navigate work in a team \citep{purna2011soft}, our benchmark offers verifiable evaluation for the success of agent cooperation. 
+As illustrated in Fig. \ref{fig:teaser}, \dataset comprises 652 tasks constructed from 12 popular open-source libraries across Python, TypeScript, Go, and Rust. 
+Eight co-authors of this paper with real-world software engineering backgrounds created new features, unit tests, and ground-truth code for these libraries, ensuring high-quality and realistic task design.
+
+In \dataset, each task assigns each agent a feature to be implemented based on the same repository state. 
+Conflicts are intentionally embedded at the code level, as the assigned features are logically compatible but require agents to modify overlapping or interdependent code.
+For example, in Fig. \ref{fig:teaser}, one agent implements image mutability in the serialization process while another adds backup functionality to the same process. 
+Without understanding each other's goals, plans, and expectations, their solutions may introduce incompatible changes. 
+This mirrors real-world software development where coordination failures stem from insufficient mutual understanding. 
+\dataset enables us to investigate three research questions:
+
+\noindent\textbf{RQ1:} How well can agents cooperate with each other? (\S\ref{sec:cooperation_performance})
+
+\noindent\textbf{RQ2:} What role does communication play in agent-agent cooperation? (\S\ref{sec:role_of_communication})
+
+\noindent\textbf{RQ3:} What coordination failures do agents exhibit? (\S\ref{sec:coordination_failures})
+
+Through evaluating state-of-the-art coding agents on \dataset, we observe \emph{the curse of coordination}: \texttt{GPT-5} and \texttt{Claude Sonnet 4.5} based agents achieve only 25\% with two-agent cooperation on CooperBench, which is around 50\% lower than a ``Solo'' baseline which uses one agent to implement both features. 
+
+Diving deeper into the coordination failures, we identify three key issues. First, communication channels become jammed with vague, ill-timed, and inaccurate messages where agents fail to respond to direct questions, send messages that arrive too late to inform decisions, or flood channels with repetitive status updates that lack actionable detail.
+Second, even with effective communication, agents deviate from their commitments. They make unverifiable claims about code state, ignore agreed-upon integration points, and break explicit promises.
+Third, agents hold incorrect expectations about their partner's plans, observations and duplicate work despite warnings and overwrite changes they believe will merge cleanly (\S\ref{sec:coordination_failures}).
+
+Besides failures, we are excited to report emergent coordination behaviors which often lead to the success of the \dataset tasks. These coordination behaviors are rarely performed by the agents, but through our large-scale simulation, we uncover three major categories of them: role division, resource division, and negotiations (\S\ref{sec:emergent-coordination-behavior}). These examples hint at a path of coordination capability acquisition through reinforcing success on \dataset. 
+
+We contribute both a novel understanding of what agents need to become effective teammates and a practical benchmark for measuring progress. Our open-sourced \dataset platform enables researchers and practitioners to evaluate and improve cooperative coding agents.
+\end{document}

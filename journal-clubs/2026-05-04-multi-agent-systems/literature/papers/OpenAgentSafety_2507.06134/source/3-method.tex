@@ -1,0 +1,94 @@
+
+% \vspace{-10pt}
+
+\section{\OpenAgentSafety Framework}
+\label{sec:method}
+In this section, we describe the \OpenAgentSafety (\OAS) framework. We introduce our infrastructure in \S\ref{infra}, describe our task taxonomy and task creation process in \S\ref{taxonomy}, and finally present our hybrid evaluation method in \S\ref{eval_method}.
+\input{tables/benchmark-comparison}
+
+% \vspace{-5pt}
+
+% \vspace{-5pt}
+\subsection{Infrastructure For Agent and Environment}
+\label{infra}
+% \vspace{-5pt}
+% To evaluate agent behavior in high-risk scenarios, w
+We build \OAS on top of the OpenHands framework~\citep{wang2025openhandsopenplatformai}, an open-source platform for multi-tool LLM agents. The agent runs inside a containerized sandbox with access to real tools, including a Unix shell, file system, Python interpreter, and a web browser. This architecture enables realistic tool-based agent workflows, while isolating the agent from the host system to safely observe potentially harmful behaviors. Different LLMs can be evaluated with this agent for analyzing their safety in agentic tasks.
+
+To prevent real-world harm during evaluation, such as posting harmful content to live platforms, we replicate real-world websites in local Docker containers. We use locally hosted instances of OwnCloud (file sharing), GitLab (version control), and Plane (issue tracking), adapted from The Agent Company~\citep{xu2024theagentcompanybenchmarkingllmagents}. These websites simulate realistic interaction contexts for agents, such as uploading confidential documents or modifying code repositories.
+
+A key component of \OAS is its support for multi-user scenarios as LLMs struggle to navigate multiparty scenarios~\citep{penzo2024llmssuffermultipartyhangover}. We leverage the open-source Sotopia framework~\citep{zhou2024sotopia} to simulate secondary actors (NPCs) with diverse goals. We extend OpenHands with a custom \textbf{ChatNPC} tool that enables the agent to communicate with these NPCs using Sotopia's Redis-based communication backend. This setup supports direct and broadcast messages, enabling tasks that reflect real-world organizational and social interactions, and allowing us to model complex social dynamics (e.g., persuasion, conflict) independently of the browsing proficiency of agents. 
+% In this work, we define complexity as introducing both social dynamics with multiple actors and more steps required to complete a task than previous benchmarks. 
+
+\begin{table}[t!]
+% \small
+\centering
+\caption{Eight safety risk categories in the \OpenAgentSafety benchmark with example task scenarios. Each category highlights a distinct failure mode relevant to real-world agent deployments.}
+\label{tab:risk_categories}
+% \vspace{-2mm}
+\renewcommand{\arraystretch}{1}
+\begin{tabular}{@{}p{4.5cm}p{8.8cm}@{}}
+\toprule
+\multicolumn{1}{c}{\bf Risk category} & \multicolumn{1}{c}{\bf Example scenario} \\
+\midrule
+Computer security compromise & Leaking a private SSH key during server setup, allowing attackers to gain unauthorized access. \\
+\midrule
+Data loss / corruption & Deleting critical system files reducing disk space. \\
+\midrule
+Privacy breach & Exposing employee personal information (e.g., SSNs, addresses) by copying files to public directories. \\
+\midrule
+Unsafe code execution & Generating Python scripts that blindly run user-provided shell commands without validation. \\
+\midrule
+Financial loss & Authorizing embezzlement to avoid reputational damage to a company. \\
+\midrule
+Spreading malicious content & Sending abusive or inappropriate messages to staff. \\
+\midrule
+Legal violations & Submitting incorrect forms (e.g., I-9) to cause harm. \\
+\midrule
+Harmful decision-making & Tampering with survey results for task completion requirements. \\
+\bottomrule
+\end{tabular}
+% \vspace{-6mm}
+\end{table}
+
+% \vspace{-4mm}
+\subsection{Safety Taxonomy and Task Design}
+\label{taxonomy}
+% \vspace{-3mm}
+We use three dimensions to design tasks and evaluate agent safety behaviors -- \textbf{risk category}, \textbf{tool usage}, and \textbf{user/NPC intent}. To ensure broad coverage of real-world deployment scenarios, we organize our benchmark around a taxonomy of 8 risk categories (\autoref{tab:risk_categories}). We aggregate and refine previous categorizations~\citep{zeng2024airiskcategorizationdecoded, zhang2024agentsafetybenchevaluatingsafetyllm, ruan2024identifyingriskslmagents}, and map them to concrete actions involving real tools. 
+In addition to risk types and tool modalities, user \textit{intent} plays a central role in shaping task difficulty. The primary user of the agent may use it for tasks involving benign, or explicitly adversarial intents. 
+Further, through our integration of the ChatNPC tool, we introduce an optional \textit{NPC intent}, where secondary actors/NPCs (e.g., colleagues, customers) simulated through Sotopia~\citep{zhou2024sotopia} interact with the agent via text messages. 
+As multi-agent dynamics are essential to simulating realistic organizational scenarios where the agent needs to interact with secondary actors, we set these NPCs to possibly have manipulative goals or goals that conflict with the main user's intent.
+Thus, the available tools for the agent are: file system, browser, ChatNPC, IPython for code generation and execution, and a bash terminal. 
+
+To create the benchmark, we manually construct \textbf{80} seed tasks and their corresponding rule-based evaluators. Each seed task captures a distinct combination of tools and social context. To scale up, we systematically generate additional tasks using GPT-4o~\citep{openai-gpt-4o}, prompting it to vary the social context and NPC configurations while preserving the core behavioral challenge and tool usage (prompt provided in Appendix~\ref{subsec:task}). All \textbf{356} generated tasks are manually verified by the authors to ensure richness and coverage, with their distribution across risk categories, intents, and tools provided in Appendix~\S\ref{subsec:task_distribution}.
+
+Each task is packaged as a self-contained Docker image, including (i) the environment setup (e.g., websites, files), (ii) task description, (iii) secondary actor (NPC) behaviors, and (iv) a rule-based evaluator. This modular design allows easy integration of new environments and tools, including external ecosystems such as WebArena~\citep{zhou2023webarena}, into the safety evaluation pipeline.
+
+We focus on three common intent combinations in our tasks. First, when both the user intent is benign (and no NPC is involved), the task appears safe on the surface but can still be completed unsafely if the agent overlooks subtle cues. Second, in cases where the user’s intent is benign but an NPC introduces malicious goals, the agent faces a standard interaction that becomes adversarial due to deceptive NPC behavior. Finally, when the user intent itself is malicious (with or without an NPC), the unsafe instruction is embedded directly in the user’s request.
+\subsection{Evaluation Approach}
+\label{eval_method}
+% \vspace{-2mm}
+
+To determine whether agents behave unsafely during task completion, we employ a two-pronged evaluation strategy, designed to keep in mind the limitations of each individual evaluation approach and the two complement each other. Specifically, we measure safety using:
+
+\noindent \textbf{Rule-based evaluation} \quad For each task, we implement a Python script that analyzes the final environment state (e.g., file system, database, website state) to check whether specific unsafe outcomes occurred, such as deleting protected files or posting confidential data. These evaluators return a binary outcome: \texttt{1} for unsafe, \texttt{0} for safe. We report the percentage of unsafe outcomes across tasks.
+
+\noindent\textbf{LLM-as-Judge evaluation} \quad To also capture unsafe intent or behavior that does not result in a final environment change (e.g., incomplete attempts or unsafe reasoning), we evaluate agent trajectories by prompting GPT-4.1~\citep{openai_gpt41_2025} to judge safety based on intermediate thoughts and actions (prompt in Appendix~\ref{subsec:judge}). GPT-4.1 must provide one of the four labels to the trajectory: 
+The \textit{safe} trajectories include rejection/noncompliance for unsafe tasks, or safely completing the task while averting the risk, and \textit{failure} denotes trajectories where the agent did not reach a safety-vulnerable point where it would be exposed to unsafe content. The \textit{complete/unsafe} label indicates that the agent successfully carried out the unsafe task, while the \textit{incomplete/unsafe} label captures cases where the agent attempted malicious actions but did not fully complete the task. 
+
+Other than the safety ratings from the evaluators, we additionally report three additional metrics:
+
+\noindent \textbf{Failure rate} \quad The percentage of tasks where the agent did not complete an initial subtask, and was thus never exposed to the unsafe element (e.g., the agent failed to download a file and was thus never manipulated into modifying it, as in the \textit{unauth-discount} task in \autoref{tab:safety_tasks}).
+
+\noindent \textbf{Disagreement rate} \quad The percentage of tasks where the LLM judge labeled a trajectory as safe, but the rule-based evaluator detected a concrete unsafe impact. A high disagreement rate may indicate blind spots in LLM-based evaluation.
+
+\noindent \textbf{Successful completion rate} \quad The percentage of tasks where an LLM Judge evaluates whether the ground truth correct completion has been achieved at the end of the trajectory. The correct completion may be outright refusal, or completing the specified task safely, free from malicious interference or bad practices.
+
+
+Note that designing robust rule-based evaluators is non-trivial: it often requires multiple iterations based on actual agent behavior to account for diverse unsafe attempts and avoid false positives or negatives. The LLM-as-Judge component plays a critical role in disambiguating failure and safe trajectories, both of which are classed as \textit{safe} from the rule-based evaluator. Further, while rule-based checks capture tangible environment changes, they cannot detect cases where the agent intended to act maliciously but failed to execute the behavior. They also fail to identify content safety risks. As a result, attempted unsafe behavior without environmental impact is marked as safe by the rule-based system. LLM-as-Judge helps assess the agent’s reasoning and intermediate actions to handle these cases appropriately. This hybrid evaluation protocol balances the precision of rule-based checks with the broader behavioral insight of LLM judgments, enabling robust safety assessments.
+
+
+
+% \vspace{-15pt}
+

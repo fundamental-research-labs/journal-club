@@ -1,0 +1,95 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+\section{Action Space}\label{appendix:actionspace}
+
+\dota is usually controlled using a mouse and keyboard. The majority of the actions involve a high-level command (attack, use a certain spell, or activate a certain item), along with a target (which might be an enemy unit for an attack, or a spot on the map for a movement). For that reason we represent the action our agent can choose at each timestep as a single {\it primary action} along with a number of {\it parameter actions}. 
+
+The number of primary actions available varies from time step to time step, averaging 8.1 in the games against OG. The primary actions available at a given time include universal actions like noop, move, attack, and others; use or activate one of the hero's spells; use or activate one of the hero's items; situational actions such as Buyback (if dead), Shrine (if near a shrine), or Purchase (if near a shop); and more.
+For many of the actions we wrote simple action filters, which determine whether the action is available; these check if there is a valid target nearby, if the ability/item is on cooldown, etc. At each timestep we restrict the set of available actions using these filters and present the final choices to the model.
+
+In addition to a primary action, the model chooses action parameters. At each timestep the model outputs a value for each of them; depending on the primary action, some of them are read and others ignored (when optimizing, we mask out the ignored ones since their gradients would be pure noise). There are 3 parameter outputs, Delay (4 dim), unit selection (189 dim), and offset (81 dim), described in \autoref{fig:action-params}.
+
+\begin{figure}
+\centering
+\begin{subfigure}[t]{0.3\textwidth}
+\includegraphics[width=\textwidth]{figures/delay_head.png}
+\caption{\textbf{Delay:} An integer from 0 to 3 indicating which frame during the next frameskip to take the action on (see \autoref{appendix:reaction-time}). 
+If 0, the action will be taken immediately when the game engine processes this time step; if 3, the action will be taken on the last game frame before the next policy observation. 
+This parameter is never ignored.}
+\label{fig:action-head-delay}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.3\textwidth}
+\includegraphics[width=\textwidth]{figures/unit_head.png}
+\caption{\textbf{Unit Selection:} One of the 189 visible units in the observation. 
+For actions and abilities which target units, either enemy units or friendly units.
+For many actions, some of the possible unit targets will be invalid; attempting an action with an invalid target results in a noop.}
+\label{fig:action-head-unit}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.3\textwidth}
+\includegraphics[width=\textwidth]{figures/offset_head.png}
+\caption{\textbf{Offset:} A 2D $(X, Y)$ coordinate indicating a spatial offset, used for abilities which target a location on the map. 
+The offset is interpreted relative to the caster or the unit selected by the Unit Selection parameter, depending on the ability. 
+Both $X$ and $Y$ are discrete integer outputs ranging from -4 to +4 inclusive, producing a grid of 81 possible coordinate pairs.}
+\label{fig:action-head-offset}
+\end{subfigure}
+\caption{\textbf{Action Parameters}}
+\label{fig:action-params}
+\end{figure}
+
+All together this produces a combined factorized action space size of up to $30\times 4 \times 189 \times 81=1,837,080$ dimensions (30 being the maximum number of primary actions we support). This number ignores the fact that the number of primary actions is usually much lower; some parameters are masked depending on the primary action; and some parameter combinations are invalid and those actions are treated as no-ops.
+
+To get a better picture, we looked at actual data from the two games played against Team OG, and simply counted number of available actions at each step.
+The average number of available actions varies significantly across heroes, as different heroes have different numbers spells and items with larger parameter counts.
+Across the two games the average number of actions for a hero varied from 8,000 to 80,000.
+
+% A different way to calculate the action space size is to look at the entropy of a random agent. We run a game with a well-trained agent and run a random policy in the background on the same observations. We then measure the average entropy of the random policy's outputs. This correctly accounts for the fact that some primary actions mask away some parameters, but still ignores the fact that many of the parameter choices lead to noops. We measure \todo{??} average entropy, which corresponds to \todo{??} total action space size.
+
+Unit Selection and Offset are actually implemented within the model as several different, mutually exclusive parameters depending on the primary action. For Unit Selection, we found that using a single output head caused that head to learn very well to target tactical spells and abilities. One ability called ``teleport,'' however, is significantly different from all the others --- rather than being used in a tactical fight, it is used to strategically reposition units across the map. Because the action is much more rare, the learning signal for targeting this ability would be drowned out if we used a single model output head for both. For this reason the model outputs a normal Unit Selection parameter and a separate Teleport Selection parameter, and one or the other is used depending on the primary action. Similarly, the Offset parameter is split into ``Regular Offset,'' ``Caster Offset'' (for actions which only make sense offset from the caster), and ``Ward Placement Offset'' (for the rare action of placing observer wards).
+
+We categorize all primary actions into 6 ``Action target types'' which determines which parameters the action uses, listed in \autoref{table:action-target-types}.
+
+\begin{table}
+\begin{tabular}{lll}
+Action Target Type & Example & Parameters \\\hline
+No Target & Power Treads & Delay
+\\
+Point Target & Move & Delay, Offset (Caster)
+\\
+Unit Target & Attack & Delay, Unit Selection (Regular)
+\\
+Unit Offset Target & Sniper's Shrapnel & Delay, Unit Selection (Regular), Offset (Regular)
+\\
+Teleport Target & Town Portal Scroll & Delay, Unit Selection (Teleport), Offset (Regular)
+\\
+Ward Target & Place Observer Ward & Delay, Offset (Ward)
+\\
+\end{tabular}
+\caption{\textbf{Action Target Types}}
+\label{table:action-target-types}
+\end{table}
+
+
+\subsection{Scripted Actions}\label{sec:game:rep:scriptedac}
+Not all actions that a human takes in a game of \dota are controlled by our RL agent. Some of the actions are {\it scripted}, meaning that we have written a rudimentary rules-based system to handle these decisions. 
+Most of these are for historical reasons --- at the start of the project we gave the model control over a small set of the actions, and we gradually expanded it over time. 
+Each additional action that we remove from the scripted logic and hand to the model's control gives the RL system a higher potential skill cap, but comes with an cost measured in engineering effort to set it up and risks associated with learning and exploration.
+Indeed even when adding these new actions gradually and systematically, we occasionally encountered instabilities; for example the agent might quickly learn never to take a new action (and thus fail to explore the small fraction of circumstances where that action helps), and thus moreover fail to learn (or unlearn) the dependent parts of the gameplay which require competent use of the new action. 
+
+In the end there were still several systems that we had not yet removed from the scripted logic by the time the agent reached superhuman performance.
+While we believe the agent could ultimately perform better if these actions were not scripted, we saw no reason to do remove the scripting because superhuman performance had already been achieved.
+The full set of remaining scripted actions is:
+\begin{enumerate}
+    \item \textbf{Ability Builds:} Each hero has four spell abilities. Over the course of the game, a player can choose which of these to ``level up,'' making that particular skill more powerful. For these, in evaluation games we follow a fixed schedule (improve ability X at level 1, then Y at level 2, then Z at level 3, etc). In training, we randomize around this fixed script somewhat to ensure the model is robust to the opponent choosing a different schedule. 
+    \item \textbf{Item Purchasing:} As a hero gains gold, they can purchase items. We divide items into \emph{consumables} --- items which are consumed for a one-time benefit such as healing --- and everything else. 
+    For consumables, we use a simple logic which ensures that the agent always has a certain set of consumables; when the agent uses one up, we then purchase a new one. 
+    After a certain time in the game, we stop purchasing consumables.
+    For the non-consumables we use a system similar to the ability builds - we follow a fixed schedule (first build X, then Y, then Z, etc). 
+    Again at training time we randomly perturb these builds to ensure robustness to opponents using different items.\footnote{This randomization is done randomly deleting items from the build order and randomly inserting new items sampled from the distribution of which items that hero usually buys in human games. This is the only place in our system which relies on data from human games.}
+    \nicetohave{Put the actual item + ability builds in a table?}
+    \item \textbf{Item Swap:} Each player can choose 6 of the items they hold to keep in their ``inventory'' where they are actively usable, leaving up to 3 inactive items in their ``backpack.'' Instead of letting the model control this, we use a heuristic which approximately keeps the most valuable items in the inventory.
+    \item \textbf{Courier Control:} Each side has a single ``Courier'' unit which cannot fight but can carry items from the shop to the player which purchased them. We use a state-machine based logic to control this character.
+\end{enumerate}
+
+\end{document}

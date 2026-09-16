@@ -1,0 +1,411 @@
+\section*{Appendix}
+We provide further information on the collected tasks (Sec~\ref{sec:task_breakdown}), analysis on model failure modes for Gemini and GPT-4 (Sec.~\ref{sec:appendix_analysis}), more details on the new Classifieds environment (Sec.~\ref{sec:appendix_classifieds}), and on the task collection process (Sec.~\ref{sec:appendix_annotation}).
+
+\section{Tasks Breakdown} \label{sec:task_breakdown}
+
+\begin{figure}[h]
+\centering
+    \includegraphics[width=0.8\linewidth]{figures/task_distribution_by_site_pie.pdf}
+    \vspace{-0.3in}
+    \caption{Tasks proportion by sites.}  
+    \label{fig:tasks_breakdown_sites}
+    % \vspace{-0.1in}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+    \includegraphics[width=0.8\linewidth]{figures/tasks_breakdown_by_difficulty.pdf}
+    \vspace{-0.1in}
+    \caption{Tasks proportion by difficulty.}  \label{fig:tasks_breakdown_difficulty}
+    \vspace{-0.1in}
+\end{figure}
+
+As described in Sec.~\ref{sec:tasks}, we collected a total of 910 tasks across the Classifieds, Reddit, and Shopping sites, with several multi-site tasks that involve more than one site. Several of these tasks also reference Wikipedia as a knowledge base. The breakdown across various sites is summarized in Fig.~\ref{fig:tasks_breakdown_sites}. 
+
+The difficulty level of each task (for both visual difficulty and action difficulty) is summarized in Fig.~\ref{fig:tasks_breakdown_difficulty}, according to the specifications detailed in Sec.~\ref{sec:tasks}. \BenchmarkName{} tasks span a variety of difficulty levels. In Sec.~\ref{sec:performance_difficulty} below, we also discuss the success rate of the agents across difficulty levels, and find that these are roughly correlated, with success rate decreasing as difficulty increases.
+
+\section{Additional Results} \label{sec:additional_reuslts}
+
+\begin{table*}[t]
+\centering
+% \resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+\multirow{2}{*}{\textbf{Agent Backbone}}  & \multirow{2}{*}{\textbf{Model Type}} & \multicolumn{4}{c}{\textbf{Success Rate ($\uparrow$)}} \\
+\cmidrule(lr){3-6}
+&  & \textbf{Classifieds} & \textbf{Reddit} & \textbf{Shopping} & \textbf{Overall} \\
+\midrule
+Llama-3-70B-Instruct &  Caption-augmented & 7.69\% & 5.24\% & 12.88\% &  9.78\% \\ 
+Gemini-Flash-1.5 &  Image + Caps + SoM & 3.85\% & 4.76\% & 8.80\% &  6.59\% \\ 
+Gemini-Pro-1.5 & Image + Caps + SoM & 5.98\% & 12.86\% & 14.59\% &  11.98\% \\ 
+GPT-4o &  Image + Caps + SoM &  20.51\% &  16.67\% & 20.82\% & 19.78\%  \\ 
+\bottomrule
+\end{tabular}
+% }
+\caption{Success rates of recent LLM and VLM agents on \BenchmarkName{}.}  \label{tab:additional_results}
+\end{table*}
+
+
+After the ACL submission deadline, we also ran the SoM agent with other recently released frontier VLMs: GPT-4o\footnote{https://openai.com/index/hello-gpt-4o/}, Gemini-Pro 1.5 (\texttt{gemini-1.5-pro-preview-0514}), and Gemini-Flash 1.5 (\texttt{gemini-1.5-flash-preview-0514}). We note that these recent models are \textit{natively multimodal}, which may allow them to achieve stronger performance on multimodal tasks such as VisualWebArena. We also run the Llama-3-70B-Instruct text-only LLM, augmented with captions from BLIP-2. The results are summarized in Tab.~\ref{tab:additional_results}. GPT-4o achieves a success rate of 19.78\%, and outperforms GPT-4V (16.37\%).
+
+Interestingly, we observe that Llama-3-70B-Instruct performs substantially better its Llama-2-70B predecessor, achieving an overall success rate of 9.78\%, which is only slightly below the success rate of the caption-augmented GPT-4 agent (12.75\%), and substantially better than the caption augmented GPT-3.5 (2.97\%) and Llama-2-70B (0.66\%) agents.
+
+
+\section{Further Analysis}  \label{sec:appendix_analysis}
+
+\subsection{Few-shot Prompting}
+
+\begin{table}[th]
+\centering
+\vspace{-0.1in}
+\resizebox{0.9\linewidth}{!}{%
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\multirow{2}{*}{\textbf{\# Examples}} & \multicolumn{4}{c}{\textbf{Success Rate ($\uparrow$)}} \\
+\cmidrule(lr){2-5}
+ & \textbf{Classifieds} & \textbf{Reddit} & \textbf{Shopping} & \textbf{Overall} \\
+\midrule
+0 & 4.29\% & 2.38\% &  0.43\%  &  2.86\% \\ 
+1 & 5.36\% & 1.43\% &  2.14\%  &  3.63\%  \\ 
+% 2 & \color{blue}{XX\%} & \color{blue}{XX\%} & \color{blue}{XX\%}  & \color{blue}{XX\%}  \\ 
+3 & \textbf{8.15\%} & \textbf{4.29\%} & \textbf{3.42\%} & \textbf{6.04\%} \\ 
+\bottomrule
+\end{tabular}
+}
+% \vspace{-0.1in}
+\caption{Performance with different number of in-context examples.}
+% \vspace{-0.1in}
+\label{tab:few_shot_results}
+\end{table}
+
+In most of our main experimental results, we prompt the model with 3 in-context examples. We perform an analysis of the success rate against the number of in-context examples provided (Tab.~\ref{tab:few_shot_results}). For 1-shot experiments, we provide the model with the single in-context example from its corresponding environment. All experiments are run with the multimodal Gemini-Pro model (as GPT-4V is prohibitively expensive) with the Image + Caption + Acc. Tree as the observation space.
+
+We observe that overall success rate tends to increase with the number of examples provided, with a significant jump from 1 to 3 in-context examples. The improved results with a greater number of examples suggest that the performance of the VLM agents may improve significantly if we fine-tune the models on web trajectories, which will be an exciting direction for future work.
+
+\subsection{Performance by Task Difficulty}  \label{sec:performance_difficulty}
+
+\begin{figure*}[ht]
+\centering
+\resizebox{0.9\linewidth}{!}{%
+
+\begin{tabular}{@{}clrrrrrlrrrr@{}}
+\cmidrule(l){2-12}
+\multicolumn{1}{l}{}                                              & \multicolumn{11}{c}{Visual Difficulty (v)}                                                                                                                                                                                                                                                                                                                           \\ \cmidrule(l){2-12} 
+\multicolumn{1}{|c|}{}                                            & \cellcolor[HTML]{D9D9D9}a \textbackslash v & \cellcolor[HTML]{D9D9D9}Easy   & \cellcolor[HTML]{D9D9D9}Medium & \cellcolor[HTML]{D9D9D9}Hard   & \cellcolor[HTML]{D9D9D9}Overall &  & \cellcolor[HTML]{D9D9D9}a \textbackslash v & \cellcolor[HTML]{D9D9D9}Easy   & \cellcolor[HTML]{D9D9D9}Medium & \cellcolor[HTML]{D9D9D9}Hard   & \cellcolor[HTML]{D9D9D9}Overall \\
+\multicolumn{1}{|c|}{}                                         & \cellcolor[HTML]{D9D9D9}Easy               & \cellcolor[HTML]{57BB8A}18.9\%                   & \cellcolor[HTML]{A3DABF}11.1\%                     & \cellcolor[HTML]{A8DCC3}10.5\%                   & \cellcolor[HTML]{7FCCA6}14.8\%                      &  & \cellcolor[HTML]{D9D9D9}Easy               & \cellcolor[HTML]{57BB8A}30.1\%                   & \cellcolor[HTML]{A3DABF}20.5\%                     & \cellcolor[HTML]{75C89F}26.3\%                   & \cellcolor[HTML]{79C9A2}25.8\%                      \\
+\multicolumn{1}{|c|}{}                                         & \cellcolor[HTML]{D9D9D9}Medium             & \cellcolor[HTML]{FEFFFF}1.6\%                    & \cellcolor[HTML]{D3EEE1}6.1\%                      & \cellcolor[HTML]{C3E7D5}7.8\%                    & \cellcolor[HTML]{E0F3EA}4.7\%                       &  & \cellcolor[HTML]{D9D9D9}Medium             & \cellcolor[HTML]{CDEBDD}15.2\%                   & \cellcolor[HTML]{ECF8F2}11.3\%                     & \cellcolor[HTML]{E9F7F0}11.7\%                   & \cellcolor[HTML]{DFF3E9}12.9\%                      \\
+\multicolumn{1}{|c|}{}                                         & \cellcolor[HTML]{D9D9D9}hard               & \cellcolor[HTML]{FFFFFF}1.6\%                    & \cellcolor[HTML]{E6F5ED}4.2\%                      & \cellcolor[HTML]{FFFFFF}1.5\%                    & \cellcolor[HTML]{F7FCFA}2.4\%                       &  & \cellcolor[HTML]{D9D9D9}hard               & \cellcolor[HTML]{D6EFE3}14.1\%                   & \cellcolor[HTML]{F3FBF7}10.4\%                     & \cellcolor[HTML]{FFFFFF}8.9\%                    & \cellcolor[HTML]{F3FAF7}10.5\%                      \\
+\multicolumn{1}{|c|}{}                                         & \cellcolor[HTML]{D9D9D9}Overall            & \cellcolor[HTML]{B7E2CD}9.0\%                    & \cellcolor[HTML]{C7E9D8}7.3\%                      & \cellcolor[HTML]{DFF3E9}4.8\%                    & \cellcolor[HTML]{C8E9D9}7.3\%                       &  & \cellcolor[HTML]{D9D9D9}Overall            & \cellcolor[HTML]{9CD7BA}21.4\%                   & \cellcolor[HTML]{D4EEE1}14.3\%                     & \cellcolor[HTML]{E4F4EC}12.4\%                   & \cellcolor[HTML]{C4E7D6}16.4\%                      \\
+\multicolumn{1}{|c|}{}                                            & \multicolumn{5}{c}{(a) Success rate of GPT-4 Text-only}                                                                                                                         &  & \multicolumn{5}{c}{(c) Success rate of GPT-4V + SoM}                                                                                                                            \\
+\multicolumn{1}{|c|}{}                                            & \cellcolor[HTML]{D9D9D9}a \textbackslash v & \cellcolor[HTML]{D9D9D9}Easy   & \cellcolor[HTML]{D9D9D9}Medium & \cellcolor[HTML]{D9D9D9}Hard   & \cellcolor[HTML]{D9D9D9}Overall &  & \cellcolor[HTML]{D9D9D9}a \textbackslash v & \cellcolor[HTML]{D9D9D9}Easy   & \cellcolor[HTML]{D9D9D9}Medium & \cellcolor[HTML]{D9D9D9}Hard   & \cellcolor[HTML]{D9D9D9}Overall \\
+\multicolumn{1}{|c|}{}                                         & \cellcolor[HTML]{D9D9D9}Easy               & \cellcolor[HTML]{57BB8A}23.1\%                   & \cellcolor[HTML]{80CCA6}18.8\%                     & \cellcolor[HTML]{B5E1CB}13.2\%                   & \cellcolor[HTML]{73C79E}20.1\%                      &  & \cellcolor[HTML]{D9D9D9}Easy               & 6.0                      & 7.7                        & 6.1                      & 6.9                         \\
+\multicolumn{1}{|c|}{}                                         & \cellcolor[HTML]{D9D9D9}Medium             & \cellcolor[HTML]{A9DCC3}14.4\%                   & \cellcolor[HTML]{D6EFE3}9.6\%                      & \cellcolor[HTML]{FFFFFF}5.2\%                    & \cellcolor[HTML]{CFECDD}10.4\%                      &  & \cellcolor[HTML]{D9D9D9}Medium             & 10.4                     & 10.6                       & 7.2                      & 10.0                        \\
+\multicolumn{1}{|c|}{}                                         & \cellcolor[HTML]{D9D9D9}Hard               & \cellcolor[HTML]{E7F6EE}7.8\%                    & \cellcolor[HTML]{ECF8F2}7.3\%                      & \cellcolor[HTML]{E4F4EC}8.1\%                    & \cellcolor[HTML]{E7F6EE}7.8\%                       &  & \cellcolor[HTML]{D9D9D9}Hard               & 14.1                     & 9.2                        & 12.5                     & 12.1                        \\
+\multicolumn{1}{|c|}{}                                         & \cellcolor[HTML]{D9D9D9}Overall            & \cellcolor[HTML]{92D3B3}16.9\%                   & \cellcolor[HTML]{BEE5D2}12.2\%                     & \cellcolor[HTML]{E5F5ED}8.0\%                    & \cellcolor[HTML]{B9E3CE}12.7\%                      &  & \cellcolor[HTML]{D9D9D9}Overall            & 9.5                      & 9.4                        & 10.2                     & 9.6                         \\
+
+\multicolumn{1}{|c|}{\multirow{-12}{*}{\rotatebox[origin=c]{90}{Action Difficulty (a)}}} & \multicolumn{5}{c}{(b) Success rate of GPT-4 + Captions}                                                                                                                        &  & \multicolumn{5}{c}{(d) Trajectory length of GPT-4V + SoM}                                                                                                                      
+\end{tabular}
+
+
+}
+
+% \vspace{-0.05in}
+\caption{Success rates (a, b, c) and trajectory lengths (d) across different difficulty levels.}  \label{fig:perf_analysis_overall}
+% \vspace{-0.15in}
+\end{figure*}
+
+We conduct an analysis of the GPT-4 models across different action and visual difficulty levels (Fig.~\ref{fig:perf_analysis_overall}). We observe that success rate generally decreases as action/vision difficulty increases, which makes intuitive sense based on the difficulty taxonomy described in Sec.~\ref{sec:tasks}. The findings also show that multimodal models perform better especially on hard visual tasks. On this subset, GPT-4V + SoM achieves an average success rate of 12.4\%, which is significantly higher than that of the caption-augmented (8.0\%) and the text-only agents (4.8\%). In addition to success rates, the GPT-4V trajectory lengths also increased with action difficulty, with harder tasks requiring more steps.
+
+\subsection{Task Subset Analysis}
+% \begin{figure}
+%     \centering
+%     \includegraphics{figures/tasks_breakdown_by_images.pdf}
+%     \caption{Tasks breakdown by number of image inputs.}
+%     \label{fig:task_breakdown_images}
+% \end{figure}
+
+% Fig.~\ref{fig:task_breakdown_images} shows the proportion of tasks with different number of input images.
+In this section, we provide more fine-grained analysis across different task subsets, similar to the one in Sec.~\ref{sec:performance_task_subset} of the main paper. We examine both the GPT-4 text and multimodal agents, as well as the Gemini-Pro agents. This analysis may provide useful insights towards capabilities that future VLM models should have to perform well on web navigation tasks (specifically, OCR, exact image matching, and handling multiple interleaved image and text inputs).
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/ocr.pdf}
+    \vspace{-0.2in}
+    \caption{Success rate of GPT-4 and Gemini agents on tasks that do not require OCR vs. tasks that do.}
+    % \vspace{-0.1in}
+    \label{fig:OCR_Success}
+\end{figure*}
+
+\paragraph{OCR Tasks} On OCR tasks, which take up 17.1\% of the benchmark, we observe that the GPT-4 family of models achieve a lower success rate on tasks that require OCR compared to tasks that do not (Fig.~\ref{fig:OCR_Success}). This is consistent with the findings for GPT-4V + SoM reported in Sec.~\ref{sec:performance_task_subset} of the main paper. We also observe that introducing multimodality (over just captions) substantially improves performance on OCR tasks (from 6.4\% to 12.2\%), showcasing the importance of having multimodal models for text recognition capabilities, as captioning models generally do not capture such finegrained information.
+
+For Gemini-Pro agents, we also observe similar trends, with the multimodal and SoM models achieving a higher than proportionate gain on the OCR subset (compared to the non-OCR subset). Interestingly, the multimodal Gemini-Pro agents achieve a higher success rate on tasks that require OCR compared to tasks that do not. These results may suggest that it has strong inherent OCR capabilities, which we believe will be useful to explore in future work (especially on the stronger Gemini-Ultra model once it is generally available).
+
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/exact.pdf}
+    \vspace{-0.2in}
+    \caption{Success rates of agents on tasks that require exact image match vs. those that do not.}
+    % \vspace{-0.1in}
+    \label{fig:Exact_Success}
+\end{figure*}
+
+
+
+\paragraph{Exact Image Match} Of the tasks in  \BenchmarkName{}, 8.7\% require exact image matching, which tests the ability of agents to identify images that have the exact same content (in contrast to those that are just semantically similar). From Fig.~\ref{fig:Exact_Success}, we 
+observe that the GPT-4V SoM model achieves a higher succeess rate on tasks that expect exact image match, while the other GPT-4 agents achieve a relatively lower success rate on the exact match subset. This suggests that the SoM representation may be more optimal for exact image match, due to its visual-centric observation and action space.
+
+For the Gemini models, we observe that success rates on exact match tasks are substantially lower than success rates on non-exact match tasks. Interestingly, we also observe a similar trend as the GPT-4 agents, where introducing multimodality improves success rates on exact match tasks, which is further bolstered with the SoM representation.
+
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/inputSize.pdf}
+    \vspace{-0.2in}
+    \caption{Success rates of agents on tasks that include input images as part of the specification vs. tasks that are specified with just written text.}
+    % \vspace{-0.1in}
+    \label{fig:Input_Success}
+\end{figure*}
+
+
+\paragraph{Image Input Tasks} 25.2\% (229 tasks) in \BenchmarkName{} are specified with image inputs (e.g., the task in Fig.~\ref{fig:block-user-traj}, and the first and third tasks in Fig.~\ref{fig:task_overview}). The results of the Gemini-Pro and GPT-4 agents are summarized in Fig.~\ref{fig:Input_Success}.
+
+We observe that for the GPT-4 agent, success rates are generally higher on tasks that involve image inputs, with the exception of the text-only agent. This aligns with intuition, as agents that do not have access to visual information would not be able to understand the task correctly, and would perform worse at successfully accomplishing it. For the captioning, multimodal, and SoM GPT-4 agents, success rates are higher on the tasks involving image input, which we attribute to these tasks being more tractable once the visual content is correctly understood.
+
+Interestingly, we see a contrast with the Gemini-Pro agents, where success rate is generally lower on tasks that involve input images. This may imply that the model may not be able to process multiple interleaved image-text inputs as well. This may be useful to revisit in the future with the stronger Gemini-Ultra model once it is released, or with stronger open sourced VLMs. We believe that being able to handle interleaved multimodal inputs will be a core requirement for strong web agents, and more comprehensive error analysis with stronger models may yield useful insights.
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/traj_len_hist.pdf}
+    % \hfill
+    \includegraphics[width=0.9\linewidth]{figures/traj_len_hist_pct.pdf}
+    % \vspace{-0.1in}
+    \caption{Performance of the GPT-4V + SoM agent across different trajectory lengths.} \label{fig:traj_length_gpt4_som}
+    % \vspace{-0.1in}
+\end{figure}
+
+\paragraph{Trajectory Lengths vs. Success Rates}
+Hard reasoning tasks, on average, require more steps to be successfully solved. We plot the trajectory length of the GPT-4V + SoM model in Fig.~\ref{fig:traj_length_gpt4_som}. The findings suggest that the model assumes a significant portion of tasks can be completed in a few steps, as it terminates a majority of tasks after less than 10 steps. However, this assumption doesn't imply that the model successfully solves the majority of tasks: the error rate remains relatively uniform across longer trajectory lengths.
+
+% \paragraph{Spatial Reasoning} Both the multimodal and SoM agents outperform the caption and text-only agents on tasks that require spatial reasoning. For shopping task 81 (``What is the price range for products in the first row.''), the caption-augmented GPT-4 model makes an assumption that there are three items to a row and provides the price range incorrectly. However, there are actually four products in each row, which the multimodal and SoM GPT-4V agents both correctly identify to succeed at this task.% Since the accessibility tree does not contain spatial information, this is an expected result, but underscores the importance of developing multimodal agents (as opposed to caption-augmented text-only LLMs).
+
+
+\subsection{Failure Modes}
+
+% We described some failure modes in Sec.~\ref{sec:analysis} of the main paper. 
+In this section, we describe other common issues we observed with our baseline agent models.
+
+
+\begin{figure}%{r}{0.3\textwidth}
+    \centering
+    % \vspace{-0.2in}
+    \includegraphics[width=1.0\linewidth]{figures/red_tablecloth_example.png}
+    \caption{The starting page for the task ``Add the red one in the second row of this page to my shopping cart.''}
+    % \vspace{-0.3in}
+    \label{fig:red-tablecloth-example}
+\end{figure}
+
+\paragraph{Failure Over Longer Horizons} We observed that in several examples, the agents would correctly perform a task but undo it, leading to failure. 
+The GPT-4 captioning-only model on shopping task 54 (``Add the one [poster] with waves to my wish list.'') made an assumption that the product image with a caption about a lighthouse was the correct one, and added it to the wishlist. However, after going to the wish list page the agent removes the poster because ``there is no explicit mention of waves in the current items listed on the Wish List page.'' This issue is not unique to the text input agents; even the GPT-4 SoM agent faced a similar problem in shopping task 397 (``Buy the item on the page with a banana theme.''). The agent initially added the correct item to the shopping cart and proceeded to check out, but stopped in the middle stating in the reasoning trace output that it does not think the item fit the criteria (despite having added it to the cart just a few steps ago).
+
+\paragraph{Failures on Easy Tasks} We observed surprisingly poor performance on many tasks with easy action and easy visual difficulty levels, such as in shopping task 46, which tasks the agent to add the red product in the second row to the cart (starting on the page shown in Fig.~\ref{fig:red-tablecloth-example}). 
+% The text model immediately gave up since it had no access to visual information and the captioning model also gave up soon, as the caption for the target item did not include the word ``red''. 
+The multimodal and SoM GPT-4V agents clicked on a blue tablecloth in the first row and gave up when they couldn't find an option to order it in red. Despite appearing to be a simple task (the correct product is the red cloth in the second row), none of the agents we benchmarked were able to successfully complete it.
+
+\paragraph{Giving Up Too Early} Another frequent issue we observed that occurred across all the agents was giving up too early. For example, GPT-4V + SoM fails on shopping task 248 (``Order a 6 pack of the green chocolate bars. If the shipping is more than 7\% of the total price, leave a 3 star review mentioning it, otherwise 5.''). This tasks involves several steps which the model is able to correctly plan out, but the very first action needed is to slightly scroll down so the ``add to cart'' button is visible. However, even after identifying the correct product the model gives up on the first step instead of scrolling, because it does not immediately see the button. There are other instances of this occurring, such as in shopping task 175, where an agent will use the search bar to search for something, and then immediately give up because it does not see the target product instead of trying new ways to find the product.
+
+\paragraph{Getting Stuck in Loops} Another issue we observed was oscillating or looping between pages, where the agent would look something up or navigate to a page, unsuccessfully attempt to perform the next action (such as adding it to the cart), and on failure it goes back and repeats from the beginning. An example of this is in classifieds task 205 where the model is tasked to compare two makeup palettes in two tabs, and the GPT-4V agent spends most of the time switching between the tabs. We believe that these issues will likely be alleviated by introducing more sophisticated tracking of past states and execution history, which is a promising direction for future work.
+
+\paragraph{Failure Example: Changing User Phone Number}
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/appendix/execution_trace_failure.pdf}
+    \vspace{-0.25in}
+    \caption{Unsuccessful execution trajectory of the GPT-4V multimodal agent on the task for adding the a country code to the user's phone number. The text in red represents the commands output by the agent.}
+    \label{fig:country-code-traj}
+\end{figure*}
+
+Shopping task \#345, a multi-site task that also involves the Wikipedia site, demonstrated several interesting points of failure that we saw throughout the execution traces for many other tasks. Fig.~\ref{fig:country-code-traj} contains the execution trace of the GPT-4V multimodal agent for the task ``Prepend the country code of South Korea to the phone number of my account profile.'' There are three major mistakes made by the agent in this execution trace:
+
+\begin{itemize}
+    \item \textbf{Useless actions:} In step 3 of the trajectory, the agent creates a new blank tab and does not interact with it for the rest of the trajectory. While this does not impact the correctness of the final task, it does show that the agents sometimes take unnecessary steps.
+
+    \item \textbf{Appending text instead of replacing:} Many agents added text to input fields without deleting the previous text, which would often result in long, repeating search queries or addresses. An example of this occurs in step 7 of Fig.~\ref{fig:country-code-traj}.
+
+    \item \textbf{Repeating actions:} Another frequent issue we saw across agents was repeating actions, like how the agent kept jumping between step 6 and step 7 of Fig.~\ref{fig:country-code-traj} until it hit the maximum trajectory length. In this case, we believe this looping effect stems from the issue mentioned above and each time the agent tries to correct the phone number, it keeps appending the correct number instead of replacing the incorrect number with the correct number.
+    
+\end{itemize}
+
+
+\subsection{Comparison Between Agents}
+
+In this section, we describe some qualitative differences we observed between the different agents on various tasks in \BenchmarkName{}.
+
+\paragraph{Text-only vs. Caption-augmented Agents} For GPT-4, the text model unsurprisingly performs much worse than even the captioning model, failing to even do the most basic tasks. For example, Reddit task \#101 is the relatively simple task to ``Navigate to the comments section of a post that contains a picture of a keyboard.'' Out of all of the GPT-4 baseline agents, the text-only agent is the only one to fail this task, as it's unable to identify the appropriate post from just the title. Interestingly, it still manages to make an educated guess and navigate to the hottest post on /f/MechanicalKeyboards (which unfortunately, did not include a keyboard in its image).
+
+% TODO(jykoh): Caption-augmented vs multimodal
+\paragraph{Caption-augmented vs. SoM Agents} We observed in many examples that the GPT-4V SoM and multimodal agents outperformed the caption-augmented baselines in terms of navigation capabilities and visual understanding. The multimodal models were generally better at understanding visual information on webpages, as relevant information in many images is lost when they are translated into captions. One pertinent example is Reddit task \#40, where a picture of the skyline of Pittsburgh is provided, and the task is ``I'd like to find the subreddit for the city this photo was taken in. Can you navigate to it?''. The GPT-4V + SoM agent correctly identifies the location of the photo, with the first line of its reasoning output as \textit{``The photo shows a city skyline with prominent buildings labeled with logos for UPMC and PNC, which suggests that the photo was taken in Pittsburgh, Pennsylvania.''}. Using this information, the agent is able to successfully navigate to the appropriate subreddit, /f/pittsburgh. In contrast, the captioning agent labels the image as ``city skyline with many tall buildings'' (as this is the output from the BLIP-2 model), which prevents it from identifying the appropriate subreddit. This highlights a fundamental issue with captioning models: they frequently highlight salient visual information, which hinders success on many tasks that require fine-grained visual information not typically captured by captions.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/appendix/classifieds_task31.pdf}
+    \caption{GPT-4V SoM agent on Classifieds task \#31, ``Find the latest listing of a white Google Pixel phone and post a comment offering \$10 less than their asking price.''. It succeeds at the task by leveraging the more efficient navigation space.}
+    \label{fig:classifieds_task31}
+\end{figure*}
+
+\paragraph{Multimodal vs. SoM Agents} The SoM representation generally performs better on tasks that require more navigation steps, due to its simplified observation and action space. One example is classifieds task \#31, ``Find the latest listing of a white Google Pixel phone and post a comment offering \$10 less than their asking price.'' (Fig.~\ref{fig:classifieds_task31}). While the multimodal model was unable to search for the correct terms, the SoM model was able to leverage the simplified action space to traverse more efficiently throughout the environment. It succeeded at this task by filtering for cell phones after the initial search for more relevant results, and managed to fill out the necessary comment form fields. 
+From our observations, the SoM representation is generally more efficient compared to the multimodal representation (which only has access to the page screenshot and accessibility tree). With a strong VLM capable of SoM, the agent does not have to implicitly perform visual co-referencing to match elements from the accessibility tree to the visual buttons and inputs that it wants to interact with.
+
+
+
+
+
+
+\section{The Classifieds Environment}  \label{sec:appendix_classifieds}
+\begin{figure*}[ht]
+\centering
+  \includegraphics[width=\textwidth]{figures/appendix/classifieds_homepage.png}
+  \caption{Homepage of the Classifieds site. Users can search for keywords, filter by category, or post location.}
+  \label{fig:classifieds_homepage}
+\end{figure*}
+
+\begin{figure*}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{figures/appendix/classifieds_detail.png}
+  \caption{Example post in the Classifieds website. Users can add comments and reviews to individual listings.}
+  \label{fig:classifieds_detail}
+\end{figure*}
+
+The Classifieds environment contains 65,955 listings, each with a title, text description, and a product image of the item being sold. To populate the site with realistic content, we scraped data across a variety of categories on Craigslist over 3 weeks, focusing on the Northeastern States of the US (similar to the geographic region in the Reddit site). This approach ensured a diverse and rich dataset, representative of real-world classifieds posts. 
+% Each listing on our site includes an image, mirroring the typical format of online classified ads. 
+We utilized the \texttt{scrubadub} Python package for redacting Personally Identifiable Information (PII), including addresses, phone numbers, and emails. We use generated placeholders for names (e.g., ``Bill Smith''), emails with fictitious addresses (e.g., \texttt{bill\_smith@example.com}), and phone numbers with the fictional 555-prefix numbers.
+% These modifications maintain the authenticity of the site's content while minimizing PII.
+
+Fig.~\ref{fig:classifieds_homepage} and \ref{fig:classifieds_detail} show two pages within the Classifieds site, the homepage and the detail page of a particular listing. Users can also use the search function, or filter posts by category or location to find items.
+
+\section{Task Collection Process}  \label{sec:appendix_annotation}
+Our main task collection process is described in Sec.~\ref{sec:tasks}. We collected the set of 910 tasks by recruiting 6 computer science graduate students (co-authors of this paper), who were all familiar with commercial versions of the Classifieds, Shopping, and Reddit sites, and have used them in their personal lives.
+
+Annotators were first instructed to spend some time exploring the \BenchmarkName{} websites, to familiarize themselves with their functionality and content (as this may differ slightly from real world implementations). During task creation, we encouraged annotators to be creative, and make use of the visual layouts of the websites, input images, and cross-site functionalities to develop creative and realistic tasks. We ensured that there were no repeated tasks, and that there were not too many tasks of the same type (by first producing templates, followed by instantiating them with different arguments to create multiple tasks, as described in Sec.~\ref{sec:tasks}).
+
+\section{Baseline Agent Settings}
+
+\begin{figure*}[th]
+\noindent\fbox{\parbox{\textwidth}{%
+\small
+You are an autonomous intelligent agent tasked with navigating a web browser. You will be given web-based tasks. These tasks will be accomplished through the use of specific actions you can issue.
+\\~\\
+Here's the information you'll have: \\
+The user's objective: This is the task you're trying to complete.\\
+The current web page screenshot: This is a screenshot of the webpage, with each interactable element assigned a unique numerical id. Each bounding box and its respective id shares the same color.\\
+The observation, which lists the IDs of all interactable elements on the current web page with their text content if any, in the format [id] [tagType] [text content]. tagType is the type of the element, such as button, link, or textbox. text content is the text content of the element. For example, [1234] [button] ['Add to Cart'] means that there is a button with id 1234 and text content 'Add to Cart' on the current web page. [] [StaticText] [text] means that the element is of some text that is not interactable.\\
+The current web page's URL: This is the page you're currently navigating.\\
+The open tabs: These are the tabs you have open.\\
+The previous action: This is the action you just performed. It may be helpful to track your progress.
+\\~\\
+The actions you can perform fall into several categories:
+\\~\\
+Page Operation Actions:\\
+\texttt{\`}\texttt{\`}\texttt{\`}click [id]\texttt{\`}\texttt{\`}\texttt{\`}: This action clicks on an element with a specific id on the webpage.\\
+\texttt{\`}\texttt{\`}\texttt{\`}type [id] [content]\texttt{\`}\texttt{\`}\texttt{\`}: Use this to type the content into the field with id. By default, the ``Enter'' key is pressed after typing unless press\_enter\_after is set to 0, i.e., \texttt{\`}\texttt{\`}\texttt{\`}type [id] [content] [0]\texttt{\`}\texttt{\`}\texttt{\`}.\\
+\texttt{\`}\texttt{\`}\texttt{\`}hover [id]\texttt{\`}\texttt{\`}\texttt{\`}: Hover over an element with id.\\
+\texttt{\`}\texttt{\`}\texttt{\`}press [key\_comb]\texttt{\`}\texttt{\`}\texttt{\`}:  Simulates the pressing of a key combination on the keyboard (e.g., Ctrl+v).\\
+\texttt{\`}\texttt{\`}\texttt{\`}scroll [down]\texttt{\`}\texttt{\`}\texttt{\`} or \texttt{\`}\texttt{\`}\texttt{\`}scroll [up]\texttt{\`}\texttt{\`}\texttt{\`}: Scroll the page up or down.
+\\~\\
+Tab Management Actions:\\
+\texttt{\`}\texttt{\`}\texttt{\`}new\_tab\texttt{\`}\texttt{\`}\texttt{\`}: Open a new, empty browser tab.\\
+\texttt{\`}\texttt{\`}\texttt{\`}tab\_focus [tab\_index]\texttt{\`}\texttt{\`}\texttt{\`}: Switch the browser's focus to a specific tab using its index.\\
+\texttt{\`}\texttt{\`}\texttt{\`}close\_tab\texttt{\`}\texttt{\`}\texttt{\`}: Close the currently active tab.
+\\~\\
+URL Navigation Actions:\\
+\texttt{\`}\texttt{\`}\texttt{\`}goto [url]\texttt{\`}\texttt{\`}\texttt{\`}: Navigate to a specific URL.\\
+\texttt{\`}\texttt{\`}\texttt{\`}go\_back\texttt{\`}\texttt{\`}\texttt{\`}: Navigate to the previously viewed page.\\
+\texttt{\`}\texttt{\`}\texttt{\`}go\_forward\texttt{\`}\texttt{\`}\texttt{\`}: Navigate to the next page (if a previous 'go\_back' action was performed).
+\\~\\
+Completion Action:\\
+\texttt{\`}\texttt{\`}\texttt{\`}stop [answer]\texttt{\`}\texttt{\`}\texttt{\`}: Issue this action when you believe the task is complete. If the objective is to find a text-based answer, provide the answer in the bracket.
+\\~\\
+Homepage:\\
+If you want to visit other websites, check out the homepage at http://homepage.com. It has a list of websites you can visit.\\
+http://homepage.com/password.html lists all the account name and password for the websites. You can use them to log in to the websites.
+\\~\\
+To be successful, it is very important to follow the following rules:\\
+1. You should only issue an action that is valid given the current observation\\
+2. You should only issue one action at a time.\\
+3. You should follow the examples to reason step by step and then issue the next action.\\
+4. Generate the action in the correct format. Start with a ``In summary, the next action I will perform is'' phrase, followed by action inside \texttt{\`}\texttt{\`}\texttt{\`}\texttt{\`}\texttt{\`}\texttt{\`}. For example, ``In summary, the next action I will perform is \texttt{\`}\texttt{\`}\texttt{\`}click [1234]\texttt{\`}\texttt{\`}\texttt{\`}''.\\
+5. Issue stop action when you think you have achieved the objective. Don't generate anything after stop.
+}
+}
+\caption{System message used in our SoM agent.}  \label{fig:system_message}
+\end{figure*}
+
+\begin{figure*}[th]
+\noindent\fbox{\parbox{\textwidth}{%
+\small
+{\color{red}{example\_user:}} \\
+IMAGES: (1) current page screenshot\\
+OBSERVATION:\\
+\lbrack31\rbrack\ [IMG]\ \lbrack Image, description: hp fx-7010dn fax machine, url: B08GKZ3ZKD.0.jpg\rbrack\\
+\lbrack32\rbrack\ [A]\ \lbrack HP CB782A\#ABA 640 Inkjet Fax Machine (Renewed)\rbrack\\
+\lbrack\ \rbrack\ [StaticText]\ \lbrack\$279.49\rbrack\\
+\lbrack33\rbrack\ [BUTTON]\ \lbrack Add to Cart\rbrack\\
+\lbrack34\rbrack\ [A]\ \lbrack Add to Wish List\rbrack\\
+\lbrack35\rbrack\ [A]\ \lbrack Add to Compare\rbrack\\
+URL: http://onestopmarket.com/office-products/office-electronics.html\\
+OBJECTIVE: What is the price of HP Inkjet Fax Machine?\\
+PREVIOUS ACTION: None
+\\
+{\color{red}{example\_assistant:}} Let's think step-by-step. This page list the information of HP Inkjet Fax Machine, which is the product identified in the objective. Its price is \$279.49. I think I have achieved the objective. I will issue the stop action with the answer. In summary, the next action I will perform is \texttt{\'}\texttt{\'}\texttt{\'}stop [\$279.49]\texttt{\'}\texttt{\'}\texttt{\'}
+\\~\\
+{\color{red}{example\_user:}} \\
+IMAGES: (1) current page screenshot\\
+OBSERVATION:\\
+\lbrack\ \rbrack\ [StaticText]\ \lbrack/f/food\rbrack\\
+\lbrack\ \rbrack\ [StaticText]\ \lbrack[homemade] Obligatory Halloween Pumpkin Loaf!\ \ \ Submitted by\ \ kneechalice\ \ t3\_yid9lu\ \ 1 year ago\rbrack\\
+\lbrack9\rbrack\ [IMG]\ \lbrack\ \rbrack\\
+\lbrack\ \rbrack\ [StaticText]\ \lbrack Submitted by\ \ kneechalice\ \ t3\_yid9lu\ \ 1 year ago\rbrack\\
+\lbrack10\rbrack\ [A]\ \lbrack kneechalice\rbrack\\
+\lbrack11\rbrack\ [A]\ \lbrack 45 comments\rbrack\\
+\lbrack\ \rbrack\ [StaticText]\ \lbrack[I ate] Maple Pecan Croissant\ \ \ Submitted by\ \ AccordingtoJP\ \ t3\_y3hrpn\ \ 1 year ago\rbrack\\
+\lbrack14\rbrack\ [IMG]\ \lbrack\ \rbrack\\
+\lbrack\ \rbrack\ [StaticText]\ \lbrack Submitted by\ \ AccordingtoJP\ \ t3\_y3hrpn\ \ 1 year ago\rbrack\\
+\lbrack15\rbrack\ [A]\ \lbrack AccordingtoJP\rbrack\\
+\lbrack16\rbrack\ [A]\ \lbrack 204 comments\rbrack\\
+URL: http://reddit.com\\
+OBJECTIVE: Tell me what the top comment on the croissant post says.\\
+PREVIOUS ACTION: None
+\\
+{\color{red}{example\_assistant:}} Let's think step-by-step. This page has a post titled '\lbrack I ate\rbrack \ Maple Pecan Croissant', which is the post mentioned in the objective. In order to find the top comment, I will navigate into the comments section of the post. In summary, the next action I will perform is \texttt{\'}\texttt{\'}\texttt{\'}click \lbrack11\rbrack\texttt{\'}\texttt{\'}\texttt{\'}
+\\~\\
+{\color{red}{example\_user:}} \\
+IMAGES: (1) current page screenshot\\
+OBSERVATION:\\
+\lbrack\ \rbrack\ [StaticText]\ \lbrack What are you looking for today?\rbrack\\
+\lbrack5\rbrack\ [INPUT]\ \lbrack\ \rbrack\\
+\lbrack6\rbrack\ [SELECT]\ \lbrack Select a category\rbrack\\
+\lbrack7\rbrack\ [BUTTON]\ \lbrack Search\rbrack\\
+\lbrack\ \rbrack\ [StaticText]\ \lbrack Latest Listings\rbrack\\
+\lbrack\ \rbrack\ [StaticText]\ \lbrack Atlas Powered Audio System w/ Tripod\ \ 150.00 \$\ \ Music instruments\ \ Borough of Red Lion\ \ (Pennsylvania)\ \ 2023/11/16\rbrack\\
+\lbrack8\rbrack\ [IMG]\ \lbrack Atlas Powered Audio System w/ Tripod\rbrack\\
+\lbrack9\rbrack\ [A]\ \lbrack Atlas Powered Audio System w/ Tripod\rbrack\\
+\lbrack\ \rbrack\ [StaticText]\ \lbrack 150.00 \$\rbrack\\
+\lbrack\ \rbrack\ [StaticText]\ \lbrack Neptune Gaming Console\ \ 350.00 \$\ \ Video gaming\ \ Pennwyn\ \ (Pennsylvania)\ \ 2023/11/16\rbrack\\
+\lbrack10\rbrack\ [IMG]\ \lbrack Neptune Gaming Console\rbrack\\
+\lbrack11\rbrack\ [A]\ \lbrack Neptune Gaming Console\rbrack\\
+\lbrack\ \rbrack\ [StaticText]\ \lbrack 350.00 \$\rbrack\\
+URL: http://classifieds.com\\
+OBJECTIVE: Help me find the cheapest dark colored guitar.\\
+PREVIOUS ACTION: None
+\\
+{\color{red}{example\_assistant:}} Let's think step-by-step. The objective is to find the cheapest dark colored guitar on the site. The site has a search box whose ID is \lbrack5\rbrack. I can search for guitars by entering ``guitar''. I can submit this by pressing the Enter afterwards. In summary, the next action I will perform is \texttt{\'}\texttt{\'}\texttt{\'}type \lbrack5\rbrack\ \lbrack guitar\rbrack\  \lbrack1\rbrack\texttt{\'}\texttt{\'}\texttt{\'}
+}
+}
+\caption{In-context examples and prompt used for our SoM agents. The webpage screenshots with SoM are added to the end of each round of the {\color{red}{example\_user}} dialogue.}  \label{fig:prompt}
+\end{figure*}
+
+
+For all baseline agents we report in the paper, we use a webpage viewport size of $1280 \times 2048$, and truncate text observations to 3840 tokens (or 15360 characters for Gemini). For models with shorter context windows (e.g., LLaMA, IDEFICS, CogVLM), we instead use a viewport size of $1280 \times 720$ and truncate text observations to 640 tokens. For GPT-3.5 and GPT-4 models, we follow \cite{zhou2023webarena} in using a temperature of 1.0 and a top-p of 0.9. For Gemini models we use the suggested default temperature of 0.9 and top-p of 1.0. For the remaining models, we find that they benefit from sampling from lower temperatures, and use a temperature of 0.6 and top-p of 0.95. Nucleus sampling~\citep{holtzman2019curious} is used in all experiments. 
+
+The system message and the prompt with in-context examples for the baseline SoM agents are shown in Fig.~\ref{fig:system_message} and Fig.~\ref{fig:prompt} respectively. We prompt the model with 3 in-context examples for all baselines. For multimodal and SoM models, we include the screenshot of each in-context example as well as the screenshot of the current page. For text-only and caption augmented models, the examples consist of just the text and captions.

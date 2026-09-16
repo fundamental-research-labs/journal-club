@@ -1,0 +1,708 @@
+\section{Full Details of Related Works}
+\label{appendix:full_related_works}
+\subsection{Memory-Augmented LLM Agents}
+\label{appendix:memory_augmented_LLM_related_works}
+External memory~\cite{hu2025memory,zhang2025survey} has become a core component of LLM agents that operate over long horizons.
+Existing work can be broadly organized along three dimensions.
+
+At the \emph{architecture level}, early systems explore how to 
+structure the memory bank.
+Generative Agents~\cite{park2023generative} maintains a 
+chronological memory stream with reflection-based retrieval.
+MemGPT~\cite{packer2023memgpt} introduces a hierarchical design 
+that treats the context window as virtual memory managed by the 
+LLM itself.
+MemoryBank~\cite{zhong2024memorybank} adds temporal dynamics 
+through forgetting-curve-based decay.
+More recent work moves toward richer structure: 
+SGMem~\cite{wu2025sgmem} represents dialogue as sentence-level 
+graphs to capture cross-turn associations, and 
+Memoria~\cite{sarin2025memoria} provides a scalable framework for 
+personalized conversational memory.
+
+
+At the \emph{organization level}, systems shift focus from how memory is structured to what is stored and how it is consolidated.
+Mem0~\cite{chhikara2025mem0} extracts and consolidates salient facts from multi-session conversations, reducing redundancy at the source.
+A-Mem~\cite{xu2025mem} goes further by dynamically organizing memories into interconnected notes following the Zettelkasten method, allowing entries to evolve as new information arrives.
+LightMem~\cite{fang2025lightmem} takes a different angle, designing a lightweight multi-stage pipeline inspired by the Atkinson--Shiffrin model to balance memory quality with computational cost.
+SimpleMem~\cite{liu2026simplemem} pushes efficiency further through semantic lossless compression and recursive consolidation, while EverMemOS~\cite{hu2026evermemos} introduces a self-organizing memory operating system for structured long-horizon reasoning.
+
+
+At the \emph{retrieval level}, the focus shifts to how stored information is surfaced.
+Zep~\cite{rasmussen2025zep} organizes memory as a temporal knowledge graph for time-aware retrieval, enabling queries that require temporal reasoning.
+MemR$^3$~\cite{du2025memr} introduces a closed-loop retrieval controller with a router and an explicit evidence-gap tracker, moving retrieval from a one-shot operation to an iterative decision process.
+LangMem~\cite{LangMemBlog} provides a practical SDK for memory extraction and retrieval in agent frameworks.
+
+
+These methods substantially improve individual stages of the memory pipeline, but they primarily optimize storage, organization, or retrieval in isolation.
+By contrast, \method addresses a broader scope: it coordinates both construction and retrieval along the forward path of the memory cycle, and further converts utilization failures into direct repair signals for the memory bank along the backward path.
+
+\subsection{Self-Evolution and Reflection for LLM Agents}
+\label{appendix:self_evolve_LLM_related_works}
+
+A growing body of work improves LLM agents through self-feedback, while broader recent work frames persistent self-improvement as a form of agentic evolution~\cite{lin2026position}.
+These approaches can be organized by \emph{what they modify}: the model output, an external experience store, the memory-use policy, or the memory bank itself.
+Existing methods mostly operate at the first three levels; by contrast, \method directly repairs the memory bank during construction.
+
+At the \emph{output level}, the simplest form of self-improvement operates directly on model responses.
+Self-Refine~\cite{madaan2023self} iteratively critiques and revises outputs within a single generation episode, while Reflexion~\cite{shinn2023reflexion} extends this idea across episodes by storing verbal self-critiques to guide future attempts.
+Similarly, TESSA~\cite{lin2024decoding} uses a reviewer agent to refine time-series annotations based on prior attempts.
+These methods improve response quality, but they do not modify the underlying memory bank.
+
+At the \emph{experience level}, systems move beyond per-episode feedback to accumulate reusable knowledge in auxiliary stores.
+ExpeL~\cite{zhao2024expel} extracts natural-language insights from task trajectories and recalls them at inference time.
+Voyager~\cite{wang2023voyager} builds an ever-growing skill library from environment feedback, enabling lifelong learning in open-ended settings.
+O-Mem~\cite{wang2025mem} combines multiple memory types with a self-evolving mechanism for personalized agents.
+These methods accumulate knowledge in separate stores, such as experience buffers or skill libraries, but do not repair entries in the primary memory bank itself.
+
+At the \emph{policy level}, recent work improves memory management by training stronger memory-use policies through supervision, reinforcement learning, or reward optimization~\cite{guo2025deepseek,yan2025memory,lin2025comprehensive,lin2026how}.
+Memory-R1~\cite{yan2025memory} trains a memory manager to learn structured operations (ADD, UPDATE, DELETE) from downstream QA supervision with sparse rewards.
+Mem-$\alpha$~\cite{wang2025memalpha} extends this idea to multi-component memory systems (core, episodic, semantic), training agents to manage more complex memory architectures through interaction and feedback.
+MemRL~\cite{zhang2026memrl} improves episodic memory through runtime reinforcement learning, and MEM1~\cite{zhou2025mem1} jointly optimizes memory consolidation and reasoning in an end-to-end framework.
+MemBuilder~\cite{shen2026membuilder} uses synthetic QA pairs as attributed dense rewards, providing finer-grained supervision than end-task accuracy alone.
+These approaches strengthen the \emph{policy} for using memory, but they still do not directly perform in-situ repair of the memory bank during construction.
+
+In contrast, \method operates at the \emph{memory-bank level}: it directly repairs the memory bank itself during construction.
+By synthesizing probe QA pairs, verifying the current memory against them, and converting failures into construction-level repair actions through evidence-grounded critique and semantic consolidation, \method provides dense, localized supervision before memory is committed, without gradient-based training or separate experience stores.
+
+\section{Motivating Analysis Details}
+\subsection{Evaluation Details}
+\label{appendix:preliminary_evaluation_details}
+We provide additional details for the preliminary study in Sec.~\ref{ssec:motivate_study}.
+
+\noindent\textbf{Baseline Details.}
+The three baselines are implemented by progressively enabling components of the same pipeline:
+\begin{itemize}[leftmargin=*]
+\item \emph{Static}: Uses a single-agent memory pipeline that processes each dialogue chunk sequentially, performs atomic memory edits (\textsc{ADD}, \textsc{UPDATE}, \textsc{DELETE}, \textsc{NONE}), and answers queries via one-shot top-$30$ retrieval based on cosine similarity. No query rewriting or strategic guidance is used.
+\item \emph{Unguided Active}: Extends Static by enabling a query rewriting module that iteratively refines the retrieval query based on the retrieved evidence alone, without diagnosing what specific information is missing.
+\item \emph{Strategic Active}: Further extends Unguided Active by enabling a planner that provides explicit guidance for both construction and retrieval. During construction, the planner identifies what should be retained, consolidated, or resolved. During retrieval, it diagnoses whether the current evidence is sufficient and, if not, specifies the missing information to guide the next query rewrite.
+\end{itemize}
+
+
+
+
+\noindent\textbf{Implementation details.}
+All three baselines use GPT-4o-mini~\cite{gpt4ocard} as the backbone LLM.
+The retrieval budget is top-$30$ entries.
+For the two active baselines, the maximum number of query rewriting iterations is $5$.
+All retrieval uses text-embedding-3-small~\cite{openai2024embedding3} for embedding. We use GPT-4o-mini as the LLM judge model for calculating ACC. The full judge prompt is shown in Table~\ref{tab:judge-prompt}.
+
+% \noindent\textbf{LLM-as-a-Judge.}
+% We use GPT-4o-mini as the judge model for ACC evaluation.
+% The judge is prompted with the question, gold answer, and generated answer, and asked to label the response as \texttt{CORRECT} or \texttt{WRONG}.
+% The prompt instructs the judge to be generous: as long as the generated answer touches on the same topic as the gold answer, it is counted as correct.
+% For time-related questions, format differences (e.g., ``May 7th'' vs.\ ``7 May'') are accepted.
+% The full judge prompt is shown in Table~\ref{tab:judge-prompt}.
+
+\begin{table}[t]
+\caption{The prompt template used for LLM-as-a-Judge evaluation.}
+\begin{promptbox}[LLM-as-a-Judge Prompt]
+\noindent\textbf{Task:} Label an answer to a question as \texttt{CORRECT} or \texttt{WRONG}.
+
+\medskip
+\noindent\textbf{Inputs:}
+\begin{itemize}[leftmargin=*]
+\item \textbf{Question:} \{question\}
+\item \textbf{Gold answer:} \{gold\_answer\}
+\item \textbf{Generated answer:} \{generated\_answer\}
+\end{itemize}
+
+\noindent\textbf{Instructions:}
+\begin{itemize}[leftmargin=*]
+\item The gold answer is usually concise. The generated answer might be longer, but be generous---as long as it touches on the same topic, count it as \texttt{CORRECT}.
+\item For time-related questions, be generous with format differences (e.g., ``May 7th'' vs ``7 May'').
+\item Provide a short explanation, then finish with \texttt{CORRECT} or \texttt{WRONG}.
+\item Return the label in JSON: \texttt{\{``label'': ``CORRECT''\}} or \texttt{\{``label'': ``WRONG''\}}.
+\end{itemize}
+\end{promptbox}
+\label{tab:judge-prompt}
+\end{table}
+
+
+\subsection{Case Studies}
+\label{appendix:preliminary_case_studies}
+This section provides representative examples for the preliminary study in Sec.~\ref{ssec:motivate_study}.
+We organize the cases around the two pathologies of \emph{strategic blindness}.
+Cases 1 and 2 illustrate \emph{Aimless Retrieval}: active rewriting alone is not sufficient if the system cannot identify what evidence is missing.
+Case 3 illustrates \emph{Myopic Construction}: local memory writing may over-store low-value details or fragment one coherent episode into multiple overlapping entries.
+Case 4 is a counterexample showing that \textit{Strategic Active} is not always better, because planner guidance in the current implementation is advisory rather than binding.
+
+\noindent\textbf{Case 1: Lexical paraphrase loop in unguided retrieval.}
+The question is: \emph{``When did Melanie go to the museum?''} (gold answer: \emph{5 July 2023}).
+\textit{Static} misses the evidence entirely and answers \emph{``Not mentioned.''}
+\textit{Unguided Active} runs five rewrite rounds, but the queries stay close to the original wording: \emph{``When did Melanie visit the museum?''}, \emph{``Melanie museum trip date''}, \emph{``Melanie's museum visit history.''}
+None of these rewrites diagnose \emph{what} is missing; they only rephrase \emph{how} to ask.
+The retrieved set drifts toward park, beach, and camping memories---semantically adjacent but wrong.
+\textit{Strategic Active} instead identifies the gap as a missing date, notes that the evidence already contains the answer, and stops rewriting.
+The first retrieved entry is the museum memory with the correct date.
+
+\emph{Insight:} More rewrite rounds do not help if each round is a lexical paraphrase of the last.
+The bottleneck is not the number of retrieval attempts but whether the system can diagnose the specific missing attribute.
+
+\noindent\textbf{Case 2: Event ambiguity requires disambiguation, not broader search.}
+The question is: \emph{``When is Caroline going to the transgender conference?''} (gold answer: \emph{July 2023}).
+\textit{Unguided Active} rewrites toward increasingly generic queries: \emph{``Caroline transgender conference date''}, \emph{``Caroline upcoming events schedule''}, \emph{``Caroline future LGBTQ events.''}
+The retrieved evidence mixes past LGBTQ events (e.g., a conference attended on 10 July 2023) with unrelated future activities, without resolving which conference the question refers to.
+\textit{Strategic Active} narrows the gap to two specific issues: (1) the question asks about a \emph{future} conference, not a past one, and (2) \emph{transgender conference} and \emph{LGBTQ conference} may refer to different events.
+One guided rewrite surfaces the relevant memory: Caroline is going to a transgender conference in July 2023.
+
+\emph{Insight:} When the memory bank contains multiple semantically similar events, the retrieval problem is not recall but disambiguation.
+Unguided rewriting broadens the search when it should narrow it.
+
+\noindent\textbf{Case 3: Local memory writing creates filler and fragmentation.}
+During construction of the early support-group conversation, \textit{Static} stores a greeting (\emph{``Caroline greeted Mel''}) as a standalone entry, then repeatedly appends details about the support-group episode to a single over-packed memory.
+The result is a memory bank that mixes low-value filler with dense event summaries.
+\textit{Strategic Active} partially addresses this: its planner flags information importance, temporal context, and redundancy, and even suggests consolidating similar sentiments.
+However, the final memory bank still distributes the same support-group episode across several overlapping entries---attendance, emotional reaction, and self-acceptance---because the planner's guidance is only advisory and the Memory Manager still makes atomic edits one utterance at a time.
+
+\emph{Insight:} Myopic Construction is not just about missing a planner.
+Even with planning, local utterance-level editing tends to produce either filler or fragmentation, because the Memory Manager cannot perform global reorganization within a single edit step.
+
+\noindent\textbf{Case 4: Planner guidance is advisory, not binding.}
+The question is: \emph{``What activities does Melanie partake in?''} (gold answer: \emph{pottery, camping, painting, swimming}).
+Here, \textit{Unguided Active} answers correctly, while \textit{Strategic Active} fails.
+The planner guidance is reasonable: it suggests covering multiple activity types rather than focusing on one category.
+However, the Query Reasoner judges the evidence as \textsc{answerable} and stops early.
+The Answer Agent then selects a partial subset of the retrieved activities (running, reading, violin, clarinet), missing the gold-answer items entirely.
+
+\emph{Insight:} Planner guidance in \textit{Strategic Active} is a suggestion, not a constraint.
+When the downstream components ignore the guidance---by stopping retrieval too early or selecting from a biased subset of evidence---the system can still fail despite correct high-level reasoning.
+This motivates the tighter coordination mechanisms in \method.
+
+\noindent\textbf{Takeaway.}
+\textit{Static} fails because one-shot retrieval often misses the evidence.
+\textit{Unguided Active} adds active operators but still suffers from aimless rewriting and myopic construction.
+\textit{Strategic Active} improves by diagnosing what is missing, but its guidance remains advisory: downstream components can still stop too early or select from partial evidence.
+These observations motivate the design of \method, which introduces tighter coordination between the Meta-Thinker, Memory Manager, and Query Reasoner along both the forward and backward paths of the memory cycle.
+
+
+\section{Meta-thinker Details}
+\label{appendix:meta_thinker_details}
+The Meta-Thinker $\pi_p$ produces two types of guidance: construction guidance $g_t^S$ (Sec.~\ref{ssec:architecture_design}) and retrieval guidance $g_{q,h}^R$.
+The prompt for construction guidance is shown in Table~\ref{tab:prompt_construction_guidance}, and the prompt for answerability checking (which produces $g_{q,h}^R$) is shown in Table~\ref{tab:prompt_answerability}.
+
+\section{Query Reasoner $\pi_r$ Details}
+\label{appendix:query_reasoner_details}
+The Query Reasoner $\pi_r$ generates the next query $u_{h+1}$ based on the Meta-Thinker's retrieval guidance $g_{q,h}^R$, as described in Sec.~\ref{ssec:architecture_design}.
+The prompt is shown in Table~\ref{tab:prompt_orthogonal_query}.
+
+
+
+\section{In-situ Self-Evolving Memory Construction Details}
+\label{appendix:explicit_reflection_details}
+
+
+\subsection{Synthetic QA Details}
+\label{appendix:synthetic_qa_details}
+After each session $s_\tau$, the system synthesizes a probe set $\mathcal{Q}_\tau = \{(q_j, y_j)\}_{j=1}^{J}$ to verify the provisional memory $M_{\tau}^{(0)}$.
+% We follow the QA generation approach of MemBuilder~\cite{shen2026membuilder}, adapted to our memory structure.
+% These probes are used to supervise memory construction and self-refinement, rather than serving as the final benchmark itself.
+% Their role is to test whether the memory bank preserves the information required for future QA.
+We group the synthetic probes into three types, each targeting a different failure mode in the memory cycle.
+Table~\ref{tab:synthetic_qa_types} summarizes the taxonomy and provides one representative question--answer pair drawn from the generated probe data.
+
+\begin{itemize}[leftmargin=*]
+\item \emph{Single-hop Factoid:} Tests whether explicit facts stated in the current session $s_\tau$ are correctly stored, such as entities, attributes, or event details.
+\item \emph{Multi-session Reasoning:} Tests whether the system can connect information in the current session $s_\tau$ with previously stored memory $M_{\tau-1}$, requiring cross-session integration rather than isolated fact retrieval.
+\item \emph{Temporal Reasoning:} Tests whether the memory bank preserves chronological information, including relative time expressions, absolute dates, and event ordering.
+\end{itemize}
+\begin{table*}[h]
+\centering
+\small
+\caption{Synthetic QA probe types used during probe generation in LoCoMo, with representative examples from the generated probe data.}
+\label{tab:synthetic_qa_types}
+\begin{tabular}{p{1.8cm}p{5.6cm}p{5.2cm}}
+\toprule
+\textbf{Type} & \textbf{Example Question} & \textbf{Example Answer} \\
+\midrule
+Single-hop & What type of support group did I tell Melanie I attended recently? & An LGBTQ support group \\
+\midrule
+Multi-hop & What is Melanie's hobby for creative expression and relaxation, and when did she create the specific piece she showed me? & Melanie paints as her hobby for creative expression and relaxation. She painted a lake sunrise last year that she showed me. \\
+\midrule
+Temporal & On what date and time did I have the conversation with Melanie about attending the LGBTQ support group and my career interests in counseling? & At 1:56 pm on May 8, 2023 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+These synthetic probes are designed to expose common failure modes in the memory cycle, including missing entities, incomplete event details, weak cross-session linking, and temporal inconsistency.
+
+
+
+\subsection{Prompt Details}
+\label{appendix:prompt_details}
+We provide the prompt templates used in the evidence-grounded repair and semantic consolidation stages of in-situ self-evolving memory construction (Sec.~\ref{ssec:self_evolving_construction}).
+The probe generation stage follows the QA generation approach of MemBuilder~\cite{shen2026membuilder}, adapted to our memory structure; the probe types are described in Appendix~\ref{appendix:synthetic_qa_details}.
+
+\noindent\textbf{Evidence-Grounded Repair.}
+For each failed probe, a reflection module diagnoses whether the failure reflects missing information or content that is difficult to retrieve, and proposes a candidate repair fact $r_j$.
+The prompt is shown in Tables~\ref{tab:prompt_repair} and~\ref{tab:prompt_repair_output}.
+
+\noindent\textbf{Semantic Consolidation.}
+Before writing repairs back to memory, each candidate fact is checked against existing entries and assigned one of three actions: \texttt{SKIP}, \texttt{MERGE}, or \texttt{INSERT}.
+The prompt is shown in Table~\ref{tab:prompt_dedup}.
+
+
+\section{Experimental Details}
+\subsection{Dataset Details}
+\label{appendix:dataset_details}
+We evaluate on LoCoMo~\cite{maharana2024evaluating}, a benchmark for very long-term conversational memory.
+LoCoMo contains $10$ conversation instances, each spanning roughly $600$ dialogue turns and $16$K tokens on average, with up to $32$ sessions.
+The full benchmark includes $272$ sessions, $5{,}882$ dialogue turns, and $1{,}986$ QA pairs across the $10$ conversations.
+
+Following prior work~\cite{yan2025memory,fang2025lightmem}, we exclude the adversarial subset and focus on the reasoning-intensive QA setting.
+We use the first conversation sample (\texttt{conv-26}) as our evaluation subset.
+This subset contains $19$ sessions and $419$ dialogue turns.
+After excluding adversarial questions, $152$ QA pairs remain, spanning four categories: single-hop ($70$), multi-hop ($32$), temporal ($37$), and open-domain ($13$).
+Using a fixed single-conversation subset ensures that all experiments and ablations are performed on exactly the same conversation and evaluation set.
+
+\subsection{Baseline Details}
+\label{appendix:baseline_details}
+We compare \method against both passive and active baselines:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Full Text}: concatenates the entire dialogue history into the context window and answers directly without memory construction or retrieval.
+    \item \textbf{Naive RAG}~\cite{gao2023retrieval}: splits the dialogue into fixed-size chunks, embeds them, and retrieves the top-$k$ chunks by cosine similarity at query time.
+    \item \textbf{LangMem}~\cite{LangMemBlog} provides a practical SDK for memory extraction and retrieval in agent frameworks, storing memories as structured key-value entries.
+% \item \textbf{Mem0}~\cite{chhikara2025mem0} extracts and consolidates salient facts from multi-session conversations, reducing redundancy at the source through deduplication and merging.
+\item \textbf{A-Mem}~\cite{xu2025mem} dynamically organizes memories into interconnected notes following the Zettelkasten method, allowing entries to evolve as new information arrives through activation-based retrieval.
+\item \textbf{LightMem}~\cite{fang2025lightmem} designs a lightweight multi-stage pipeline inspired by the Atkinson--Shiffrin model, organizing memory into sensory, short-term, and long-term stores to balance quality with computational cost.
+
+\end{itemize}
+
+\subsection{Implementation Details}
+\label{appendix:implementation_details}
+% \noindent\textbf{Implementation Details.}
+GPT-4o-mini~\cite{gpt4ocard} and Claude-Haiku-4.5~\cite{anthropic2025claudehaiku45} 
+are used as the default backbone for the Memory Manager, 
+Meta-Thinker, and Query Reasoner.
+The iterative query refinement budget is $H{=}3$.
+To isolate memory construction quality from answer-generation 
+capacity, we fix GPT-4o-mini as both the Answer Agent and the 
+LLM judge across all experiments.
+For in-situ self-evolution, we generate $J{=}5$ probe QA pairs 
+per session using Claude-Opus-4.5~\cite{anthropic2025claudeopus45}, 
+retrieve top-$30$ entries for verification.
+All retrieval uses text-embedding-3-small~\cite{openai2024embedding3}.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \section{Addition Results of Flexibility across Storage Backends}
+% \label{appendix:more_results_flexibility}
+
+
+% \section{Addition Results of In-depth Dissection of MemMA}
+% \label{appendix:in_depth_dissection}
+\section{Impact of Probe Generation Model}
+\label{appendix:impact_probe_generation_model}
+
+\begin{table}[t]
+\centering
+\small
+\caption{Impact of probe generation model on $\method_{\mathrm{LM}}$ with Claude-Haiku-4.5 as the construction backbone. Best results are in \textbf{bold}.}
+\label{tab:probe_generation}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Probe Model} & \textbf{F1} & \textbf{B1} & \textbf{ACC} \\
+\midrule
+Claude-Haiku-4.5   & 44.98 & \textbf{35.69} & 74.34 \\
+Claude-Sonnet-4.5  & 43.30 & 32.74 & 74.34 \\
+Claude-Opus-4.5    & \textbf{45.10} & 35.66 & \textbf{76.97} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Empirical Analysis.}
+To understand how probe quality affects in-situ self-evolving memory construction (Sec.~\ref{ssec:self_evolving_construction}), we vary the probe generation model among Claude-Haiku-4.5, Claude-Sonnet-4.5~\cite{anthropic2025claudesonnet45}, and Claude-Opus-4.5.
+$\method_{\mathrm{LM}}$ with Claude-Haiku-4.5 as the construction backbone is used. All other settings follow Sec.~\ref{ssec:experimental_setup}.
+
+Table~\ref{tab:probe_generation} reports the results. We observe that:
+\textbf{(i)}~\emph{Opus achieves the best overall repair quality.}
+It reaches $76.97$ ACC and $45.10$ F1, outperforming both Haiku ($74.34$ ACC, $44.98$ F1) and Sonnet ($74.34$ ACC, $43.30$ F1).
+\textbf{(ii)}~\emph{Haiku and Sonnet match in ACC but diverge in lexical metrics.}
+Despite identical ACC, Haiku outperforms Sonnet in F1 ($44.98$ vs.\ $43.30$) and B1 ($35.69$ vs.\ $32.74$), indicating that Haiku's probes lead to higher-quality memory repairs at the token level.
+
+We attribute this gap to differences in probe style.
+Sonnet tends to produce shorter, more extractive QA pairs (average answer length $11.12$ words, with $136$ out of $380$ answers containing $\leq 3$ words), while Haiku generates longer probes (average answer length $19.43$ words) with more multi-session and temporal-reasoning questions.
+Opus produces probes of moderate length (average answer length $21.48$ words) with the highest proportion of cross-session relational questions.
+Overly short probes test only surface-level keyword recall rather than cross-session consistency, so they provide weaker signals for diagnosing and repairing construction omissions.
+
+\subsection{Qualitative Examples.}
+To better understand the performance gap, we analyze the probe statistics and show representative examples in Table~\ref{tab:probe_statistics} and Table~\ref{tab:probe_examples}.
+
+\begin{table*}[h]
+\centering
+\small
+\caption{Probe statistics across generation models. ``One-word / $\leq$3'' counts one-word and short ($\leq 3$ words) answers out of $95$ total per model. Question type counts follow the taxonomy in Appendix~\ref{appendix:synthetic_qa_details}.}
+\label{tab:probe_statistics}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Probe Model} & \textbf{Avg. Q Len.} & \textbf{Avg. A Len.} & \textbf{One-word / $\leq$3} & \textbf{Single-hop} & \textbf{Multi-hop} & \textbf{Temporal} \\
+\midrule
+Haiku   & 18.48 & 19.44 & 4 / 15  & 55 & 25 & 15 \\
+Sonnet  & 15.42 & 11.13 & 11 / 33 & 64 & 16 & 15 \\
+Opus    & 17.38 & 21.55 & 4 / 8   & 58 & 26 & 11 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Representative probe QA pairs from the same dialogue session. Sonnet's single-word answer tests only keyword presence, while Haiku and Opus require multi-attribute recall.}
+\label{tab:probe_examples}
+\begin{tabular}{p{1.2cm}p{5.5cm}p{5.5cm}}
+\toprule
+\textbf{Model} & \textbf{Question} & \textbf{Answer} \\
+\midrule
+Haiku & What has the support group I attended done for my personal development and self-acceptance? & The support group has made me feel accepted and given me courage to embrace myself. \\
+\midrule
+Sonnet & What did the LGBTQ support group help me feel that gave me courage to embrace myself? & Accepted \\
+\midrule
+Opus & How has attending the LGBTQ support group influenced my personal growth and willingness to be open about my identity? & The support group has been a safe space that made me feel accepted, giving me the courage to embrace myself and be more open about my identity in other areas of life. \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Two patterns stand out.
+First, Sonnet generates significantly more short answers: $11$ one-word and $33$ answers with $\leq 3$ words, compared to $4$ / $15$ for Haiku and $4$ / $8$ for Opus.
+Sonnet's probes tend to compress answers into factoid-style keywords (e.g., ``Accepted''), which tests keyword presence but not whether the memory bank can support multi-attribute reasoning.
+The issue is not that Sonnet hallucinates, but that it loses information by over-compressing, resulting in weaker supervision for memory repair.
+
+Second, Sonnet's probes are dominated by single-hop questions ($64$ out of $95$), while Haiku and Opus allocate more probes to multi-hop reasoning ($25$ and $26$, respectively).
+Since single-hop probes only verify whether individual facts were stored, they are less likely to expose consolidation failures where information from different sessions was not properly linked.
+The higher proportion of multi-hop probes in Haiku and Opus explains their stronger repair quality.
+
+Sonnet's single-word answer (``Accepted'') only checks whether the memory bank contains a specific keyword.
+Haiku and Opus instead require the memory to support reasoning over multiple attributes (personal development, self-acceptance, courage), which is more likely to reveal gaps in cross-session consolidation.
+This explains why Sonnet, despite matching Haiku in ACC, falls behind in lexical metrics: its probes trigger fewer and shallower repairs.
+
+\section{Full Details of Case Studies of MemMA}
+\label{appendix:case_studies_details}
+In this section, we expand the details of case studies in Sec.~\ref{ssec:case_studies}.
+We organize the cases by the two paths of the memory cycle.
+For the forward path, we separately examine construction-time Meta-Thinker guidance (Sec.~\ref{ssec:architecture_design}) and iterative query refinement.
+For the backward path, we examine how in-situ self-evolving memory construction (Sec.~\ref{ssec:self_evolving_construction}) repairs the memory bank with facts that later improve downstream benchmark QA.
+
+
+\subsection{Forward Path: Construction-Time Meta-Thinker Guidance}
+\label{appendix:case_construction_guidance}
+
+To isolate the effect of construction-time meta guidance, we compare $\method_{\mathrm{SA}}$ against the ablated variant $\method_{\mathrm{SA}}$/C using Claude-Haiku-4.5 as the construction backbone.
+Both variants share the same query-time components, including answerability diagnosis and iterative query refinement; the only difference is whether the Meta-Thinker provides construction guidance $g_t^S$ to the Memory Manager.
+
+\noindent\textbf{Case 1: Preserving answer-bearing visual detail.}
+Consider the question: \emph{``What did Caroline find in her neighborhood during her walk?''}
+$\method_{\mathrm{SA}}$ answers \emph{``Caroline came across a rainbow sidewalk ...''}, whereas $\method_{\mathrm{SA}}$/C produces a vague answer about \emph{``cool stuff''} and even confuses the walking event with a biking outing.
+
+According to the construction trajectory,  
+with guidance enabled, the Meta-Thinker's construction guidance $g_t^S$ explicitly lists the answer-bearing visual object \emph{rainbow sidewalk}, together with its supporting attributes such as \emph{Pride Month} and \emph{cool / vibrant / welcoming}.
+The Memory Manager then stores a clean entry containing the exact answer-bearing detail.
+Without guidance, this object detail is absent from the memory bank, so later retrieval can only recover semantically adjacent but insufficient context.
+This case shows that construction-time guidance preserves concrete object-level details that iterative query refinement cannot recover once they are lost.
+
+
+\noindent\textbf{Case 2: Preventing destructive merges.}
+The question \emph{``What instruments does Melanie play?''} reveals a different failure mode.
+$\method_{\mathrm{SA}}$ correctly answers \emph{``the clarinet and the violin,''} whereas $\method_{\mathrm{SA}}$/C answers \emph{``the clarinet''} and even incorrectly claims that Melanie does not play the violin.
+
+The key difference lies in the constructed memory.
+With guidance, the Memory Manager stores the clarinet and violin facts as distinct entries, preserving them as parallel details.
+Without guidance, the Memory Manager incorrectly merges them into a conflicting entry, effectively overwriting one fact with another.
+This case shows that construction-time guidance also prevents harmful consolidation that would later produce factually incorrect retrieval results.
+
+\noindent\textbf{Takeaway.}
+These cases show that the Meta-Thinker's construction guidance $g_t^S$ improves the memory bank before retrieval begins.
+In particular, it preserves exact answer-bearing details, keeps semantically adjacent facts disentangled, and avoids destructive merges that would otherwise create retrieval drift or contradictions.
+Additional examples, including quoted textual details (\emph{``trans lives matter''}) and topic disentanglement (\emph{adoption research} vs.\ \emph{counseling research}), follow the same pattern.
+
+\subsection{Forward Path: Iterative Query Refinement}
+\label{appendix:case_forward_refinement}
+The second part of the forward path is Meta-Thinker-guided iterative retrieval.
+Here, retrieval operates over a fixed memory bank; the Meta-Thinker first judges whether the current evidence is sufficient (\textsc{answerable} vs.\ \textsc{not-answerable}), and the Query Reasoner then refines the query to retrieve the missing evidence.
+
+\paragraph{Case 1: Recovering a temporal anchor.}
+Consider the question: \emph{``When did Caroline go to the LGBTQ conference?''}
+The Single-Agent baseline answers \emph{``Not mentioned in the conversation,''} treating the information gap as an absence of information.
+By contrast, $\method_{\mathrm{SA}}$ first judges the current evidence as \textsc{not-answerable}, noting that the problem is not the absence of all related memories, but the lack of an exact date and the ambiguity between \emph{LGBTQ conference} and \emph{transgender conference}.
+The Query Reasoner then issues increasingly targeted queries, such as asking for the specific date in July 2023 and explicitly disambiguating the two event names.
+The final answer becomes \emph{``July 10, 2023.''}
+
+This case shows that the forward path does not improve performance by making better guesses; it improves performance by delaying commitment until the temporal anchor is retrieved.
+
+\noindent\textbf{Case 2: Filling a missing entity.}
+A second example concerns the question: \emph{``Where did Caroline move from 4 years ago?''}
+The LightMem baseline answers \emph{``Her home country,''} which is directionally correct but incomplete because the benchmark expects the country name.
+$\method_{\mathrm{LM}}$ judges the evidence as \textsc{not-answerable}: the relation is already known but the specific entity is missing.
+The Query Reasoner then rewrites the query around this information gap, first asking about Caroline's home country before she moved four years ago and then asking more explicitly for the country name.
+The final answer becomes \emph{``Her home country, Sweden.''}
+
+This case is informative because the same diagnostic pattern also appears with the weaker Single-Agent backend.
+There, the Meta-Thinker correctly identifies the same information gap, but the backend does not contain the relevant entry.
+Thus, the Meta-Thinker and Query Reasoner can accurately locate the gap regardless of backend, but the final answer depends on whether the memory bank contains the answer-bearing entry.
+
+
+\paragraph{Case 3: Recovering a missing event detail.}
+For the question \emph{``What did Melanie and her family see during their camping trip last year?''}, the baseline answers \emph{``They saw amazing views,''} which is too generic to be judged correct.
+$\method_{\mathrm{LM}}$ instead judges the evidence as \textsc{not-answerable}, performs one additional refinement round, and recovers the specific answer \emph{``Perseid meteor shower.''}
+The key point here is that the answer already exists in the memory bank; the initial top-$k$ retrieval simply failed to surface the decisive detail.
+Iterative refinement fixes this by turning a vague event description into a concrete answer.
+
+\paragraph{Takeaway.}
+Across these cases, the Meta-Thinker first identifies the information gap---a temporal anchor, a missing entity, or a specific event detail---and the Query Reasoner translates that gap into a more targeted retrieval query.
+The forward-path gain therefore comes not from stronger answer generation, but from refusing to answer too early and iteratively retrieving until the information gap is closed.
+
+\subsection{Backward Path: In-Situ Self-Evolving Memory Construction}
+\label{appendix:case_backward}
+To isolate the effect of in-situ self-evolution, we compare the full $\method_{\mathrm{SA}}$ against the ablated variant $\method_{\mathrm{SA}}$/E using GPT-4o-mini as the construction backbone.
+Both variants share the same construction-time Meta-Thinker guidance and query-time components; the only difference is whether the probe-and-repair loop (Sec.~\ref{ssec:self_evolving_construction}) is applied after each session.
+The following cases show that self-evolution improves performance not only by improving probe QA accuracy, but by writing back repair facts that later change downstream benchmark answers from incorrect to correct.
+
+\noindent\textbf{Case 1: Named-entity insertion for concert-related QA.}
+During self-evolution of session $\tau{=}10$, the probe \emph{``What is the name of the artist who performed at Melanie's daughter's birthday concert?''} fails.
+Before self-evolution, the system answers that the artist is not mentioned in memory; after self-evolution, it answers \emph{``Matt Patterson.''}
+The repair trace shows that self-evolution inserts the following candidate repair fact:
+\begin{quote}
+\small
+\texttt{ADD\_FACT}: ``The artist who performed at Melanie's daughter's birthday concert is Matt Patterson.''
+\end{quote}
+A related repair later adds another musical entity, \emph{Summer Sounds}.
+
+These inserted facts directly transfer to the downstream benchmark question \emph{``What musical artists/bands has Melanie seen?''}
+Without self-evolution, the system answers only that \emph{``a band performed at a show''} but cannot name it.
+With self-evolution, the answer becomes \emph{``Summer Sounds''} and \emph{``Matt Patterson.''}
+Probe failures expose that the memory bank contains event descriptions but not the exact entity names required for downstream QA.
+
+\noindent\textbf{Case 2: Restoring a distinctive event detail.}
+During self-evolution, the probe \emph{``What was Melanie's most memorable camping experience with her family?''} fails.
+The system produces a generic answer about roasting marshmallows and telling stories, missing the distinctive detail.
+Self-evolution repairs this by inserting a new event fact centered on the Perseid meteor shower.
+
+This repair transfers to the downstream benchmark question \emph{``What did Melanie and her family see during their camping trip last year?''}
+Without self-evolution, the downstream answer remains generic and mentions only ordinary camping activities.
+With self-evolution, the system retrieves and outputs the specific event detail \emph{``Perseid meteor shower.''}
+This case shows that self-evolution sharpens vague event memories into distinctive, answerable ones.
+
+\noindent\textbf{Case 3: Completing a partial evidence cluster.}
+During self-evolution, the probe \emph{``What new pottery project did Melanie recently finish, and what was her earlier pottery creation?''} fails.
+The system can only answer part of the question and leaves the pottery objects underspecified.
+Self-evolution repairs this by writing back the missing facts about a \emph{colorful bowl} and an earlier \emph{black and white bowl}.
+
+These repairs transfer to downstream benchmark questions such as \emph{``What types of pottery have Melanie and her kids made?''} and \emph{``What kind of pot did Mel and her kids make with clay?''}
+Without self-evolution, the model answers only with generic descriptions such as \emph{``pots''} or \emph{``various pottery projects.''}
+With self-evolution, the final answer becomes object-level and complete: bowls, a cup with a dog face, a colorful bowl, and a black-and-white bowl.
+This case illustrates that self-evolution does not only insert isolated facts; it can also complete a sparse local evidence cluster so that the whole topic becomes answerable.
+
+\noindent\textbf{Takeaway.}
+Across these cases, in-situ self-evolution improves performance by turning vague, generic, or partially correct memory regions into retrieval-friendly, answerable memory units.
+More specifically, it works through three recurring repair mechanisms:
+(i) named-entity insertion,
+(ii) distinctive event-detail sharpening, and
+(iii) partial evidence completion.
+The key point is that probe failures do not remain local.
+Instead, they are converted into evidence-grounded repair actions that transfer directly to downstream benchmark performance.
+
+
+
+
+\begin{table}[t]
+\caption{The prompt template used for Meta-Thinker construction guidance.}
+\begin{promptbox}[Meta-Thinker Construction Guidance Prompt]
+\noindent\textbf{Role:} You are a quality-control checker for a memory construction system. Given one conversation utterance, list every distinct factual statement it contains. Each fact must be an atomic, self-contained statement that could answer a WHO/WHAT/WHEN/WHERE/HOW MANY question.
+
+\medskip
+\noindent\textbf{Rules:}
+\begin{itemize}[leftmargin=*]
+\item Extract EVERY fact---do not skip anything. Err on the side of over-extraction.
+\item Use the speaker's exact words for names, objects, dates, places, and quantities.
+\item One fact per line. Do NOT merge multiple facts into one line.
+\item Prefix each fact with the correct speaker name.
+\item Do NOT interpret emotions, themes, values, or symbolism.
+\item Do NOT paraphrase---preserve the original phrasing.
+\end{itemize}
+
+\medskip
+\noindent\textbf{Output format:}\\
+\texttt{FACTS:}\\
+\texttt{- [Speaker] fact 1}\\
+\texttt{- [Speaker] fact 2}\\
+\texttt{- ...}
+\end{promptbox}
+\label{tab:prompt_construction_guidance}
+\end{table}
+
+\begin{table}[t]
+\caption{The prompt template used for Meta-Thinker answerability checking (Part 1).}
+\begin{promptbox}[Meta-Thinker Answerability Checking Prompt (Part 1)]
+\noindent\textbf{Role:} You are a Meta-Thinker agent for answerability checking in a memory-augmented QA system.
+
+\medskip
+\noindent\textbf{Inputs:}
+\begin{itemize}[leftmargin=*]
+\item Question
+\item Retrieved memories grouped by speaker (memory\_id, timestamp, snippet)
+\item Previous queries
+\end{itemize}
+
+\noindent\textbf{Goal:} Minimize false \texttt{NOT\_ANSWERABLE} while staying evidence-grounded.
+
+\medskip
+\noindent\textbf{Blocking-gap test:} Return \texttt{NOT\_ANSWERABLE} only if a missing fact or unresolved contradiction would CHANGE the final short answer. If a best-supported answer is already stable, return \texttt{ANSWERABLE}.
+
+\medskip
+
+\noindent\textbf{Granularity policy:}
+\begin{itemize}[leftmargin=*]
+\item Time questions: require exact day/date only if the question explicitly asks for it; otherwise accept the best unambiguous granularity.
+\item Who/what/which: one clearly supported entity is enough unless the question explicitly requests exhaustive output.
+\item Contradictions: only contradictions that change the final answer are blocking.
+\end{itemize}
+
+% \medskip
+\end{promptbox}
+\label{tab:prompt_answerability}
+\end{table}
+
+\begin{table}[t]
+\caption{The prompt template used for Meta-Thinker answerability checking (Part 2).}
+\begin{promptbox}[Meta-Thinker Answerability Checking Prompt (Part 2)]
+% \medskip
+\noindent\textbf{Anti-stall:} If $\geq$3 previous queries were attempted and the same non-blocking gap repeats, prefer \texttt{ANSWERABLE} at best-supported granularity.
+
+\medskip
+
+\noindent\textbf{Output format:}
+
+\texttt{<decision>ANSWERABLE|NOT ANSWERABLE</decision>}
+
+\texttt{<reason>1--3 sentences about the asked slot only.</reason>}
+\texttt{<key-gaps>Ranked bullets if NOT-ANSWERABLE; NONE otherwise.</key-gaps>}\\
+\texttt{<missing-speaker> speaker-1 | speaker-2 | both | unknown</missing-speaker>}
+
+\texttt{<time-need>Required granularity and missing anchor, or NONE.</time-need>}\\
+\texttt{<retrieval-guidance>Goal, suggested queries, keywords, constraints, avoid terms.</retrieval-guidance>}
+\end{promptbox}
+\label{tab:prompt_answerability_output}
+\end{table}
+
+\begin{table}[t]
+\caption{The prompt template used for Query Reasoner $\pi_r$ to generate orthogonal query $u_{h+1}$.}
+\begin{promptbox}[Orthogonal Query Generation Prompt]
+\noindent\textbf{Role:} You are an expert Query Rewriter for conversation memory retrieval.
+
+\medskip
+\noindent\textbf{Inputs:}
+\begin{itemize}[leftmargin=*]
+\item The question and Meta-Thinker diagnosis (top gap, missing speaker, time need, constraints, avoid terms)
+\item Previous queries and retrieval trace (query $\to$ retrieved memory IDs)
+\end{itemize}
+
+\noindent\textbf{Task:} Generate EXACTLY ONE new retrieval query that targets the top gap and is maximally likely to retrieve new evidence.
+
+\medskip
+\noindent\textbf{Hard rules:}
+\begin{itemize}[leftmargin=*]
+\item Do NOT repeat any previous query verbatim or near-verbatim.
+\item MUST target the top gap only (do not broaden to multiple gaps).
+\item MUST include all constraints (entity + time/version) exactly as provided.
+\item If time need is provided, include both the relative phrase (e.g., ``last year'') and the computed absolute time (e.g., ``2021'').
+\item MUST avoid exhausted terms.
+\item Prefer disambiguation queries if contradiction exists.
+\item If missing speaker is specified, phrase the query to target that speaker's perspective.
+\end{itemize}
+
+\medskip
+\noindent\textbf{Output format (JSON):}\\
+\texttt{\{``rewritten\_query'': ``...'', ``strategy'': ``...'', ``target\_speaker'': ``...''\}}
+\end{promptbox}
+\label{tab:prompt_orthogonal_query}
+\end{table}
+
+\begin{table}[h]
+\caption{The prompt template used for evidence-grounded repair in self-evolution (Part 1).}
+\begin{promptbox}[Evidence-Grounded Repair Prompt (Part 1)]
+\noindent\textbf{Role:} You are a memory-repair assistant for a two-speaker conversation memory system.
+
+\medskip
+\noindent\textbf{Inputs:}
+\begin{itemize}[leftmargin=*]
+\item Question, Gold Answer, Model Answer
+\item Retrieved evidence snippets (from current memory; may be irrelevant if the info is missing)
+\end{itemize}
+
+\noindent\textbf{Task:} Decide whether to add one fact to memory so the system can answer correctly next time.
+
+\medskip
+\noindent\textbf{Decision rules (priority order):}
+\begin{itemize}[leftmargin=*]
+\item If Gold Answer is unanswerable, output \texttt{NOOP}.
+\item If Gold Answer is answerable and Model Answer is wrong or incomplete, output \texttt{ADD\_FACT}. The fact should capture the key information from the Gold Answer.
+\item If Gold Answer and Model Answer are essentially equivalent, output \texttt{NOOP}.
+\end{itemize}
+
+\medskip
+\noindent\textbf{Quality rules:}
+\begin{itemize}[leftmargin=*]
+\item Fact must be concrete, specific, and retrieval-friendly (include names, dates, details).
+\item Preserve relative date expressions verbatim; do NOT convert to absolute dates.
+\item Assign \texttt{target\_speaker} based on who the fact is about.
+\end{itemize}
+\end{promptbox}
+\label{tab:prompt_repair}
+\end{table}
+
+\begin{table}[h]
+\caption{The prompt template used for evidence-grounded repair in self-evolution (Part 2: output format and examples).}
+\begin{promptbox}[Evidence-Grounded Repair Prompt (Part 2)]
+\noindent\textbf{Output format (JSON):}\\
+\texttt{\{``op'': ``ADD\_FACT | NOOP'', ``target\_speaker'': ``speaker\_a | speaker\_b'', ``fact'': ``...'', ``evidence\_span'': ``...'', ``confidence'': 0.0, ``reason'': ``...''\}}
+
+\medskip
+\noindent\textbf{Example --- information missing from memory:}\\
+\texttt{Question:} What does the necklace from Caroline's grandma symbolize?\\
+\texttt{Gold:} Love, faith, and strength.\\
+\texttt{Model:} The memories do not contain information about a necklace.\\
+\texttt{Output:} \texttt{\{``op'': ``ADD\_FACT'', ``fact'': ``Caroline's grandma gave her a necklace from Sweden that symbolizes love, faith, and strength'', ``evidence\_span'': ``'', ``confidence'': 0.88\}}
+
+\medskip
+\noindent\textbf{Example --- unanswerable gold answer:}\\
+\texttt{Question:} What is Melanie's passport number?\\
+\texttt{Gold:} Not mentioned in the conversation.\\
+\texttt{Output:} \texttt{\{``op'': ``NOOP''\}}
+\end{promptbox}
+\label{tab:prompt_repair_output}
+\end{table}
+
+\begin{table}[h]
+\caption{The prompt template used for semantic consolidation (deduplication) in self-evolution.}
+\begin{promptbox}[Semantic Consolidation Prompt]
+\noindent\textbf{Role:} You are a memory deduplication assistant.
+
+\medskip
+\noindent\textbf{Inputs:}
+\begin{itemize}[leftmargin=*]
+\item A new proposed fact to be added to memory
+\item One or more existing memory entries that are semantically similar (with similarity scores)
+\end{itemize}
+
+\noindent\textbf{Decision:}
+\begin{itemize}[leftmargin=*]
+\item \texttt{SKIP}: An existing entry already fully covers the new fact.
+\item \texttt{MERGE}: The new fact describes the same event/attribute as an existing entry and adds a missing detail. Combine into one entry.
+\item \texttt{INSERT}: The new fact is about a different topic, event, or time period.
+\end{itemize}
+
+\medskip
+\noindent\textbf{Critical rule:} Different dates or different occurrences of the same activity $=$ \texttt{INSERT}, never \texttt{MERGE}. Only merge when both texts refer to the exact same single event at the same time.
+
+\medskip
+\noindent\textbf{Output format (JSON):}\\
+\texttt{\{``action'': ``SKIP | MERGE | INSERT'', ``merge\_target\_index'': -1, ``merged\_fact'': ``'', ``reason'': ``...''\}}
+\end{promptbox}
+\label{tab:prompt_dedup}
+\end{table}
+
+\section{Information about AI Assistants}
+We used an OpenAI LLM (GPT-5.4) as a writing and formatting assistant. In particular, it helped refine
+grammar and phrasing, improve clarity, and suggest edits to figure/table captions and layout (e.g.,
+column alignment, caption length, placement). The LLM did not contribute to research ideation,
+experimental design, implementation, data analysis, or technical content beyond surface-level edits.
+All outputs were reviewed and edited by the authors, who take full responsibility for the final text
+and visuals.

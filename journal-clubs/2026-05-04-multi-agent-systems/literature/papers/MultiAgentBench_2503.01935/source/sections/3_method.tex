@@ -1,0 +1,290 @@
+
+\section{Methodology}
+\subsection{Framework Design}
+
+% The proposed framework, illustrated in Figure~\ref{fig:engine}, facilitates multi-agent coordination through interconnected modules that \textbf{support adaptive collaboration}, effective communication, and strategic task execution. Central to this framework is the \textbf{Coordination Engine}, which orchestrates the following primary modules: \textbf{Agent Graph}, and \textbf{Cognitive Module}, more details about different modules can be found on Appendix \ref{framework}. \kunlun{specifying more modules shown on Appendix A.1, citing the graphics}
+
+
+% \paragraph{Agent Graph Module}
+% Transforms configuration data into a graph $G = (V, E)$, where each node $v_i \in V$ represents agent $A_i$, and edges $e_{ij} \in E$ denote relationships like collaboration $(A_i \leftrightarrow A_j)$, supervision $(A_i \rightarrow A_j)$, or negotiation $(A_i \leftrightsquigarrow A_j)$. This graph informs the coordination protocol and underpins collective reasoning and decision-making.
+
+% \kunlun{specify the need and the design of Agent graph}
+
+
+
+% \paragraph{Cognitive Module and Communication Module }
+% \kunlun{social, relationship aware and memory design}
+% Handles internal reasoning and strategic decision-making by integrating shared and individual memories, environment observations, and agent relationships from the graph. Inspired by theory-of-mind, it allows agents to infer others’ intentions and roles, promoting socially intelligent behavior. This module manages prompt construction for reasoning, reflection, and summarization, refining understanding of social structures and communication patterns to adapt strategies over time.
+% \kunlun{strength how these modules enable the coordination and competition}
+
+% Two agents $A_i, A_j$ can communicate with each other if $(v_i, v_j) \in G$. Agents are presented the option of communicating with another agent with the communication option provided as a tool. They are also given profiles of the agents they can communicate to, so they can choose which agent to talk to. Then two agents will have a conversation between them until they decide to terminate or the communication exceeds allowed rounds. Finally, the conversation will be summarized and inserted into the Memory of the two agents.
+% \paragraph{Coordination Engine & Action Modeule}
+% \kunlun{adding function calling style of tool calling citing tool work for actions}
+% Guides the execution flow by initializing agents, tasks, and relationships via the Configuration Module, constructing the agent graph with the Agent Graph Module, and preparing the environment and its tool functionalities. Agents then interact with the environment through cognitive processing and memory retrieval, with observations and results updating both memory and cognitive states. The engine iteratively refines agent states and strategies, ensuring continuous learning and enhancement of coordination and task execution efficacy. Upon reaching task-specific milestones or termination conditions, the final results are returned to the evaluator, which provides performance feedback and updates key performance indicators.
+
+% \kunlun{also writing the paragraph how the agents running and coordination within our framework from the relationship to the results how we save then evaluate them. Predefined agents and flixible executing structures: how the whole thing executed} 
+
+Our proposed evaluation framework MARBLE~(see Figure~\ref{fig:engine}) establishes a robust multi-agent coordination system by leveraging interconnected modules that enable adaptive collaboration, efficient communication, and strategic task execution. At its core lies the \textit{Coordination Engine}, responsible for initializing and synchronizing key modules—including the \textit{Agent Graph}, \textit{Cognitive Module}, and \textit{Coordinate Engine}—to ensure seamless interaction across the system. Detailed descriptions of additional modules can be found in Appendix~\ref{framework}. 
+
+% \paragraph{Agent Graph Module}
+% This module transforms configuration data into a structured graph $G = (V, E)$, where each node $v_i \in V$ represents an agent $a_i$, and each edge $e_{ij} \in E$ encodes various inter-agent relationships such as collaboration $(a_i \leftrightarrow a_j)$, supervision $(a_i \rightarrow a_j)$, or negotiation $(a_i \leftrightsquigarrow a_j)$. \kunlun{refine the math annotation}The design of the Agent Graph is pivotal for capturing dynamic interaction patterns and ensuring scalable coordination across agents. \kunlun{using the agent1 rel agent2 to form the graph, when communicate only communicate with someone with relationship which like in the real-world}
+
+\paragraph{Agent Graph Module}
+This module converts configuration data into a structured graph \(G = (\mathcal{A}, E)\), where \(\mathcal{A} = \{a_1, a_2, \dots, a_n\}\) denotes the set of agents, and each edge in \(E\) is defined as a triple \((a_i, r, a_j)\) with \(r \in \mathcal{R}\) representing the relationship between agents \(a_i\) and \(a_j\). For example, a collaboration relationship is denoted as \((a_i, \texttt{collaborates}, a_j)\), supervision as \((a_i, \texttt{supervises}, a_j)\), and negotiation as \((a_i, \texttt{negotiates}, a_j)\). By constructing the graph based on these triple relations, we ensure that subsequent communication and coordination occur exclusively between agents with explicitly defined relationships, mirroring real-world interaction patterns.
+
+
+% \paragraph{Cognitive Module} 
+% The Cognitive Module underpins internal reasoning by integrating shared and individual memories, real-time environmental observations, and relational data from the Agent Graph. Inspired by cognitive theories of self-reflection and theory-of-mind \citep[e.g.,][]{premack1978}, this module generates expected outcomes and progress for each task and stores them in memory. In subsequent iterations, actual performance is compared against these expectations to produce evolving experiences. These experiences guide adjustments in planning, enabling agents to continuously refine their strategies and adapt to unexpected outcomes. \kunlun{cognitive module in responsible agent evolving, and social intelligence important for the multiagent coordination, with agent self involving persona, agent relationship, its intter action reasoning method(cot, react, ..) updating its memory, social aware etc}
+
+\paragraph{Cognitive Module} 
+The Cognitive Module is central to responsible agent evolution and social intelligence in multi-agent coordination. It maintains and updates a comprehensive internal state that includes each agent’s persona, inter-agent relationships, and reasoning strategies (e.g., Chain-of-Thought~\citep{wei2023chainofthoughtpromptingelicitsreasoning}, ReACT~\citep{yao2023reactsynergizingreasoningacting}). Crucially, this approach mirrors human cognitive processes by fusing elements of theory-of-mind and social intelligence \citep[e.g.,][]{premack1978}—similar to how humans continuously update their mental models based on social cues, prior experiences, and contextual information. The fusion of cognitive, social, and adaptive mechanisms forms the backbone of our system, empowering agents to dynamically adjust their strategies and collaboratively evolve in complex environments. 
+
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{graphs/coordination.pdf}
+    \caption{\textbf{Illustration of coordination protocols and planning prompt strategies}. 
+    \textbf{(a)} shows centralized and decentralized planning structures (e.g., star, tree, graph, and chain). 
+    \textbf{(b)} describes strategies like group discussions and cognitive prompts, incorporating iterative feedback and task updates for effective planning.}
+    \label{fig:coordination}
+\end{figure*}
+
+% \subsubsection{Coordination Engine} 
+% The Coordination Engine orchestrates the overall execution flow of the system. It initializes agents, tasks, and inter-agent relationships via a dedicated Configuration Module and constructs the Agent Graph to represent these dynamics. 
+
+% \kunlun{define what is a planner within the coordination engine and what is an actor, a planner plans the task input for the actor, actor is the agent within the Agent Graph and can use tools interact with the env or other agents}
+
+% \kunlun{define 4 coordination protocol clear below}
+
+
+%  Our approach considers four Coordination protocol---\textbf{star}, \textbf{tree}, \textbf{graph}, and \textbf{chain}. Specifically, \textbf{star} and \textbf{tree} are centralized methods where one (or a hierarchy of) planner(s) manages task allocation and aggregates feedback, while \textbf{graph} and \textbf{chain} rely on decentralized coordination through peer-to-peer interactions and sequential task handoffs.
+
+% \paragraph{Centralized Coordination: Star \& Tree.} 
+% In the \textbf{star} configuration, a single central planner assigns tasks to all agents and consolidates their feedback, making it effective for tasks that require strong oversight but potentially limited in scalability. The \textbf{tree} structure builds on this by organizing agents hierarchically: a top-level planner delegates tasks to subordinate planners, combining centralized control with enhanced scalability for complex tasks.
+
+% \paragraph{Decentralized Coordination: Graph \& Chain.} 
+% The \textbf{graph} configuration utilizes a network of interconnected agents that communicate directly, enabling concurrent planning and distributed decision-making. In contrast, the \textbf{chain} structure arranges agents sequentially, where each agent passes decisions to the next. This approach is well-suited for tasks with sequential dependencies, though it may constrain parallel processing.
+
+% \paragraph{Planner Design and Enhancements.}
+% \kunlun{updating the new method of cognitive evolving with expectation result and experience update for better task  planning }
+% \kunlun{for the star coordination style, ablation on different planning stratigies}
+% Building on these structures, our approach employs iterative, feedback-driven planning. A zero-shot chain-of-thought prompt equips the planner with the target task, agent profiles, \heng{not sure what agent profile contains, define and give example} and a summary of past subtasks, enabling step-by-step reasoning. The REACT-style mechanism interleaves planning with action, while \textbf{group discussions} allow agents to share insights and constraints. \textbf{Cognitive planning} principles further ensure effective workload distribution and task alignment. Each round concludes with a concise summary of lessons learned, continuously refining the system's coordination and performance.  \kunlun{For cognitive evolve, when generating a task, the expected result and progress are produced and stored in memory; in subsequent iterations, the actual progress is compared with the expectations to generate evolving experiences that inform adjustments to planning if the outcomes fall short, with these experiences continually saved and updated to guide future plans.}
+
+\subsubsection{Coordination Engine} 
+The Coordination Engine orchestrates the overall execution flow of the system. It initializes agents, tasks, and inter-agent relationships via a dedicated Configuration Module and constructs the Agent Graph to represent these dynamics. In our framework, we distinguish between two key roles: \emph{planners} and \emph{actors}. Planners are responsible for devising task inputs, strategizing, and managing overall task allocation, while actors—represented within the Agent Graph—execute tasks by interacting with the environment and other agents through available tools.
+
+Our approach supports four distinct coordination protocols similar to work from~\citet{qian2025scaling}: \textbf{star}, \textbf{tree}, \textbf{graph}, and \textbf{chain}.
+
+% The \textbf{star} and \textbf{tree} configurations adopt centralized coordination, where one (or a hierarchy of) planner(s) manages task allocation and aggregates feedback from actors. In contrast, the \textbf{graph} and \textbf{chain} configurations rely on decentralized coordination through peer-to-peer interactions and sequential task handoffs.
+
+\paragraph{Centralized Coordination: Star \& Tree.}
+In the \textbf{star} configuration, a single central planner assigns tasks to all actors and consolidates their feedback, offering strong oversight though potentially limiting scalability. The \textbf{tree} structure extends this by organizing agents hierarchically: a top-level planner delegates tasks to subordinate planners, which in turn coordinate with actors. This hierarchical approach balances centralized control with improved scalability for handling more complex tasks.
+
+\paragraph{Decentralized Coordination: Graph-Mesh \& Chain.}
+The \textbf{graph-mesh} configuration employs a network of interconnected actors that communicate directly, enabling concurrent planning and distributed decision-making. Conversely, the \textbf{chain} configuration arranges actors sequentially, where each agent passes its decision to the next. This sequential handoff is well-suited for tasks with inherent dependencies, though it may limit parallel processing capabilities.
+
+% \paragraph{Planner Design and Enhancements.}
+% In centralized coordination, building on these coordination protocols, our system employs iterative, feedback-driven planning. The planner leverages a zero-shot chain-of-thought prompt that includes the target task, detailed agent profiles (such as roles, expertise, and historical performance), and summaries of previous subtasks to facilitate step-by-step reasoning. A REACT-style mechanism interleaves planning with execution, while group discussions enable agents to share insights and constraints. Moreover, our cognitive planning method generates expected outcomes and progress for each task and stores these in memory. In subsequent iterations, actual performance is compared against these expectations to produce evolving experiences that guide adjustments in planning. \kunlun{see appendix for detailed prompting.} This continuous process of self-reflection and adaptation enhances coordination efficiency and has been validated through ablation studies on the star coordination style.
+
+\paragraph{Planner Design and Enhancements.}
+In our centralized coordination protocol, the planner supports four distinct planning approaches that reflect human decision-making processes: vanilla prompting, chain-of-thought (CoT)~\citep{wei2022chain}, group discussion, and cognitive self-evolving planning. The \textbf{vanilla prompt} employs a straightforward, zero-shot instruction to generate task plans directly. The \textbf{CoT approach} enriches this process by facilitating step-by-step reasoning through detailed inputs—such as the target task, agent profiles (including roles, expertise, and historical performance), and summaries of previous subtasks—to guide logical progression. The \textbf{group discussion}~\citep{chen2023agentversefacilitatingmultiagentcollaboration} method enables multiple agents to share insights and constraints, fostering a collaborative deliberation that refines the overall plan. Lastly, similar to the Reflexion~\citep{shinn2023reflexion} method, our \textbf{cognitive self-evolving planning} method mirrors human learning by generating expected outcomes and progress for each task, storing these in memory, and then comparing actual performance against these expectations in subsequent iterations. This comparison produces evolving experiences that continuously inform and adjust future planning (See Appendix~\ref{sec:important-prompts} for detailed prompting). Together, these methods leverage both individual reasoning and collaborative optimization, enhancing coordination efficiency as validated through ablation studies on the star coordination style.
+
+
+
+
+
+\subsection{Benchmark Design}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{graphs/marble_graph.pdf}
+    \caption{Illustration of our benchmark curation and the dynamic milestones detecting for KPI metric.}
+    \label{fig:method}
+\end{figure*}
+
+To systematically evaluate our multi-agent framework, we curate a benchmark of diverse scenarios spanning \textit{task-oriented} and \textit{social-simulation-based} environments (Figure~\ref{fig:overview}). These scenarios are constructed through a combination of: (1) \textit{Existing multi-agent tasks} adapted from prior work or datasets (e.g., database error analysis, research collaboration). (2) \textit{LLM-generated tasks} with human verification and refinement (e.g., Werewolf and Bargaining).
+This dual approach ensures both realism (by leveraging established tasks) and novelty (through generative expansion), while human validation guarantees that each scenario remains coherent and feasible.
+
+\paragraph{Agents with Mutual Goal.} 
+In the task-oriented scenarios, the agents share with the mutual goal to finish one specific task. We focus on four representative tasks: (1) \textbf{research tasks} follow the setup of \textit{ResearchTown}~\cite{yu2024researchtownsimulatorhumanresearch}, where agents with complementary research profiles co-author a new proposal on a chosen topic; (2) \textit{Minecraft-based building tasks} require agents to collaboratively construct structures in a shared environment; (3) \textbf{database error analysis} involves exactly five agents, each specializing in diagnosing a distinct root cause of system inconsistencies; (4) \textbf{coding challenges} demand collective problem-solving and software module development. Across these tasks, agents must coordinate, divide labor, and synthesize outputs efficiently. We scale scenario diversity by creating 100 test cases per task, with variations in research topics, Minecraft creation, database errors, or coding objectives.
+
+\paragraph{Agents with Conflicting Goals.}
+In social-simulation based scenarios. We strengthen competitive elements by introducing \textbf{Werewolf} and \textbf{Bargaining} scenarios. In Werewolf, two groups of agents face off in an adversarial setting, employing deceptive strategies within a predefined narrative. The Bargaining environment simulates negotiations over shared resources, where agents strive to maximize individual gains through strategic concessions or alliances. Both settings evaluate adaptability, conflict resolution, and negotiation skills under uncertainty.
+
+\paragraph{Role Assignments and Graph Structures.}
+To emphasize multi-agent collaboration, each scenario enforces distinct agent roles (e.g., project manager, domain expert, technical specialist) and defines specific graph relationships (star, tree, chain, or mesh). These structures reflect realistic team dynamics or competition, guiding how agents share information, make decisions, and coordinate actions.
+
+\paragraph{Milestones Generation for Scenarios} 
+\label{para:milestones}
+To facilitate the evaluation of MARBLE iterations, each task is segmented into a series of flexible milestones. Unlike rigid checkpoints, these milestones are broadly defined. For instance, in a research task, a milestone may be reached by completing five key queries (5q) for research proposal (more details see Appendix~\ref{app:research-scenario}) or by enhancing a previous set of 5q. Throughout MARBLE's iterative process, a language model continuously monitors whether milestones \(m_1, m_2, \dots\) have been achieved and logs the outcomes. This method integrates human- or LLM-generated outlines with dynamic, execution-based assessments, ensuring that both intermediate progress and team coordination are effectively measured.
+
+% More detailed environment setups, interaction tools, and additional examples for diifernt scenarios appear in Appendix~\ref{app:research-scenario}, 
+% Appendix~\ref{app:werewolf_env}, 
+% and Appendix~\ref{app:database-scenario},
+% Appendix~\ref{app:coding-scenario},
+% Appendix~\ref{app:bargaining-scenario}, 
+% Appendix~\ref{app: minecraft-scenario} .
+
+More detailed environment setups, interaction tools, and additional examples for different scenarios appear in Appendix~\ref{app:research-scenario}, ~\ref{app:werewolf_env}, ~\ref{app:database-scenario}, ~\ref{app:coding-scenario}, ~\ref{app:bargaining-scenario}, and ~\ref{app: minecraft-scenario}.
+
+% More detailed environment setups, interaction tools, and additional examples for different scenarios appear in Appendix~\cref{app:research-scenario, app:werewolf_env, app:database-scenario, app:coding-scenario, app:bargaining-scenario, app: minecraft-scenario}.
+
+% This process ensures that the generated milestones are specific, achievable, and aligned with the overall task objectives. The integration of large language models, such as GPT-4, allows for iterative refinement and human revision, resulting in high-quality, structured task decompositions. The chain of thought methodology further enhances the coherence and logical progression of milestones, providing a robust foundation for evaluating multi-agent coordination and performance.
+
+
+% \subsection{Evaluation Metrics}
+
+% The evaluation focuses on two primary dimensions: task completion performance and coordination quality. Task completion metrics measure milestone success rates and global Key Performance Indicators (KPIs). Given MM milestones, each with a success rate SiS_i:
+% \[
+% \text{KPI} = \frac{\sum_{i=1}^{M} S_i}{M}.
+% \]
+% These SiS_i values can be derived from automated evaluations such as comparing produced research outcomes against ground-truth references, checking correctness in coding tasks, or computing negotiation efficiency in Bargaining scenarios. Additional resource-based metrics, such as token usage per completed task, provide further insights:
+% \[
+% E_\text{tokens} = \frac{\text{Total Tokens Used}}{\text{Total Tasks Completed}}.
+% \]
+
+% Coordination metrics quantify communication and planning quality. Let CitC_{it} denote the communication content at iteration tt of task ii, and PitP_{it} represent the corresponding planning decisions. A language model evaluation scores each dimension on a scale of 1 to 5, where effective communication is judged by clarity of expression, consistency in role assignments, and assistance in resolution, while effective planning is evaluated by the organization of tasks, the soundness of reasoning, and the suitability of proposed actions. If Qcomm,iQ_{\text{comm},i} and Qplan,iQ_{\text{plan},i} represent averaged communication and planning scores for task ii:
+% \[
+% Q_{\text{comm},i} = \frac{1}{T_i} \sum_{t=1}^{T_i} q_{\text{comm},it}, \quad Q_{\text{plan},i} = \frac{1}{T_i} \sum_{t=1}^{T_i} q_{\text{plan},it},
+% \]
+% where TiT_i is the total number of iterations for task ii, and qcomm,it,qplan,it∈{1,…,5}q_{\text{comm},it}, q_{\text{plan},it} \in \{1,\dots,5\} are iteration-level scores. The final coordination metric for a given task integrates these communication and planning scores:
+% \[
+% S_{\text{coord},i} = \frac{Q_{\text{comm},i} + Q_{\text{plan},i}}{2}.
+% \]
+
+\subsection{Evaluation Metrics}
+\label{sec:eval_metrics}
+As illustrated in Figure~\ref{fig:overview}(b)(c) , our evaluation considers two primary dimensions: \textbf{Task Completion Performance} and \textbf{Coordination}.
+
+\paragraph{Task Completion Metrics.}  
+% As described in the paragraph~\ref{para:milestones} section, each task is segmented into a series of flexible milestones, denoted by \(m_1, m_2, \dots, m_M\). An LLM-based detector continuously monitors the iterative process to determine which milestones have been achieved and records the corresponding list of contributing agents. For example, if agent \(j\) contributes to \(n_j\) milestones out of the total \(M\), their individual KPI is computed as \(n_j/M\), with the overall KPI being the average of these individual KPIs across all agents. \kunlun{prmopt refer to appendix}
+
+As described in Section~\ref{para:milestones}, each task is segmented into a series of flexible milestones. An LLM-based detector continuously monitors the iterative process to identify which milestones have been achieved and records the corresponding contributing agents. For each agent, the number of milestones they contribute to is noted as \(n_j\), and their individual KPI is calculated as the ratio of \(n_j\) to the total number of milestones \(M\). The overall KPI is defined as the average of these individual KPIs across all \(N\) agents, which is computed as follows:
+\[
+\text{KPI}_{\text{overall}} = \frac{1}{N}\sum_{j=1}^{N}\text{KPI}_j = \frac{1}{NM}\sum_{j=1}^{N} n_j.
+\]
+
+In addition to the KPI derived from milestone detection, a separate \textbf{task-based score} is computed to evaluate the final output quality. For tasks such as research or bargaining, an LLM-defined scoring rubric is applied to generate the score, whereas tasks like Minecraft, Werewolf, database error fixes, or coding are evaluated using rule-based metrics (e.g., accuracy). Detailed scoring criteria and evaluation prompts for these task-based assessments are respectively provided in the Appendix~\ref{app: minecraft-scenario}, ~\ref{app:werewolf_env}, ~\ref{app:database-scenario}, and ~\ref{app:coding-scenario}, which demonstrate the effectiveness of the metrics while evaluating the coordination abilities.
+
+\paragraph{Coordination Metrics.}  
+Coordination is evaluated by quantifying the agents’ communication and planning capabilities. The \textbf{Communication Score} (\(C_{\text{score}}\)) is derived from an LLM-based evaluation that considers inputs such as the task description, agent profiles, and aggregated communication data, resulting in a score on a five-point scale (with \(C_{\text{score}} = 0\) if no communication occurs). Similarly, the \textbf{Planning Score} (\(P_{\text{score}}\)) is determined by assessing the agents’ abilities to organize tasks, maintain roles, and adapt strategies based on their profiles and aggregated planning data, also on a five-point scale. The overall \textbf{Coordination Score} (\textbf{CS}) is then computed by averaging these two sub-scores. More details regarding the evaluation process and the output format are provided in the Appendix~\ref{sec:important-prompts}. We also did a human evaluation comparing human alignment with those metrics, results are in Appendix~\ref{app:human-evaluation}.
+
+
+% \subsection{Evaluation Metrics}
+% \label{sec:eval_metrics}
+
+% As illustrated in Figure~\ref{fig:overview}(b)(c) , our evaluation considers two primary dimensions: \textbf{Task Completion Performance} and \textbf{Coordination}.
+
+% \paragraph{Task Completion Metrics.}
+% We decompose each task into $M$ milestones, each with a binary success indicator $s_i$. The overall task completion metric (\textbf{KPI}) is:
+% \[
+% \text{KPI} = \frac{\sum_{i=1}^{M} s_i}{M}.
+% \] \kunlun{redefine the annotation expand the }
+% At the conclusion of a task round, we identify which agents contributed to each successful milestone and increment their individual scores. Each agent’s KPI is then its total successful contributions divided by the total completed milestones. The average KPI across $N$ agents is:
+% \[
+% \text{Average KPI} = \frac{\sum_{j=1}^{N} \text{KPI}_j}{N}.
+% \]
+% This KPI captures both inter-agent competition and collective efficiency. Depending on the specific task, success may be measured via GPT-based scoring of final outputs (e.g., for research proposals) or direct accuracy (e.g., for database error fixes). Details for each scenario are provided in the Appendix.
+
+% \paragraph{Collaboration \& Competition Metrics.}
+
+% We adopt an arena-based comparison framework \citep{DBLP:conf/icml/ChiangZ0ALLZ0JG24} to evaluate multi-agent models on both coordination and competitive capabilities. For each pair of models $m_i$ and $m_j$, we conduct $R$ independent matchups on the same task. 
+% In each matchup $r$, two key scores are assigned via LLM-based evaluation: a Communication Score, $C_{m_i}^r$, and a Planning Score, $P_{m_i}^r$. 
+% \heng{I don't understand what independent matchups or matchup means}
+
+% \begin{itemize}
+%     \item \textbf{Communication Score} ($C_{\text{score}}$): Assesses clarity, relevance, and effectiveness of information exchange. If no communication occurs, $C_{\text{score}} = 0$.
+%     \item \textbf{Planning Score} ($P_{\text{score}}$): Evaluates how well the agents organize tasks, maintain roles, and adapt strategies.
+% \end{itemize}
+
+% For each task $i$, we collect $C_{\text{score},i}$ and $P_{\text{score},i}$ over the entire interaction. The \textbf{Coordination Score} is then:
+% \[
+% S_{\text{coord},i} \;=\; \frac{C_{\text{score},i} + P_{\text{score},i}}{2}.
+% \]
+
+% These scores, which range from 1 to 5 (with a score of 0 assigned if no communication occurs), are averaged to compute an overall Arena Score for model $m_i$:
+% \[
+% A_{m_i} = \frac{1}{R}\sum_{r=1}^R \left(\frac{C_{m_i}^r + P_{m_i}^r}{2}\right).
+% \] \kunlun{too basic change}
+% In head-to-head comparisons, the model with the higher Arena Score is declared the winner, and each model's win rate is computed as the fraction of matchups it wins over all its comparisons. This arena-based approach, commonly used in recent studies \citep{DBLP:conf/icml/ChiangZ0ALLZ0JG24,chen-etal-2024-llmarena, zhou2024webarena}, robustly captures both collaborative and competitive dynamics that traditional task-based metrics—such as accuracy or final output quality—often overlook.
+
+
+% \kunlun{adding arena based settings}
+% \kunlun{specifying the KPI is actually the inter competition metrics}
+% As shown in Figure~\ref{fig:overview}, our evaluation focuses on two primary dimensions: \textbf{Task Completion Performance} and \textbf{Coordination Quality }
+
+% \textbf{Task Completion Metrics.} These metrics measure milestone success rates and global Key Performance Indicators (\textbf{KPIs}). For a task involving $M$ milestones, where each milestone has a success rate $S_i$, the overall KPI is computed as:
+% \[
+% \text{KPI} = \frac{\sum_{i=1}^{M} S_i}{M}.
+% \]
+% At the end of each task round, we first determine whether the milestones $M$ are completed. If completed, the system identifies the contributing Agents and increments their individual scores by 1. Each agent's KPI is then calculated as their total contributions divided by the total completed milestones. Finally, the average KPI across all agents is:
+% \[
+% \text{Average KPI} = \frac{\sum_{j=1}^{N} \text{KPI}_j}{N},
+% \]
+% \kunlun{strengthen the KPI evaluates the inter-competition among agents a good way to evaluate how scaling of number of agents will be useful in the more efficience view, KPI will sever both an task evaluation and inter-competition evaluation method}
+% where $N$ is the number of agents. This metric provides a quantitative measure of the overall contribution of agents within the coordination framework. It effectively evaluates the average agent's participation and efficiency in the current structure or collaboration mode.
+
+% For additional insights, resource-based metrics such as Token Usage are defined as:
+% \[
+% E_\text{tokens} = \frac{T_\text{tokens}}{T_\text{Iter}},
+% \]
+% where $T_\text{tokens}$ represents the total number of tokens used, and $T_\text{Iter}$ denotes the total number of iterations.
+% \kunlun{don't need the formula for the tokens calculation}
+% \textbf{Coordination and Competition Metrics.}
+% \kunlun{We evaluate the multi-agent group level coordination and competition ability according to the communications between agents and their planning for the next round for each of the agent}
+
+% \kunlun{to clarify we are using the arena based evaluation combining the specific scoring for the two part, the prompt will include two models communications or planning of the whole tasks and then the gpt will first score them and then compare them, so each model will compete with other model, we will calculate the winrate and each win will score them in 1 point so then they will have the final coordination/competition point}
+
+% These metrics quantify the quality of \textbf{Communication} and \textbf{Planning}. Let $C_{it}$ denote the communication content and $P_{it}$ the planning decisions at iteration $t$ of task $i$. Evaluations are conducted on each dimension using a 1-5 scale, with scores derived from GPT-4o prompts. 
+
+% \textbf{Communication Score} ($q_{\text{comm},it}$): This evaluates the effectiveness of information transmission, clarity of expression, and assistance in task resolution.
+% \kunlun{if there is no communication the communication score will be zero}
+% \textbf{Planning Score} ($q_{\text{plan},it}$): This assesses task organization and clarity in role maintenance.
+
+% For task $i$ with $T_i$ iterations, the averaged communication and planning scores are:
+% \[
+% Q_{\text{comm},i} = \frac{1}{T_i} \sum_{t=1}^{T_i} q_{\text{comm},it}\]
+
+% \[\quad Q_{\text{plan},i} = \frac{1}{T_i} \sum_{t=1}^{T_i} q_{\text{plan},it},
+% \]
+% where $q_{\text{comm},it}, q_{\text{plan},it} \in \{1,\dots,5\}$.
+
+% The overall \textbf{Coordination Score} for task $i$ is the average of these two dimensions:
+% \[
+% S_{\text{coord},i} = \frac{Q_{\text{comm},i} + Q_{\text{plan},i}}{2}.
+% \]
+
+% This comprehensive evaluation framework ensures a holistic assessment of agent coordination, emphasizing both task success and the quality of collaboration.
+
+
+% \subsection{Coordination Methods}
+
+% The system supports multiple coordination protocols that reflect varying degrees of centralized or decentralized planning, as illustrated in Figure~????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????\ref{fig:overview}. A star configuration involves a central planner agent connected to all actors, distributing tasks and integrating feedback. A tree configuration establishes a hierarchical decision-making structure, with a top-level planner and subsequent layers of subordinate agents. More decentralized protocols, such as graph or chain patterns, promote self-planning and iterative information flow among agents without a single controlling entity.
+
+% Within each chosen structure, several techniques enhance coordination and adaptability. Group discussions facilitate role clarification, resource sharing, and consensus building. Self-evolving planning leverages iterative feedback loops, refining strategies based on prior outcomes. Multi-head search tree planning explores multiple solution candidates in parallel, selecting the most promising ones. Historical experiences are continuously distilled into summarized insights, enabling the agents to learn from past iterations. Advanced reasoning techniques, including chain-of-thought and reflection prompts, support a deeper understanding of complex tasks. Furthermore, agents may internally simulate world models or future trajectories to anticipate potential risks, improve planning accuracy, and reduce trial-and-error. These combined mechanisms ensure that the system dynamically refines its strategies, fosters robust collaboration, and ultimately improves both task completion performance and coordination quality.
+
+
+% We explore a spectrum of coordination protocols characterized by distinct structural configurations, ranging from fully centralized planning to more decentralized, agent-centric approaches. In particular, we consider four primary structural paradigms---\textbf{star}, \textbf{tree}, \textbf{graph}, and \textbf{chain}---as well as corresponding methodological enhancements that dynamically refine task planning and execution.
+
+% \paragraph{Structure-Based Coordination Protocols.} 
+% In the \textbf{star} configuration, a single central planner agent is connected to all other agents. This planner assigns tasks to each agent and aggregates their feedback, utilizing it to refine subsequent planning rounds. The \textbf{tree} configuration instead organizes agents hierarchically: a top-level planner agent orchestrates a set of child agents, each of which may recursively plan for its own subordinates. This hierarchy engages in iterative feedback loops, with information and planning updates flowing up and down the structure.
+
+% More decentralized paradigms, such as the \textbf{graph} structure, rely on a network of interconnected agents that exchange information and coordinate tasks without a single controlling entity. We consider several variants of graph-based coordination, including \textbf{mesh}, \textbf{layered}, and \textbf{random} topologies, each facilitating concurrent planning, flexible communication pathways, and distributed decision-making. In contrast, the \textbf{chain} configuration arranges agents in a linear sequence, where an initial agent selects subsequent agents and tasks in a pipeline fashion. Each round involves a single agent taking action, thereby propagating decision-making along the chain.
+
+% \paragraph{Planner Design and Enhancement Techniques.} 
+% Building upon these structural configurations, we further refine coordination through advanced planner design and iterative adaptation methods. Starting from the star structure as a baseline, we introduce a zero-shot chain-of-thought prompt design, whereby the planner is provided with the target task, each agent’s profile, and a distilled history of completed subtasks. This allows the planner to reason step-by-step and produce carefully orchestrated task assignments for each agent in the current round. We also employ a \textbf{REACT}-style reasoning approach, which interleaves reasoning and acting steps, enabling the planner to dynamically adjust strategies as it observes intermediate outcomes and feedback.
+
+% Additionally, \textbf{group discussions} at each round allow every agent to express its perspectives, resource constraints, and role suggestions. The planner then integrates these contributions to refine the allocation of tasks, ensuring that the final plan reflects a consensus-driven division of labor. Furthermore, we incorporate \textbf{cognitive planning} principles inspired by management heuristics, emphasizing effective workload distribution, skill utilization, and balanced task assignments. After each round, the planner generates a concise summary of lessons learned, capturing historical insights that guide subsequent planning iterations. Over time, these adaptive processes accumulate a rich reservoir of experience, enabling the system to continuously refine its decision-making, reduce coordination overhead, and enhance both performance and overall collaboration quality.
+
+% We propose a streamlined framework that integrates structural coordination with adaptive planning enhancements. Our approach considers four primary configurations---\textbf{star}, \textbf{tree}, \textbf{graph}, and \textbf{chain}---which can be grouped by their degree of centralization. Specifically, \textbf{star} and \textbf{tree} are centralized methods where one (or a hierarchy of) planner(s) manages task allocation and aggregates feedback, while \textbf{graph} and \textbf{chain} rely on decentralized coordination through peer-to-peer interactions and sequential task handoffs.
+
+% \paragraph{Centralized Coordination: Star \& Tree.} 
+% In the \textbf{star} configuration, a single central planner assigns tasks to all agents and consolidates their feedback, making it effective for tasks that require strong oversight but potentially limited in scalability. The \textbf{tree} structure builds on this by organizing agents hierarchically: a top-level planner delegates tasks to subordinate planners, combining centralized control with enhanced scalability for complex tasks.
+
+% \paragraph{Decentralized Coordination: Graph \& Chain.} 
+% The \textbf{graph} configuration utilizes a network of interconnected agents that communicate directly, enabling concurrent planning and distributed decision-making. In contrast, the \textbf{chain} structure arranges agents sequentially, where each agent passes decisions to the next. This approach is well-suited for tasks with sequential dependencies, though it may constrain parallel processing.
+
+% \paragraph{Planner Design and Enhancements.}
+% \kunlun{updating the new method of cognitive evolving with expectation result and experience update for better task  planning }
+% \kunlun{for the star coordination style, ablation on different planning stratigies}
+% Building on these structures, our approach employs iterative, feedback-driven planning. A zero-shot chain-of-thought prompt equips the planner with the target task, agent profiles, \heng{not sure what agent profile contains, define and give example} and a summary of past subtasks, enabling step-by-step reasoning. The REACT-style mechanism interleaves planning with action, while \textbf{group discussions} allow agents to share insights and constraints. \textbf{Cognitive planning} principles further ensure effective workload distribution and task alignment. Each round concludes with a concise summary of lessons learned, continuously refining the system's coordination and performance.  

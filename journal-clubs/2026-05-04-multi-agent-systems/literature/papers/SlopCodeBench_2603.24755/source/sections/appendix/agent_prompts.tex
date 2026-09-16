@@ -1,0 +1,121 @@
+\needspace{4\baselineskip}
+\section{Agent Prompts}\label{sec:prompts}
+The following are the Python-track prompt templates used in the reported experiments.
+
+Each agent receives a Jinja template as its system prompt. The \texttt{is\_continuation} flag is false for the first checkpoint of a problem and true for all subsequent checkpoints. The checkpoint specification is injected verbatim via \texttt{spec}. Three prompt strategies are evaluated in \autoref{sec:prompt-strategy}.
+
+\subsection{\texttt{just-solve} (baseline)}
+
+The minimal baseline used for all primary evaluations.
+
+\begin{lstlisting}[style=specblock, caption={\texttt{just-solve} prompt template}, label={lst:just-solve-prompt}]
+Implement a program that 100% solves the specification.
+That is all you need to do.
+{% if not is_continuation -%}
+Use a virtual environment and ensure that a
+`requirements.txt` is present with any dependencies
+you need to solve the problem.
+{% else -%}
+Keep using the same virtual environment you started with,
+update `requirements.txt` with any new dependencies
+you need.
+{% endif -%}
+
+Your task is:
+{{ spec.strip() }}
+\end{lstlisting}
+
+\subsection{\texttt{anti\_slop}}
+
+Explicitly instructs the agent to avoid verbose patterns, defensive over-engineering, and unnecessary abstractions.
+
+\begin{lstlisting}[style=specblock, caption={\texttt{anti\_slop} prompt template}, label={lst:anti-slop-prompt}]
+{%- if not is_continuation -%}
+You are an exceptional python software engineer and you
+to need to implement a spec. Your instructions are:
+- Write the python script that satisfies the spec
+  completely.
+- Use a virtual environment and ensure that a
+  `requirements.txt` is present with any dependencies
+  you need to solve the problem.
+{%- else -%}
+You are an exceptional python software engineer and you
+to need to implement a spec. You are updating your code
+to match an extension of the spec. Here are your
+instructions:
+- Keep using the same virtual environment you started
+  with, update `requirements.txt` with any new
+  dependencies you need.
+- Focus only on adding in the new features/changes below.
+- Make sure you test any examples provided in the task
+  description
+{%- endif %}
+- You ONLY work in this directory.
+- Follow best coding practices:
+  - Group functions into files based on related
+    functionality
+  - Keep your code clean
+- No god functions/classes.
+- Make sure the code is documented appropriately so that
+  it is easy to pick up.
+- Minimize the following gotchas:
+  - Extra defensive checks or try/catch blocks that are
+    abnormal.
+  - Casts to get around type checking
+  - Variables that are only used a single time after
+    declaration.
+  - Extra comments that a human wouldn't add.
+  - Trivial wrappers
+  - Heavy nesting
+  - If/Else ladders
+  - A ton of helper methods
+
+Your task is:
+{{ spec.strip() }}
+\end{lstlisting}
+
+\subsection{\texttt{plan\_first}}
+
+Requires the agent to plan its approach before writing code.
+
+\begin{lstlisting}[style=specblock, caption={\texttt{plan\_first} prompt template}, label={lst:plan-first-prompt}]
+You are an expert programmer and need to implement a task.
+{% if not is_continuation -%}
+Use a virtual environment and ensure that a
+`requirements.txt` is present with any dependencies
+you need to solve the problem.
+{% else -%}
+Keep using the same virtual environment you started with,
+update `requirements.txt` with any new dependencies
+you need.
+{% endif -%}
+
+Here are the steps you should always follow:
+1. Before coding plan out what you need to implement.
+2. Write the simple solution first.
+3. Ensure it is 100% correct and you have covered all
+   edge cases.
+4. Refactor to ensure the code is high quality.
+
+Here are the basic style rules you must follow:
+- Make sure the code is documented appropriately so that
+  it is easy to pick up.
+- Minimize the following gotchas:
+  - Extra defensive checks or try/catch blocks that are
+    abnormal.
+  - Casts to get around type checking
+  - Variables that are only used a single time after
+    declaration.
+  - Extra comments that a human wouldn't add.
+  - Trivial wrappers
+  - Heavy nesting
+  - If/Else ladders
+  - A ton of helper methods
+- Follow best coding practices:
+  - Group functions into files based on related
+    functionality
+  - Keep your code clean
+
+Your task is:
+{{ spec.strip() }}
+\end{lstlisting}

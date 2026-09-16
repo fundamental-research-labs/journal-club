@@ -1,0 +1,1159 @@
+\documentclass{article}
+\usepackage[final]{neurips_2025}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage[table,dvipsnames]{xcolor}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{inconsolata}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumerate}
+\usepackage{balance}
+\usepackage{blindtext}
+\usepackage{colortbl}
+\usepackage{float}
+\usepackage{makecell}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{marvosym}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{stfloats}
+\usepackage{subcaption}
+\usepackage{ulem}
+\normalem
+\usepackage{bm}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{siunitx}
+
+\newcommand{\ie}{\textit{i.e., }}
+\newcommand{\eg}{\textit{e.g., }}
+\newcommand{\etal}{\textit{et al. }}
+\newcommand{\etc}{\textit{etc. }}
+\newcommand{\wrt}{\textit{w.r.t. }}
+\newcommand{\cf}{\textit{cf. }}
+\newcommand{\aka}{\textit{a.k.a. }}
+\newcommand\footnoteONLYtext[1]{
+    \let \mybackup \thefootnote
+    \let \thefootnote \relax
+    \footnotetext{#1}
+    \let \thefootnote \mybackup
+    \let \mybackup \imareallyundefinedcommand}
+    
+
+\title{Multi-Agent Collaboration via Evolving Orchestration}
+\author{
+\textbf{Yufan Dang}{\footnotesize $^\bigstar$\textsuperscript{\textdagger}} \quad
+\textbf{Chen Qian}{\footnotesize $^\clubsuit$\textsuperscript{\textdagger}} \quad
+\textbf{Xueheng Luo}{\footnotesize $^\bigstar$} \quad
+\textbf{Jingru Fan}{\footnotesize $^\bigstar$} \quad
+\textbf{Zihao Xie}{\footnotesize $^\bigstar$} \quad \\
+\textbf{Ruijie Shi}{\footnotesize $^\bigstar$} \quad 
+\textbf{Weize Chen}{\footnotesize $^\bigstar$} \quad 
+\textbf{Cheng Yang}{\footnotesize $^\spadesuit$} \quad 
+\textbf{Xiaoyin Che}{\footnotesize $^\diamondsuit$} \quad
+\textbf{Ye Tian}{\footnotesize $^\heartsuit$} \quad \\
+\textbf{Xuantang Xiong}{\footnotesize $^\heartsuit$} \quad 
+\textbf{Lei Han}{\footnotesize $^\heartsuit$} \quad 
+\textbf{Zhiyuan Liu}{\footnotesize $^\bigstar$\textsuperscript{\Letter}} \quad
+\textbf{Maosong Sun}{\footnotesize $^\bigstar$\textsuperscript{\Letter}} \quad \\
+{\footnotesize $^\bigstar$}Tsinghua University \quad
+{\footnotesize $^\clubsuit$}Shanghai Jiao Tong University \quad \\
+{\footnotesize $^\spadesuit$}Beijing University of Posts and Telecommunications \quad \\
+{\footnotesize $^\diamondsuit$}Siemens \quad 
+{\footnotesize $^\heartsuit$}Tencent Robotics X \quad \\
+\href{dangyf25@mails.tsinghua.edu.cn}{\texttt{dangyf25@mails.tsinghua.edu.cn}} \quad 
+\href{qianc@sjtu.edu.cn}{\texttt{qianc@sjtu.edu.cn}} \\
+\href{liuzy@tsinghua.edu.cn}{\texttt{liuzy@tsinghua.edu.cn}} \quad 
+\href{sms@tsinghua.edu.cn}{\texttt{sms@tsinghua.edu.cn}}
+}
+
+\begin{document}
+
+\maketitle
+\footnoteONLYtext{$^\dagger$Equal Contribution.}
+\footnoteONLYtext{$^{\text{\Letter}}$Corresponding Author.}
+\begin{abstract}
+Large language models (LLMs) have achieved remarkable results across diverse downstream tasks, but their monolithic nature restricts scalability and efficiency in complex problem-solving. While recent research explores multi-agent collaboration among LLMs, most approaches rely on static organizational structures that struggle to adapt as task complexity and agent numbers grow, resulting in coordination overhead and inefficiencies.
+To this end, we propose a puppeteer-style paradigm for LLM-based multi-agent collaboration, where a centralized orchestrator ("puppeteer") dynamically directs agents ("puppets") in response to evolving task states. This orchestrator is trained via reinforcement learning to adaptively sequence and prioritize agents, enabling flexible and evolvable collective reasoning.
+Experiments on closed- and open-domain scenarios show that this method achieves superior performance with reduced computational costs. Analyses further reveal that the key improvements consistently stem from the emergence of more compact, cyclic reasoning structures under the orchestrator’s evolution. Our code is available at \url{https://github.com/OpenBMB/ChatDev/tree/puppeteer}.
+\end{abstract}
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/framework.pdf}
+    \caption{Overview of the proposed multi-agent collaboration framework. A central policy ("puppeteer") dynamically orchestrates which agent ("puppet") should reason at each step based on the evolving state of the task. As the task progresses, the orchestrator adaptively promotes more effective agents while removing those that are less useful, analogous to a puppeteer learning to skillfully pull or cut strings to direct a performance.}
+    \label{fig:method}
+\end{figure}
+
+
+\section{Introduction}
+Large language models (LLMs)~\cite{wei2022emergent,radford2019language,kaplan2020scaling} have achieved remarkable advances across diverse natural language processing tasks, demonstrating strong capabilities in planning~\cite{valmeekam2023on,song2023llmplanner,qiao2024agent}, reasoning~\cite{wei2022chain,shao2024deepseekmathpushinglimitsmathematical,lightman2023let}, and decision-making~\cite{10.5555/3600270.3602532,wang2023voyager,saycan2022arxiv}. As the ambition to tackle ever more complex, multi-faceted problems—such as tool-augmented inference~\cite{qin2023toolllm,schick2023toolformer,zhuang2023toolqa,9156851} and collaborative problem-solving~\cite{park2023generative,li2024camel,chen2025internet} in open environments—continues to grow, the limitations of monolithic LLMs are becoming increasingly apparent~\cite{weng2023agent,chen2024are,chen2025optimizingmodelselectioncompound}.
+
+To address these challenges, recent research has drawn inspiration from human teamwork, exploring multi-agent systems (MAS) comprising diverse LLM-based agents with specialized skills~\cite{qian2025scaling, Shanahan2023}, personalized reasoning patterns~\cite{wei2022chain,yao2023treethoughtsdeliberateproblem,qi2024mutualreasoningmakessmaller}, and external tool integrations~\cite{zhuang2024toolchain, qin2023toolllm}. However, many existing approaches rely on predefined or statically generated agent topologies~\cite{tang2023medagents,qian2024chatdevcommunicativeagentssoftware} that lack flexibility and scalability. This rigidity often leads to increased coordination overhead, degraded system performance, and inefficiencies as the variety of tasks~\cite{zhang2025aflowautomatingagenticworkflow,hu2025automateddesignagenticsystems} and the number of agents scale~\cite{qian2025scaling}. Especially in large-scale scenarios, the absence of principled and dynamic coordination can further result in redundant computation~\cite{ye2025masgpttrainingllmsbuild}, ineffective communication~\cite{chen2025optimaoptimizingeffectivenessefficiency}, and diminished collective problem-solving effectiveness~\cite{cemri2025multiagentllmsystemsfail}.\footnote{For example, mesh-structured multi-agent systems with 50 nodes can require up to 10 hours to develop software comprising only a few hundred lines of code.}
+
+\emph{Can dynamic\footnote{This paper refers to the dynamic organizational structure during real-time reasoning.} orchestration simultaneously maximize collaborative effectiveness and computational efficiency?}
+Answering this question is crucial for building scalable, robust, and practical collective intelligence suitable for complex real-world settings.
+To this end, we propose a novel paradigm for constructing flexible and continually evolving multi-agent system. Drawing inspiration from puppet shows—where a central puppeteer skillfully directs multiple puppets behind the scenes—we reconceptualize multi-agent collaboration as a reasoning process orchestrated by a centralized puppeteer who dynamically selects and sequences agent activations based on evolving task states, implicitly coordinating collaboration within the group. As tasks progress, the orchestrator learns to prioritize effective agents and suppress less efficient ones, continually driving the system toward higher overall performance and efficiency.
+
+Specifically, our framework advances multi-agent reasoning by introducing two key innovations:
+(i) \emph{Dynamic Orchestration}: Moving beyond static collaboration patterns, we employ a dynamic orchestrator that routing agents at each step based on the current contexts. This process is formulated as a sequential decision problem, effectively yielding an implicit inference graph and supporting flexible, scalable agent coordination.
+(ii) \emph{Adaptive Evolution}: To maximize efficiency and minimize redundancy, we employ reinforcement learning to continuously update the orchestrator's policy by leveraging feedback from completed tasks. Over time, the orchestrator learns to emphasize strong agent trajectories and prune less effective ones, enabling the system to evolve toward greater efficiency progressively.
+
+Empirical results on both closed- and open-domain scenarios demonstrate that our approach consistently yields more effective solutions while requiring less computational overhead. 
+Analyses further reveal that, although the evolved topologies are not fixed across different tasks, the key improvements consistently stem from the emergence of more compact, cyclic reasoning structures.
+
+
+\section{Method}
+We propose a unified framework for multi-agent reasoning that organizes diverse LLM-based agents via orchestrating their collaboration dynamically using a centralized policy, and continually optimizes their collaboration process through reinforcement learning.
+
+A LLM-based agent can be abstracted in its minimal form as $ a = (m, r, t) $, where $m$ denotes the foundation model, $r$ represents the reasoning pattern or prompting strategy, and $t$ is the set of available external tools. The agent space $\mathcal{A}$ enumerates all possible agents formed by combinations of these components, i.e., $\mathcal{A} = \{ (m, r, t) \} $, encompassing both intrinsic and tool-augmented reasoning. Each agent thus represents an atomic reasoning behavior participating in task solving.
+% For example, an agent $a = (\texttt{gpt\text-4},~\text{chain-of-thought prompting},~\{\text{Python}\})$ may consist of a GPT-4 model, a chain-of-thought reasoning strategy, and a Python execution tool.
+
+For multi-agent collaboration, following~\citep{qian2025scaling}, a MAS is naturally formalized as a directed graph $ \mathcal{G} = (\mathcal{V}, \mathcal{E}) $, where each node $ v \in \mathcal{V} $ corresponds to an agent $ a \in \mathcal{A} $, and each directed edge $ (v_i, v_j) \in \mathcal{E} $ encodes a dependency or information flow, conveying intermediate context from agent $a_i$ to agent $a_j$. Typically, this graph presents a single-source, single-sink configuration: the source node represents the input task, while the sink node yields the unified task output (i.e., artifact). This formalism underlies a unified and temporal modeling framework for LLM-based reasoning systems and is analogous to a "graph-of-thought"~\cite{10.1609/aaai.v38i16.29720} that captures the deep thinking process.
+
+\subsection{Dynamic Orchestration}
+\paragraph{Centralized Puppeteer}
+A challenge in multi-agent reasoning is achieving efficient orchestration as task complexity and agent diversity increase. In previous approaches, each agent autonomously selects collaborators, but this incurs coordination overhead and poor scalability, particularly as agents increase or change~\cite{zhuge2024languageagentsoptimizablegraphs,qian2025scaling}. Instead, inspired by centralized coordination (\eg a puppeteer managing multiple puppets), we model the system as driven by a centralized orchestrator. This orchestrator dynamically selects which agents to activate in each step, based on the dynamic task state, and delegates reasoning to the selected agents. Such centralization decouples agent selection from internal agent behaviors, greatly enhancing adaptability and scalability without extensive parameter retraining.
+
+\paragraph{Serialized Orchestration}
+Another challenge stems from the combinatorially large space of possible collaboration topologies among agents. Exhaustive search is infeasible, thus prior work focuses only on canonical graphs (\eg chains, trees, graphs)~\cite{yao2023treethoughtsdeliberateproblem,wei2022chain,10.1609/aaai.v38i16.29720}. Instead, we propose to serialize the collaborative reasoning process: rather than searching the entire topological space, the orchestrator "unfolds" the graph into a reasoning sequence guided by a topological traversal strategy. By maintaining a topological ordering, the reasoning steps follow the partial order implied by the problem dependencies. It is important to note that although the orchestration of agents appears to be serialized and "unfolded", when this episode is restored through folding, it can be reconstructed as a directed graph (with agents as nodes and orchestration partial order relations as edges).
+
+Building on the two concepts above, we formalize the multi-agent collaboration as a sequential decision process governed by a centralized policy \(\pi\). At each time step \( t \), the orchestrator selects a single agent \( a_t \in \mathcal{A} \) to activate, conditioned on the current global system state \( S_t \) and the task specification \(\tau\). The global state \( S_t \) consists of all relevant agent states and aggregated contextual information up to step \( t \):
+\begin{equation}
+a_t \sim \pi(S_t, \tau) = \mathbb{P}(a \mid S_t, \tau)
+\end{equation}
+where the policy \(\pi\) is a function mapping the observable context—such as the current state and task description—to a distribution over candidate agents~\cite{pmlr-v235-xu24ad,yan2024efficientreinforcementlearninglarge} (\eg via neural scoring, embedding-based models, or Bradley-Terry style approaches~\cite{wang2025helpsteer2preferencecomplementingratingspreferences}).
+
+Upon activation, agent \(a_t\) receives its state \(s_t(a_t)\) (extracted from \(S_t\)) and generates its output by a generative reasoning mapping \(f_{a_t}\), after which the system state is updated ($\Phi$) as:
+\begin{equation}
+o_t = f_{a_t}(s_t(a_t), S_t), \quad S_{t+1} = \Phi(S_t, o_t)
+\end{equation}
+
+The process continues iteratively: at each step, the orchestrator observes the updated system state \(S_{t+1}\) and selects the next agent \(a_{t+1}\) to activate, again using the policy \(\pi\) conditioned only on \(S_{t+1}\) and \(\tau\).
+This sequential agent selection process explicitly satisfies the Markov property~\cite{markov}:
+\begin{equation}
+\mathbb{P}(a_{t+1} \mid S_0, \dots, S_{t+1}, \tau) = \mathbb{P}(a_{t+1} \mid S_{t+1}, \tau)
+\end{equation}
+
+The process terminates when a stopping criterion is met (\eg when the selected agent is a designated terminator or when the task-solving resource is exhausted). At that point, a final aggregation function \(F_{\mathrm{agg}}\) combines all agent outputs across timesteps to yield the overall solution:
+\begin{equation}
+o^* = F_{\mathrm{agg}}(\{o_0, o_1, \dots, o_T\}) = \Phi(S_T, o_T)
+\end{equation}
+where \(T\) denotes the total number of reasoning steps. 
+
+\subsection{Adaptive Evolution}
+While dynamic orchestration enables flexible agents' long-chain reasoning, naive implementations may invoke redundant or unhelpful agents, resulting in unacceptable inefficiency. To address this, thanks to the Markov property, a learnable policy is considered for continuously learning to make agent selection decisions adaptively.
+After each reasoning episode, the system receives feedback jointly evaluating solution quality and resource consumption, enabling the policy to learn which agent is most valuable based on real-time task states.
+
+Practically, this facilitates dynamic pruning of agents: the orchestration process adapts to increasingly favor compact reasoning chains by reducing reliance on agents that offer little incremental gain or incur excessive cost. Over time, the orchestrator policy evolves to organize more effective agent sequences, balancing expressive collaboration with computational efficiency. Thus, the evolvable puppeteer not only orchestrates agent collaboration, but also distills the reasoning process to its most essential components, enabling robust and scalable performance.
+
+
+\paragraph{Policy Optimization}
+To systematically optimize both the effectiveness and efficiency of collaboration, we employ REINFORCE~\cite{NIPS1999_464d828b}, a reinforcement learning (RL) technique, as our underlying optimization framework~\cite{mezghani2023think,10.5555/3600270.3602532,pmlr-v235-xu24ad,shinn2023reflexion}. By doing so, the orchestration policy learns from previous executions, adaptively refining agent selection and pruning strategies to achieve more robust and cost-efficient multi-agent reasoning.
+
+Concretely, the optimization objective is to maximize the expected return over complete reasoning trajectories, where the return reflects both overall effectiveness and inference efficiency:
+\begin{equation}
+J(\theta) = \mathbb{E}_{\pi_\theta} \big[ R(\tau) \big], \quad \nabla_\theta J(\theta) \approx \frac{1}{N} \sum_{n=1}^N \left( \sum_{t=1}^T \nabla_\theta \log \pi_\theta(a_t | S_t)\right) \cdot R(\tau)
+\end{equation}
+with $R(\tau)$ denoting the total reward accrued for trajectory $\tau = \{S_0, a_0, o_0, S_1, \dots, S_T, a_T, o_T\}$, and $o_t$ the output generated by agent $a_t$ at state $S_t$, $N$ is the sample size, and $T$ is the total number of steps in one trajectory.
+The orchestrator's parameters $\theta$ are updated iteratively via gradient ascent: $\theta \leftarrow \theta + \alpha \nabla_\theta J(\theta)$, with learning rate $\alpha$. 
+Through such RL-driven optimization, the orchestrator leverages accumulated cross-task experience to refine agent selection, dynamically suppressing unhelpful or costly agents and converging toward more compact, high-performing collaboration structures. 
+
+
+\paragraph{Reward Design}
+To effectively guide the orchestrator’s optimization, we design a reward function that jointly accounts for both solution quality and computational efficiency. Upon completion of each task trajectory, a terminal reward $r$ is assigned: for tasks with ground-truth answers, $r \in \{0, 1\}$ indicates correctness; for open-ended tasks, $r \in [0, 1]$ quantifies answer quality.
+The overall reward is defined recursively over time steps~\cite{sutton1999reinforcement}. At the terminal state ($t=T$), the cumulative reward incorporates both solution quality and total computational cost:
+\begin{equation}
+R_t =
+\begin{cases}
+    r - \lambda \cdot C_T, & \text{if } t = T \\
+    \gamma \cdot R_{t+1} - \lambda \cdot C_t, & \text{if } t < T
+\end{cases}, \quad C_t = F \cdot \log \left( 1 + \frac{t}{\varphi} \right)
+\end{equation}
+where $\lambda$ controls the trade-off between accuracy and efficiency, $\gamma \in (0, 1]$ is the discount factor. To encourage economical reasoning, we penalize excessive computational expenditure. Specifically, for each reasoning step $t$, we define a step-wise cost $C_t$ based on FLOPs or token-level metrics~\cite{sardana2024chinchillaoptimalaccountinginferencelanguage}, denoted by \(F\), and a step factor normalized by the maximum step budget $\varphi$, i.e., $t / \varphi$.
+This composite reward formulation incentivizes the orchestrator to achieve correct and high-quality solutions while minimizing unnecessary computation, ultimately driving the MAS to discover reasoning structures that are both effective and cost-efficient.
+
+
+\section{Experiments}
+
+\paragraph{Datasets and Metrics}
+To thoroughly assess our framework, we use a range of publicly available and logically demanding datasets covering both closed- and open-domain reasoning tasks:
+
+\begin{enumerate}[$\bullet$]
+\setlength{\topsep}{0pt}
+\setlength{\itemsep}{0pt}
+\item \textbf{Closed-domain Tasks}: These tasks require precise, objective reasoning and unambiguous answers, making them well-suited for evaluating core inference accuracy and mathematical rigor.
+\emph{GSM-Hard}\cite{gao2023palprogramaidedlanguagemodels} features arithmetic problems involving unusually large numbers and complex multi-step calculations, challenging models’ advanced mathematical reasoning and error-free execution.
+\emph{MMLU-Pro}\cite{wang2024mmluprorobustchallengingmultitask} is a comprehensive benchmark spanning diverse subjects and difficulty levels, using multiple-choice questions to assess both factual knowledge and logical deduction. Both benchmarks are designed to assess the model’s ability in mathematical and commonsense reasoning and inference, with \emph{accuracy} as the evaluation metric. 
+\item \textbf{Open-domain Tasks}: These tasks are inherently creative and open-ended, requiring multi-dimensional qualitative evaluation. They rigorously assess agents’ ability to integrate information, understand context, and generate novel solutions.
+\emph{SRDD}\cite{qian2024chatdevcommunicativeagentssoftware} consists of real-world textual software requirements and tasks agents with building the corresponding software, demanding proficiency in requirement comprehension, system/design reasoning, code generation, and testing. Its official evaluation metric combines completeness, executability, and consistency~\cite{qian2024chatdevcommunicativeagentssoftware}, reflecting the practical demands of real-world software development workflows.
+\emph{CommonGen-Hard}\cite{madaan2023selfrefineiterativerefinementselffeedback} challenges agents to generate coherent sentences that connect seemingly unrelated concepts, highlighting their abilities in commonsense reasoning, contextual understanding, and creative expression. Evaluation is based on an aggregate metric that incorporates grammar, relevance, logical consistency\cite{li2018generating}, as well as concept coverage~\cite{madaan2023selfrefineiterativerefinementselffeedback}, providing a nuanced assessment of generative quality.
+\end{enumerate}
+
+
+\paragraph{Baselines}
+To mitigate performance interference—where strong models may overshadow the contributions of weaker ones—and to evaluate our method’s adaptability across agents with varying capacities, we partition the agent pool based on the parameter scale of the underlying models. Specifically, we define a \textbf{Mimas} subspace (smaller models: \emph{Qwen-2.5-7B}, \emph{Qwen-2.5-14B}, \emph{LLaMA-3.1-8B}, \emph{LLaMA-3.2-3B}, \emph{Mistral-7B}, \emph{Mistral-Nemo-12B}) and a \textbf{Titan} subspace (larger models: \emph{GPT-4-Turbo}, \emph{GPT-4o-Mini}, \emph{Gemini-1.5-Pro}, \emph{Gemini-1.5-Flash}, \emph{Claude-3-Sonnet}, \emph{Claude-3-Haiku}, \emph{Qwen-2.5-72B}, \emph{LLaMA-3.1-405B}), covering both closed- and open-source families. All experiments are performed under both the Titan and Mimas subspace settings.
+To ensure the rigor and credibility of our experimental study, we select a suite of representative and recent baselines that comprehensively span the spectrum from straightforward LLM generation to advanced agentic paradigms:
+
+\begin{enumerate}[$\bullet$]
+\setlength{\topsep}{0pt}
+\setlength{\itemsep}{0pt}
+\item \textbf{Pure Models}: This category evaluates foundation models \emph{in the absence of explicit agent structuring or workflow orchestration}, serving as a baseline for generative inference performance. For Mimas, competitive open-source models include \emph{LLaMA-3.1-8B}, \emph{Mistral-Nemo-12B}, and \emph{Qwen-2.5-14B}.\footnote{Other smaller-scale models in the same series (\eg \emph{Qwen-2.0-7B}) have also been experimentally validated, and their performance is generally weaker than that of the larger-scale model within the same series.} For Titan, options such as \emph{LLaMA-3.1-405B}, \emph{GPT-4o-mini}, and \emph{GPT-4-turbo} are considered.
+\item \textbf{Single-Agent Methods}: This category explores paradigms where reasoning is performed by a single agent using a specific reasoning pattern or workflow. \emph{Self-refine}\cite{madaan2023selfrefineiterativerefinementselffeedback} exemplifies iterative, self-corrective reasoning within a feedback loop, whereas \emph{AFlow}\cite{zhang2025aflowautomatingagenticworkflow} enhances agent reasoning efficiency by utilizing Monte Carlo Tree Search to optimize code-represented agent workflows.
+\item \textbf{Multi-Agent Methods}: We benchmark against the latest multi-agent reasoning systems, showcasing state-of-the-art capabilities in leveraging agent heterogeneity and dynamic collaboration. \emph{MacNet}~\cite{qian2025scaling} orchestrates agents within topologically static directed acyclic graphs, facilitating collective intelligence driven by one foundation model to enhance reasoning performance. \emph{EvoAgent}~\cite{yuan2025evoagentautomaticmultiagentgeneration} adopts evolutionary algorithms to automatically generate and optimize diverse multi-agent systems, adaptively improving collaboration and performance without manual intervention.
+\end{enumerate}
+
+\paragraph{Implementation Details}
+Different agents are equipped with distinct reasoning patterns—such as \emph{task decomposition}, \emph{reflection}, \emph{refinement}, \emph{critique}, \emph{modification}, \emph{summarization}, and \emph{termination}—enabling flexible problem-solving~\cite{qi2024mutualreasoningmakessmaller, hao2023reasoninglanguagemodelplanning, 10.5555/3692070.3694642, madaan2023selfrefineiterativerefinementselffeedback}. External tools like \emph{WebViewer}, \emph{WikiSearch}, \emph{BingSearch}, \emph{arXivSearch}, \emph{Code Interpreter}, and \emph{File Reader} are also integrated~\cite{qin2023toolllm}. Dynamic collaboration uses majority voting for output aggregation. The policy is initialized with a variant of Llama-3.1\footnote{\url{https://huggingface.co/nvidia/Llama-3.1-Nemotron-70B-Reward-HF}}, using default settings: episode length to 4, parallel exploration up to 3, $\lambda=0.1$, and $\gamma=0.99$. All baselines are rerun under identical settings.
+
+
+\subsection{Does Our Method Lead To Elevated Performance?}
+Many prior studies on multi-agent systems have employed the same base model to drive agent behavior~\cite{qian2024chatdevcommunicativeagentssoftware,liu2024dynamicllmpoweredagentnetwork,zhuge2024languageagentsoptimizablegraphs}. To enable a more meaningful comparison and account for model heterogeneity, our method, referred to as Puppeteer, introduces two distinct configurations within each agent subspace: the Mono setting, wherein all agents are driven by the same model, and we use \emph{LLaMA-3.1-405B} for Titan subspace and \emph{LLaMA-3.1-8B} for Mimas subspace, and the default setting, wherein agents are driven by a diverse set of models.
+As Puppeteer undergoes online reinforcement learning, we categorize its learning process into two distinct phases: an initial phase characterized by unrefined behavior, and an evolved phase marked by reinforced performance.
+
+\begin{table}[ht]
+\centering
+\caption{Performance comparison of different methods across various datasets in Titan and Mimas subspaces respectively. For each dataset, the highest scores are highlighted in bold and the second-highest are underlined.}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lcccccccccc}
+\toprule
+\textbf{Mimas}
+& \multicolumn{2}{c}{\textbf{GSM-Hard}} & \multicolumn{2}{c}{\textbf{MMLU-Pro}} & \multicolumn{2}{c}{\textbf{SRDD}} & \multicolumn{2}{c}{\textbf{CommonGen-Hard}} & \multicolumn{2}{c}{\textbf{AVG.}} \\
+\midrule
+\rowcolor{gray!6}
+Llama-3.1-8B & \multicolumn{2}{c}{\(\text{0.0000}^{\dagger}\)} & \multicolumn{2}{c}{0.5250} & \multicolumn{2}{c}{\(\text{0.4615}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.6992}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.4214}^{\dagger}\)} \\
+Mistral-Nemo-12B & \multicolumn{2}{c}{\(\text{0.0350}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.4500}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.2097}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.7146}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.3523}^{\dagger}\)} \\
+\rowcolor{gray!6}
+Qwen-2.5-14B & \multicolumn{2}{c}{\(\text{0.0450}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.3800}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.5891}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.5747}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.3972}^{\dagger}\)} \\
+\(\text{Self-Refine}_{\text{Llama-3.1-8B}}\) & \multicolumn{2}{c}{0.4750} & \multicolumn{2}{c}{\(\text{0.2600}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.5412}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.6018}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.4695}^{\dagger}\)} \\
+\rowcolor{gray!6}
+\(\text{AFlow}_{\text{Llama-3.1-8B}}\) & \multicolumn{2}{c}{\(\text{0.2900}^{\dagger}\)} & \multicolumn{2}{c}{0.5000} & \multicolumn{2}{c}{\(\text{0.6362}^{\dagger}\)} & \multicolumn{2}{c}{0.7194} & \multicolumn{2}{c}{\(\text{0.5364}^{\dagger}\)} \\
+\(\text{MacNet}_{\text{Llama-3.1-8B}}\)& \multicolumn{2}{c}{\(\text{0.0000}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.2000}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.2017}^{\dagger}\)} & \multicolumn{2}{c}{\textbf{0.7434}} & \multicolumn{2}{c}{\(\text{0.2862}^{\dagger}\)} \\
+\rowcolor{gray!6}
+\(\text{EvoAgent}_{\text{Llama-3.1-8B}}\) & \multicolumn{2}{c}{\(\text{0.1250}^{\dagger}\)} & \multicolumn{2}{c}{0.5000} & \multicolumn{2}{c}{\(\text{0.2510}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.7167}\)} & \multicolumn{2}{c}{\(\text{0.3981}^{\dagger}\)} \\
+\cmidrule(r){2-11} 
+& Initialized & Evolved & Initialized & Evolved & Initialized & Evolved & Initialized & Evolved & Initialized & Evolved \\
+\cmidrule(r){2-3} \cmidrule(r){4-5} \cmidrule(r){6-7} \cmidrule(r){8-9} \cmidrule(r){10-11}
+\rowcolor{gray!6}
+$\text{Puppeteer-Mono}_{\text{Llama-3.1-8B}}$ & 0.2467 & 0.4800 & 0.4500 & 0.5200 & \underline{0.6983} & \textbf{0.7249} & 0.6323 & \underline{0.7341} & 0.5068 &0.6147 \\
+Puppeteer & \textbf{0.5600} & \underline{0.5400} & \underline{0.5700} & \textbf{0.6300} & 0.6653 & 0.6266 & 0.7139 & 0.7333 & \underline{0.6273} & \textbf{0.6324} \\
+\bottomrule
+\\[3pt] 
+\toprule 
+\textbf{Titan}
+& \multicolumn{2}{c}{\textbf{GSM-Hard}} & \multicolumn{2}{c}{\textbf{MMLU-Pro}} & \multicolumn{2}{c}{\textbf{SRDD}} & \multicolumn{2}{c}{\textbf{CommonGen-Hard}} & \multicolumn{2}{c}{\textbf{AVG.}} \\
+\midrule
+\rowcolor{gray!6}
+Llama-3.1-405B & \multicolumn{2}{c}{\(\text{0.1350}^{\dagger}\)} & \multicolumn{2}{c}{\underline{0.7600}} & \multicolumn{2}{c}{\(\text{0.6061}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.8116}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.5781}^{\dagger}\)} \\
+GPT-4o-Mini & \multicolumn{2}{c}{\(\text{0.1050}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.5950}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.6822}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.6691}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.5128}^{\dagger}\)} \\
+\rowcolor{gray!6}
+GPT-4-Turbo & \multicolumn{2}{c}{\(\text{0.2750}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.6800}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.6244}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.7632}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.5856}^{\dagger}\)} \\
+\(\text{Self-Refine}_{\text{Llama-3.1-405B}}\) & \multicolumn{2}{c}{{0.5250}} & \multicolumn{2}{c}{\(\text{0.6000}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.6345}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.7033}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.6157}^{\dagger}\)} \\
+\rowcolor{gray!6}
+\(\text{AFlow}_{\text{Llama-3.1-405B}}\)  & \multicolumn{2}{c}{\(\text{0.5400}^{\dagger}\)} & \multicolumn{2}{c}{0.7500} & \multicolumn{2}{c}{\(\text{0.6478}^{\dagger}\)} & \multicolumn{2}{c}{0.8218} & \multicolumn{2}{c}{\(\text{0.6899}^{\dagger}\)} \\
+\(\text{MacNet}_{\text{Llama-3.1-405B}}\)& \multicolumn{2}{c}{\(\text{0.2905}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.4800}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.4228}^{\dagger}\)} & \multicolumn{2}{c}{\(\textbf{0.8817}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.5187}^{\dagger}\)} \\
+\rowcolor{gray!6}
+\(\text{EvoAgent}_{\text{Llama-3.1-405B}}\)  & \multicolumn{2}{c}{\(\text{0.4250}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.5400}^{\dagger}\)} & \multicolumn{2}{c}{\(\text{0.1730}^{\dagger}\)} & \multicolumn{2}{c}{\underline{0.8599}} & \multicolumn{2}{c}{\(\text{0.4994}^{\dagger}\)} \\
+\cmidrule(r){2-11} 
+& Initialized & Evolved & Initialized & Evolved & Initialized & Evolved & Initialized & Evolved & Initialized & Evolved \\
+\cmidrule(r){2-3} \cmidrule(r){4-5} \cmidrule(r){6-7} \cmidrule(r){8-9} \cmidrule(r){10-11}
+\rowcolor{gray!6}
+$\text{Puppeteer-Mono}_{\text{Llama-3.1-405B}}$ & 0.5400 & 0.6100 & 0.6910 & \underline{0.7600} & 0.6264 & \textbf{0.7697} & 0.8111 & 0.8417 & 0.6671 & \underline{0.7453} \\
+Puppeteer & {\underline{0.6600}} & \textbf{0.7000} & 0.7400 & \textbf{0.8300} & 0.6191 & \underline{0.7637} & 0.7381 & 0.7987 & 0.6893 & \textbf{0.7731} \\
+\bottomrule
+
+\end{tabular}
+}
+\label{tab:overall_performance}
+\end{table}
+
+As detailed in Table~\ref{tab:overall_performance}, Puppeteer consistently achieves superior average performance during the evolved phase across all evaluated tasks, irrespective of domain type or model space size. Similarly, Puppeteer-Mono demonstrates robust performance across both large- and small-scale models. These results collectively underscore the exceptional capability of our centralized orchestrator in coordinating both heterogeneous and single-model-driven agents to form highly effective MAS, highlighting its robustness in managing diverse agent configurations.
+
+Compared to various agent workflows and multi-agent baselines using the same base model, Puppeteer-Mono consistently outperforms competing methods across nearly all evaluated tasks. This result highlights the efficacy of our centralized orchestrator in coordinating single-model-driven agents with optimized reasoning strategies and strategic tool utilization, surpassing alternative frameworks. It underscores that superior performance stems from sophisticated organizational design and a context-aware, dynamically constructed multi-agent topology.
+Notably, despite Puppeteer-Mono leveraging near-optimal models within its respective subspaces, Puppeteer consistently achieves superior performance, likely benefiting from complementary interactions among heterogeneous agents driven by diverse models. Additionally, the expanded space in Puppeteer enables broader exploration of the solution landscape, thereby enhancing optimization opportunities.
+% Compared to pure models, single-agent methods yield substantial performance improvements across all datasets, highlighting the benefits of integrating advanced reasoning strategies and external tools. When further contrasting single-agent with multi-agent settings, both orchestrated approaches outperform pure model baselines; however, the multi-agent configuration achieves even greater gains. This underscores the importance of capability complementarity and flexible task allocation in collaborative multi-agent systems, particularly as the size and diversity of the model pool increases. As a result, multi-agent collaboration is not only more robust, but also more adaptable, generally leading to better outcomes as agent heterogeneity grows.
+
+To illustrate Puppeteer’s capability in organizing effective MAS, we compare performance between the initial and evolved phases. The results show that continued optimization yields substantial gains—for example, Puppeteer in the Titan subspace improves from 0.6893 to 0.7731 on average, with a similar trend observed in the Mimas subspace. These findings highlight the critical role of continual optimization in enhancing coordination and task specialization, and further suggest promising directions for advancing beyond traditional, static agent paradigms toward more adaptive and collaborative agent systems.
+
+\subsection{Does Performance Gain Come at the Expense of Efficiency?}
+
+\begin{figure}[b]
+    \centering
+    \begin{minipage}{0.99\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/titan_all_combined_metrics_v4.pdf}
+    \end{minipage}
+    \caption{Evolution of token consumption and the number of orchestrated agents per task along the training process. Trends are fitted using LOWESS (Locally Weighted Scatterplot Smoothing)~\cite{lowess}.}
+     \label{fig:tokens_and_chainlengths}
+\end{figure}
+
+Recent research in non-learnable multi-agent systems has highlighted a trade-off: performance gains achieved through agent collaboration are often accompanied by increased overall token consumption~\cite{ye2025masgpttrainingllmsbuild, qian2025scaling}. To investigate whether our approach exhibits a similar pattern, we visualize the average token consumption and the number of orchestrated agents throughout the training process.
+
+\begin{wrapfigure}{r}{0.40\textwidth}  
+  \centering
+  \includegraphics[width=0.39\textwidth]{figs/mmlupro_llama3.1-405b_0.01_0.003_comparison_v3.1.pdf}  
+\caption{Token consumption and agent count orchestrated in the Titan subspace for Puppeteer-Mono on MMLU-Pro.}
+  \label{fig:costfactor}
+\end{wrapfigure}
+
+As shown in Figure~\ref{fig:tokens_and_chainlengths}, the token metric consistently decreases over the course of learning across almost all settings. This demonstrates that our system's performance improvements do not come at the cost of increased computational overhead; on the contrary, our approach achieves simultaneous advances in both effectiveness and efficiency. 
+This result is primarily attributed to our reward design, which balances accuracy and efficiency via a tunable weighting factor \(\lambda\), enabling adaptable trade-offs tailored to different application needs, with higher values of \(\lambda\) indicating a greater emphasis on minimizing cost, as shown in the Figure \ref{fig:costfactor}.
+Specifically, the reward is designed to encourage the orchestrator to: (i) prioritize agents that complete tasks with reduced token usage while preserving performance, and (ii) terminate reasoning early by invoking the Terminator agent, thereby fostering efficiency through the exclusion of redundant or low-contributing agents. This mechanism enables the orchestrator to optimize both overall performance and resource consumption. In extreme cases, if the efficiency factor is entirely omitted from the reward design, the system naturally degenerates into a traditional large-scale collaborative framework, albeit with potentially further improvements in performance.
+
+More specifically, in the Titan setting, the number of active agents notably decreases over the course of learning, suggesting that the orchestrator progressively learns to terminate the reasoning process earlier for more efficient problem-solving. In contrast, in the Mimas setting (see Appendix for results), the number of orchestrated agents remains relatively stable, indicating the orchestrator’s caution in prematurely halting the reasoning process due to the comparatively limited capabilities of the agents. In this case, reductions in token consumption are primarily achieved through the preferential selection of lower-cost agents rather than shorter reasoning chains. This contrast between Titan and Mimas arises from fundamental differences in agent capacity: Titan agents can solve tasks more efficiently, enabling earlier stopping without quality loss, whereas Mimas agents often require longer, more elaborate reasoning processes to ensure reliable completion.
+
+\subsection{How Does Organizational Topology Evolve During Reinforcement?}
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}[b]{0.55\textwidth}
+        \centering
+        \includegraphics[width=0.97\textwidth]{figs/topo_example_v3.2.pdf}
+        \caption{The organizational topology evolves as a general directed graph, shaped by the unconstrained orchestration.}
+        \label{fig:mas_topologies}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.43\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{figs/mas_a_v3.4.pdf}
+        \vspace{0.5em}
+        \includegraphics[width=0.88\textwidth]{figs/mas_b_v3.4.pdf}
+        \caption{Examples of topology evolution.}
+        \label{fig:cases}
+    \end{minipage}
+\end{figure}
+
+To elucidate the emergent organization of multi-agent collaboration, we systematically examine the evolution of agent interaction topologies throughout the learning process. Multi-agent reasoning can be abstractly modeled as dynamic orchestration governed by our centralized orchestrator, yet empirical evidence reveals an untrained "initialized" MAS system often results in a highly sophisticated and adaptive organizational structure.
+Instead of relying on a static structure, our Puppeteer dynamically constructs intricate topological motifs—such as trees, graphs, and cycles—by selecting the next agent to activate at each reasoning step based on the current reasoning state. Thus, the topology emerges incrementally during reasoning, embodying a flexible, context-aware organizational paradigm.
+
+Although the simplest form of multi-agent collaboration is often represented as a chain structure~\cite{qian2024chatdevcommunicativeagentssoftware,wei2022chain}, the Puppeteer’s dynamic orchestration naturally fosters tree-structured interactions by enabling the selection of one or multiple agents at each step. This mechanism supports branching behavior and parallel pathways, thereby enhancing scalability as the number of agents grows. However, despite an initial resemblance to tree-like expansion~\cite{yao2023treethoughtsdeliberateproblem} driven by branching, the resulting topologies are inherently graph-structured~\cite{qian2025scaling,zhuge2024languageagentsoptimizablegraphs,10.1609/aaai.v38i16.29720}. 
+This property arises from the flexible orchestration, which permits repeated agent activations, leading to cycles and feedback loops. Moreover, cross-branch connections emerge organically, underscoring the system’s capacity to generate rich, expressive, and adaptive interaction patterns. Representative examples of these emergent motifs, including cycles, backtracking, and cross-branch links, are illustrated in Figure~\ref{fig:mas_topologies}.
+\begin{figure}[b]
+    \centering
+    \begin{subfigure}[b]{0.315\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figs/topo_v3.3_3.pdf}
+        \caption{Graph Density Distribution}
+        \label{fig:density}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.665\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figs/topo_v3.3_2.pdf}
+        \caption{Cycle distribution}
+        \label{fig:cycle}
+    \end{subfigure}
+    \caption{The compaction and cyclicality dynamics in the evolution of multi-agent organizational structures.}
+    \label{fig:patterns}
+\end{figure}
+
+As the puppeteer evolves over time, its orchestrating behavior changes accordingly, leading to distinct behaviors in the resulting MAS. Here, we present a specific sample, selected from both the initial and evolved phases, to demonstrate the emerging optimization effects.
+As shown in Figure \ref{fig:cases}, the initial phase features multiple disjoint chains, reflecting exploratory organization; after evolution, paths become fewer and cycles appear, indicating more stable and coordinated interactions. Additionally, the initial phase features two-agent communication with higher overhead; as evolution progresses, the structure condenses to a single agent handling continuous reasoning, reflecting more efficient coordination and decision-making.
+
+Empirical observation reveals that Puppeteer’s dynamic orchestration—which fosters graph-structured topologies with diverse inter-agent connections—gives rise to two key structural phenomena: \emph{compaction} and \emph{cyclicality}. The evolving interplay between densely clustered agents and frequent communication cycles marks a significant transformation in multi-agent systems, shifting from loosely organized, exploratory interactions to tightly coordinated, specialized collectives. 
+\begin{enumerate}[$\bullet$]
+\setlength{\topsep}{0pt}
+\setlength{\itemsep}{0pt}
+\item \emph{Compaction}. We observe a marked trend toward \emph{structural compaction} over the course of learning (Figure~\ref{fig:density}). As optimization proceeds, graph density---quantifying the degree of inter-agent connectivity---steadily increases, with organizational structure evolving toward highly interactive and tightly coupled subnetworks. Communication becomes progressively concentrated among a subset of recurrently active 'hub' agents, forming dense subgraphs characterized by frequent and focused information exchange. This phenomenon is particularly pronounced in the Titan (large-model) subspace, where the orchestrator preferentially routes decisions through a small cohort of strong agents, thereby intensifying iterative reasoning and collaborative consensus formation. Ultimately, the system transitions from diffuse, exploratory interaction patterns to highly synergistic and focused multi-agent reasoning.
+\item \emph{Cyclicality}. In conjunction with compaction, we document a significant rise in \emph{cycle formation} as learning progresses (Figure~\ref{fig:cycle}). Cyclic topologies---in which agents repeatedly revisit previous collaborators via closed-loop routes---facilitate the re-circulation of intermediate results, mutual verification, and continual refinement. Unlike strictly hierarchical or acyclic networks, this cyclical structure supports recursive critique and sustained internal debate, much like what is seen in reflexive multi-agent paradigms (\eg Reflexion~\cite{shinn2023reflexion}). As cycles become more prevalent, the system exhibits deeper internal feedback, more efficient reuse of information, and increased resilience---hallmarks of mature, self-referential collaborative reasoning.
+\end{enumerate}
+
+\subsection{How to Further Use Hyperparameters to Control Performance and Efficiency?}
+
+\begin{wrapfigure}{r}{0.6\textwidth}  
+  \centering
+  \includegraphics[width=0.59\textwidth]{figs/topology_comparison_v3.2.pdf}  
+\caption{Impact of topology constraints on token consumption and accuracy (W$x$D$y$ denotes exploration with width $x$ and depth $y$; W$4$D$2$ is the default).}
+  \label{fig:topo}
+\end{wrapfigure}
+
+While reward shaping provides a direct mechanism for efficiency control, the collaboration structure itself is also crucial. As the orchestrator organizes agent collaboration, upper-bound constraints on topology—specifically, chain depth and exploration width—are essential to prevent unbounded scaling and inefficiency. Depth refers to the length of orchestrated agent chains, while width captures the number of parallel explorations. As shown in Figure~\ref{fig:topo}, there is a clear non-monotonic relationship: the default setting achieves the best trade-off for our purposes, whereas increasing depth or width leads to redundancy, higher computational costs, and possible performance degradation. In general, enhancing accuracy tends to increase token consumption, and vice versa, suggesting that carefully balancing depth and width can help maintain both efficiency and effectiveness.
+
+
+\section{Related Work}
+The rapid advancement of LLMs~\cite{wei2022emergent,NEURIPS2020_1457c0d6,radford2019language,kaplan2020scaling,10.5555/3600270.3602532, bubeck2023sparks} has spurred the development of autonomous LLM-based agents~\cite{weng2023agent, AutoGPT,park2023generative,li2024camel,wu2024autogen,sumers2023cognitive}, which exhibit strong capabilities in planning~\cite{wang2024promptagent,hao2023reasoninglanguagemodelplanning,hu2024uncertainty}, memory~\cite{park2023generative, hua2023war,modarressi2024retllmgeneralreadwritememory}, and tool usage~\cite{schick2023toolformer,qin2023toolllm,cai2023large,GPT4Tools}. These agents demonstrate growing proficiency in addressing complex tasks~\cite{ge2023openagillmmeetsdomain,zhang2024generativeagentsrecommendation,qian2024chatdevcommunicativeagentssoftware,Hager2024Evaluation,valmeekam2023on}, adapting to dynamic real-world environments~\cite{zhou2024webarenarealisticwebenvironment,ma2023laser,zhou2023agentsopensourceframeworkautonomous}, and exhibiting human-like behaviors such as collaboration and decision-making~\cite{chen2023introspectivetipslargelanguage,park2023generative, Shanahan2023}.
+Given that a single LLM-based agent may struggle to handle the diverse and complex range of real-world tasks~\cite{du2023improvingfactualityreasoninglanguage,li2024camel,wang2023voyager}, recent research has increasingly focused on constructing LLM-based multi-agent systems~\cite{chen2023agentverse,qian2024chatdevcommunicativeagentssoftware,hong2023metagpt,tang2023medagents,chen2025internet} for software development\cite{qian2024chatdevcommunicativeagentssoftware, hong2023metagpt}, social simulation\cite{park2023generative,hua2023war}, medical treatment\cite{tang2023medagents,li2024agent}, scientific discovery~\cite{zeng2023interactivemoleculardiscoverynatural}.
+
+Early MAS designs relied on fixed, handcrafted structures, \eg mirroring software engineering paradigms like waterfall models~\cite{park2023generative, chen2023agentverse, qian2024chatdevcommunicativeagentssoftware}. These static approaches led to rigid coordination~\cite{zhuge2024languageagentsoptimizablegraphs, qian2025scaling}, limited workflow flexibility~\cite{hu2025automateddesignagenticsystems, zhang2025aflowautomatingagenticworkflow}, and suboptimal agent composition~\cite{deshpande-etal-2023-toxicity, park2023generative, long-etal-2024-multi-expert, liu2024bolaa}.  
+To address these issues, more adaptive orchestration methods have emerged: network-style organizations dynamically select agents~(Dylan~\cite{liu2024dynamicllmpoweredagentnetwork}) as optimizable graphs enable prompt refinement and better cooperation (GPT-Swarm~\cite{zhuge2024languageagentsoptimizablegraphs}, MacNet~\cite{qian2025scaling}); and code-based representations allow modeling of dynamic, task-specific processes. Recent approaches employ code-space search (ADAS~\cite{hu2025automateddesignagenticsystems}, AFlow~\cite{zhang2025aflowautomatingagenticworkflow}) or train LLMs to generate MAS configurations on demand~(MAS-GPT~\cite{ye2025masgpttrainingllmsbuild}).
+Beyond LLM-based MAS, classical MARL (Multi Agent Reinforcement Learning) works~\cite{NEURIPS2022_2f279645,wang2021rode,liu2021coachplayermultiagentreinforcementlearning, vezhnevets2020optionsresponsesgroundingbehavioural} have long explored coordination and role specialization, offering key inspirations for our RL-driven orchestration in LLM-based multi-agent systems.
+
+\section{Conclusion}
+We proposed a novel framework for adaptive multi-agent LLM collaboration inspired by puppet show orchestration, where a centralized, learnable "puppeteer" orchestrator dynamically activated agents within a directed graph-of-thoughts. Unlike previous methods with static or manually designed topologies, our approach incorporated context-sensitive orchestration and reinforcement learning-driven policy adaptation, enabling more principled and efficient collaboration. Experiments on diverse tasks showed that our method achieved superior solution quality and reduced computational cost. Analyses further revealed that the orchestrator promoted compact, cyclic reasoning structures, underpinning the performance improvements. 
+We hope this work can constitute a valuable step toward dynamic and scalable coordination in multi-agent collaboration.
+
+
+\section*{Acknowledgement}
+%todo
+The work was supported by the Tencent Rhino-Bird
+Focused Research Program.
+
+
+\bibliographystyle{plain}
+\bibliography{custom}
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \newpage
+% \section*{NeurIPS Paper Checklist}
+
+
+% \begin{enumerate}
+
+% \item {\bf Claims}
+%     \item[] Question: Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The main claims made in the abstract and introduction accurately reflect the paper's contributions and scope.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the abstract and introduction do not include the claims made in the paper.
+%         \item The abstract and/or introduction should clearly state the claims made, including the contributions made in the paper and important assumptions and limitations. A No or NA answer to this question will not be perceived well by the reviewers. 
+%         \item The claims made should match theoretical and experimental results, and reflect how much the results can be expected to generalize to other settings. 
+%         \item It is fine to include aspirational goals as motivation as long as it is clear that these goals are not attained by the paper. 
+%     \end{itemize}
+
+% \item {\bf Limitations}
+%     \item[] Question: Does the paper discuss the limitations of the work performed by the authors?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The paper elaborates the limitations in section~\ref{limitations}.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper has no limitation while the answer No means that the paper has limitations, but those are not discussed in the paper. 
+%         \item The authors are encouraged to create a separate "Limitations" section in their paper.
+%         \item The paper should point out any strong assumptions and how robust the results are to violations of these assumptions (\eg independence assumptions, noiseless settings, model well-specification, asymptotic approximations only holding locally). The authors should reflect on how these assumptions might be violated in practice and what the implications would be.
+%         \item The authors should reflect on the scope of the claims made, \eg if the approach was only tested on a few datasets or with a few runs. In general, empirical results often depend on implicit assumptions, which should be articulated.
+%         \item The authors should reflect on the factors that influence the performance of the approach. For example, a facial recognition algorithm may perform poorly when image resolution is low or images are taken in low lighting. Or a speech-to-text system might not be used reliably to provide closed captions for online lectures because it fails to handle technical jargon.
+%         \item The authors should discuss the computational efficiency of the proposed algorithms and how they scale with dataset size.
+%         \item If applicable, the authors should discuss possible limitations of their approach to address problems of privacy and fairness.
+%         \item While the authors might fear that complete honesty about limitations might be used by reviewers as grounds for rejection, a worse outcome might be that reviewers discover limitations that aren't acknowledged in the paper. The authors should use their best judgment and recognize that individual actions in favor of transparency play an important role in developing norms that preserve the integrity of the community. Reviewers will be specifically instructed to not penalize honesty concerning limitations.
+%     \end{itemize}
+
+% \item {\bf Theory assumptions and proofs}
+%     \item[] Question: For each theoretical result, does the paper provide the full set of assumptions and a complete (and correct) proof?
+%     \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The paper does not include theoretical results.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not include theoretical results. 
+%         \item All the theorems, formulas, and proofs in the paper should be numbered and cross-referenced.
+%         \item All assumptions should be clearly stated or referenced in the statement of any theorems.
+%         \item The proofs can either appear in the main paper or the supplemental material, but if they appear in the supplemental material, the authors are encouraged to provide a short proof sketch to provide intuition. 
+%         \item Inversely, any informal proof provided in the core of the paper should be complemented by formal proofs provided in appendix or supplemental material.
+%         \item Theorems and Lemmas that the proof relies upon should be properly referenced. 
+%     \end{itemize}
+
+%     \item {\bf Experimental result reproducibility}
+%     \item[] Question: Does the paper fully disclose all the information needed to reproduce the main experimental results of the paper to the extent that it affects the main claims and/or conclusions of the paper (regardless of whether the code and data are provided or not)?
+%     \item[] Answer: \answerYes{}. % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The paper provide the method details in Method part.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not include experiments.
+%         \item If the paper includes experiments, a No answer to this question will not be perceived well by the reviewers: Making the paper reproducible is important, regardless of whether the code and data are provided or not.
+%         \item If the contribution is a dataset and/or model, the authors should describe the steps taken to make their results reproducible or verifiable. 
+%         \item Depending on the contribution, reproducibility can be accomplished in various ways. For example, if the contribution is a novel architecture, describing the architecture fully might suffice, or if the contribution is a specific model and empirical evaluation, it may be necessary to either make it possible for others to replicate the model with the same dataset, or provide access to the model. In general. releasing code and data is often one good way to accomplish this, but reproducibility can also be provided via detailed instructions for how to replicate the results, access to a hosted model (\eg in the case of a large language model), releasing of a model checkpoint, or other means that are appropriate to the research performed.
+%         \item While NeurIPS does not require releasing code, the conference does require all submissions to provide some reasonable avenue for reproducibility, which may depend on the nature of the contribution. For example
+%         \begin{enumerate}
+%             \item If the contribution is primarily a new algorithm, the paper should make it clear how to reproduce that algorithm.
+%             \item If the contribution is primarily a new model architecture, the paper should describe the architecture clearly and fully.
+%             \item If the contribution is a new model (\eg a large language model), then there should either be a way to access this model for reproducing the results or a way to reproduce the model (\eg with an open-source dataset or instructions for how to construct the dataset).
+%             \item We recognize that reproducibility may be tricky in some cases, in which case authors are welcome to describe the particular way they provide for reproducibility. In the case of closed-source models, it may be that access to the model is limited in some way (\eg to registered users), but it should be possible for other researchers to have some path to reproducing or verifying the results.
+%         \end{enumerate}
+%     \end{itemize}
+
+
+% \item {\bf Open access to data and code}
+%     \item[] Question: Does the paper provide open access to the data and code, with sufficient instructions to faithfully reproduce the main experimental results, as described in supplemental material?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%    \item[] Justification: The code and data are provided in the supplementary materials under the file name code.zip.
+%    \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that paper does not include experiments requiring code.
+%         \item Please see the NeurIPS code and data submission guidelines (\url{https://nips.cc/public/guides/CodeSubmissionPolicy}) for more details.
+%         \item While we encourage the release of code and data, we understand that this might not be possible, so “No” is an acceptable answer. Papers cannot be rejected simply for not including code, unless this is central to the contribution (\eg for a new open-source benchmark).
+%         \item The instructions should contain the exact command and environment needed to run to reproduce the results. See the NeurIPS code and data submission guidelines (\url{https://nips.cc/public/guides/CodeSubmissionPolicy}) for more details.
+%         \item The authors should provide instructions on data access and preparation, including how to access the raw data, preprocessed data, intermediate data, and generated data, etc.
+%         \item The authors should provide scripts to reproduce all experimental results for the new proposed method and baselines. If only a subset of experiments are reproducible, they should state which ones are omitted from the script and why.
+%         \item At submission time, to preserve anonymity, the authors should release anonymized versions (if applicable).
+%         \item Providing as much information as possible in supplemental material (appended to the paper) is recommended, but including URLs to data and code is permitted.
+%     \end{itemize}
+
+
+% \item {\bf Experimental setting/details}
+%     \item[] Question: Does the paper specify all the training and test details (\eg data splits, hyperparameters, how they were chosen, type of optimizer, etc.) necessary to understand the results?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: Details are listed in the method part.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not include experiments.
+%         \item The experimental setting should be presented in the core of the paper to a level of detail that is necessary to appreciate the results and make sense of them.
+%         \item The full details can be provided either with the code, in appendix, or as supplemental material.
+%     \end{itemize}
+
+% \item {\bf Experiment statistical significance}
+%     \item[] Question: Does the paper report error bars suitably and correctly defined or other appropriate information about the statistical significance of the experiments?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: We performed significance testing on the data presented in our table~\ref{tab:overall_performance}, and we use the \(\dagger\) symbol in the table to denote statistically significant results.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not include experiments.
+%         \item The authors should answer "Yes" if the results are accompanied by error bars, confidence intervals, or statistical significance tests, at least for the experiments that support the main claims of the paper.
+%         \item The factors of variability that the error bars are capturing should be clearly stated (for example, train/test split, initialization, random drawing of some parameter, or overall run with given experimental conditions).
+%         \item The method for calculating the error bars should be explained (closed form formula, call to a library function, bootstrap, etc.)
+%         \item The assumptions made should be given (\eg Normally distributed errors).
+%         \item It should be clear whether the error bar is the standard deviation or the standard error of the mean.
+%         \item It is OK to report 1-sigma error bars, but one should state it. The authors should preferably report a 2-sigma error bar than state that they have a 96\% CI, if the hypothesis of Normality of errors is not verified.
+%         \item For asymmetric distributions, the authors should be careful not to show in tables or figures symmetric error bars that would yield results that are out of range (e.g. negative error rates).
+%         \item If error bars are reported in tables or plots, The authors should explain in the text how they were calculated and reference the corresponding figures or tables in the text.
+%     \end{itemize}
+
+% \item {\bf Experiments compute resources}
+%     \item[] Question: For each experiment, does the paper provide sufficient information on the computer resources (type of compute workers, memory, time of execution) needed to reproduce the experiments?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The token cost is specifically discussed in Fig~\ref{fig:tokens_and_chainlengths}, and the full results are listed in~\ref{cost evaluation}
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not include experiments.
+%         \item The paper should indicate the type of compute workers CPU or GPU, internal cluster, or cloud provider, including relevant memory and storage.
+%         \item The paper should provide the amount of compute required for each of the individual experimental runs as well as estimate the total compute. 
+%         \item The paper should disclose whether the full research project required more compute than the experiments reported in the paper (\eg preliminary or failed experiments that didn't make it into the paper). 
+%     \end{itemize}
+    
+% \item {\bf Code of ethics}
+%     \item[] Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics \url{https://neurips.cc/public/EthicsGuidelines}?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the authors have not reviewed the NeurIPS Code of Ethics.
+%         \item If the authors answer No, they should explain the special circumstances that require a deviation from the Code of Ethics.
+%         \item The authors should make sure to preserve anonymity (\eg if there is a special consideration due to laws or regulations in their jurisdiction).
+%     \end{itemize}
+
+
+% \item {\bf Broader impacts}
+%     \item[] Question: Does the paper discuss both potential positive societal impacts and negative societal impacts of the work performed?
+%     \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: This paper presents a technical contribution without immediate real-world deployment, and thus discussion of societal impacts is not applicable at this stage.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that there is no societal impact of the work performed.
+%         \item If the authors answer NA or No, they should explain why their work has no societal impact or why the paper does not address societal impact.
+%         \item Examples of negative societal impacts include potential malicious or unintended uses (\eg disinformation, generating fake profiles, surveillance), fairness considerations (\eg deployment of technologies that could make decisions that unfairly impact specific groups), privacy considerations, and security considerations.
+%         \item The conference expects that many papers will be foundational research and not tied to particular applications, let alone deployments. However, if there is a direct path to any negative applications, the authors should point it out. For example, it is legitimate to point out that an improvement in the quality of generative models could be used to generate deepfakes for disinformation. On the other hand, it is not needed to point out that a generic algorithm for optimizing neural networks could enable people to train models that generate Deepfakes faster.
+%         \item The authors should consider possible harms that could arise when the technology is being used as intended and functioning correctly, harms that could arise when the technology is being used as intended but gives incorrect results, and harms following from (intentional or unintentional) misuse of the technology.
+%         \item If there are negative societal impacts, the authors could also discuss possible mitigation strategies (\eg gated release of models, providing defenses in addition to attacks, mechanisms for monitoring misuse, mechanisms to monitor how a system learns from feedback over time, improving the efficiency and accessibility of ML).
+%     \end{itemize}
+    
+% \item {\bf Safeguards}
+%     \item[] Question: Does the paper describe safeguards that have been put in place for responsible release of data or models that have a high risk for misuse (\eg pretrained language models, image generators, or scraped datasets)?
+%     \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The paper has no such risks.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper poses no such risks.
+%         \item Released models that have a high risk for misuse or dual-use should be released with necessary safeguards to allow for controlled use of the model, for example by requiring that users adhere to usage guidelines or restrictions to access the model or implementing safety filters. 
+%         \item Datasets that have been scraped from the Internet could pose safety risks. The authors should describe how they avoided releasing unsafe images.
+%         \item We recognize that providing effective safeguards is challenging, and many papers do not require this, but we encourage authors to take this into account and make a best faith effort.
+%     \end{itemize}
+
+% \item {\bf Licenses for existing assets}
+%     \item[] Question: Are the creators or original owners of assets (\eg code, data, models), used in the paper, properly credited and are the license and terms of use explicitly mentioned and properly respected?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The paper cites all the papers related.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not use existing assets.
+%         \item The authors should cite the original paper that produced the code package or dataset.
+%         \item The authors should state which version of the asset is used and, if possible, include a URL.
+%         \item The name of the license (\eg CC-BY 4.0) should be included for each asset.
+%         \item For scraped data from a particular source (\eg website), the copyright and terms of service of that source should be provided.
+%         \item If assets are released, the license, copyright information, and terms of use in the package should be provided. For popular datasets, \url{paperswithcode.com/datasets} has curated licenses for some datasets. Their licensing guide can help determine the license of a dataset.
+%         \item For existing datasets that are re-packaged, both the original license and the license of the derived asset (if it has changed) should be provided.
+%         \item If this information is not available online, the authors are encouraged to reach out to the asset's creators.
+%     \end{itemize}
+
+% \item {\bf New assets}
+%     \item[] Question: Are new assets introduced in the paper well documented and is the documentation provided alongside the assets?
+%     \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The paper does not release new assets.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not release new assets.
+%         \item Researchers should communicate the details of the dataset/code/model as part of their submissions via structured templates. This includes details about training, license, limitations, etc. 
+%         \item The paper should discuss whether and how consent was obtained from people whose asset is used.
+%         \item At submission time, remember to anonymize your assets (if applicable). You can either create an anonymized URL or include an anonymized zip file.
+%     \end{itemize}
+
+% \item {\bf Crowdsourcing and research with human subjects}
+%     \item[] Question: For crowdsourcing experiments and research with human subjects, does the paper include the full text of instructions given to participants and screenshots, if applicable, as well as details about compensation (if any)? 
+%     \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The paper does not involve crowdsourcing nor research with human subjects.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not involve crowdsourcing nor research with human subjects.
+%         \item Including this information in the supplemental material is fine, but if the main contribution of the paper involves human subjects, then as much detail as possible should be included in the main paper. 
+%         \item According to the NeurIPS Code of Ethics, workers involved in data collection, curation, or other labor should be paid at least the minimum wage in the country of the data collector. 
+%     \end{itemize}
+
+% \item {\bf Institutional review board (IRB) approvals or equivalent for research with human subjects}
+%     \item[] Question: Does the paper describe potential risks incurred by study participants, whether such risks were disclosed to the subjects, and whether Institutional Review Board (IRB) approvals (or an equivalent approval/review based on the requirements of your country or institution) were obtained?
+%     \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The paper does not involve crowdsourcing nor research with human subjects.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not involve crowdsourcing nor research with human subjects.
+%         \item Depending on the country in which research is conducted, IRB approval (or equivalent) may be required for any human subjects research. If you obtained IRB approval, you should clearly state this in the paper. 
+%         \item We recognize that the procedures for this may vary significantly between institutions and locations, and we expect authors to adhere to the NeurIPS Code of Ethics and the guidelines for their institution. 
+%         \item For initial submissions, do not include any information that would break anonymity (if applicable), such as the institution conducting the review.
+%     \end{itemize}
+
+% \item {\bf Declaration of LLM usage}
+%     \item[] Question: Does the paper describe the usage of LLMs if it is an important, original, or non-standard component of the core methods in this research? Note that if the LLM is used only for writing, editing, or formatting purposes and does not impact the core methodology, scientific rigorousness, or originality of the research, declaration is not required.
+%     %this research? 
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The paper focuses on LLM-based agents, and the use of LLMs is clearly described as an essential and original part of the core method.    
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the core method development in this research does not involve LLMs as any important, original, or non-standard components.
+%         \item Please refer to our LLM policy (\url{https://neurips.cc/Conferences/2025/LLM}) for what should or should not be described.
+%     \end{itemize}
+
+% \end{enumerate}
+% \clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\appendix
+\textbf{Appendix}
+
+This appendix complements the main paper by presenting extended evaluation results, detailed implementation configurations of the agents, and a discussion of current limitations.
+
+\section{Supplementary Evaluation}
+\subsection{Token Cost Analysis}
+\label{cost evaluation}
+
+As discussed in Section 3.2, we present here the full set of cost-related results under both the mono-agent and multi-agent settings, covering the Titan and Mimas subspaces. While the main text only reports the results for the multi setting on the Titan subspace, we provide here the remaining three sets of results for completeness: (1) mono on Titan, (2) mono on Mimas, and (3) multi on Mimas. These supplementary results allow for a more comprehensive comparison across different agent configurations and subspace settings.
+As discussed in Section 3.2, we focus on two key metrics: token consumption and the number of orchestrated agents per reasoning trajectory. While the multi setting has already been analyzed in the main paper, here we focus on the mono setting.
+
+In the Titan subspace, the observed reduction in token consumption across most tasks in Figure~\ref{fig:tokens_and_chainlengths_2} can be primarily attributed to shorter reasoning paths. However, for GSM-hard tasks, the number of agents involved remains relatively stable. This suggests that the cost reduction may stem not from fewer agents but from selecting agents that are prompted with fewer tokens, or from utilizing more concise prompts for the same agents.
+In the Mimas space, token consumption in Figure~\ref{fig:tokens_and_chainlengths_2} decreases for certain tasks, while for others, no consistent downward trend is observed. This can be attributed to the fact that, under the mono-agent setting, all agents share the same base model, making it more challenging to identify agents that are significantly more token-efficient.
+\begin{figure}[htbp]
+    \begin{minipage}{0.99\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/titan_all_combined_metrics.pdf}
+    \end{minipage}
+    \hfill
+\begin{minipage}{0.99\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/mimas_all_combined_metrics.pdf}
+    \end{minipage}
+    \hfill
+    \centering
+    \begin{minipage}{0.99\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/llama3.1-405b_all_combined_metrics.pdf}
+    \end{minipage}
+\hfill
+    \begin{minipage}{0.99\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/llama3.1-8b_all_combined_metrics.pdf}
+    \end{minipage}
+   
+    \caption{Evolution of token consumption and the number of orchestrated agents per task for all settings. Trends are fitted using LOWESS (Locally Weighted Scatterplot Smoothing).}
+     \label{fig:tokens_and_chainlengths_2}
+\end{figure}
+
+\subsection{Performance–Cost Trade-off Improvement}
+To demonstrate the overall improvement in reasoning performance along with the associated reduction in token consumption—both attributed to the effectiveness of our reward design—we track the \(\frac{\text{performance}}{\text{cost}}\) score for each sample throughout the entire optimization process. This score is defined as the ratio between task performance (\eg accuracy or success rate) and token cost, serving as a comprehensive indicator that jointly reflects solution quality and reasoning efficiency.
+
+In the evaluation presented in the main paper, we divide the optimization trajectory into two phases: the initial phase and the evolved phase. This division is introduced solely for evaluation convenience, and does not correspond to any intrinsic change in model behavior. In practice, the online optimization process exhibits a generally monotonic upward trend in \(\frac{\text{performance}}{\text{cost}}\), apart from minor fluctuations caused by the stochastic nature of model generation. This consistent improvement further substantiates the effectiveness of our reinforcement learning approach and the benefits of our reward shaping strategy under both mono-agent and multi-agent settings.
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[t]{0.98\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/llama3.1-405b_combined_performance_v1.pdf}
+        \caption{\(\text{Puppeteer}_{\text{Mono}}\) under Titan subspace}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.98\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/titan_combined_performance_v1.pdf}
+        \caption{\(\text{Puppeteer}\) under Titan subspace}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.98\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/llama3.1-8b_combined_performance_v1.pdf}
+        \caption{\(\text{Puppeteer}_{\text{Mono}}\) under Mimas subspace}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.98\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/mimas_combined_performance_v1.pdf}
+        \caption{\(\text{Puppeteer}\) under Mimas subspace}
+    \end{subfigure}
+
+    \caption{Performance–Cost curves representing the ratio between task performance and token cost per agent chain across different subspaces and variants of \texttt{Puppeteer}. Trend lines are smoothed using LOWESS (Locally Weighted Scatterplot Smoothing).}
+    \label{fig:performance-cost-curves}
+\end{figure}
+Across most tasks, from Figure~\ref{fig:performance-cost-curves}, we observe a clear upward trend in the performance/cost score, indicating that the optimization process leads to both better solutions and more efficient use of tokens. This improvement reflects the ability of the system to identify more suitable agent organizations and reasoning pathways over time. In some cases, the score increases steadily throughout the process, suggesting a smooth convergence toward optimal or near-optimal multi-agent coordination strategies. In other cases, the score initially drops before rising again, which implies that the optimization process explores some less effective multi-agent configurations in early stages but is ultimately able to recover and identify improved structures through continued exploration. This pattern highlights the importance of allowing sufficient exploration in the early optimization phase.
+
+However, for a small subset of tasks, the score does not show a significant upward trend throughout the optimization. We consider two possible reasons for this. First, the number of optimization samples used in our current experiments is limited to 200, which may not be sufficient to fully explore the search space or discover high-quality MAS configurations, especially for tasks with more complex reasoning requirements. Second, the current hyperparameter settings, such as the maximum length of agent sequence allowed, may not be well-suited for tasks involving weaker base models. In such cases, achieving high performance may require larger MAS configurations or higher upper bounds on relevant parameters to allow for more extensive coordination and tool usage.
+
+These observations suggest that while our reward design provides strong guidance for optimizing agent behavior and token efficiency, further gains may be achieved by increasing the optimization budget or dynamically adapting hyperparameters based on task difficulty or model capability.
+
+\subsection{Emergent Patterns in MAS Behavior}
+To further illustrate the behavioral diversity and coordination capabilities of our multi-agent system (MAS), we present visualizations of several representative MAS trajectories guided by the puppeteer. As shown in the figure, these trajectories reveal a variety of emergent patterns, including both previously validated structures and novel organizational behaviors that arise from agent interactions.
+
+The visualizations in Figure~\ref{fig:mas_patterns} highlight how the policy organizes into distinct formations and adapt agents dynamically in response to high-level guidance. These patterns not only reflect the effectiveness of the puppeteer in orchestrating agent collaboration, but also demonstrate the capacity of the system to generalize and generate new behaviors beyond those explicitly encoded in the training process. Such structural emergence further underscores the interpretability and robustness of our MAS design.
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{subfigure}[b]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{figs/mas_cases/mas_cases_v1-1.pdf}
+        \caption{Chain-of-Thought}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{figs/mas_cases/mas_cases_v1-2.pdf}
+        \caption{Self-Reflective Reasoning Chain}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{figs/mas_cases/mas_cases_v1-3.pdf}
+        \caption{Reasoning then Termination}
+    \end{subfigure}
+    
+    \vspace{1em}
+    
+    \begin{subfigure}[b]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{figs/mas_cases/mas_cases_v1-4.pdf}
+        \caption{Two-Agent Communication}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{figs/mas_cases/mas_cases_v1-5.pdf}
+        \caption{Three-Agent Communication}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{figs/mas_cases/mas_cases_v1-6.pdf}
+        \caption{Four-Agent Communication}
+    \end{subfigure}
+
+    \vspace{1em}
+
+    \begin{subfigure}[b]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{figs/mas_cases/mas_cases_v1-7.pdf}
+        \caption{Convergent Pattern}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{figs/mas_cases/mas_cases_v1-8.pdf}
+        \caption{Divergent Pattern}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.32\textwidth}
+        \includegraphics[width=\textwidth]{figs/mas_cases/mas_cases_v1-9.pdf}
+        \caption{Complex Topology}
+    \end{subfigure}
+    \hfill
+
+    \caption{Examples of MAS behavior patterns under the puppeteer’s guidance.}
+    \label{fig:mas_patterns}
+\end{figure}
+
+
+
+\subsection{Generalization to Embodied Environments}
+While our main experiments focus on tasks such as reasoning, coding, and writing—which do not involve interaction with external environments—we further demonstrate the applicability of our framework to embodied tasks. These tasks require agents to interact with dynamic environments and perform sequences of actions based on real-time feedback, thus posing additional challenges in planning, reasoning, and decision-making.
+
+To showcase this capability, we employ ALFWorld~\cite{shridhar2021alfworldaligningtextembodied} as the testbed. ALFWorld integrates a simulated embodied environment with natural language interfaces, making it a suitable benchmark that bridges textual reasoning with embodied interaction. In this setting, we configure the agent chain with a maximum length of 50, as embodied tasks typically require multiple steps to complete. We also limit the number of exploration trajectories to 1, due to environment constraints: execution cannot be parallelized, and only one admissible action is allowed per step. This experiment is conducted under the mono setting, where all agents share the same model backbone (GPT-4o-mini). 
+
+To illustrate how our system operates in embodied settings, we provide a case study visualization using frames saved from the THOR environment (as shown in Figure~\ref{fig:embodied}). This example showcases the step-by-step execution of a single task by the agent chain. The successful application of our framework in this setting not only underscores its flexibility across diverse task types, but also demonstrates its extensibility to interactive environments, confirming its potential for integration into broader embodied agent systems that require real-time perception, planning, and execution.
+\begin{figure}[htbp]
+\centering
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000000.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000001.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000002.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000003.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000004.png}
+    \end{subfigure}
+
+  \vspace{1mm}
+
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000005.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000006.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000007.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000008.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000009.png}
+    \end{subfigure}
+
+\vspace{1mm}
+
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000010.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000011.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000012.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000013.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000014.png}
+    \end{subfigure}
+
+  \vspace{1mm}
+
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000015.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000016.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000017.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000018.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\linewidth]{figs/embodied/000000019.png}
+    \end{subfigure}
+\caption{The figures illustrate the implementation process of the task “look for the remote control under the floor lamp.”}
+\label{fig:embodied}
+\end{figure}
+\section{Agent Implementation Details}
+\subsection{Agent Configuration}
+We organize all agent actions into two categories: \textbf{Tool-use Agent}~\cite{qin2023toolllm, zhuang2024toolchain,schick2023toolformer} and \textbf{Reasoning Agent}~\cite{hao2023reasoninglanguagemodelplanning, qi2024mutualreasoningmakessmaller} as seen in Table \ref{agent_config}. For tool-use agents, their actions involve interacting with external environments, such as querying the web or invoking a code interpreter. In contrast, reasoning patterns reflect the internal cognitive processes of LLMs. Drawing inspiration from prior studies on human reasoning strategies~\cite{qi2024mutualreasoningmakessmaller, chen2024alphamathzeroprocesssupervision, kang2024mindstarenhancingmathreasoning, hao2023reasoninglanguagemodelplanning}, we revisit how humans approach complex reasoning tasks. In practice, individuals adopt diverse strategies: some decompose problems into sub-questions, others solve them directly, and some reframe the problem to emphasize critical constraints. More importantly, humans dynamically adapt their strategies based on the evolving context and problem state. Motivated by these observations, we accordingly design a set of specialized reasoning agents to emulate diverse human strategies. Each agent is equipped with a distinct cognitive role, contributing to a collaborative and adaptive reasoning process.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Agent Tool-Use and Reasoning Patterns}
+    \label{tab:tools_reasoning}
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Category} & \textbf{Name} \\
+        \midrule
+        \multirow{6}{*}{\textbf{Tool-Use}} 
+            & \texttt{read\_file} \\
+            & \texttt{search\_arxiv} \\
+            & \texttt{search\_bing} \\
+            & \texttt{access\_website} \\
+            & \texttt{run\_python} \\
+        \midrule
+        \multirow{8}{*}{\textbf{Reasoning Patterns}} 
+            & \texttt{reasoning} \\
+            & \texttt{critique} \\
+            & \texttt{reflect} \\
+            & \texttt{question} \\
+            & \texttt{summarize} \\
+            & \texttt{conclude} \\
+            & \texttt{modify} \\
+             & \texttt{planning} \\
+        \bottomrule
+    \end{tabular}
+    \label{agent_config}
+\end{table}
+
+\subsection{Agent Prompts}
+In a multi-agent system, to motivate each agent to act in the desired manner, we define its role through a role prompt and combine it with an action prompt to guide the agent in using tools or following specific reasoning patterns. As inllustrated in Fig \ref{figs:agent_roles_1} and Fig \ref{fig:agent_roles_2}, role-conditioned prompts specify the agent’s identity, domain expertise, and intended responsibilities, guiding the behavior of different agents. And we have designed a set of structured prompts to guide the behavior of our prompt-based agent system, which can be categorized into two major types: tool-augmented action prompts and reasoning-mode prompts. Each prompt specifies a well-defined agent action, accompanied by a template for language model invocation.
+
+\textbf{Tool-augmented action prompts} in Fig \ref{actions_1} are designed to determine the parameters required for invoking external tools through the agent’s environment interface. The goal of these prompts is not to execute the tool directly but to generate structured output that specifies the parameters for tool invocation. For example, such prompts may guide the generation of a search query (\eg a paper title or keyword) when retrieving academic papers from arXiv \(\texttt{search\_arxiv}\), or determine the URL to be accessed when invoking a web tool \(\texttt{access\_website}\). These prompts enable the agent to interface with external systems in a modular and verifiable way by generating the precise input needed to trigger tool execution.
+
+\textbf{Reasoning-patterns prompts} in Fig \ref{actions_2} and Fig \ref{actions_3} focus on internal cognitive processes, such as planning, reasoning, critique, reflection, or sub-question generation. These prompts do not rely on external tools but activate structured thinking patterns within the model, enabling complex problem-solving and decision-making through purely generative means.
+\begin{figure}[bp]
+    \centering
+    \caption{Tool-use Agent Role Prompts}
+    \begin{tcolorbox}[title={FileAgent}]
+        \textbf{FileAgent:} You are an expert in file handling. Responsible for reading files and extracting relevant information (\texttt{read\_file}).
+    \end{tcolorbox}
+    
+    \vspace{1em} % Adds some vertical space between the boxes
+    
+    \begin{tcolorbox}[title={ArxivAgent}]
+        \textbf{ArxivAgent:} You are an expert in academic research. Responsible for searching relevant papers on arXiv (\texttt{search\_arxiv}).
+    \end{tcolorbox}
+    
+    \vspace{1em}
+    
+    \begin{tcolorbox}[title={BingAgent}]
+        \textbf{BingAgent:} You are an expert in web search. Responsible for retrieving information via Bing (\texttt{search\_bing}).
+    \end{tcolorbox}
+    
+    \vspace{1em}
+    
+    \begin{tcolorbox}[title={WebsiteAgent}]
+        \textbf{WebsiteAgent:} You are an expert in accessing and parsing websites. Responsible for extracting data from specific URLs (\texttt{access\_website}).
+    \end{tcolorbox}
+    \begin{tcolorbox}[title={PythonAgent}]
+        \textbf{PythonAgent:} You are an expert in Python programming. Responsible for executing Python code and returning results (\texttt{run\_python}).
+    \end{tcolorbox}
+    
+\label{figs:agent_roles_1}
+    \end{figure}
+\begin{figure}[bp]
+    \centering
+    \caption{Reasoning Agent Role Prompts}
+    
+    \vspace{1em}
+    
+    \begin{tcolorbox}[title={PlannerAgent}]
+        \textbf{PlannerAgent:} You are an expert in task decomposition and planning. Responsible for generating structured plans to solve complex tasks (\texttt{planning}).
+    \end{tcolorbox}
+    
+    \vspace{1em}
+    
+    \begin{tcolorbox}[title={ReasoningAgent}]
+        \textbf{ReasoningAgent:} You are an expert in logical reasoning. Responsible for synthesizing solutions to sub-problems (\texttt{reasoning}).
+    \end{tcolorbox}
+    
+    \vspace{1em}
+    
+    \begin{tcolorbox}[title={CriticAgent}]
+        \textbf{CriticAgent:} You are an expert in critique and verification. Responsible for identifying flaws and providing feedback on prior reasoning (\texttt{critique}).
+    \end{tcolorbox}
+    
+    \vspace{1em}
+    
+    \begin{tcolorbox}[title={ReflectAgent}]
+        \textbf{ReflectAgent:} You are an expert in metacognitive reflection. Responsible for analyzing the overall reasoning trajectory and proposing improvements (\texttt{reflect}).
+    \end{tcolorbox}
+    
+    \vspace{1em}
+    
+    \begin{tcolorbox}[title={QuestionAgent}]
+        \textbf{QuestionAgent:} You are an expert in problem decomposition. Responsible for generating clarifying or follow-up sub-questions (\texttt{question}).
+    \end{tcolorbox}
+    
+    \vspace{1em}
+    
+    \begin{tcolorbox}[title={SummarizerAgent}]
+        \textbf{SummarizerAgent:} You are an expert in summarization. Responsible for generating concise summaries of intermediate results (\texttt{summarize}).
+    \end{tcolorbox}
+    
+    \vspace{1em}
+    
+    \begin{tcolorbox}[title={ConcluderAgent}]
+        \textbf{ConcluderAgent:} You are an expert in synthesis. Responsible for producing the final conclusions based on collective reasoning outcomes (\texttt{conclude}).
+    \end{tcolorbox}
+    
+    \vspace{1em}
+    
+    \begin{tcolorbox}[title={ModifierAgent}]
+        \textbf{ModifierAgent:} You are an expert in error analysis and correction. Responsible for identifying errors and revising prior outputs accordingly (\texttt{modify}).
+    \end{tcolorbox}
+
+    
+    \label{fig:agent_roles_2}
+\end{figure}
+
+
+\begin{figure*}[htbp]
+\centering
+\caption{Tool-use Prompts}
+
+\begin{tcolorbox}[title={search\_arxiv}]
+You have chosen to search for academic papers on arXiv. Please provide specific terms related to academic research, such as the title of a paper, keywords, or topics in fields like physics, mathematics, computer science, or machine learning. Return in json format. Example: \texttt{\{"action": "search\_arxiv", "parameter": "quantum computing"\}}
+\end{tcolorbox}
+
+\begin{tcolorbox}[title={search\_wiki}]
+You have chosen to search for information on Wikipedia. Please provide specific terms like a concept, name, event, or technical term for best results. Return in json format. Example: \texttt{\{"action": "search\_wiki", "parameter": "Albert Einstein"\}}
+\end{tcolorbox}
+
+\begin{tcolorbox}[title={search\_bing}]
+You have chosen to search for information using Bing. Please provide descriptive phrases or keywords related to your query, including concepts, names, events, or specific questions to get a broad range of results, including news, articles, and websites. Return in json format. Example: \texttt{\{"action": "search\_bing", "parameter": "latest advancements in AI"\}}
+\end{tcolorbox}
+
+\begin{tcolorbox}[title={access\_website}]
+You have chosen to access a website. Please provide the URL you want to access or the URL most relevant to the current question. Return in json format. Example: \texttt{\{"action": "access\_website", "parameter": "https://www.example.com"\}}
+\end{tcolorbox}
+
+\begin{tcolorbox}[title={run\_python}]
+You have chosen to write and run Python code. Please write generic Python code in the parameter to solve this type of problems using only standard python libraries. Make sure you use the \texttt{print} function for all output when relevant. Return in json format. Example: \texttt{\{"action": "run\_python", "parameter": "print('Hello, World!')"\}}
+\end{tcolorbox}
+
+\begin{tcolorbox}[title={read\_file}]
+You have chosen to read a file. Please provide the filename you want to read. Return in json format. Example: \texttt{\{"action": "read\_file", "parameter": "data.txt"\}}
+\end{tcolorbox}
+\label{actions_1}
+\end{figure*}
+
+\begin{figure*}[htbp]
+\centering
+\tcbset{adjusted title}
+\caption{Reasoning-pattern Prompts (Part 1)}
+\label{actions_2}
+\begin{tcolorbox}[title={planning}]
+Decompose the question and plan the next steps to address the question. You should complete your planning using the following template:
+
+\texttt{REASONING RESULT: [YOUR REASONING RESULT]. *Your previous reasoning was: \{\}.*}
+
+Your planning should include:
+\end{tcolorbox}
+
+\begin{tcolorbox}[title={reasoning}]
+Now, you need to continue the reasoning to get closer to the correct answer. You should finish your reasoning with the following template:
+
+\texttt{REASONING RESULT: [YOUR REASONING RESULT].}
+
+Finish your answer with:
+
+\texttt{FINAL ANSWER: [YOUR FINAL ANSWER]. *Your previous reasoning was: \{\}.*}
+
+You need to follow the direction of the reasoning path and go forward:
+\end{tcolorbox}
+
+\begin{tcolorbox}[title={critique}]
+You need to critique the previous reasoning. Complete your reasoning using:
+
+\texttt{REASONING RESULT: [YOUR REASONING RESULT].}
+
+Conclude with:
+
+\texttt{FINAL ANSWER: [YOUR FINAL ANSWER]. *Your previous reasoning was: \{\}.*}
+
+Consider the following when critiquing: 1. Plausibility:
+\end{tcolorbox}
+
+\begin{tcolorbox}[title={reflect}]
+You will be provided with a previous reasoning attempt where you had access to relevant context and were tasked with answering a question. The attempt was unsuccessful either due to an incorrect answer or a phrasing mismatch with the answer key.
+
+In a few sentences, diagnose the potential cause of failure or discrepancy, and outline a new, concise, high-level plan to prevent the same issue. Use complete sentences.
+
+Reflect on the current state of the task and propose the next steps.
+
+Conclude with:
+
+\texttt{REASONING RESULT: [YOUR REASONING RESULT].}
+
+\texttt{FINAL ANSWER: [YOUR FINAL ANSWER]. *Your previous reasoning was: \{\}.*}
+\end{tcolorbox}
+
+\begin{tcolorbox}[title={question}]
+Your task is to propose the next sub-question along with its answer. Ensure it logically follows from the previous reasoning and addresses any gaps.
+
+Provide a well-reasoned answer, supported by evidence or logical arguments.
+
+Conclude with:
+
+\texttt{REASONING RESULT: [YOUR REASONING RESULT].}
+
+\texttt{FINAL ANSWER: [YOUR FINAL ANSWER]. *Your previous reasoning was: \{\}.*}
+\end{tcolorbox}
+
+
+\end{figure*}
+\begin{figure*}[htbp]
+\centering
+\tcbset{adjusted title}
+\caption{Reasoning-pattern Prompts (Part 2)}
+\label{actions_3}
+
+\begin{tcolorbox}[title={summarize}]
+You need to summarize previous results and provide some intermediate conclusions.
+
+Finish your reasoning with:
+
+\texttt{REASONING RESULT: [YOUR REASONING RESULT].}
+
+Then:
+
+\texttt{FINAL ANSWER: [YOUR FINAL ANSWER]. *Your previous reasoning was: \{\}.*}
+
+Summarize the reasoning paths and provide a final conclusion.
+\end{tcolorbox}
+\begin{tcolorbox}[title={conclude}]
+You need to conclude the task and provide a final answer.
+
+Finish with:
+
+\texttt{REASONING RESULT: [YOUR REASONING RESULT].}
+
+Then:
+
+\texttt{FINAL ANSWER: [YOUR FINAL ANSWER]. *Your previous reasoning was: \{\}.*}
+\end{tcolorbox}
+
+\begin{tcolorbox}[title={modify}]
+You need to identify and correct errors in the previous reasoning.
+
+Use this template:
+
+\texttt{REASONING RESULT: [Clearly state: 1. Which part of the previous reasoning was incorrect 2. Why it was incorrect 3. What is the correct understanding].}
+
+Then:
+
+\texttt{FINAL ANSWER: [Provide the complete corrected answer]. *Your previous reasoning was: \{\}.*}
+
+Please explicitly point out and correct any errors, misconceptions, or inaccuracies.
+\end{tcolorbox}
+\end{figure*}
+\section{Computational Resources}
+\begin{table}[h]
+\centering
+\begin{tabular}{l c }
+\toprule
+\textbf{Resource} & \textbf{Specification}  \\
+\midrule
+GPU & NVIDIA A800, 8 GPUs used \\
+Peak GPU Memory Usage & 28.8--78.4 GB per GPU  \\
+Training Time & 2--6 hours  \\
+Variation Source & Benchmark differences and task complexity  \\
+\bottomrule
+\end{tabular}
+\caption{Computational resources used for orchestrator training.}
+\label{tab:compute}
+\end{table}
+The table (Table~\ref{tab:compute}) details the average computational resources used for orchestrator training. 
+It is important to note that accurately measuring training costs is non-trivial. Our orchestrator is trained online, with parameter updates interleaved with multi-agent inference, making it difficult to isolate GPU hours solely for training. Moreover, several baselines (e.g., AFlow) rely on LLM-based inference-time search to construct workflows, whereas our method uses online gradient-based optimization. Since these involve fundamentally different resource modalities, direct comparisons of computational cost are not appropriate.
+
+\section{Limitations}
+\label{limitations}
+Our work introduces a centralized mechanism, the Puppeteer, to organize and optimize multi-agent systems (MAS), progressively improving reasoning performance, and efficiency. However, several limitations remain. The Puppeteer’s optimization currently depends on coarse-grained rewards based only on final outputs and token usage, lacking informative intermediate feedback. Incorporating fine-grained supervision, such as step-level correctness, could enhance optimization efficiency. Moreover, the framework assumes a fixed set of agents and tools, limiting adaptability and responsiveness to task variations. Enabling dynamic agent or tool modification during inference would improve flexibility and robustness. Finally, occasional mis-coordination or deceptive agreement among agents suggests the need for more robust interaction protocols and incentive designs. Future efforts may focus on reward shaping and adaptive mechanisms to refine both orchestration and agent-level behaviors, allowing the Puppeteer to make more context-aware and efficient decisions.
+
+\clearpage
+\end{document}

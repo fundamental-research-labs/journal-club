@@ -1,0 +1,240 @@
+\clearpage
+
+\section{Configurations of the Experiments}
+\label{sec:appendix-quant-config}
+
+\paragraph{Datasets and Evaluation Metrics} Our evaluation assesses different aspects of agents, including general understanding and reasoning capabilities, coding capabilities and tool utilization capabilities.
+
+\begin{itemize}[noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt,leftmargin=2em]
+    \item \textbf{General Understanding Capabilities}: We utilize two datasets. The first one is a Dialogue response dataset, FED~\citep{DBLP:conf/sigdial/MehriE20}, where given a multi-round chat history, the agent or agent group is required to generate the next chat. Following previous work~\citep{DBLP:journals/corr/abs-2303-17651}, we utilize GPT-4 as the evaluator to score the agent-generated response against the human-written ones, and report the agent's win rate. The second dataset is Commongen-Challenge~\citep{DBLP:journals/corr/abs-2303-17651}, which is a constrained generation dataset where given 20 concepts, the agent is required to generate a coherent and grammatically correct paragraph containing as many concepts as possible. We report the average percentage of the covered concepts.
+
+    \item \textbf{General Reasoning Capabilities}: We utilize the English subset of MGSM~\citep{DBLP:conf/iclr/ShiSF0SVCTRZ0W23}, which is a subset of GSM-8k~\citep{DBLP:journals/corr/abs-2110-14168}, to evaluate the agents' mathematical reasoning capabilities. It is a dataset containing grade school math problems. We report the percentage of the correct answers. And we use the logic grid puzzles task from BigBench~\citep{DBLP:journals/corr/abs-2206-04615}, which contains logic problems that requires multi-step logic reasoning, to assess the agents' logical reasoning capabilities. We report the accuracy.
+
+    \item \textbf{Coding Capabilities}: We utilize Humaneval~\citep{DBLP:journals/corr/abs-2107-03374}, which is a code completion dataset, and report Pass@1 metric\footnote{The method for calculating Pass@1 differs from the approach in~\citet{DBLP:journals/corr/abs-2107-03374}. Instead of generating multiple responses and calculating an unbiased estimator, we directly employ the first response to compute the Pass@1.}
+
+    \item \textbf{Tool Utilization Capabilities}: Since automatic evaluation on the performance of tool utilization is difficult, and there is currently no relevant benchmark, we craft 10 complex instructions and manually assess the performance. The instructions are listed in~\cref{sec:appendix-tool-instruction}.
+\end{itemize}
+
+\paragraph{Expert Recruitment}
+For tasks including dialogue response, code completion, and constrained generation, four agents is recruited into the system. For the task of mathematical reasoning, we limited the number to two agents. This decision was based on our observation that an increase in the number of reviewers for mathematical reasoning tasks correlates with a higher likelihood of them giving erroneous critiques, leading to incorrect solutions by the solver. We have a discussion on this topic in~\cref{ssec:experiment-generation-abilities}. For tool utilization, we recruit two or three agents to engage in collaborative decision-making and action execution depending on the specific task. The detailed setups are listed at~\cref{sec:appendix-tool-instruction}. Currently the number of experts is pre-defined by us for each task. We are seeking a way to automate this decision as well.
+
+\paragraph{Collaborative Decision-Making}
+For tasks in coding and general understanding and reasoning, we use the vertical structure because all these tasks require only one response as the answer, and the solver in the vertical structure can be responsible for answering. For tool utilization, we use the horizontal structure because the agents should clarify their own sub-tasks in the discussion. 
+
+\paragraph{Action Execution}
+For the Humaneval code completion dataset benchmarked with GPT-4, we incorporate an additional agent during the action execution stage to craft unit testing code (in an zero-shot manner). Subsequently, the generated code is subjected to unit testing, and the testing results are conveyed as the environment state to the evaluation module.
+
+Regarding the constrained generation dataset, Commongen-Challenge, the agent-generated response undergoes a concept coverage check. Any missing concepts are then passed to the evaluation module as the environment state.
+
+In the context of tool utilization, each agent iteratively calls the tool in the ReAct manner, up to a maximum of 10 iterations. Upon reaching the final iteration, the agent is forced to draw a conclusion regarding the result, labeling the task's status as either "pending" or "finished". These conclusions are then forwarded to the evaluator for assessment.
+
+\paragraph{Evaluation}
+To facilitate a feedback loop, an agent was tasked with the role of evaluator. This agent, provided with the initial problem $p$ and the decisions $A$ made during the collaborative decision-making stage, is charged with determining the correctness of those decisions. In cases where the decision is identified as erroneous, feedback is channeled back to the expert recruitment stage. If the decision meets the accuracy criteria, it is determined as the final answer to $p$. While our current configuration employs an agent for evaluation, we acknowledge the potential of human evaluators and intend to incorporate such experiments in future endeavors.
+
+
+\section{Experiment Details for Multi-Agent Tool Using}
+\label{sec:appendix-tool-instruction}
+\subsection{Setups}
+This section provides specific implementation details for enabling multiple agents in \framework to collaboratively utilize tools to accomplish user's query. Unless specified herein, the implementation adheres to the standard procedures defined in the other experiments.
+
+\paragraph{Collaborative Decision-Making}
+Agents recruited during the Expert Recruitment stage engage in collaborative discussions regarding the assigned task using a horizontal communication structure. In this configuration, agents communicate in a predetermined sequential order. At the conclusion of their discussions, an additional agent is designated as the "summarizer" and is responsible for consolidating the discussed sub-tasks for each participant.
+
+\paragraph{Action Execution}
+During action execution, we follow the ReAct prompting technique to let the agents write down their thought, and then call the tool, and we return the tool response to the agent. The agent again write down the thought and call the tools. The process iterates until the agent decide to submit its conclusion, or a maximum iteration number, which we set to be 10, is reached. In practice, we use OpenAI's function call to handle the tools.
+
+\subsection{Results}
+For action execution, the ReAct prompting technique is employed. Agents articulate their thought process, invoke the respective tool, and subsequently receive feedback from the tool. This cycle of reflection and tool interaction continues iteratively. The process concludes either when the agent finalizes its execution with its conclusion or after a pre-set maximum number of iterations—set (10 in our experiments). We utilize OpenAI's function call to handle the tool calls.
+
+\paragraph{Instruction 1} Recently, it has become popular in the AI field to verify the mathematical reasoning abilities of large language models by observing if they can solve the "24-Point Game." What is this game? Does it have a code-based solution? If it does, provide a Python code along with test cases and test its functionality. What are some other similar games that can be used to test the models' mathematical reasoning abilities?
+
+{\color{blue} Single ReAct Agent}: (The generated code is omitted) The '24-Point Game' is a mathematical game where four numbers must be used with the basic arithmetic operations (addition, subtraction, multiplication, and division) to make the number 24. The Python code I developed generates all possible combinations of the four numbers and operations to find a solution that equals 24. The code was tested with different sets of numbers, and it correctly identified whether a solution existed and what it was. This task tested my ability to understand the rules of a game and to develop and test a program that solves it. ({\color{teal} game rule \cmark}, {\color{teal} code \cmark}, {\color{red} similar games \xmark})
+
+{\color{magenta} \framework (2 agents)}: (The generated code is omitted) The "24-Point Game" is a mathematical game where four numbers must be used with the basic arithmetic operations (addition, subtraction, multiplication, and division) to make the number 24. A Python code was developed and tested that generates all possible combinations of the four numbers and operations to find a solution that equals 24. The code was tested with different sets of numbers, and it correctly identified whether a solution existed and what it was. Similar games to the '24-Point Game' that can be used to test mathematical reasoning abilities include 'Make a Number' and 'Math Safe'. 'Make a Number' is a game where players are given 4 numbers and 4 operations and they have to use these to create a target number. 'Math Safe' is a game where players use four given single-digit numbers and any of the four operations to reach a target number and open a safe. Both these games require the use of operations and logical thinking to reach a target number, similar to the '24-Point Game'. ({\color{teal} game rule \cmark}, {\color{teal} code \cmark}, {\color{teal} similar games \cmark})
+    
+\paragraph{Instruction 2 (Additional API: Weather)} I want to hold a party at somewhere around Tsinghua University tomorrow. I need you to look for some best places for holding a party nearby, and tell me whether the weather is good for holding a party tomorrow. Also, I want to know what activities can be considered in my party. Help me search the web.
+
+{\color{blue} Single ReAct Agent}: There are several restaurants near Tsinghua University that could be good places for a party, including Lan Yang ShuFang, YiLan ShaoKao, Guan Shi JiChi, Dong Lai Shun, and Xibu Mahua Beef Noodle. The weather in Beijing tomorrow is expected to be overcast with a temperature of 26 degrees Celsius, which might be suitable for a party. Some activities that can be considered for the party include the Saran Wrap Game, Post It Note Game, Most Likely To, Never Have I Ever, Would You Rather, and many more. ({\color{teal} \cmark})
+
+{\color{magenta} \framework (3 agents)}: The weather in the Tsinghua University area tomorrow is expected to be overcast with a temperature of 26 degrees Celsius, which is suitable for holding a party. The best places for a party near Tsinghua University include the Summer Palace, Wudaokou, Zhongguancun, and Peking University, as well as several restaurants nearby. For party activities, you could consider games such as the Saran Wrap Game, the Post It Note Game, How's Yours?, Most Likely To, Never Have I Ever, Would You Rather?, Heads Up!, I'm Hosting a Party..., Two Truths and a Lie, Sticker Stalker, Great Minds Think Alike, murder mystery games, Who Am I?, the Newlywed Game, Truth or Dare, Spoons, Pictionary, Kiss Marry Kill, the Don't Say Yes game, Cards Against Humanity, What Do You Meme, Drawing Without Dignity, and That's What She Said. These games are suitable for various party occasions and there are also suggestions for icebreakers for guests who don't know each other well. ({\color{teal} \cmark provide more details})
+
+\paragraph{Instruction 3 (Additional API: Billboard)} I'm currently analyzing what is popular on the website. Can you help me find the recent trending stuff. It could be anything, like trending news, products, books, movies, music, etc. Give a summarization for me.
+
+{\color{blue} Single ReAct Agent}: The recent trending products on the web include Apple AirPods Pro, Diamond Dazzle Cleaner Pen, Ugg Slippers, Squishmallows, Winix Air Purifier, ThisWorx Car Vacuum Cleaner, All-Clad Cookware, Eufy Robot Vacuum, Renpho Eye Massager, Crocs, Throw blankets, Chuckit! Sport Dog Ball Launcher, Apple AirTags, Revlon Hair Dryer Brush, Lego Sets, KitchenAid Stand Mixer, Winc Wine Subscription, Saatva Mattress, Home Chef Subscription, and MasterClass Subscription. Unfortunately, we were unable to find specific information on recent trending books. ({\color{teal} trending product \cmark})
+
+{\color{magenta} \framework (3 agents)}: Here is a summary of the trending topics on the website:
+
+Music:
+\begin{enumerate}[noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt,leftmargin=2em]
+    \item 'Heat Waves' by Glass Animals
+    \item 'We Don't Talk About Bruno' by Carolina Gaitan, Mauro Castillo, Adassa, Rhenzy Feliz, Diane Guerrero, Stephanie Beatriz \& Encanto Cast
+    \item 'Super Gremlin' by Kodak Black
+    \item 'Slime You Out' by Drake Featuring SZA
+    \item 'Paint The Town Red' by Doja Cat
+    \item 'Snooze' by SZA
+\end{enumerate}
+
+Movies:
+\begin{enumerate}[noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt,leftmargin=2em]
+    \item 'No One Will Save You'
+    \item 'A Haunting in Venice'
+    \item 'Expend4bles'
+\end{enumerate}
+
+Books:
+\begin{enumerate}[noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt,leftmargin=2em]
+    \item 'The Midnight Library'
+    \item 'The Invisible Life of Addie LaRue'
+    \item 'The Seven Husbands of Evelyn Hugo'
+\end{enumerate}
+
+Products:
+\begin{enumerate}[noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt,leftmargin=2em]
+    \item Laser hair removal
+    \item Head scarfs
+    \item Detangling hair brushes
+    \item Hair wigs
+    \item Straight-leg jeans
+    \item Shapewear
+    \item Athleisure
+    \item Abdominal crunch straps
+    \item Swimsuits
+    \item  Power tool accessories
+    \item  Dog toys
+    \item  Shot glasses
+    \item  Costume shoes
+    \item  Slipcovers
+    \item  Wall plates and covers
+    \item  Baby shirts
+    \item  Curtain and drape rings
+    \item  Cabinet knobs and handles
+    \item  Watch accessories
+    \item  Tumblers
+    \item  Model train sets
+    \item  Signage
+    \item  Wedding dresses
+    \item  Table runners
+\end{enumerate}
+
+Please note that the popularity of these items can vary based on the region and demographic of the consumers. ({\color{teal} music \cmark}, {\color{teal} movie \cmark}, {\color{teal} books \cmark}, {\color{teal} products \cmark})
+
+\paragraph{Instruction 4} I'm planning a two-week vacation to Japan next month. Help me plan my itinerary. I want to visit Tokyo, Kyoto, and Osaka. Look for the top tourist attractions in each city, and also suggest the best mode of travel between these cities. Additionally, find out the weather forecast for the month I'll be visiting.
+
+{\color{blue} Single ReAct Agent}: The top tourist attractions in Tokyo are the Tokyo Skytree, Senso-ji Temple, Meiji Shrine, Tokyo Disneyland, Ueno Park, and Odaiba. In Kyoto, the top attractions are Nijo Castle, Fushimi-Inari Taisha Shrine, Kinkaku-ji: The Golden Pavilion, Kiyomizu-dera Temple, Sanjūsangen-dō Temple, and Kyoto Imperial Palace. In Osaka, tourists can visit Osaka Castle, Shitennō-ji Temple, Osaka Aquarium Kaiyukan, Tempozan Ferris Wheel and Harbor Village, and Universal Studios Japan. These attractions offer a mix of historical, cultural, and modern experiences for visitors. ({\color{teal} tourist attractions \cmark}, {\color{red} best mode of travel between cities \xmark}, {\color{red} weather forecast \xmark})
+
+{\color{magenta} \framework (3 agents)}: Your two-week vacation to Japan is shaping up to be quite exciting. In Tokyo, you can visit the Tokyo Skytree, Senso-ji Temple, Meiji Shrine, Tokyo Disneyland and DisneySea, and the Odaiba area. In Kyoto, the top attractions are Nijo Castle, Fushimi-Inari Taisha Shrine, Kinkaku-ji (Golden Pavilion), Kiyomizu-dera Temple, and Sanjūsangen-dō Temple. While in Osaka, you should visit Osaka Castle, Shitennō-ji Temple, Osaka Aquarium Kaiyukan, and Universal Studios Japan.
+
+As for transportation, the best way to travel between these cities is by train, specifically the Shinkansen bullet train. You can also consider flights with ANA or JAL, or if you're on a budget, the night bus or LCC flights by Jetstar and Peach.
+
+Regarding the weather, it's difficult to provide an exact forecast for the next month, but we've gathered the average weather data for these cities based on previous years. Please remember to check the weather forecast closer to your departure date for a more accurate prediction. Enjoy your trip! ({\color{teal} tourist attractions \cmark}, {\color{teal} best mode of travel between cities \cmark}, {\color{teal} weather forecast \cmark})
+
+\paragraph{Instruction 5} I am planning a date with my girlfriend this week, please search for a good movie theater and a restaurant near Tsinghua University in Beijing and recommend a good movie to watch. Please search the web.
+
+{\color{blue} Single ReAct Agent}: Your date near Tsinghua University in Beijing is all set. For dining, you can choose from Lan Yang ShuFang, YiLan ShaoKao, Guan Shi JiChi (Zhongguancun), or Dong Lai Shun (Zhongguancun HaiTu). As for the movie, there are several highly-rated ones showing in 2023. Some of these include M3GAN, Plane, Missing, Infinity Pool, John Wick: Chapter 4, Creed III, Scream VI, Air, Suzume, Rise, Are You There God? It’s Me, Margaret, Showing Up, and The Covenant. Enjoy your date! ({\color{teal} restaurant \cmark}, {\color{teal} movie \cmark}, {\color{red} theater \xmark})
+
+{\color{magenta} \framework (3 agents)}: Your date is all set! For dining, we recommend either Jiasuo Restaurant or Zijingyuan, both located conveniently on the Tsinghua University campus. For your movie, we suggest 'No Bears', which is currently popular and highly rated. You can watch it at the Maple Garden Drive-In Cinema, one of the top-rated movie theaters near Tsinghua University. Enjoy your date! ({\color{teal} restaurant \cmark}, {\color{teal} movie \cmark}, {\color{teal} theater \cmark})
+
+
+\paragraph{Instruction 6} I want to kick off a book club with my friends. Can you tell me the top 5 bestselling books this month, gather the content summary for each, and find online platforms where we can buy or borrow them?
+
+{\color{blue} Single ReAct Agent}: I was unable to find the top 5 bestselling books for October 2023. The websites I visited did not provide the required information. Therefore, I am unable to provide the content summary for each of the top 5 bestselling books and find online platforms where they can be bought or borrowed. ({\color{red} \xmark})
+
+{\color{magenta} \framework (2 agents)}:The top 5 bestsellers this month can be bought or borrowed from several online platforms. These include OverDrive, which allows you to borrow books for free through your local library or school. Other platforms include the Amazon Kindle Store, Barnes \& Noble's Nook Book Store, Fictionwise, eBooks.com, eReader.com, Google Play Book Store, Powell's Books, as well as eBook lending and borrowing services like eBookFling, Lendle, and BookLending.com. ({\color{teal} online platforms \cmark}, {\color{red} top 5 bestselling books \xmark}, {\color{red} content summary \xmark})
+
+\paragraph{Instruction 7} I am planning to buy a new car. Could you help me compare the features and prices of the latest models of Tesla, Ford, and Toyota? Include details about range, charging time, safety features, and after-sales service. Also, provide a brief analysis of the pros and cons of each car.
+
+{\color{blue} Single ReAct Agent}: The 2023 Tesla Model 3 starts at \$41,880 and goes up to \$54,880. It comes with standard features such as heated front seats, navigation, and Tesla's Autopilot semi-autonomous driving system. In terms of safety features, the Model 3 includes standard automated emergency braking, lane-departure warning, and adaptive cruise control. Tesla's after-sales service is characterized by a vertically integrated format that eliminates third-party intermediaries and relies on over-the-air (OTA) update capabilities and a mobile service fleet. The company's OTA update capabilities will open up new subscription-based aftersales revenue streams, while its closed-loop system allows access to vehicle data for driving-related feedback loops and predictive maintenance. ({\color{teal} Tesla \cmark}, {\color{red} Other brands \xmark})
+
+{\color{magenta} \framework (3 agents)}: The starting price for the 2023 Ford Mustang Mach-E is around \$43,895 and it takes approximately 38 hours to fully charge using a 120V outlet, 14 hours using a 240V outlet, and around 45 minutes to 80\% capacity with DC fast charging. The starting price for the 2023 Toyota bZ4X is approximately \$42,000. The charging time varies depending on the method: 52 hours for Level 1 charging, 26 hours or 18.75 hours for Level 2 charging, and 30-45 minutes to 80\% capacity for Level 3 DC fast charging. Unfortunately, the price for the 2023 Tesla Model 3 was not found, but the charging time can be as quick as 15 minutes with a 250 kW Tesla Supercharger. At home, using a standard 120-volt outlet takes around three to four days for a full charge, while a 240-volt outlet with a NEMA 14-50 adapter reduces charging time to 10 or 11 hours. A Tesla Wall Connector can fully charge the car in about five hours.
+
+In terms of safety, all three models come equipped with a variety of features such as anti-lock brakes, stability control, front-impact airbags, side impact airbags, overhead airbags, knee airbags, pretensioners, and a security system. The Tesla Model 3 also includes autopilot and collision warning features.
+
+Regarding after-sales service, Tesla offers a comprehensive warranty and roadside assistance with service centers across the globe and mobile service. Toyota's after-sales service is known for being top-notch and continually improving with expert technicians and quality genuine parts. However, Ford's after-sales service has received negative reviews, with customers reporting poor customer support and inefficient handling of issues.
+
+Please consider these factors when making your decision. ({\color{teal} Prices \cmark}, {\color{teal} charging time}, {\color{teal} safety features}, {\color{teal} after-sales service})
+
+\paragraph{Instruction 8} I've recently taken an interest in DIY home projects. Search for beginner-friendly DIY projects that can be completed over the weekend. Also, provide a list of materials required and a step-by-step guide for each project.
+
+{\color{blue} Single ReAct Agent}: I found a variety of beginner-friendly DIY home projects from three different websites. These projects include painting a room, replacing cabinet pulls, repairing torn window screens, fixing interior doors, balancing furnace dampers, repairing leaky faucets, refreshing caulk in the bathroom, building garage storage shelves, constructing a fire pit, hanging a ceiling fan, installing a wall-mounted television, and cleaning out sink traps. These projects are suitable for beginners and can help improve DIY skills while boosting confidence. ({\color{teal} DIY projects \cmark}, {\color{red} list of materials \xmark})
+
+{\color{magenta} \framework (2 agents)}: The team has successfully found a variety of beginner-friendly DIY home projects that can be completed over the weekend. These projects range from painting a room, replacing cabinet pulls, installing a wall-mounted television, building a fire pit, to more complex tasks like kitchen remodels and furniture updates. The materials required for these projects are basic and easy to source, including tools like a roller and pan for painting, a cordless drill for replacing cabinet pulls, a stud finder for installing a wall-mounted television, and concrete work tools for building a fire pit. Detailed, step-by-step guides for each project have been provided to ensure a smooth DIY experience. Happy DIY-ing! ({\color{teal} DIY projects \cmark}, {\color{teal} list of materials \cmark})
+
+\paragraph{Instruction 9} Winter is coming, and I want to update my wardrobe. Search for the latest winter fashion trends for men and women. Also, suggest some online stores where I can buy trendy winter clothing.
+
+{\color{blue} Single ReAct Agent}: The latest winter fashion trends for both men and women this year include suiting, bold shoulders, western touches, maxis, electric hues, bombers, mismatched maximalism, corseting, cut-outs, Y2K fashion, and chunky boots. You can purchase these trendy winter clothes at online stores like PrettyLittleThing and Windsor. ({\color{teal} fashion trends \cmark}, {\color{teal} online stores \cmark})
+
+{\color{magenta} \framework (3 agents)}: The latest winter fashion trends for men include a reinvention of classic staples, misery chic, pops of pink, throwback jackets, showstopping trousers, and Mac coats. For women, the trends include corseting, cowboy boots, Y2K styles, oversized outerwear, pleated skirts, and balaclavas. You can shop for these trendy winter clothes at popular online stores such as Uniqlo, Everlane, and Target. ({\color{teal} fashion trends \cmark}, {\color{teal} online stores \cmark})
+
+\paragraph{Instruction 10} I want to lose 5kg in the next 2 months. I weigh 70kg, am 170cm tall, and my age is 25. Calculate my BMI and based on that, suggest a workout routine and daily calorie intake to help me achieve my goal.
+
+{\color{blue} Single ReAct Agent}: Your BMI is 24.22, which is within the normal range. To lose 5kg in 2 months, you should aim for a daily calorie deficit of 500-1000 calories. This can be achieved through a combination of a balanced diet and regular exercise. Your diet should focus on whole foods, lean proteins, fruits, and vegetables. For exercise, a combination of cardio and strength training is recommended. Cardio exercises like running, cycling, swimming can help burn calories, while strength training exercises like weight lifting can help build muscle, which can increase your metabolic rate and aid in weight loss. Don't forget to get enough sleep and stay hydrated. ({\color{teal} bmi \cmark}, {\color{teal} workout routine \cmark}, {\color{teal} daily calorie intake \cmark})
+
+{\color{magenta} \framework (2 agents)}: Your Body Mass Index (BMI) is approximately 24.22, which is within the healthy weight range. To achieve your weight loss goal, you should aim to consume between 1400 and 1600 calories per day. This will create a calorie deficit necessary for weight loss. In terms of physical activity, you should start with a 4-week program that includes upper and lower body strength training, interval training/conditioning, and low intensity cardio exercises. After completing this, transition to a 12-week program that includes cardio, strength training, and flexibility workouts. Each workout should take approximately 20-22 minutes. Remember to maintain healthy habits such as eating a nutritious diet, staying hydrated, getting enough sleep, and managing stress. ({\color{teal} bmi \cmark}, {\color{teal} workout routine \cmark}, {\color{teal} daily calorie intake \cmark})
+
+\section{Details of the Experiments on Minecraft}
+\label{sec:appendix-minecraft-details}
+In this section, we explain some implementation details of the experiments that we conduct on Minecraft (\cref{ssec:emerging_behaviors}). 
+\paragraph{Expert Recruitment}
+As noted in \cref{ssec:emerging_behaviors}, real-world gaming scenarios requires intricate communication and coordination across multiple rounds, there is often a consistent set of team members. Therefore when using \framework to simulate the game playing, we bypass the automated expert recruitment stage, and manually assign each agent as \textit{"an experienced Minecraft player"}.
+
+\paragraph{Collaborative Decision-Making}
+For multi-player gameplay, the horizontal communication paradigm is favored. It lends itself to an environment where each agent independently formulates plans, diverging from traditional benchmark tasks which demand a singular solution. Agents are set to communicate in a predetermined sequential order, continuing until consensus is perceived. We let the agent to append a special token "[END]" at the end of its response if it finds that the group have reached consensus on the task assignment.
+
+Subsequent to achieving consensus, an auxiliary agent is tasked to deduce the specific assignment for each agent from the entire communication record. This distilled information is then given as the input to the Voyager agent to inform it the assigned task.
+
+\paragraph{Action Execution}
+We instantiate several Voyager agents within a shared Minecraft environment. A brief introduction of the Voyager agent is provided here, and we refer the interested readers to~\citet{DBLP:journals/corr/abs-2305-16291} for a more detailed exposition.
+
+A Voyager agent is adept at navigating Minecraft. On receiving a task, it first decomposes it into a set of manageable sub-tasks. For instance, if assigned the task "Kill 3 cows", the agent might decompose it into sequential sub-goals like: [punch 2 trees, Craft 4 wooden planks, Craft 1 stick, Craft 1 crafting table, Craft 1 wooden sword, Kill 3 cows]. The agent then sequentially attempt to complete each sub-task.
+
+We employ the checkpoint available in the official repository\footnote{\url{https://github.com/MineDojo/Voyager/tree/main/skill_library/trial1/skill}}, and use \texttt{GPT-4-0314} as the backbone LLM for Voyager agent to be consistent with~\citet{DBLP:journals/corr/abs-2305-16291}. Once an agent accomplish its own task, or all agents hit the cap of five attempts, the task execution stage terminates and evaluation stage starts.
+
+\paragraph{Evaluation}
+We directly exploit the inventory and the completed or failed sub-tasks of each agent as the feedback.
+
+\section{Prompts}
+\label{sec:appendix-prompts}
+We list the prompts used in~\cref{sec:experiments} at~\cref{fig:prompt-dialogue,fig:prompt-math,fig:prompt-coding,fig:prompt-generation,fig:prompt-tool}.
+\begin{itemize}
+    \item \textbf{FED}: \cref{fig:prompt-dialogue}
+    \item \textbf{MGSM}: \cref{fig:prompt-math}
+    \item \textbf{Humaneval}: \cref{fig:prompt-coding}
+    \item \textbf{Commongen-Challenge}: \cref{fig:prompt-generation}
+    \item \textbf{Tool}: \cref{fig:prompt-tool}
+\end{itemize}
+
+\input{sections/future_work}
+
+\input{figs/codes/dialogue-prompt}
+\input{figs/codes/math-prompt}
+\input{figs/codes/coding-prompt}
+\input{figs/codes/generation-prompt}
+\input{figs/codes/tool-prompt}
+
+\section{Examples of the Case Studies}
+\label{sec:appendix-examples}
+
+In this section, we delve into specific examples to illustrate the experimental processes discussed in our paper. For each instance, we juxtapose the single-agent approach with the multi-agent method. Specifically:
+\begin{itemize}
+    \item \textbf{Software Development}: \cref{fig:process-software} depicts the process for developing a calculator. \cref{fig:calculator-code-single,fig:calculator-code-multi} show the code generated by single agent and multi-agent group respectively.
+    \item \textbf{Consulting in Horizontal Structure}: For consulting, we present single-agent and multi-agent approaches using horizontal structure. These can be seen in \cref{fig:process-consulting-horizontal,fig:process-consulting-horizontal-single}.
+    \item \textbf{Consulting in Vertical Structure} Similarly, \cref{fig:process-consulting-vertical,fig:process-consulting-vertical-single} showcase single-agent and multi-agent project consulting, but employing a vertical structure structure for multi-agent.
+    \item \textbf{Tool Utilization}: \cref{fig:process-tool-full} presents how two agents effectively decompose the given query into different sub-tasks, and use different tools to collaboratively resolve the query.
+    \item \textbf{Minecraft}: Lastly, \cref{fig:process-minecraft-1} provides an insight into a process where three agents collaborate to craft a bookshelf in Minecraft.
+\end{itemize}
+
+
+
+
+\input{figs/codes/process-software}
+\input{figs/codes/calculator-code-single}
+\input{figs/codes/calculator-code-multiple}
+\input{figs/codes/process-brainstroming}
+\input{figs/codes/process-brainstorm-single}
+\input{figs/codes/process-consulting}
+\input{figs/codes/process-consulting-single}
+\input{figs/codes/process-tool-full}
+\input{figs/codes/process-minecraft-1}
+
+
+

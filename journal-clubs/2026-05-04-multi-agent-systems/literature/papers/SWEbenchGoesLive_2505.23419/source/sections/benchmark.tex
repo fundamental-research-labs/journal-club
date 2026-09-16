@@ -1,0 +1,227 @@
+\section{\benchmark}
+\label{sec:method}
+
+Targeting the issue resolution task on real-world GitHub repositories, SWE-bench serves as a practical proxy for evaluating the coding capabilities of LLM-based systems. The issue resolving task is defined as follows: given a code repository and an associated issue, an approach (e.g., LLM agent) is required to generate a patch that resolves the issue and passes the test cases (see Appendix~\ref{sec:preliminary} for details). 
+
+While \benchmark{} adopts the same task definition as SWE-bench, it introduces a \emph{novel, fully automated pipeline} that enables scalable and continuously updatable benchmark construction. This automation allows for a larger number of up-to-date instances and broader repository coverage. The initial release of \benchmark consists of \textit{1,319} task instances created between January 2024 and April 2025, spanning \textit{93} real-world repositories. 
+
+\paragraph{Pipeline Overview.} As shown in Figure~\ref{fig:overview}, the construction of \benchmark{} follows a three-stage pipeline. First, starting from popular repositories, we identify GitHub issues that are resolved by a pull request (PR). Next, we apply the proposed \method{}—an agentic approach that automatically sets up an Docker-based execution environment for each candidate instance. Finally, we perform multiple rounds of test execution for each instance to validate whether it consistently exhibits the expected issue-resolving testing behavior, and finalize the valid instances.
+
+Thanks to its fully automated pipeline, \benchmark{} can be maintained with minimal--ideally zero--manual effort. We plan to update \benchmark{} on a monthly basis, continually providing the community with an up-to-date evaluation dataset. This enables contamination-free, rigorous assessment of AI systems’ issue-resolving capabilities in a constantly evolving real-world setting.
+
+
+\subsection{Raw Issue–PR Crawling}
+\label{sec:crawling}
+
+The first phase of the \benchmark pipeline involves collecting real-world issue–pull request (PR) pairs from popular open-source GitHub repositories.
+
+\paragraph{Repository Selection.}
+We focus on Python repositories for the initial release of \benchmark, aligning with SWE-bench and other prior benchmarks due to its popularity. The selection process includes three filtering stages:
+\textit{(i)} We first queried GitHub API for repositories with over 1,000 stars and Python set as the primary language. This initial query yielded 8,577 repositories as of April 2025.
+\textit{(ii)} We then refined this set by requiring each repository to have more than 200 issues and pull requests, over 200 forks, and at least 60\% of its codebase written in Python. This reduced the pool to 3,316 repositories.
+\textit{(iii)} Finally, to comply with licensing requirements, we retained only repositories containing a valid open-source license, resulting in a final selection of 2,609 repositories.
+
+\paragraph{Issue–PR Pair Extraction.}
+From the selected repositories, we adopt the collection script from SWE-bench to extract issue and its associated PR. Meanwhile, the pull request must modify the repository’s test suite--i.e., a ``test patch'', which will serve as the evaluation targets. We also incorporate improvements from SWE-Fixer~\cite{xie2025swe}, which introduces more robust heuristics to improve the effectiveness of issue–PR pair identification and reduce reliance on the brittle string-matching method. 
+% In SWE-bench-Live, we aim to include the most recent issues to reduce the risk of data leakage. Therefore, we restrict our collection to issues created after January 2024 in the initial release.
+To reduce the risk of data leakage, SWE-bench-Live prioritizes recency by including only issues created after January 2024 in our initial release.
+
+\subsection{\method: Automated Execution Environment Setup} %: Automated Execution Environment Setup
+
+The ``raw'' issue–PR pairs remain at the textual and plain code level. To support subsequent test-based evaluation, it is required to provide an \textit{execution environment} capable of running tests locally and producing execution feedback. In the context of issue-resolving benchmarks, the execution environment is critical for test-based evaluation.
+
+However, preparing such execution environments is widely recognized as the \textbf{most labour-intensive step} in constructing issue-resolving datasets. In prior work, including SWE-bench \cite{swebench} and SWE-Gym \cite{swegym}, environment setup has been performed entirely by humans. For example, SWE-Gym reports that building execution environments required over 200 hours of manual effort, underscoring a significant scalability bottleneck. Notably, even repository-level environments are insufficient: different commits within the same repository may depend on different libraries or configurations, necessitating environment construction at the \textit{snapshot} level. SWE-bench partially mitigates this by building environments per version tag, but the granularity remains coarse and relies on manual labor.
+
+To address this bottleneck, we introduce an agent-based framework \method, which automatically creates a fully functional execution environment for each issue instance. For any given \textit{repository snapshot}, \method produces a Docker container that installs all required dependencies, builds the project, and validates its test suite. This containerized instance serves as the foundation for running and evaluating model-generated patches.
+
+\paragraph{Repository Snapshots and Environment Definition.}  
+A repository snapshot corresponds to the codebase at the base commit associated with an issue. The goal is to recreate an environment faithful to that moment in time. We define a valid execution environment as a Docker container where \textit{(i)} the codebase is correctly installed from source, and \textit{(ii)} the repository's test suite passes with zero or tolerable failures. This environment is essential for test-based evaluation, providing the ground truth mechanism to verify whether the issue has been resolved.
+
+\method{} follows an LLM-driven, agentic workflow \cite{zhang2024large, zhang2025api} inspired by how human developers set up unfamiliar projects, as shown in Figure~\ref{fig:overview}. The process proceeds in five steps:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Relevant Files Identification.} The first step is to identify relevant files in the repository--such as CI/CD pipelines and README files that are likely to contain useful information for setting up the environment (a detailed list is provided in the Appendix~\ref{appdix:launchprompt}).
+    
+    \item \textbf{Base Image Selection.} Given the full content of the relevant files, this step is to select a suitable base Docker image based on the information provided in the repository. This involves correctly identifying the programming language and SDK version used in the repository (e.g., \texttt{python:3.11}). A container is instantiated from the chosen image, and a persistent bash session is launched.
+    
+    \item \textbf{Interactive Environment Setup.} The setup process is carried out by an agent whose goal is to successfully execute and pass all test cases in the repository’s test suite within the container. The agent interacts with the bash session by issuing commands and receiving feedback such as exit codes and outputs. It follows the ReAct design \cite{yao2023react}, iterating over \textit{Thought} → \textit{Action} → \textit{Observation} \cite{zhang2024ufo, zhang2025ufo2}, mimicking a developer's reasoning and trial process. The agent can also search the web or query the issue tracker for troubleshooting.
+    
+    \item \textbf{Verification.} Once the setup agent determines that the environment has reached a satisfactory state or a step limit is reached, control is transferred to a verifying agent. The agent attempts to generate the appropriate test command and execute it. The execution results are evaluated with the agent to check if all test cases passed. If test failures occur, the results are fed back to the setup agent for further refinement. If all tests pass, the environment is considered valid.
+    
+    \item \textbf{Finalization.} Upon successful validation, the container is committed as a Docker image, producing a instance-level execution environment for reuse.
+\end{itemize}
+
+\paragraph{Challenges of Version Incompatibility.}  
+A major challenge when setting up out-of-date repositories is the ``dependency version drift'' issue. When dependencies are not pinned to specific versions, tools like \texttt{pip} by default will resolve to the latest package versions, which often introduce backward-incompatible issues and make the environment setup fail.  To address this, we implement an \textit{time-machine} mechanism by forcing the package installation tool to only look at valid versions released no later than the current base commit timestamp. Specifically, we modified the \texttt{pip} default index server to a proxy which fetches those valid package versions. This simple but effective strategy prevents the ``future'' version incompatibilities and significantly improves setup success rates.
+
+We will open-source \method to benefit the community. While designed for automated benchmark construction, \method can also assist developers in quickly setting up environments for unfamiliar codebases. Its ability to replicate historical setups and automatically resolve environment dependencies positions it as a practical tool with broader applicability beyond benchmarking.
+
+
+\subsection{Validating Task Instances}
+
+To ensure the quality of the benchmark, each task instance is validated to confirm that the associated PR effectively resolves the issue it is intended to fix. The validation is based on analyzing changes in the test suite results before and after applying the PR's patch.
+Specifically, we focuses on identifying two key behaviors in the test outcomes:
+\begin{itemize}[leftmargin=*]
+    \item \texttt{FAIL\_TO\_PASS} transitions: Tests that were initially failing (\texttt{FAILED} or \texttt{ERROR}) and later passing (\texttt{PASSED}) after the patch is applied. These yield that the patch addresses the issue effectively.
+    \item \texttt{PASS\_TO\_PASS} transitions: Tests that were both passing before and after the patch is applied. These transitions demonstrate that the patch does not break unrelated functionality.
+\end{itemize}
+To identify these transitions, the test results (as logs) are collected both before and after applying the PR's patch. By comparing individual test outcomes between the two runs, we determine how the patch affected specific tests. We designed framework-specific (e.g., tox, pytest) parsers to interpret test outputs reliably, as different testing tools may produce logs in various formats.
+For a task instance to be included in the benchmark, it must exhibit at least one \texttt{FAIL\_TO\_PASS} transition. Instances lacking such a transition are excluded because they do not demonstrate effective bug resolution. Additionally, to ensure reproducibility and avoid issues caused by test flakiness, the validation process is repeated multiple times. Only instances with consistent results across all runs are retained.
+This approach ensures that all task instances are grounded in evidence of real-world bug fixes and preserves stable behaviors, resulting in a robust  benchmark for evaluating automated bug-fixing solutions.
+
+% \subsection{Post-processing and Packaging}
+% The final stage transforms the raw artifacts produced so far, a validated issue–pull request pair and its Docker image into a self contained benchmark instance. This step is fully automatic and consists of three operations executed inside the environment.\todo{seems not focuses on its purpose, should be more about validating}
+
+% \paragraph{Dual-state test execution.}  
+% We run the repository's entire test suite twice.  First, the project is checked out at the base commit and only the \emph{test patch} from the pull request is applied; all outputs are saved to \texttt{pre\_pr.log}.  Second, we reset the snapshot, apply the test patch again, and then apply the \emph{gold code patch}; results are written to \texttt{post\_pr.log}.  By isolating the code changes we can observe exactly which tests move from failing to passing.
+
+% \paragraph{Log parsing and status extraction.}  
+% A framework-aware parser (pytest by default) scans both logs, records the status of every individual test case, and classifies them into \texttt{FAIL\_TO\_PASS} if a test changes from FAILED or ERROR to PASSED, or \texttt{PASS\_TO\_PASS} if it remains stable.  Instances that show no \texttt{FAIL\_TO\_PASS} transition are discarded because they provide no measurable bug fix.
+
+% \paragraph{Stability checking and packaging.}  
+% To guard against flaky tests we repeat the dual execution multiple times; only instances with consistent outcomes survive. For each surviving instance the pipeline serialises the repository snapshot, the Docker image hash, the two log files, the classified test lists, and metadata such as repository name, commit hash, and creation date into a single record.  These records, together with their images hosted on a public registry, constitute the distributable benchmark.
+
+% This automated post-processing guarantees that every task in \benchmark is accompanied by reproducible evidence of the bug and its fix, enabling reliable evaluation without manual inspection.
+
+
+\subsection{\benchmark Statistics}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.93\linewidth]{figures/created_at_distri.pdf}
+    \vspace{-1em}
+    \caption{Temporal distribution of issue creation times in \benchmark.}
+    \vspace{-1.75em}
+    \label{fig:created_at}
+\end{figure}
+
+The initial release of the \benchmark dataset consists of 1,319 task instances collected from real-world issues and pull requests across 93 open-source Python repositories. To ensure freshness and reduce the risk of data contamination from pretraining, we restrict the dataset to issues created between January 1, 2024, and April 20, 2025. As shown in Figure~\ref{fig:created_at}, the temporal distribution is generally uniform, indicating consistent coverage of issues over time. We plan to update the dataset on a monthly basis to reflect the evolving software landscape and continuously provide new  instances.
+
+Table~\ref{tab:stats} summarizes key statistics at both the repository and instance levels. At the repository level, projects vary in size, with an average of 85k lines of Python code and 423 files. At the instance level, we report metrics of the gold patches—including the number of edited files, hunks, and lines—as heuristic indicators of task complexity. These statistics suggest that \benchmark tasks reflect realistic, non-trivial bug fixes that challenge code understanding, reasoning, and manipulation capabilities of LLMs. Additionally, we record the number of test cases that transition from failure to pass (\texttt{F2P}) and those that consistently pass (\texttt{P2P}), which form the basis of test-based evaluation.
+
+\paragraph{Repository Diversity.}  
+To ensure broad applicability, \benchmark includes repositories from diverse application domains. As shown in Figure~\ref{fig:repo-class}, we manually categorized each repository based on its primary functionality—such as AI/ML, DevOps, Web development, and others. This diversity helps evaluate LLMs across varied software stacks and bug types, enhancing the benchmark’s representativeness of real-world usage scenarios.
+
+\paragraph{Lite Subset.}  
+To support lightweight experimentation, we construct a lite subset of \benchmark by sampling 50 instances per month from issues created between October 2024 and March 2025. This results in a compact set of 300 instances that balances recency, diversity, and evaluation efficiency.
+
+\paragraph{Comparison with Existing Benchmarks.}  
+Table~\ref{tab:comparison} compares \benchmark with several existing issue-resolution benchmarks. Unlike SWE-bench and its variants, which require extensive manual curation and cover a limited set of repositories, \benchmark is the first to offer an \textbf{automatically} constructed, continuously updatable benchmark. It covers a broader set of repositories (93 in total), while preserving the use of real issues and test-based evaluation. Compared to synthetic datasets like SWE-smith, which may not fully capture the complexity of human-written code and bugs, \benchmark maintains fidelity to real-world development workflows. Its unique combination of automation, realism, and diversity fills a critical gap  of the LLM evaluation for software engineering.
+
+\begin{figure}[t]
+    \centering
+    \begin{minipage}[c]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/repo_classes_pie.pdf}
+        \caption{Repository classifications.}
+        \label{fig:repo-class}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[c]{0.5\textwidth}
+        \centering
+        \captionof{table}{Statistics of \benchmark}
+        \begin{tabular}{c|c|rr}
+        \toprule
+          \textbf{Level} & \textbf{\#Item} & \textbf{Average} & \textbf{Median} \\
+          \midrule
+          \multirow{3}{*}{\rotatebox[origin=c]{90}{Repo}}
+            & Repositories & \multicolumn{2}{c}{93} \\
+            & LoC\textsuperscript{*} & 85k & 52k \\
+            & Files\textsuperscript{*} & 423 & 222 \\
+          \midrule
+          \multirow{6}{*}{\rotatebox[origin=c]{90}{Instance}}
+            & Instances & \multicolumn{2}{c}{1319} \\
+            & Files\textsuperscript{\dag} & 3.3 & 2 \\
+            & Hunks\textsuperscript{\dag} & 9.0 & 3 \\
+            & Lines\textsuperscript{\dag} & 102.6 & 24 \\
+            & F2P test cases & 5.4 & 1 \\
+            & P2P test cases & 2953.4 & 1865 \\
+        \bottomrule
+        \multicolumn{4}{l}{\footnotesize{\textsuperscript{*}\textit{Only count Python code.}} \textsuperscript{\dag}\textit{Stats of gold patch.}} \\
+        \end{tabular}
+        \label{tab:stats}
+    \end{minipage}
+\vspace{-1em}
+\end{figure}
+
+
+
+
+% \subsection{\benchmark Statistics}
+
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=\linewidth]{figures/created_at_distri.pdf}
+%     \caption{The distribution of issue creation times in \benchmark is generally uniform. The lower number of instances in April 2024 is due to the cutoff date for data collection being April 20th.}
+%     \label{fig:created_at}
+% \end{figure}
+
+% The initial release of the \benchmark dataset comprises 1,319 task instances derived from real issues and pull requests across 93 real-world repositories. We only considered the most recent issues created after January 1, 2024 to April 30 2025, partly to mitigate the risk of data leakage. Figure~\ref{fig:created_at} shows the temporal distribution of instances in \benchmark. We are also planning to update the dataset on a monthly basis to continuously provide the community with up-to-date issue-resolving evaluation instances. Table~\ref{tab:stats} presents the dataset statistics at both the repository level and the instance level. We also report statistics of the gold patches for each instance in terms of the number of edited lines, hunks, and files, which can serve as a heuristic indicator of task difficulty.
+
+
+% \paragraph{Diversity of repositories.} \benchmark covers a total of 93 repositories spanning a wide range of domains. As illustrated in Figure~\ref{fig:repo-class}, we manually classified each repository based on its primary functionality and application domain into categories such as AI/ML, DevOps, Web, etc. The distribution reflects a diverse and comprehensive repository selection, ensuring that the benchmark captures a broad spectrum of real-world issue-resolving scenarios.
+
+% \paragraph{Lite subset.} To better manage the resources and time required for experimentation, we uniformly sampled issues created during the latest six months (from Oct 2024 to Mar 2025), randomly selecting 50 task instances per month to construct a lite subset consisting of 300 instances in total. 
+
+% \begin{table}[!ht]
+%     \centering
+%     \caption{Comparison with existing issue resolving benchmarks.}
+%     \resizebox{\textwidth}{!}{
+%     \begin{tabular}{c|ccccc}
+%     \toprule
+%       \textbf{Dataset} & \textbf{Date}  & \textbf{\#Instances} & \textbf{\#Repository} & \textbf{Real/Synthetic} & \textbf{Curation}\\
+%       \midrule
+%       SWE-bench~\cite{swebench} & Oct, 2023 & 2,294 & 12 & Real & Manual \\
+%       SWE-bench-Verified~\cite{swebench-verified} & Aug, 2024 &  500 & 12 & Real &  Manual \\
+%       SWE-Gym~\cite{swegym} & Dec, 2024 & 2,438 & 11 & Real & Manual \\
+%       Multi-SWE-bench~\cite{zan2025multi} & Apr, 2025 & 1,632 & 39 & Real & Manual \\
+%       SWE-smith~\cite{swesmith} & Apr, 2025 & 50,000 & 128 & Synthetic & Semi-manual  \\
+%       \midrule
+%       \textbf{\benchmark} (Ours) & April, 2025 & \textbf{1,319 (since 2024)} & \textbf{93} & \textbf{Real} & \textbf{Automatic} \\
+%     \bottomrule
+%     \end{tabular}
+%     }
+%     \label{tab:comparison}
+% \end{table}
+
+% \begin{figure}[!h]
+%     \centering
+%     \begin{minipage}[c]{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\linewidth]{figures/repo_classes_pie.pdf}
+%         \caption{Repository classifications.}
+%         \label{fig:repo-class}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}[c]{0.5\textwidth}
+%         \centering
+%         \captionof{table}{Statistics of \benchmark}
+%         \begin{tabular}{c|c|rr}
+%         \toprule
+%           \textbf{Level} & \textbf{\#Item} & \textbf{Average} & \textbf{Median} \\
+%           \midrule
+%           \multirow{3}{*}{\rotatebox[origin=c]{90}{Repo}}
+%             & Repositories & \multicolumn{2}{c}{93} \\
+%             & LoC\textsuperscript{*} & 85k & 52k \\
+%             & Files\textsuperscript{*} & 423 & 222 \\
+%           \midrule
+%           \multirow{6}{*}{\rotatebox[origin=c]{90}{Instance}}
+%             & Instances & \multicolumn{2}{c}{1319} \\
+%             & Files\textsuperscript{\dag} & 3.3 & 2 \\
+%             & Hunks\textsuperscript{\dag} & 9.0 & 3 \\
+%             & Lines\textsuperscript{\dag} & 102.6 & 24 \\
+%             & F2P test cases & 5.4 & 1 \\
+%             & P2P test cases & 2953.4 & 1865 \\
+%         \bottomrule
+%         \multicolumn{4}{l}{\footnotesize{\textsuperscript{*}\textit{Only count Python code.}} \textsuperscript{\dag}\textit{Stats of gold patch.}} \\
+%         \end{tabular}
+%         \label{tab:stats}
+%     \end{minipage}
+% \end{figure}
+
+% \subsection{Features}
+% \begin{itemize}
+%     \item \textbf{Contamination-Free}
+%     \item \textbf{High Quality}
+%     \item \textbf{Broader Repositories}
+%     \item \textbf{Fully Automated}
+% \end{itemize}

@@ -1,0 +1,69 @@
+\section{Experiments}\label{sec:experiments}
+
+
+In this section, we will discuss the various experiments that we conducted to arrive at our final design choices. Specifically, we will examine the interesting observations, challenging issues, and several examples we have encountered while enabling agents to communicate with each other under different prompt design choices to achieve autonomous cooperation. In our experiments, we employed two \textit{gpt-3.5-turbo} agents, referred to as LLM agents for simplicity, with \textit{Inception Prompts}, as described in \secLabel \ref{subsec:inception_prompting}, to simulate assistant-user cooperation. For our analysis, we set our attention on AI Society setting. We also gathered conversational data, named \textit{CAMEL AI Society} and \textit{CAMEL Code} datasets and problem-solution pairs data named \textit{CAMEL Math} and \textit{CAMEL Science} and analyzed and evaluated their quality. Moreover, we will discuss potential extensions of our framework and highlight both the risks and opportunities that future AI society might present.
+
+
+\begin{figure}[h]
+\begin{AIBox}{Data Generation Prompts of AI Society}
+{
+\parbox[h]{0.5\textwidth}{{\bf \underline{AI Society}}\\
+
+\parbox[h]{0.5\textwidth}{{\small \bf Assistant Role Generation Prompt:} \scriptsize\begin{alltt}
+You are a helpful assistant that can play many different roles.
+Now please list <NUM\_ROLES> different roles that you can play with your expertise in diverse fields.
+Sort them by alphabetical order. No explanation required.
+\end{alltt}}%
+\parbox[h]{0.5\textwidth}{{\small \bf User Role Generation Prompt:} \scriptsize\begin{alltt}
+Please list <NUM\_ROLES> most common and diverse groups of internet users or occupations.\\
+Use singular form. No explanation.\\
+Sort them by alphabetical order. No explanation required.
+\end{alltt}}
+
+\parbox[h]{\textwidth}{{\small \bf Task Generation Prompt:} \scriptsize\begin{alltt}
+List <NUM\_TASKS> diverse tasks that <ASSISTANT\_ROLE> can assist <USER\_ROLE> cooperatively to achieve together. Be concise. Be creative.
+\end{alltt}}%\\
+
+}}
+
+\end{AIBox}
+	\caption{\textbf{Data Generation Prompts.} In order to maintain a scalable approach our data parameters are generated using an LLM model to reduce human involvement in the generation process. The generation prompts for both AI Society dataset are summarized in this figure.}\label{fig:generation_prompts}
+\end{figure}
+
+
+\subsection{Role-Playing for AI Society}\label{sec:roleplaying}
+
+To create our AI Society dataset, we have developed a scalable approach that follows a series of steps. Firstly, we prompt the LLM agent to generate possible roles for the assistant and the user. We achieve this by providing the LLM agent with specific prompts designed to elicit these roles. Next, we ask the LLM agent to generate a range of possible tasks that can be solved through collaboration between the assistant and user roles generated previously. After generating a range of possible tasks as described in the previous step, we then use the task specifier prompt passed to the LLM agent to make the task more specific. The prompts for assistant role generation, user role generation, and task generation are shown in \figLabel \ref{fig:generation_prompts} (\textit{AI Society}). For our AI society dataset, we generated 50 assistant roles, 50 user roles, and 10 tasks for each combination of roles yielding a total of 25,000 conversations. 
+The generated assistant roles and user roles for AI Society as well as details about the generation of Code, Math and Science datasets can be found in the Appendix.
+
+
+
+\mysection{Challenges and Observations} In this section, we explore the four main challenges that we identified during our analysis of the generated datasets. Our observations shed light on some interesting aspects of cooperative AI and the difficulties that arise in its development.
+
+
+\begin{itemize}[leftmargin=0.5cm]
+\item \texttt{Role Flipping:} One challenge we encountered was role flipping, where the assistant and user switch roles during the conversation. This issue typically arises when the assistant starts providing instructions or commands instead of following the user's prompts, which can lead to confusion and a reversal of roles. To avoid role flipping, it is crucial for the assistant not to ask questions, as this can also contribute to the problem.
+
+\item \texttt{Assistant Repeats Instruction:} Another challenge that we observed was the assistant simply repeating the user's instructions without any role flipping occurring.
+
+\item \texttt{Flake Replies:} We also observed instances where the assistant agent responds with a flake reply, often taking the form of "I will...". These messages do not contribute to the task at hand, as the assistant promises to take action but ultimately fails to follow through.
+
+\item \texttt{Infinite Loop of Messages:} An interesting challenge that we encountered was when the assistant and user engage in an infinite loop of meaningless conversation, such as repeatedly thanking each other or saying goodbye without progressing the task. Interestingly, in some cases, the assistant and user are aware that they are stuck in a loop, but are unable to break out of it.
+
+\end{itemize}
+
+The Appendix shows examples of each of the four challenges discussed above. Overall, our observations highlight the complexity of cooperative AI development and the need for continued exploration and innovation to overcome the challenges we face. By identifying these issues, we hope to contribute to the development of more effective and engaging cooperative AI systems.
+
+
+
+\mysection{Termination Conditions} The conversation between the assistant and user agents is designed to follow a specific format to ensure consistent and accurate data generation. To ensure that both the user and assistant adhere to their respective roles and responsibilities, certain conditions have been set in place to terminate the chat if necessary. These conditions are outlined below:
+
+\begin{itemize}[leftmargin=0.5cm]
+    \item 
+\texttt{User No Instruct}: If the user does not instruct the assistant for 3 rounds, conversation is ended.\looseness=-1000
+    \item \texttt{Assistant Instruct:} If the assistant provides an instruction to the user, it indicates a role reversal, and the conversation is terminated.
+    \item \texttt{End of Task Token}: If the user believes that the task has been solved, they are expected to say \texttt{<CAMEL\_TASK\_DONE>} to signify the completion of the task. Once this message is received, the conversation is terminated.
+    \item \texttt{Assistant\&User Token Limit:} Given that \texttt{gpt-3.5-turbo} has a limitation on the number of tokens, the conversation is terminated if either the assistant or the user reach the token limit.
+    \item \texttt{Maximum Number of Messages:} To keep the cost of generated chats in check, we have set a maximum limit of 40 messages. This limit guarantees a long enough conversation between the user and assistant while also ensuring that the data generated is not too costly to produce. The cost grows quadratically with the length of the conversation, making it essential to set a limit.
+\end{itemize}
+

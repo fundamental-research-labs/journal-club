@@ -1,0 +1,211 @@
+\section{Bug Generation Strategies}
+\label{appx:bugs:generate}
+In this section, we review each of the bug generation strategies we employ in depth.
+While we experimented with several bug generation strategies, the ones we elect to include are those we found to satisfy several desirable properties.
+
+\begin{enumerate}
+    \item The approach works in a codebase-agnostic manner.
+    \item The approach reliably yields usable task instances (meaning $1+$ passing tests break).
+    \item The approach is controllable; via each strategy's parameters, we can affect the quantity and quality of the generated bugs.
+\end{enumerate}
+
+\input{figures/prompt_generate_bugs_with_lm}
+
+\subsection{Generating with an LM}
+\label{appx:bugs:generate:lm}
+We describe our workflows for generating bugs with an LM.
+For each function or class in a codebase, we prompt an LM to generate either a rewrite that introduces bugs or a complete re-implementation from scratch.
+This strategy is illustrated in Figure~\ref{fig:diagram-gen-with-lm}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/diagram-gen-with-lm.pdf}
+    \caption{
+    Workflow to generate bugs for a function or class with an LM.
+    We first extract all functions or classes from a codebase, then enumerate across all candidates and prompt the LM to generate either a bug-laced rewrite or a re-implementation.
+    }
+    \label{fig:diagram-gen-with-lm}
+\end{figure}
+
+\textbf{Modify existing functions.} Given a Python codebase, we use the \texttt{ast} library to identify all unique functions, excluding any functions found under a testing related directory (e.g. \texttt{tests}, \texttt{testing}).
+Next, given a function, the LM is asked to write a new version that introduces logical, runtime bugs.
+Within the prompt, shown in Figure~\ref{fig:prompt_generate_bugs_with_lm}, several suggestions of types of bugs along with a demonstration of a rewrite are provided.
+
+\input{figures/prompt_reimplement_func_with_lm}
+
+In our experiments, we use OpenAI's o3 mini model~\citep{openai2024o3card} (\texttt{o3-mini-2025-01-31}) as the main base model for bug generation.
+Based on our empirical observations of an LM's tendencies, we include several explicit guidelines in the prompt about what the rewrite should not do.
+Notably, it is important to ask the LM to not generate any inline comments denoting the location of a bug; we observe that without explicitly specifying this, model generation outputs tend to have inline comments pointing out the bug.
+We also want to avoid the complexities of identifying and removing such comments from a file diff representation.
+Second, we state that rewrites causing compilation or syntax errors (e.g. undeclared variables, function definition modifications) should be avoided because such bugs are relatively trivial to solve.
+We do not experiment extensively with different prompts or generating multiple buggy rewrites per function.
+
+\textbf{Modify existing classes.}
+This method involves a simple amendment to the function rewriting approach.
+Instead of identifying unique functions (\texttt{ast.FunctionDef}), the codebase traversal logic instead looks for classes (\texttt{ast.ClassDef}).
+Otherwise, all other aspects of the implementation are near identical to function rewriting, with minor changes to the prompt to make bug suggestions and the demonstration more class oriented.
+
+\textbf{Rewrite existing functions.}
+Instead of providing an LM with the original function, we explore an alternative strategy of asking an LM to re-implement a function from scratch.
+Similar to above, we again use the \texttt{ast} library to identify all unique functions.
+However, instead of directly asking for a bug, we remove the function's implementation, then prompt the LM with the entire file containing the function (minus the original implementation).
+In the task description, we then explicitly ask for the LM to implement the function without changing the function signature.
+
+\subsection{Procedural Modification}
+\label{appx:bugs:generate:prod}
+We explore a zero-cost approach to create bugs by performing random modifications to the \texttt{ast} representation of a function or class.
+A ``procedural modification" refers to a function that takes in an \texttt{ast} and applies a fixed transformation to it, such as removing a loop or swapping the blocks of an if/else clause.
+This strategy is illustrated in Figure~\ref{fig:diagram-pm}.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/diagram-pm.pdf}
+    \caption{
+    Workflow to generate bugs via procedural modifications.
+    Per function/class, the source code is first convert into an \texttt{ast}.
+    The modification then mutates the \texttt{ast} (e.g. removes an assignment statement).
+    The \texttt{ast} is then converted back into source code with the specific modification introduced.
+    }
+    \label{fig:diagram-pm}
+\end{figure}
+
+Similar to the workflow for generating bugs with an LM, we first identify all functions or classes in a repository.
+Per procedural modification, we first impose a set of criteria that filters out any candidates for which the modification would be impossible.
+For instance, if the procedural modification removes a random conditional from a function, the modification's criteria will filter out any candidates that are not functions or do not have a conditional.
+For the remaining candidates, the procedural modification is applied with controlled \texttt{likelihood}, where \texttt{likelihood} is a fraction indicating how often the procedural modification is applied within a candidate.
+For example, if the procedural modification removes a random function with a \texttt{likelihood} of $0.5$, then for every conditional declared within the function, there is a $50$\% chance it gets removed.
+We introduce \texttt{likelihood} so procedural modifications do not lead to changes that are too difficult.
+Finally, the modified \texttt{ast} is converted back into source code.
+
+Table~\ref{tab:pm_criteria} is a complete list of filtering criteria that is used for any procedural modification.
+For the \texttt{filter\_min\_complexity} and \texttt{filter\_max\_complexity} criteria, we define a simple definition of ``complexity" as a sum of the number of conditional blocks, loops, boolean operators, exception handling blocks, and comparison operators in a function.
+The purpose of \texttt{filter\_min\_complexity} is to remove both simple, uninteresting functions (e.g. getter, setter methods) from consideration.
+\texttt{filter\_max\_complexity} is occasionally used to avoid changing long, monolithic functions.
+
+\input{tables/pm_criteria}
+
+Table~\ref{tab:pm_list} is an exhaustive list of all procedural modifications used to create bugs in a codebase.
+
+\input{tables/pm_list}
+
+\subsection{Combine Bug Patches}
+\label{appx:bugs:generate:combine}
+We discuss the two strategies we use to combine bug patches from the same file or the same module.
+In practice, we combine LM and procedurally generated bugs that have been validated successfully as usable task instances.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/diagram-combine.pdf}
+    \caption{
+    Workflow to generate bugs by combining bug patches.
+    We take $n$ patches (generated using an LM or procedural modification), then sequentially apply each bug patch to the codebase.
+    If all individual patches apply successfully, we save the resulting single patch which now represents all $n$ bugs combined.
+    }
+    \label{fig:diagram-combine}
+\end{figure}
+
+\textbf{From the same file.} If two or more functions are defined within a single file, this strategy merges the function-level bug patches together.
+Given $n$ function-level bugs and $k$ as the number of bugs to combine, there are ${n\choose k}$ unique file-level candidate bug patches, which can be a large search space to cover.
+To make the search space tractable, ensure no single function-level bug is repeatedly used, and generate instances that reliably have $1$+ Fail to Pass tests, we implement the following approach described in Algorithm~\ref{alg:combine_file}.
+
+\input{algorithm/combine_file}
+
+For each file in a codebase, we first identify the function-level bugs (or bug patches) that edit that file.
+The pool of bugs we draw from have been \textit{validated}, meaning we have already ensured there is $1$+ Fail to Pass test(s) associated with the bug.
+From these pool of \texttt{file\_bugs}, the \texttt{get\_combos} function then generates up to \texttt{max\_combos} sets of bugs, where the size of each set is \texttt{num\_bugs}.
+For each \texttt{combo}, or set of bugs, the bugs are applied to the codebase one by one.
+If all patches are successfully combined, this means they were successfully merged, and the merged patch, which consists of multiple function-level bugs, is saved and re-validated as a single bug.
+Merging patches occasionally fails if there is an overlapping conflict between two files, akin to a merge conflict with \texttt{git}; this usually happens when a function is declared within another.
+To ensure a function-level bug is only used once, any remaining bug sets in \texttt{combinations} using any patch in \texttt{combo} are removed.
+
+The \texttt{limit\_per\_file} and \texttt{max\_combos} parameters prevent any one file from being over-represented and constrains an otherwise combinatorial large search space.
+We run this algorithm across all codebase files, typically setting \texttt{num\_bugs}$=[2,4]$, \texttt{limit\_per\_file}$=3$, \texttt{max\_combos}$=40$.
+Decreasing \texttt{num\_bugs} or increasing the other three parameters improves the yield.
+
+\textbf{From the same module.} There are several ways one could imagine composing function-level bugs from multiple bugs, such as combining those that break the same test or have a programmatic relationship (e.g. function \texttt{a} calls function \texttt{b}).
+We found a relatively straightforward and effective approach to be combining files that edit the same ``module".
+By ``module" we are referring to a subdirectory within the source code (e.g. \texttt{sklearn/feature\_extraction}, \texttt{astropy/convolution}).
+Out of all SWE-bench instances that edit $2$+ files, $75$\% modify files within the same submodule, suggesting a high degree of intra-module code changes.
+The implementation for our approach is described in Algorithm~\ref{alg:combine_module}
+
+\input{algorithm/combine_module}
+
+The implementation for this approach is similar to Algorithm~\ref{alg:combine_file} with two key changes.
+First, we do not do file-by-file or folder-by-folder traversal.
+Instead, using the diff patches, we create a dictionary \texttt{map\_path\_to\_bugs} that mimics the file structure of a codebase.
+For example, if \texttt{bug} modifies path \texttt{a/b/c/d.py}, it is represented as \texttt{map\_path\_to\_bugs[a][b][c][d.py]} $=$ \texttt{[bug]}.
+Additional bugs that modify the same path are appended to the list.
+Since every bug is a function-level bug, there will never be a bug registered in multiple lists.
+We then ``collapse" up to \texttt{depth} indices.
+So for instance, at \texttt{depth} $=3$, the above data structure is collapsed into \texttt{map\_path\_to\_bugs[a/b/c][d.py]} $=$ \texttt{[bug]}.
+Finally, any nested dictionaries are collapsed into a single list of patches (e.g. \texttt{map\_path\_to\_bugs[a/b/c]} $=$ \texttt{[bug]}).
+Mirroring the procedure in Algorithm~\ref{alg:combine_file}, we then iterate across this dictionary's values (lists of bugs).
+Second, we only save patches that modify $2+$ files; aggregate bugs (represented by \texttt{combo}) modifying a single file are not considered.
+
+Again, we run this strategy across all $100$ repositories, with parameters \texttt{num\_bugs}$=[2,5]$, \texttt{limit\_per\_module}$=10$, \texttt{max\_combos}$=100$, and \texttt{depth}$=2$.
+Reducing \texttt{num\_bugs}, \texttt{depth} and increasing the other parameters yields more bugs.
+We choose a \texttt{depth} of $2$ because empirically, we find that meaningful modules are usually declared as immediate sub-folders of the main source code folder (e.g. in \texttt{sklearn/feature\_extraction}, \texttt{sklearn} is the source code folder while \texttt{feature\_extraction} is the module).
+A shallower depth leads to less meaningful groupings, while yield decreases significantly for every increased level of depth, particularly for smaller repositories.
+
+\subsection{Pull Request Mirroring}
+\label{appx:bugs:generate:pr}
+We finally discuss the fourth and last strategy for generating bugs - mirroring real world pull requests (PR).
+We visualize this process in Figure~\ref{fig:diagram-pr-mirror}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/diagram-pr-mirror.pdf}
+    \caption{
+    Workflow to generate bugs by reverting changes made in the diff patch corresponding to a real GitHub pull request (PR).
+    Given the patch and the files modified by the patch, we prompt the LM to generate a complete rewrite of each file that \textit{reverses} the changes made in the PR.
+    The changes are applied to the codebase, and we extract the patch, which now captures the reversal of the PR changes.
+    }
+    \label{fig:diagram-pr-mirror}
+\end{figure}
+
+\textbf{Why use an LM?}
+When we initially implemented this approach, we attempted to directly perform a \texttt{git apply --reverse [patch]} on the codebase.
+However, for the large majority of patches, this fails.
+We performed troubleshooting by inspecting $100$ PR patches on the \texttt{sqlfluff/sqlfluff} repository, leading us to two observations.
+\begin{enumerate}
+    \item The majority of these PRs reflect changes that remain present in the codebase today (making the bug creation promising).
+    \item However, many patches can not be reversed because the exact location (e.g. lines, file) of the relevant code changed because of other changes.
+\end{enumerate}
+Therefore, we employ LMs to perform patch reversal, and find that reasoning models (e.g. \texttt{o3-mini}~\citep{openai2024o3card}) are particularly effective.
+
+\textbf{Description of method.} We follow SWE-bench's methodology for crawling PRs created January 1st, 2023 and onwards, with minor and arbitrary exceptions for some repositories where we crawl older PRs as well.
+Per PR, we iterate across the file(s) changed by the patch.
+Per file, we prompt an LM with the file-specific changes from the patch along with the file's source code in the current state of the repository (\textit{not} the repository's state corresponding to when the PR was applied, referred to as the \texttt{base\_commit} in SWE-bench).
+The LM is asked to generate a rewrite of the file that reverts the changes reflected in the PR.
+We aggregate the changes across all file(s) into a single patch.
+
+Because we are interested in problems that our expert trajectory generation method (SWE-agent + Claude 3.7 Sonnet) has a chance of solving, we do not attempt to reproduce PRs that change more than $8$ files.
+This constraint is imposed because no SWE-bench instance that edits more than $6$ files has ever been solved~\citep{jimenez2024leaderboard}.
+
+\textbf{How well does PR mirroring work?} We scrape the PRs corresponding to $100$ randomly selected SWE-bench task instances from the \texttt{django/django} GitHub repository and attempt to recreate these task instances with \bugs{}'s collection process.
+We successfully recovered $92$ of $100$ task instances.
+Of these, $84$ break identical F2P test(s), with the remaining $8$ breaking a subset because some tests were removed over time.
+This sanity check gives us confidence that the PR mirroring strategy lives up to its name.
+
+\textbf{Comparison to SWE-bench.} This approach has several benefits and drawbacks compared to SWE-bench's collection pipeline.
+First, it removes the need to create instance-specific Docker images --- all PRs are mirrored against the same version of a repository.
+This also implies that there is no need to write installation specifications for past versions of a repository, which is typically the most laborious step in task construction with SWE-bench.
+Finally, this strategy also allows us to loosen the requirements on what PRs we attempt to convert into a task instance.
+In SWE-bench, the core requirements for what PRs to attempt to convert into a task instance include:
+\begin{enumerate}
+    \setlength\itemsep{0em}
+    \item It must edit $1+$ code files (e.g. not just \texttt{.md}, \texttt{.rst} files).
+    \item It must reference $1+$ GitHub issues, which serves as the problem statement.
+    \item It must edit $1+$ testing related files ($1+$ files with a \texttt{test}-adjacent keyword in it).
+\end{enumerate}
+
+With this collection strategy and \bugs{}'s focus on training data, the second and third requirements are no longer necessary.
+If there is no associated issue, issue text can simply be generated.
+If the patch does not contain any testing related changes, this is tolerable, as the validation stage will determine whether the PR breaks any tests.
+With these considerations, we purport that \bugs{}'s PR mirroring strategy can re-purpose a higher percentage of real world code changes for training purposes.
+
+The main downside is that the rest of the repository is out of sync with the state of the codebase when the PR was applied.
+As a result, it's possible that changes in the behavior of the rest of the codebase may affect the issue's reproducibility or the accuracy of the issue description (e.g. line numbers referenced in the issue text are likely somewhat off with respect to the codebase).
+However, a simple mitigation for this is to create a Docker image for a repository at an earlier commit that's closer to the original creation date of the issue.
+While we do not carry out a targeted experiment, we hypothesize that using \bugs{}, we would be able to reproduce SWE-bench entirely with $10$x less human hours with an estimated $2294$ x \$$0.055$ = \$$126.17$ in costs.

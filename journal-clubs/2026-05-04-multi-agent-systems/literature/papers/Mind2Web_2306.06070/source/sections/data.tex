@@ -1,0 +1,75 @@
+\section{\mind\ Dataset}
+
+Unlike existing datasets predominantly constructed within simulated environments~\cite{shiWorldBitsOpenDomain2017, yaoWebShopScalableRealWorld2022}, our objective is to bridge the gap between simulation and reality so that agents trained on our dataset can work on real-world websites out of the box.
+To achieve this, our approach for data collection adheres to the following principles. 
+Firstly, instead of recreating websites in simulation, which often leads to oversimplified environments, we engage directly with real-world websites and capture snapshots of these environments.
+Secondly, we collate a diverse set of websites from varied domains and crowdsource realistic tasks that cover a wide range of functionalities provided by these websites.
+Finally, acknowledging the challenge of perfectly replicating the complexity of real-world environments, we strive to capture a comprehensive snapshot of each website and the full interaction trace, to the extent that all the tasks can be seamlessly replayed offline. This supports rich modeling and evaluation approaches, ensuring a robust and practical dataset for research.
+
+\subsection{Task Definition}
+The primary objective of \mind\ is for the agent to complete a specific task on the target website through a series of actions. Each instance in our dataset contains three components:
+
+\noindent\textbf{Task description,} which outlines the high-level goal of the task. We intentionally avoid low-level, step-by-step instructions, aiming to foster the development of agents that can comprehend and carry out tasks in a more autonomous fashion, rather than merely following prescriptive directives.
+
+\noindent\textbf{Action sequence}, which is the sequence of actions required to accomplish the task on the website. Each action in the sequence comprises a \texttt{(Target Element, Operation)} pair. The \texttt{Target Element} is an interactable element on the current webpage, and the \texttt{Operation} refers to the action to be executed on that element. We support three common operations: \texttt{Click} (also including \texttt{Hover} and \texttt{Press Enter}), \texttt{Type}, and \texttt{Select Option}. For \texttt{Type} and \texttt{Select Option}, they also require an additional value as an argument.
+Actions in a sequence often span multiple webpages of a website.
+
+\noindent\textbf{Webpage snapshots}, which constitute the environment within which the task is performed. We provide the snapshots in a variety of formats to accommodate different modeling approaches:
+self-contained MHTML file that includes the raw HTML code of the webpage,
+DOM snapshot containing the DOM tree along with the layout and style information of the screenshot of the rendered webpage,
+HAR file that includes all the network traffic for replaying the interaction if needed,
+and trace file that comprises the complete interaction trace during the task annotation process.
+
+The agent receives the task description in the beginning.
+At each step, it also receives the current webpage and the history of previous actions. The objective is to accurately predict the subsequent action, which encompasses the target element for interaction and the operation.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/data_example_v3.pdf}
+    \caption{A sample data instance of our dataset with the three components. Actions marked in \textcolor{red}{\textbf{red}} will result in a transition to a new webpage.}
+    \label{fig:data_example}
+    \vspace{-.5em}
+\end{figure}
+
+\subsection{Data Collection}
+Our data collection process consists of four stages: website selection, task proposal, task demonstration, and task verification.
+Website selection and task verification are done by the authors.
+For task proposal and demonstration, we develop a sophisticated annotation tool using Playwright~\footnote{\url{https://playwright.dev/}} and hire annotators through Amazon Mechanical Turk.
+Refer to Supplementary for annotation tool details.
+
+\noindent\textbf{Website Selection.}
+We start with \num{5} top-level domains: Travel, Shopping, Service, Entertainment, and Information, which are subsequently broken down into \num{31} (secondary) domains.
+We select websites within each domain based on their popularity in the US, as ranked by similarweb.com.
+We manually select \num{3}-\num{5} representative websites per domain, resulting in a collection of \num{137} websites in total.
+
+\noindent\textbf{Task Proposal.}
+We present the annotators with a target website, a concise description of the website, and a few sample tasks associated with it.
+The annotators are then asked to propose \textit{open-ended and realistic tasks} based on three criteria: the tasks should be of diverse types, require multiple rounds of interaction, and describe the high-level goal instead of step-by-step instructions.
+To further stimulate creativity and boost diversity, we use ChatGPT to generate seed tasks by prompting it to test different functionalities of a website.
+We generate \num{50} seed tasks per website, of which \num{10} are randomly sampled and presented to the annotator each time.
+These seed tasks are mainly for inspiration---annotators are explicitly instructed not to directly use them and we reject task proposals that are highly similar to the seed tasks.
+All the proposed tasks are further screened by the authors to ensure quality and diversity before entering the demonstration phase.
+
+\noindent\textbf{Task Demonstration.}
+We develop a Playwright-based tool for demonstration (Figure~\ref{fig:data_example}).
+Workers will use the tool to demonstrate how to perform the tasks they have proposed within a web browser.
+To ensure accuracy, each interaction round is split into two parts: \textit{element selection} and \textit{operation selection}.
+At each step, the worker first selects an element on the webpage by clicking within the browser. They are then asked to confirm the selection and choose the operation to execute on the selected element.
+Once the task is completed, the worker is given another opportunity to review and modify the task description.
+
+\noindent\textbf{Task Verification.}
+Lastly, all task demonstrations are verified by the authors to ensure the following:
+First, all actions are accurately reflected in the task description. The authors will modify the task description if needed to align it with the annotated actions;
+Second, the recorded actions are correct and clean, with extraneous steps discarded.
+Finally, the starting and ending points of tasks are consistent, such as excluding actions for closing popup windoes, or ending the annotation at the search result page if the task was to find a certain item without clicking on specific items.
+After verification, we discarded \num{61} out of the total \num{2411} tasks. Among the \num{2350} retained tasks, the task description was refined in \num{390} instances to better correspond with the demonstrated actions, while some extraneous steps were discarded in \num{187} instances. Overall, the data collection pipeline has been proven effective and produces high-quality data.
+
+\input{tables/cmp_existing}
+\subsection{Comparison with Existing Work and Research Challenges}
+
+\mind\ presents a unique ensemble of research challenges for the development of generalist agents for the web in real-world settings.
+As shown in Table~\ref{tab:cmp}, \mind\ distinguishes itself from existing literature in several ways.
+Firstly, \mind\ spans across \num{137} websites from \num{31} domains, allowing comprehensive testing of an agent's ability in generalizing across varied environments.
+Secondly, we utilize real-world websites without manual simplification. Consequently, the included environments exhibit complexity far surpassing that encountered in previous studies, yet better reflecting the intricacy of the modern web. With an average of over \num{1000} elements per page embedded within complex DOM structures, how to effectively process such long and highly structured documents presents a significant challenge for modeling.
+Lastly, we direct the annotators to propose \textit{open-ended tasks} that explore different functionalities of the website to mimic genuine web usage.
+Meanwhile, contrary to prior studies~\cite{Liu2018ReinforcementLO,Xu2021GroundingOI,Li2020MappingNL,Burns2022ADF} that provide step-by-step directives and primarily focus on testing the agent's ability to translate low-level instructions into actions, \eg, ``\textit{Type New York in the location field, click the search button and choose the tomorrow tab},'' we opted for the setting where only high-level goals are available, \eg, ``\textit{What is the weather for New York tomorrow}?'' This poses a much greater yet realistic planning and grounding challenge for the agent.

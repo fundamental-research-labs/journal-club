@@ -1,0 +1,429 @@
+\section{Introduction}
+% References to consider for conclusions/discussion:
+% - https://arxiv.org/abs/2603.22179
+% - https://philsci-archive.pitt.edu/28729/1/ICML_AI_Alignment_for_Science_Arxiv_version.pdf (alignment for science)
+% - https://arxiv.org/abs/2604.04721 (Liu & Dubey: AI assistance reduces persistence)
+% - https://plato.stanford.edu/entries/scientific-progress/
+% - Mario Krenn on knowledge production/understanding in science
+% - Understanding scientific understanding
+
+DENDRAL \autocite{lindsay1993dendral}, one of the first artificial intelligence (AI) systems to produce a scientific result, showed its reasoning at every step. Developed by Feigenbaum, Lederberg, and Djerassi in 1965, it inferred molecular structures from mass spectra by generating candidate structures, matching them against spectral evidence, and eliminating those that failed. DENDRAL established a template for AI in science: epistemic machinery encoded in explicit rules, every inference step inspectable. Expert systems built on this template remain in use in laboratories today. Large language models (LLMs) have renewed this ambition. A growing number of LLM-based agents are now designed to conduct scientific research autonomously, from hypothesis generation through experimentation to manuscript writing (see \Cref{app:rise_of_ai_scientists} for the rising interest in those systems) \autocite{alampara2026general,lu2026towards,Boiko2023autonomous,MBran2024augmenting,ghafarollahi2025sciagents,novikov2025alphaevolve0,miret2025enabling,mandal2025evaluating}.
+
+Yet the nature of these systems differs fundamentally from their predecessors. Where DENDRAL showed its reasoning at every step, LLM-based agents do not. Their behavior derives from statistical regularities learned during self-supervised training. The epistemic process by which they arrive at scientific conclusions is largely inaccessible to scrutiny.
+
+This opacity matters for science itself. The tools scientists use shape the science they produce \autocite{culkin1967schoolman}. Evans and colleagues recently confirmed this for AI: the adoption of machine learning (ML) is narrowing the hypotheses scientists pursue \autocite{hao2026artificial}. LLM-based agents go further, directing the inquiry itself. How these systems reason, and whether their reasoning adheres to the norms that make scientific inquiry self-correcting, spans computer science, philosophy of science, and metascience \autocite{ioannidis2015meta,pittphilsci28744}. It bears on whether AI systems can produce scientific understanding beyond correct predictions \autocite{krenn2022understanding}.
+
+Current evaluations do not address this. Benchmarks for scientific agents measure task completion: whether a system answers domain-specific questions \autocite{mirza2025framework,alampara2025macbench,laurent2024lab}, executes a data-analysis or discovery workflow \autocite{chen2024scienceagentbench,shen2026sciagentgym,cui2025curie,mandal2025evaluating}, reimplements a published result, or produces a manuscript that passes peer review \autocite{alampara2025lessons,chen2025mlr,bragg2025astabench,rabanser2026towards,mitchener2025bixbench0}. These metrics are task-specific. They reveal whether an agent succeeded but not how or why, and they do not predict behavior on new problems \autocite{Zhou2026}.
+The epistemic process underlying a result determines whether the knowledge produced is justified in the philosophical sense of justified true belief \autocite{sep-knowledge-analysis}, whether failures are predictable, and whether the system can be trusted beyond the conditions under which it was tested.
+
+Here, we study LLM-based scientific agents, also referred to as AI scientists, through two complementary lenses. 
+The first is a systematic performance evaluation across controlled environments with standardized tools, graded task scopes, and fine-grained subtask diagnostics, designed to separate the contributions of the base model from the agent scaffold \autocite{meirelesinfluence}. The second is a behavioral analysis of the epistemological structure of agent reasoning: what cognitive operations an agent performs, how they relate to one another, and whether they constitute disciplined inquiry. 
+We evaluate three frontier models paired with two scaffold architectures across eight scientific domains, from molecular simulation and surface construction to spectroscopic structure elucidation and qualitative chemical analysis (see \Cref{fig:overview}). We find that the base model is the primary determinant of both performance and behavior, with the scaffold contributing little. Agents routinely ignore evidence they have gathered, commit to hypotheses without testing them, and fail to revise beliefs when confronted with contradictory data. These patterns do not adapt to the demands of the problem. The same undisciplined reasoning appears whether the task requires executing a computational workflow or conducting a hypothesis-driven inquiry under uncertainty. These findings suggest that evaluating LLM-based agents requires direct assessment of their reasoning process, and that progress will require changes at the base-model level rather than further scaffold engineering.
+
+% NOTE: Statistical mechanics formalism (commented out below) preserved for potential appendix use.
+
+% We use the LDP framework. Below, we will look at an agent as something that traverses an effective potential landscape. In there, scaffolding will be an external field. Trappings are connected to entropy.
+
+% Definitions of action and state space remain the same as before. We introduce a value function $V^\pi: \mathcal{S} \rightarrow [0,1]$ is the probability of eventual success from state $s$ under policy $\pi$:
+% \begin{equation}
+%     V^\pi(s) = \mathbb{E}_\pi\left[\mathbb{1}_{\mathrm{success}}(s_T) \mid s_0 = s\right]
+% \end{equation}
+% where $s_T$ is the terminal state reached by following $\pi$.
+
+% The effective potential is:
+% \begin{equation}
+%     \boxed{U^\pi(s) = -\log V^\pi(s)}
+% \end{equation}
+% This maps $V \in (0,1]$ to $U \in [0, \infty)$. States with high success probability are low (potential wells); states with low success probability are high (barriers).
+
+% The entropy of the policy at state $s$ is:
+% \begin{equation}
+%     H^\pi(s) = -\sum_{a \in \mathcal{A}} \pi(a|s) \log \pi(a|s)
+% \end{equation}
+
+% Let the response of the env to an action be 
+
+% \begin{equation}
+%     P_\mathcal{E}: \mathcal{S} \times \mathcal{A} \rightarrow \Delta(\mathcal{S})
+% \end{equation}
+
+% The overall transition probability under a policy is then 
+
+% \begin{equation}
+%     \underbrace{P^\pi(s' | s)}_{\text{probabilty of ending up in s' from s under the policy}} = \sum_{a \in \mathcal{A}} \underbrace{\pi(a|s)}_{\text{selection by agent}} \cdot \underbrace{P_\mathcal{E}(s'|s,a)}_{\text{env response}}
+% \end{equation}
+
+% Now, just a few definitions. The expected change in value from state $s$ is (drift):
+% \begin{equation}
+%     \mu_V(s) = \mathbb{E}_{s' \sim P^\pi(\cdot|s)}[V^\pi(s')] - V^\pi(s)
+% \end{equation}
+
+% The variance in value change (diffusion)
+% \begin{equation}
+%     \sigma_V^2(s) = \mathrm{Var}_{s' \sim P^\pi(\cdot|s)}[V^\pi(s')]
+% \end{equation}
+% % Perhaps some langevin, need to read 
+
+% If $\mu_V(s) > 0$, the agent tends to move toward a higher success probability. If $\mu_V(s) \approx 0$ with large $\sigma_V^2$ (flat, noisy surface): The agent moves erratically. 
+
+% A trajectory of length $n$ is a sequence:
+% \begin{equation}
+%     \xi = (s_0, a_0, s_1, a_1, \ldots, s_n)
+% \end{equation}
+% The probability of trajectory $\xi$ under policy $\pi$ is:
+% \begin{equation}
+%     P^\pi(\xi) = \prod_{t=0}^{n-1} \pi(a_t | s_t) \cdot P_\mathcal{E}(s_{t+1} | s_t, a_t)
+% \end{equation}
+
+% The barrier height between states $s$ and $s'$ along the optimal path is:
+% \begin{equation}
+%     \Delta U(s \rightarrow s') = \max_{s'' \in \mathrm{path}(s, s')} U^\pi(s'') - U^\pi(s)
+% \end{equation}
+% For multi-step tasks requiring passage through intermediate states $s_0 \rightarrow s_1 \rightarrow \cdots \rightarrow s_f$:
+% \begin{equation}
+%     \Delta U_{\mathrm{total}} = \sum_{i=0}^{f-1} \Delta U(s_i \rightarrow s_{i+1})
+% \end{equation}
+
+% For a task requiring $n$ sequential steps, if each step has independent success probability $p_i = e^{-\Delta V_i}$:
+% \begin{equation}
+%     % perhaps handwavy here, too tired now
+%     \boxed{P(\mathrm{success}) = \prod_{i=1}^{n} p_i = e^{-\sum_i \Delta V_i} = e^{-\Delta V_{\mathrm{total}}}}
+% \end{equation}
+% This is the Arrhenius-like formula connecting barrier heights to success rates.
+
+% This kind of also links to decomposition. If we can reduce the height of one barrier by decomposing, we reduce the barrier of the entire path. If it is already low, then there is no point in decomposition. But also: Decomposition can hurt if it introduces many small barriers that cumulatively exceed the original,
+% or if checkpoint overhead (context switching, output formatting) introduces new failure modes.
+
+
+% A scaffold $\Sigma$ is additional context (system prompt, tool descriptions, examples) that modifies the policy:
+% \begin{equation}
+%     \pi_\Sigma(a|s) = \pi(a|s \oplus \Sigma)
+% \end{equation}
+% where $\oplus$ denotes concatenation/incorporation into context.
+
+% This is also a bit approximated by our verbosity experiments.
+
+% We can assume that the modification will be small/local. Then we can look at the changes in value function due to the changes in the policy. 
+% Also: If the base policy assigns negligible probability to any successful
+% action sequence, no scaffold can create that probability mass, the scaffold reweights existing tendencies but cannot manufacture absent knowledge.
+
+% Also: if the policy landscape is complex, the biasing term must be complex, too to not mess things up. Hence, it is very difficult to design one that does not have side-effects.
+
+
+% If we use Boltzmann assumption for the structure of the policy, we can derive Arrhenius behavior 
+
+
+% \begin{table}[]
+%     \centering
+%     \caption{Mapping of terms between statistical physics and corral.}
+%     \begin{tabularx}{\textwidth}{XXXXX}
+%     \toprule
+%     Statistical  Physics &  Symbol (Physics) & Agent Framework & Symbol (Agent) & Notes \\
+%     \midrule
+%     microstate & $z$ & state & $s = (P, h_t, c_t)$ & specification of system \\
+%     phase space & $\Omega$ & state space & $\mathcal{S}$ & set of all possible configurations \\ 
+%     Energy & $E(z)$ & effective potential & $U(s)=-\log V^\pi(s)$ & \\
+%     partition function & $Z$ & Trajectory normalization & & \\
+%    \bottomrule
+%     \end{tabularx}
+% \end{table}
+
+% One \enquote{ugly} thing is that the potential $E$ in physics is given by some external potential. Here, the effective potential is somehow the interaction between base model and task/env.
+
+
+% We predict a bunch of different things: 
+% \begin{itemize}
+%     \item Diffusion dominated: pass
+%     at k  ok but pass hat k very low
+%     \item High barrier: consistently low scores with low variance. \enquote{Trapped state}
+% \end{itemize}
+
+% ----Alternative text-----
+% \section{Theoretical Framework}
+% \textbf{Effective Potential Landscape for Agent Trajectories.}
+% We formulate scientific agents as stochastic dynamical systems traversing a high-dimensional configuration space. The agent occupies states $s_t \in \mathcal{S}$, where $\mathcal{S}$ encompasses the complete representational manifold---linguistic context buffers $c_t$, latent semantic embeddings $h_t$, and the current problem configuration $P$. Within this space lies a lower-dimensional solution manifold $\mathcal{M} \subset \mathcal{S}$ comprising scientifically valid configurations from which correct task completion remains accessible.
+
+% Rather than characterizing $\mathcal{M}$ geometrically, we adopt a statistical mechanics perspective, where we propose that the dynamics of the language is governed by an underlying potential function. Define the value function $V^\pi: \mathcal{S} \rightarrow [0,1]$ as the probability of eventual success from state $s$ under policy $\pi$:
+% \begin{equation}
+% V^\pi(s) = \mathbb{E}_\pi\left[\mathbb{1}_{\text{success}}(s_T) \mid s_0 = s\right],
+% \end{equation}
+% where $s_T$ denotes the terminal state reached by following $\pi$. This function naturally partitions the state space: regions with $V^\pi(s) \approx 1$ constitute safe basins (on-manifold states), while $V^\pi(s) \approx 0$ marks failure domains.
+
+% We introduce the \textit{effective potential}:
+% \begin{equation}
+% U^\pi(s) = -\log V^\pi(s).
+% \label{eq:potential}
+% \end{equation}
+% This mapping transforms success probabilities $V \in (0,1]$ to effective energies $U \in [0, \infty)$. States with high success probability occupy potential wells ($U \to 0$); states with low success probability sit atop barriers ($U \to \infty$). The manifold $\mathcal{M}$ corresponds to the low-potential basin, while the failure region $\mathcal{F}$ comprises high-potential configurations.
+
+% This construction differs fundamentally from reinforcement learning value functions. Here, $U^\pi(s)$ emerges from the convolution of model capabilities with task requirements—it is not an externally imposed reward landscape but an \textit{intrinsic} free energy determined by the semantic gap between training distribution and problem physics. A model lacking spectroscopic intuition experiences vibrational mode assignment as a steep barrier, whereas crystallographic structure retrieval appears as a shallow well.
+
+% \textbf{Dynamics on the Potential Surface.} Agent evolution follows a Markov process on $\mathcal{S}$. The policy $\pi(a|s)$ selects actions $a \in \mathcal{A}$---tool invocations, retrieval queries, reasoning operations---while the environment responds via transition kernel $P_\mathcal{E}(s'|s,a)$. The overall transition probability factorizes as:
+% \begin{equation}
+% P^\pi(s' | s) = \sum_{a \in \mathcal{A}} \underbrace{\pi(a|s)}_{\text{agent selection}} \cdot \underbrace{P_\mathcal{E}(s'|s,a)}_{\text{environment response}}.
+% \end{equation}
+
+% This coupling between policy and environment induces drift and diffusion on the potential landscape. Define the expected change in value from state $s$ (drift velocity):
+% \begin{equation}
+% \mu_V(s) = \mathbb{E}_{s' \sim P^\pi(\cdot|s)}[V^\pi(s')] - V^\pi(s),
+% \end{equation}
+% and the variance in value change (diffusion coefficient):
+% \begin{equation}
+% \sigma_V^2(s) = \text{Var}_{s' \sim P^\pi(\cdot|s)}[V^\pi(s')].
+% \end{equation}
+
+% Three dynamical regimes emerge:
+% \begin{enumerate}
+% \item \textbf{Drift-dominated} ($\mu_V > 0$, $\sigma_V^2$ small): Agent moves systematically toward higher success probability. Reflects aligned policy with clear gradient toward goal.
+
+% \item \textbf{Diffusion-dominated} ($\mu_V \approx 0$, $\sigma_V^2$ large): Agent wanders stochastically on a flat, noisy surface. Policy entropy $H^\pi(s) = -\sum_a \pi(a|s) \log \pi(a|s)$ is high; multiple actions appear equivalently plausible. Characteristic of exploration phases or insufficient training signal.
+
+% \item \textbf{Trapped} ($\mu_V < 0$, small $\sigma_V^2$): Agent drifts systematically away from goal or remains pinned near local minimum. Indicates misaligned priors or overfitting to spurious patterns.
+% \end{enumerate}
+
+% The policy entropy $H^\pi(s)$ parameterizes stochasticity: high entropy enables exploration of multiple paths (increasing effective $\sigma_V^2$), while low entropy commits to deterministic trajectories (reducing variance but risking entrapment in suboptimal basins).
+
+% \textbf{Trajectory Probability and Barrier Crossing.} A trajectory of length $n$ is a sequence $\xi = (s_0, a_0, s_1, a_1, \ldots, s_n)$ with probability:
+% \begin{equation}
+% P^\pi(\xi) = \prod_{t=0}^{n-1} \pi(a_t | s_t) \cdot P_\mathcal{E}(s_{t+1} | s_t, a_t).
+% \end{equation}
+
+% Success requires traversing from initial state $s_0$ to goal $s_{\text{goal}}$ while remaining in the low-potential basin. The \textit{barrier height} between states $s$ and $s'$ along the minimum-energy path is:
+% \begin{equation}
+% \Delta U(s \rightarrow s') = \max_{s'' \in \text{path}(s, s')} U^\pi(s'') - U^\pi(s).
+% \end{equation}
+
+% For multi-step tasks requiring passage through intermediate waypoints $s_0 \rightarrow s_1 \rightarrow \cdots \rightarrow s_f$, cumulative barriers add:
+% \begin{equation}
+% \Delta U_{\text{total}} = \sum_{i=0}^{f-1} \Delta U(s_i \rightarrow s_{i+1}).
+% \end{equation}
+
+% When each transition has independent success probability $p_i = \exp(-\Delta U_i)$, the total success probability becomes:
+% \begin{equation}
+% \boxed{P(\text{success}) = \prod_{i=1}^{n} p_i = \exp\left(-\sum_i \Delta U_i\right) = e^{-\Delta U_{\text{total}}}.}
+% \label{eq:arrhenius_ldp}
+% \end{equation}
+
+% This recovers the Arrhenius-type exponential decay but grounds it in the language of activation barriers. The effective leakage $\bar{\Gamma}$ is identified with the mean barrier height per step: $\bar{\Gamma} \equiv \langle \Delta U_i \rangle$.
+
+% \text{Path Degeneracy and Entropic Contributions.}
+% The manifold $\mathcal{M}$ exhibits nontrivial topology: multiple geodesics connect $s_0$ to $s_{\text{goal}}$, reflecting fundamental degeneracies in reasoning pathways. Let $\Pi_{\text{valid}}(s_0, s_{\text{goal}})$ denote the space of valid trajectories. Each path carries probability weight $P(\pi | \theta)$ determined by the product of transition probabilities. The partition function becomes:
+% \begin{equation}
+% \mathcal{Z} = \sum_{\pi \in \Pi_{\text{valid}}} P(\pi | \theta) = \sum_{\pi \in \Pi_{\text{valid}}} e^{-\Delta U_{\text{total}}(\pi)}.
+% \label{eq:partition}
+% \end{equation}
+
+% This sum-over-paths formulation is exact but computationally intractable. When the number of valid paths scales as $|\Pi_{\text{valid}}| \sim \exp(\alpha L)$ (entropic proliferation) while individual path probability decays as $\exp(-\beta L)$ (energetic suppression), the partition function behaves as:
+% \begin{equation}
+% \mathcal{Z} \sim \exp[(\alpha - \beta)L].
+% \end{equation}
+
+% Three regimes emerge:
+% \begin{itemize}
+% \item \textbf{Entropic dominance} ($\alpha > \beta$): Path multiplicity overwhelms individual barrier costs. Success probability grows with task length—counterintuitive but observable in highly degenerate tasks.
+
+% \item \textbf{Energetic dominance} ($\beta > \alpha$): Barrier costs outweigh entropic gains. Exponential decay: $P_{\text{success}} \sim e^{-(\beta - \alpha)L}$. Generic behavior in scientific domains where constraint density increases faster than solution multiplicity.
+
+% \item \textbf{Critical point} ($\alpha \approx \beta$): Power-law or stretched-exponential behavior. Maximum variance in success rates across runs.
+% \end{itemize}
+
+% The effective leakage becomes:
+% \begin{equation}
+% \bar{\Gamma}_{\text{eff}} = \beta - \alpha,
+% \end{equation}
+% incorporating both energetic barriers ($\beta$) and entropic facilitation ($\alpha$). This explains why task decomposition sometimes fails: introducing checkpoints may increase path multiplicity (larger $\alpha$) but also adds coordination overhead (larger $\beta$), with net effect depending on their relative magnitudes.
+
+% \textbf{Scaffolding as an External Biasing Field.} Prompt engineering injects domain knowledge into the agent's context, modifying the policy. Represent scaffolding as additional context $\Sigma$ (system instructions, tool descriptions, examples) that transforms the policy:
+% \begin{equation}
+% \pi_\Sigma(a|s) = \pi(a|s \oplus \Sigma),
+% \end{equation}
+% where $\oplus$ denotes context concatenation. Scaffolding acts as an external field biasing the agent toward specific regions of state space---analogous to applying a magnetic field to a spin system.
+
+% This perturbation alters the effective potential. If scaffolding lowers barriers along the correct path, $U^\pi_\Sigma(s) < U^\pi(s)$ for $s \in \mathcal{M}$, success probability increases. However, three fundamental limitations arise:
+
+% \textbf{(1) Local perturbation constraint}: Scaffolding modifies only local policy weights. If the base policy assigns negligible probability to any successful action sequence---$\pi(a|s) \approx 0$ for all $a$ leading to $\mathcal{M}$---no scaffold can create that probability mass. Scaffolding reweights existing tendencies; it cannot manufacture absent knowledge.
+
+% \textbf{(2) Information-theoretic ceiling}: At each step $t$, define the semantic information gap
+% \begin{equation}
+% \Delta_{\text{gap}}(t) = H(s_{t+1}^* | s_t, \mathcal{D}_{\text{train}}) - H(s_{t+1}^* | s_t, \mathcal{D}_{\text{train}}, \Sigma),
+% \end{equation}
+% measuring residual uncertainty about correct action $s_{t+1}^*$ after conditioning on training data $\mathcal{D}_{\text{train}}$ and scaffold $\Sigma$. The prompt channel capacity
+% \begin{equation}
+% C_{\text{prompt}} = I(\Sigma; s_{t+1}^* | s_t, \mathcal{D}_{\text{train}})
+% \end{equation}
+% quantifies mutual information between scaffolding and task requirements. Reliable action selection demands:
+% \begin{equation}
+% C_{\text{prompt}} \geq \Delta_{\text{gap}}(t) - \epsilon.
+% \end{equation}
+
+% When $\Delta_{\text{gap}} \gg C_{\text{prompt}}$, the domain gap exceeds representational capacity. No prompt refinement suffices—the model lacks requisite physical priors. This establishes a hard information-theoretic bound on scaffolding efficacy.
+
+% \textbf{(3) Landscape complexity coupling}: If the potential landscape $U^\pi(s)$ is complex---many local minima, rugged topology---the biasing field $\Sigma$ must possess commensurate complexity to avoid introducing spurious attractors. Generic scaffolds (e.g., "think step-by-step") provide weak, spatially uniform fields; they improve performance in simple convex basins but destabilize navigation in rough landscapes. Designing task-specific scaffolds demands detailed knowledge of $U^\pi$—a circular dependency.
+
+% We model scaffolding's effect on leakage as:
+% \begin{equation}
+% \bar{\Gamma}_{\text{scaffolded}} = \bar{\Gamma}_{\text{base}} \cdot \left[1 - \eta \cdot \min\left(1, \frac{C_{\text{prompt}}}{\Delta_{\text{gap}}}\right)\right],
+% \label{eq:scaffold_leakage}
+% \end{equation}
+% where $\eta \in [0,1]$ parameterizes utilization efficiency—how effectively the agent extracts signal from context. Three regimes emerge:
+
+% \begin{enumerate}
+% \item \textbf{Underdetermined} ($C_{\text{prompt}} \gg \Delta_{\text{gap}}$): Scaffolding saturates. Further prompt complexity yields diminishing returns. Leakage reduction plateaus at $(1-\eta)\bar{\Gamma}_{\text{base}}$.
+
+% \item \textbf{Goldilocks zone} ($C_{\text{prompt}} \approx \Delta_{\text{gap}}$): Marginal improvements in prompt information produce proportional reductions in leakage. Optimal regime for engineering interventions.
+
+% \item \textbf{Overdetermined} ($C_{\text{prompt}} \ll \Delta_{\text{gap}}$): Domain gap exceeds representational capacity. Scaffolding provides negligible benefit: $\bar{\Gamma}_{\text{scaffolded}} \approx \bar{\Gamma}_{\text{base}}$. Phase transition to untrainability.
+% \end{enumerate}
+
+% Our verbosity experiments probe this relationship: excessive scaffolding ($C_{\text{prompt}}$ artificially inflated through redundant instructions) does not improve performance once saturation is reached. Conversely, in spectroscopy tasks where $\Delta_{\text{gap}}$ is large, even carefully designed scaffolds fail—the information bottleneck is fundamental.
+
+% \textbf{Decomposition: Trading Barrier Height for Path Length.}
+% Task decomposition attempts to reduce $\Delta U_{\text{total}}$ by breaking high barriers into multiple smaller steps. Consider a monolithic task with single barrier $\Delta U_{\text{mono}}$ versus a decomposed task with $k$ barriers $\{\Delta U_i\}_{i=1}^k$. Decomposition succeeds if:
+% \begin{equation}
+% \sum_{i=1}^k \Delta U_i < \Delta U_{\text{mono}}.
+% \end{equation}
+
+% However, decomposition introduces overhead: checkpoint coordination, context switching, intermediate output formatting. Each checkpoint adds:
+% \begin{itemize}
+% \item Verification barriers: Ensuring subtask outputs meet format/semantic requirements
+% \item Communication barriers: Serializing/deserializing intermediate representations
+% \item Error propagation: Subtle mistakes in early subtasks corrupt later stages
+% \end{itemize}
+
+% Model this as:
+% \begin{equation}
+% \Delta U_{\text{decomposed}} = \sum_{i=1}^k \Delta U_i + k \cdot \Delta U_{\text{overhead}}.
+% \end{equation}
+
+% Decomposition benefits when $\Delta U_{\text{mono}} \gg k \cdot \Delta U_{\text{overhead}}$—the original barrier is so high that coordination costs are negligible. But if barriers are already low ($\Delta U_{\text{mono}} \lesssim \Delta U_{\text{overhead}}$), decomposition introduces net harm. This explains our empirical observation: decomposition aids complex multi-physics simulations (high $\Delta U_{\text{mono}}$) but degrades simple retrieval tasks (low $\Delta U_{\text{mono}}$).
+
+% \textbf{Connection to Non-Equilibrium Statistical Mechanics.}
+% Table~\ref{tab:stat_mech_analogy} formalizes the isomorphism between agent reliability theory and non-equilibrium statistical mechanics. The mapping is not merely analogical—the mathematical structures are identical up to relabeling.
+
+% % \begin{table}[h]
+% % \centering
+% % \caption{Correspondence between agent reliability framework and non-equilibrium statistical mechanics. The potential $U^\pi(s)$ emerges from the interaction between model capabilities and task requirements, playing the role of an effective free energy landscape. Unlike classical mechanics where potentials are externally imposed, here $U^\pi$ is an intrinsic property of the agent-environment coupling.}
+% % \label{tab:stat_mech_analogy}
+% % \begin{tabularx}{0.7\textwidth}{l|l|l|l|l|}
+% % \toprule
+% % \textbf{Statistical Physics} & \textbf{Symbol} & \textbf{Agent Framework} & \textbf{Symbol} & \textbf{Notes} \\
+% % \midrule
+% % Microstate & $z$ & Agent state & $s=(P,h_t,c_t)$ & Complete configuration \\
+% % \midrule
+% % Phase space & $\Omega$ & State space & $\mathcal{S}$ & All possible configurations \\
+% % \midrule
+% % Energy & $E(z)$ & Effective potential & $U^\pi(s)=-\log V^\pi(s)$ & Task-dependent free energy \\
+% % \midrule
+% % Partition function & $Z=\sum_z e^{-\beta E(z)}$ & Trajectory sum & $\mathcal{Z}=\sum_\pi e^{-\Delta U(\pi)}$ & Normalization over paths \\
+% % \midrule
+% % Free energy & $F=-k_B T \log Z$ & Log success prob. & $-\log P_{\text{success}}$ & Thermodynamic potential \\
+% % \midrule
+% % Boltzmann factor & $e^{-\beta E}$ & Path probability & $e^{-\Delta U_{\text{total}}}$ & Exponential weighting \\
+% % \midrule
+% % Temperature & $T$ & Policy entropy & $H^\pi(s)$ & Stochasticity parameter \\
+% % \midrule
+% % External field & $\mathbf{h}$ & Scaffolding & $\Sigma$ & Biasing perturbation \\
+% % \midrule
+% % Activation barrier & $\Delta E^\ddagger$ & Leakage per step & $\bar{\Gamma}=\langle \Delta U_i\rangle$ & Rate-limiting energy \\
+% % \midrule
+% % Escape rate & $k=\nu e^{-\Delta E^\ddagger/k_B T}$ & Failure rate & $1/\langle L_{\text{fail}}\rangle$ & Kramers theory \\
+% % \midrule
+% % Mean first passage time & $\tau=1/k$ & Mean trajectory length & $\langle L_{\text{fail}}\rangle=1/\bar{\Gamma}$ & Characteristic lifetime \\
+% % \midrule
+% % Microstate multiplicity & $\Omega(E)$ & Path degeneracy & $|\Pi_{\text{valid}}|$ & Entropic contribution \\
+% % \midrule
+% % Entropy & $S=k_B\log\Omega$ & Path entropy & $\alpha=\frac{1}{L}\log|\Pi_{\text{valid}}|$ & Configurational freedom \\
+% % \midrule
+% % Diffusion coefficient & $D$ & Value variance & $\sigma_V^2(s)$ & Spatial fluctuations \\
+% % \midrule
+% % Drift velocity & $v$ & Value drift & $\mu_V(s)$ & Deterministic flow \\
+% % \bottomrule
+% % \end{tabularx}
+% % \end{table}
+
+% \begin{table}[h]
+% \centering
+% \caption{Correspondence between agent reliability framework and non-equilibrium statistical mechanics. The potential $U^\pi(s)$ emerges from the interaction between model capabilities and task requirements, playing the role of an effective free energy landscape. Unlike classical mechanics where potentials are externally imposed, here $U^\pi$ is an intrinsic property of the agent-environment coupling.}
+% \label{tab:stat_mech_analogy}
+% \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.2cm}|c|>{\raggedright\arraybackslash}p{2.2cm}|>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}X}
+% \toprule
+% \textbf{Statistical Physics} & \textbf{Symbol} & \textbf{Agent Framework} & \textbf{Symbol} & \textbf{Notes} \\
+% \midrule
+% Microstate & $z$ & Agent state & $s=(P,h_t,c_t)$ & Complete configuration \\
+% \midrule
+% Phase space & $\Omega$ & State space & $\mathcal{S}$ & All possible configurations \\
+% \midrule
+% Energy & $E(z)$ & Effective potential & $U^\pi(s)=-\log V^\pi(s)$ & Task-dependent free energy \\
+% \midrule
+% Partition function & $Z=\sum_z e^{-\beta E(z)}$ & Trajectory sum & $\mathcal{Z}=\sum_\pi e^{-\Delta U(\pi)}$ & Normalization over paths \\
+% \midrule
+% Free energy & $F=-k_B T \log Z$ & Log success prob. & $-\log P_{\text{success}}$ & Thermodynamic potential \\
+% \midrule
+% Boltzmann factor & $e^{-\beta E}$ & Path probability & $e^{-\Delta U_{\text{total}}}$ & Exponential weighting \\
+% \midrule
+% Temperature & $T$ & Policy entropy & $H^\pi(s)$ & Stochasticity parameter \\
+% \midrule
+% External field & $\mathbf{h}$ & Scaffolding & $\Sigma$ & Biasing perturbation \\
+% \midrule
+% Activation barrier & $\Delta E^\ddagger$ & Leakage per step & $\bar{\Gamma}=\langle \Delta U_i\rangle$ & Rate-limiting energy \\
+% \midrule
+% Escape rate & $k=\nu e^{-\Delta E^\ddagger/k_B T}$ & Failure rate & $1/\langle L_{\text{fail}}\rangle$ & Kramers theory \\
+% \midrule
+% Mean first passage time & $\tau=1/k$ & Mean trajectory length & $\langle L_{\text{fail}}\rangle=1/\bar{\Gamma}$ & Characteristic lifetime \\
+% \midrule
+% Microstate multiplicity & $\Omega(E)$ & Path degeneracy & $|\Pi_{\text{valid}}|$ & Entropic contribution \\
+% \midrule
+% Entropy & $S=k_B\log\Omega$ & Path entropy & $\alpha=\frac{1}{L}\log|\Pi_{\text{valid}}|$ & Configurational freedom \\
+% \midrule
+% Diffusion coefficient & $D$ & Value variance & $\sigma_V^2(s)$ & Spatial fluctuations \\
+% \midrule
+% Drift velocity & $v$ & Value drift & $\mu_V(s)$ & Deterministic flow \\
+% \bottomrule
+% \end{tabularx}
+% \end{table}
+
+% The analogy enables borrowing machinery from Kramers theory, transition state theory, and large deviation principles. The escape rate from the low-potential basin obeys:
+% \begin{equation}
+% k_{\text{escape}} = \nu_0 \exp\left(-\frac{\bar{\Gamma}}{H^\pi}\right),
+% \end{equation}
+% where $\nu_0$ represents attempt frequency (reasoning step rate) and $H^\pi$ parameterizes policy stochasticity (effective temperature). At high entropy (exploratory policies), trajectories escape via stochastic fluctuations. At low entropy (greedy decoding), escape occurs through systematic drift—insufficient domain knowledge creates net flux toward failure regions.
+
+% Fluctuation theorems predict run-to-run variability:
+% \begin{equation}
+% \text{Var}(P_{\text{success}}) \sim L \cdot \bar{\Gamma} \cdot (1 - \bar{\Gamma}),
+% \end{equation}
+% peaking when $\bar{\Gamma} \approx 0.5$. Empirically, we observe maximum variance in intermediate-difficulty tasks---consistent with critical slowing near phase boundaries.
+
+% A crucial distinction from classical mechanics: the potential $U^\pi(s)$ is not externally imposed but emerges from agent-environment interaction. A model lacking spectroscopic training experiences vibrational mode assignment as a steep barrier ($\Delta U \gg 1$), whereas the same state appears as a shallow well ($\Delta U \approx 0$) for a domain-specialized model. The landscape is \textit{observer-dependent}---a property absent in conventional statistical mechanics but ubiquitous in cognitive systems.
+
+% \subsection{Empirical Predictions and Falsifiable Tests}
+
+% Our framework generates quantitative predictions amenable to experimental validation:
+
+% \begin{enumerate}
+% \item \textbf{Exponential scaling law}: Log-linear relationship $\ln(P_{\text{success}}) = -L \cdot \bar{\Gamma}$ with slope $-\bar{\Gamma}$. Deviations signal breakdown of step-independence or non-additive barriers. (How to compute this. At step t:
+% \begin{itemize}
+%     \item Count trajectories still on manifold: $N_{\text{alive}(t)}$
+%     \item Survival probability: $C_t$ = $N_{\text{alive}(t+1)} / N_{\text{alive}(t)})$
+%     \item P$_\text{success}$ = $\prod_{i=1}^{L} C_t$. 
+%     % \item This also gives leakage per step; $r_t = -ln(C_t)$)
+
+% \end{itemize}
+
+% \item \textbf{Barrier homogeneity test}: If leakage is step-independent, $\Delta U_i \approx \bar{\Gamma}$ for all $i$. Measure step-wise survival $\hat{p}_i = N_{\text{on-manifold}}^{(i+1)} / N_{\text{on-manifold}}^{(i)}$ and compute $\hat{\Delta U}_i = -\log \hat{p}_i$. Test homogeneity via $\chi^2$ statistic against null hypothesis.
+
+% \item \textbf{Entropic vs. energetic dominance}: In tasks with high action degeneracy (e.g., ML training with multiple valid strategies), increasing policy entropy $H^\pi$ should improve success if $\alpha > 0$. Conversely, in highly constrained tasks (unique solution path), higher entropy degrades performance.
+
+% \item \textbf{Scaffolding saturation}: Plot $\bar{\Gamma}_{\text{scaffolded}}$ versus $C_{\text{prompt}}$ (measured via ablation studies). Expect sigmoidal response with plateau when $C_{\text{prompt}} \gtrsim \Delta_{\text{gap}}$. Identify phase transition boundary between Goldilocks and overdetermined regimes.
+
+% \item \textbf{Decomposition crossover}: For varying $\Delta U_{\text{mono}}$, measure benefit of $k$-way decomposition. Predict crossover at $\Delta U_{\text{mono}} \sim k \cdot \Delta U_{\text{overhead}}$ separating beneficial and harmful regimes.
+
+% \item \textbf{Diffusion-dominated signatures}: Tasks with $\mu_V \approx 0$ and large $\sigma_V^2$ should exhibit: (i) high pass@$k$ but low pass@1 (variance helps), (ii) success rates insensitive to greedy vs. sampling decoding.
+% % flat potential landscape in trajectory visualizations
+
+% \item \textbf{Trapped-state diagnostics}: Tasks with $\mu_V < 0$ should show: (i) consistently low scores with minimal variance, (ii) early trajectory convergence to off-manifold attractors, (iii) inability to benefit from increased compute (repeated sampling yields identical failures).
+% \end{enumerate}
+
+% These predictions distinguish our theory from alternatives: (i) compounding errors without exponential structure (would give power-law scaling), (ii) random failures independent of domain gap (would show no correlation with $\Delta_{\text{gap}}$), (iii) prompt-based fixes without information-theoretic limits (would show unbounded improvement with scaffolding complexity).
+
+% % Systematic measurements across task families in our benchmark suite---varying $L$, $\bar{\Gamma}$, $C_{\text{prompt}}$, and $H^\pi$---will adjudicate between competing models. 

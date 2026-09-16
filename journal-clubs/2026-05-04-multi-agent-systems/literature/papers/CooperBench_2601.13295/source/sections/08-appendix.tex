@@ -1,0 +1,596 @@
+\appendix
+
+\section{Dataset Details}\label{app:dataset_stats}
+
+This section provides detailed statistics on the \dataset benchmark. Repository selection criteria are described in \S\ref{sec:dataset_construction}.
+
+\subsection{Repository Distribution}
+
+Table~\ref{tab:repos} shows the full breakdown of repositories, features, and task pairs.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Distribution of benchmark tasks across source repositories.
+    Feature counts and task pairs are reported as aggregated totals across base commits (PRs) within each repository.}
+    \begin{tabular}{llrrrrl}
+      \toprule
+      \textbf{Language} & \textbf{Repository} & \textbf{\#PRs} & \textbf{Features ($\Sigma$)} & \textbf{Task Pairs ($\Sigma$)} & \textbf{License} \\
+      \midrule
+      \texttt{Python}
+        & \texttt{DSPy}                 & \texttt{4} & \texttt{23} & \texttt{55}  & \licensepill{MIT}        \\
+        & \texttt{LlamaIndex}           & \texttt{3} & \texttt{16} & \texttt{39}  & \licensepill{MIT}        \\
+        & \texttt{Pillow}               & \texttt{3} & \texttt{15} & \texttt{30}  & \licensepill{MIT-CMU}    \\
+        & \texttt{Pallets Click}        & \texttt{3} & \texttt{27} & \texttt{115} & \licensepill{BSD-3}      \\
+        & \texttt{Pallets Jinja}        & \texttt{3} & \texttt{30} & \texttt{135} & \licensepill{BSD-3}      \\
+        & \texttt{HuggingFace Datasets} & \texttt{3} & \texttt{13} & \texttt{26}  & \licensepill{Apache-2.0} \\
+        & \texttt{Outlines}             & \texttt{3} & \texttt{22} & \texttt{79}  & \licensepill{Apache-2.0} \\
+        & \texttt{Tiktoken}             & \texttt{1} & \texttt{10} & \texttt{45}  & \licensepill{MIT}        \\
+        & \texttt{DirtyEquals}          & \texttt{1} & \texttt{9}  & \texttt{36}  & \licensepill{MIT}        \\
+      \texttt{TypeScript}
+        & \texttt{React Hook Form}      & \texttt{2} & \texttt{11} & \texttt{25}  & \licensepill{MIT}        \\
+      \texttt{Go}
+        & \texttt{Chi Router}           & \texttt{3} & \texttt{13} & \texttt{22}  & \licensepill{MIT}        \\
+      \texttt{Rust}
+        & \texttt{Typst}                & \texttt{3} & \texttt{10} & \texttt{45}  & \licensepill{Apache-2.0} \\
+      \midrule
+      \texttt{\textbf{Total}}
+        & \texttt{\textbf{12 repositories}}
+        & \texttt{\textbf{34}}
+        & \texttt{\textbf{199}}
+        & \texttt{\textbf{652}}
+        &  \\
+      \bottomrule
+    \end{tabular}
+
+    \vspace{0.5em}
+    \small
+    \textit{Note:} Each repository contains 1--4 base commits (PRs), each defining an independent feature pool.
+    Task pairs are constructed within each PR as $\binom{n}{2}$ and summed across PRs.
+    \label{tab:repos}
+\end{table}
+
+
+
+
+
+\subsection{Feature Complexity}\label{app:feature_complexity}
+
+The final \dataset benchmark comprises 199 individual features grouped into 52 task sets, yielding 652 evaluated feature pairs. 
+Since the objective is to evaluate coordination rather than raw implementation difficulty, features are intentionally designed to be compact and comparable in difficulty to those found in established code-generation benchmarks. 
+This design ensures that multi-agent failures reflect genuine coordination limitations rather than disproportionate feature complexity.
+
+To quantify feature complexity, we characterize the gold patches for each feature along three axes: 
+(i) \textit{code volume}, measured as the total number of lines added and deleted; 
+(ii) \textit{structural footprint}, captured by the number of modified functions and hunks\footnote{A hunk is a contiguous block of changed lines in a diff, representing a localized code modification.}; 
+and (iii) \textit{modification scope}, defined as the number of files affected.
+Across the benchmark, features exhibit a deliberately compact footprint. 
+On average, a feature comprises 52.3 changed lines and modifies only 1.4 files, confirming that \dataset isolates coordination challenges rather than the difficulty of single-agent implementation. 
+Table~\ref{tab:complexity_stats} provides detailed statistics for each repository.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Feature Complexity Statistics by Repository}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{llcccccc}
+    \toprule
+    \textbf{Language} & \textbf{Repository} & \textbf{Avg. Lines} & \textbf{Avg. Functions} & \textbf{Avg. Files} & \textbf{Easy} & \textbf{Medium} & \textbf{Hard} \\
+    \midrule
+    Python & \texttt{DSPy} & \texttt{70.9} & \texttt{5.6} & \texttt{1.3} & \texttt{2}\textsubscript{\texttt{9\%}} & \texttt{4}\textsubscript{\texttt{17\%}} & \texttt{17}\textsubscript{\texttt{74\%}} \\
+           & \texttt{LlamaIndex} & \texttt{16.8} & \texttt{1.8} & \texttt{1.0} & \texttt{2}\textsubscript{\texttt{13\%}} & \texttt{14}\textsubscript{\texttt{87\%}} & \texttt{0}\textsubscript{\texttt{0\%}} \\
+           & \texttt{Pillow} & \texttt{38.1} & \texttt{2.7} & \texttt{1.0} & \texttt{1}\textsubscript{\texttt{7\%}} & \texttt{11}\textsubscript{\texttt{73\%}} & \texttt{3}\textsubscript{\texttt{20\%}} \\
+           & \texttt{Pallets Click} & \texttt{53.9} & \texttt{5.4} & \texttt{1.6} & \texttt{0}\textsubscript{\texttt{0\%}} & \texttt{10}\textsubscript{\texttt{37\%}} & \texttt{17}\textsubscript{\texttt{63\%}} \\
+           & \texttt{Pallets Jinja} & \texttt{67.7} & \texttt{6.2} & \texttt{1.0} & \texttt{1}\textsubscript{\texttt{3\%}} & \texttt{14}\textsubscript{\texttt{47\%}} & \texttt{15}\textsubscript{\texttt{50\%}} \\
+           & \texttt{HuggingFace Datasets} & \texttt{15.3} & \texttt{2.3} & \texttt{1.0} & \texttt{1}\textsubscript{\texttt{8\%}} & \texttt{11}\textsubscript{\texttt{85\%}} & \texttt{1}\textsubscript{\texttt{8\%}} \\
+           & \texttt{Outlines} & \texttt{44.7} & \texttt{4.1} & \texttt{1.1} & \texttt{8}\textsubscript{\texttt{36\%}} & \texttt{6}\textsubscript{\texttt{27\%}} & \texttt{8}\textsubscript{\texttt{36\%}} \\
+           & \texttt{Tiktoken} & \texttt{46.4} & \texttt{4.6} & \texttt{1.0} & \texttt{0}\textsubscript{\texttt{0\%}} & \texttt{8}\textsubscript{\texttt{80\%}} & \texttt{2}\textsubscript{\texttt{20\%}} \\
+           & \texttt{DirtyEquals} & \texttt{71.0} & \texttt{4.0} & \texttt{2.0} & \texttt{0}\textsubscript{\texttt{0\%}} & \texttt{1}\textsubscript{\texttt{11\%}} & \texttt{8}\textsubscript{\texttt{89\%}} \\
+    TypeScript & \texttt{React Hook Form} & \texttt{49.8} & \texttt{4.6} & \texttt{2.3} & \texttt{0}\textsubscript{\texttt{0\%}} & \texttt{8}\textsubscript{\texttt{73\%}} & \texttt{3}\textsubscript{\texttt{27\%}} \\
+    Go & \texttt{Chi Router} & \texttt{80.2} & \texttt{5.7} & \texttt{2.8} & \texttt{0}\textsubscript{\texttt{0\%}} & \texttt{5}\textsubscript{\texttt{38\%}} & \texttt{8}\textsubscript{\texttt{62\%}} \\
+    Rust & \texttt{Typst} & \texttt{58.4} & \texttt{1.7} & \texttt{1.1} & \texttt{0}\textsubscript{\texttt{0\%}} & \texttt{7}\textsubscript{\texttt{70\%}} & \texttt{3}\textsubscript{\texttt{30\%}} \\
+    \midrule
+    \textbf{Overall} & \textbf{12 Repositories} & \textbf{\texttt{52.3}} & \textbf{\texttt{4.4}} & \textbf{\texttt{1.4}} & \textbf{\texttt{15}\textsubscript{\texttt{8\%}}} & \textbf{\texttt{99}\textsubscript{\texttt{50\%}}} & \textbf{\texttt{85}\textsubscript{\texttt{43\%}}} \\
+    \bottomrule
+  \end{tabular}
+  }
+  \\[0.5em]
+  \small \textit{Note:} Complexity measured as lines changed (added + removed) and structural elements modified in gold patches.
+  Difficulty categories from \texttt{SWE-Rater-32B}: \texttt{Easy} = \texttt{<15 min fix}, \texttt{Medium} = \texttt{15 min--1 hour}, \texttt{Hard} = \texttt{1--4 hours}.
+  \label{tab:complexity_stats}
+\end{table}
+
+
+
+
+
+
+\section{LLM-based merge conflict resolver}\label{app:resolver}
+
+\dataset{} evaluates cooperation on merged code. When patch merging produces textual conflicts, we use a small learned resolver to remove conflict markers while preserving both sides' intent. We train a small local resolver rather than calling a larger proprietary model so that the merge step remains narrow and predictable, avoids fixing anything beyond trivial merge cleanup, and can run locally. At evaluation time, we invoke the learned resolver only after a standard merge attempt and a union merge attempt do not yield a test passing merged artifact.
+
+We construct training data by replaying merges between independently produced feature patches and extracting the conflict marked regions from conflicted files. We identify each conflict region by scanning for Git conflict markers \verb|<<<<<<<|, \verb|=======|, and \verb|>>>>>>>|. We extract the marked block together with a small fixed context window, default $c=5$ lines before and after.
+
+We generate synthetic conflicts by perturbing these real conflict snippets. Our default generator is \texttt{gpt-4o}. This keeps training examples representative of our patch distribution while avoiding direct reuse of repository specific content. For each real or synthetic conflict snippet, we create a reference resolution with \texttt{gpt-5} and fine tune a small code model, \texttt{Qwen/Qwen2.5-Coder-0.5B-Instruct}, using LoRA based supervised fine tuning (SFT).\@ We train for three epochs with a maximum sequence length of 2048 tokens. When the resolver is invoked, we extract the conflicted region with its fixed context window, run deterministic decoding with temperature $=0$, and replace that region with the model's resolution. We release the trained resolver as \texttt{Qwen2.5-Coder-0.5B-Merge-Resolver}.\footnote{\texttt{huggingface.co/CodeConflict/Qwen2.5-Coder-0.5B-Merge-Resolver}}
+
+
+
+
+
+
+
+\section{Difficulty-stratified evaluation}\label{app:ci}
+
+
+Raw success rates are insufficient for comparing coordination overhead across models. A model dropping from 50\% Solo to 30\% Coop has the same 20-point gap as one dropping from 80\% to 60\%, but the first loses 40\% of its capability while the second loses only 25\%. We need a metric that accounts for baseline differences. We also want to integrate across task difficulty rather than rely on aggregates that mask variation. This section derives such a metric using the relative difficulty defined in Section~\ref{sec:cooperation_performance}.
+
+We partition tasks into 10 equal-width buckets over the normalized difficulty range $[0,1]$ and compute success rate at each bucket midpoint, with 95\% Wilson confidence intervals that remain well-calibrated near 0 and 1. This produces two curves per model, one for Solo and one for Coop.
+
+We summarize each curve by its area under the curve (AUC) via trapezoidal integration. The absolute gap $\Delta_{\mathrm{AUC}} = \mathrm{AUC}_{\mathrm{Solo}} - \mathrm{AUC}_{\mathrm{Coop}}$ measures coordination cost but depends on baseline. We therefore report \textit{retention} $= \mathrm{AUC}_{\mathrm{Coop}} / \mathrm{AUC}_{\mathrm{Solo}}$, which normalizes for capability. A retention of 0.64 means 64\% of Solo performance survives coordination.
+
+For aggregate statistics across models we sum raw counts rather than averaging rates, which preserves proper weighting when models have different sample sizes.
+
+\begin{algorithm}[H]
+\caption{Constructing difficulty-stratified success curves}
+\SetAlgoLined
+\KwIn{Task set with difficulty scores $d(t) \in [0,1]$, success outcomes for Solo and Coop per model}
+\KwOut{Success curves with 95\% CIs, AUC gap, and retention per model and pooled}
+
+\medskip
+\tcp{Bucket tasks by difficulty}
+Split $[0,1]$ into 10 equal buckets\;
+Assign each task to its bucket based on $d(t)$\;
+
+\medskip
+\tcp{Compute curves per model}
+\ForEach{model $m$}{
+  \ForEach{bucket $b$}{
+    Compute Solo success rate $r^{\mathrm{Solo}}_{m,b} = k^{\mathrm{Solo}}_{m,b} / n_{m,b}$\;
+    Compute Coop success rate $r^{\mathrm{Coop}}_{m,b} = k^{\mathrm{Coop}}_{m,b} / n_{m,b}$\;
+    Compute 95\% Wilson CI for each rate\;
+  }
+  Compute $\mathrm{AUC}_{\mathrm{Solo}}$ and $\mathrm{AUC}_{\mathrm{Coop}}$ via trapezoidal integration\;
+  Compute $\Delta_{\mathrm{AUC}} = \mathrm{AUC}_{\mathrm{Solo}} - \mathrm{AUC}_{\mathrm{Coop}}$\;
+  Compute retention $= \mathrm{AUC}_{\mathrm{Coop}} / \mathrm{AUC}_{\mathrm{Solo}}$\;
+}
+
+\medskip
+\tcp{Pool across models}
+\ForEach{bucket $b$}{
+  Sum counts across models to get pooled $n_b$ and $k_b$\;
+  Compute pooled rates and Wilson CIs\;
+}
+Compute pooled AUC gap and retention\;
+
+\end{algorithm}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figs/cooperation_results/success_by_relative_difficulty_ci.pdf}
+  \caption{Success rate versus relative difficulty for Solo and Coop settings. Shaded regions indicate 95\% Wilson confidence intervals. The gap between curves represents coordination cost, which is largest at mid-difficulty.}
+  \label{fig:difficulty_curves}
+\end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Coordination retention by model. Retention measures what fraction of Solo AUC is preserved under Coop. Higher values indicate better coordination capability.}
+  \begin{tabular}{l|cc|cc|cc}
+    \toprule
+    & \multicolumn{2}{c|}{Counts (k)} & \multicolumn{2}{c|}{AUC} & \multicolumn{2}{c}{Derived} \\
+    Model & Solo & Coop & Solo & Coop & $\Delta_{\mathrm{AUC}}$ & Retention \\
+    \midrule
+    \texttt{gpt-5}      & \texttt{315}   & \texttt{183}  & \texttt{0.506} & \texttt{0.325} & \texttt{0.181} & \texttt{0.64} \\
+    \texttt{claude}     & \texttt{307}   & \texttt{168}  & \texttt{0.469} & \texttt{0.283} & \texttt{0.186} & \texttt{0.60} \\
+    \texttt{minimax}    & \texttt{236}   & \texttt{91}   & \texttt{0.374} & \texttt{0.171} & \texttt{0.203} & \texttt{0.46} \\
+    \texttt{qwen coder} & \texttt{141}   & \texttt{87}   & \texttt{0.236} & \texttt{0.148} & \texttt{0.088} & \texttt{0.63} \\
+    \texttt{qwen}       & \texttt{41}    & \texttt{30}   & \texttt{0.106} & \texttt{0.072} & \texttt{0.034} & \texttt{0.68} \\
+    \midrule
+    \texttt{pooled}     & \texttt{1039} & \texttt{558} & \texttt{0.338} & \texttt{0.200} & \texttt{0.138} & \texttt{0.59} \\
+    \bottomrule
+  \end{tabular}
+  \label{tab:auc_gap_rel_diff}
+\end{table}
+
+On average, 41\% of Solo capability is lost when agents must coordinate (pooled retention 0.59). The pattern across models reinforces that coding ability does not predict coordination ability. \texttt{MiniMax} exhibits the worst retention (0.46) despite mid-tier coding performance, while \texttt{Qwen} achieves the highest retention (0.68) despite being the weakest coder. Weak models may benefit from a floor effect, but \texttt{MiniMax} demonstrates that strong coding provides no protection against coordination overhead.
+
+
+
+\section{Prompt Optimization: Failure-Driven Design}
+\label{app:prompt_optimization}
+
+This appendix documents the iterative optimization of the collaborative setting execution prompt through systematic failure analysis. Following established prompt engineering practices ~\citep{sahoo2024systematic,ramnath2025systematic}, we employed an evidence-based approach: beginning with a basic prompt and incrementally adding sections to address specific failure modes observed in agent behavior. \textbf{The prompt shown below represents the final, stable version used consistently across all experimental runs reported in this paper.}
+
+Through iterative refinement, we identified three primary failure categories requiring explicit prompt guidance: \textit{context misunderstanding} (agents treating coordination as optional), \textit{spatial coordination failures} (overlapping edits due to vague messages), and \textit{coordination protocol failures} (missing final status updates). The final prompt structure directly maps to these failure categories.
+
+\begin{tcolorbox}[
+    colback=gray!5!white,
+    colframe=gray!30,
+    title=\textbf{\textcolor{black}{Collaborative Setting Execution Prompt}},
+    fonttitle=\normalsize,
+]
+\small
+\textbf{Role:} You are \verb|{{ agent_id }}| working on the following feature in parallel with another agent.
+
+\medskip
+
+\textbf{Scenario:} You are working on separate branches implementing different features, but your implementations will be tested by 2-way merging both branches to main. You must prevent any merge conflicts.
+
+\medskip
+
+\textbf{Feature Description:}\\
+\verb|{{ feature_description }}|
+
+\medskip
+
+\textbf{Implementation Plan:}\\
+\verb|{{ plan }}|
+
+\medskip
+
+\textbf{Your Task:}
+\begin{enumerate}
+    \item Implement the feature according to the plan.
+    \item You can communicate with the other agent using MCP tools:
+    \begin{itemize}
+        \item \verb|openhands_comm_send|: Send messages to the other agent
+        \item Messages from the other agent will appear automatically as \verb|'[Inter-agent message]'|
+    \end{itemize}
+    \item Coordinate to avoid conflicts by specifying exact file paths and line numbers.
+    \item Complete the implementation.
+\end{enumerate}
+
+\medskip
+
+\textbf{Coordination Requirements:}
+\begin{itemize}
+    \item Share your implementation approach early with specific line ranges so both agents can coordinate.
+    \item If the other agent reports working on the same file, discuss who modifies which specific line ranges to avoid conflicts.
+    \item \textbf{Never} use insertion markers or comments like \verb|// [handleSubmit:onFinally] other agent inserts| -- these cause merge conflicts.
+    \item Instead, coordinate by dividing the file into non-overlapping sections with specific line ranges.
+    \item Before you stop or complete your work, you \textbf{must} send a final status update message to the other agent summarizing what you've implemented.
+\end{itemize}
+
+\medskip
+
+\textbf{Merge Conflict Prevention:}
+\begin{itemize}
+    \item Think of this as two developers working on separate branches that will be merged together.
+    \item Any overlapping changes to the same lines will cause merge conflicts.
+    \item Coordinate line-by-line to ensure no overlap in your modifications.
+\end{itemize}
+
+\medskip
+
+\textbf{Work directory:} \verb|{{ workspace }}|
+\end{tcolorbox}
+
+\paragraph{Failure-to-Prompt Mapping} The scenario section addresses context misunderstanding by explicitly establishing that agents work on separate branches that will be merged, making coordination mandatory. Analysis showed that many agents in early versions did not coordinate until after starting implementation; with the scenario section, most agents coordinate during planning. The coordination requirements section addresses spatial coordination failures through multiple mechanisms. The exact line number requirement (with concrete example) addresses vague coordination messages, significantly reducing spatial conflicts. The insertion marker prohibition substantially reduced marker-related conflicts. The mandatory final status update requirement increased compliance and reduced incomplete handoff failures. The merge conflict prevention section reinforces context understanding through a mental model and technical explanation of merge conflict mechanisms, helping agents understand why coordination matters and how to prevent conflicts.
+
+\paragraph{Design Decisions} The prompt follows a specific ordering: (1) \textit{Identity} establishes agent role, (2) \textit{Scenario} sets merge conflict constraints before task description, (3) \textit{Feature} and (4) \textit{Plan} provide context, (5) \textit{Task} describes what to do, (6) \textit{Requirements} specify how to coordinate, and (7) \textit{Prevention} reinforces understanding. 
+This ordering follows the principle that constraints should precede task descriptions \citep{sahoo2024systematic}. Language choices employ mandatory language for critical behaviors and strong prohibitions for anti-patterns, as optional language was frequently ignored. Concrete examples are included rather than abstract guidance, consistent with findings that concrete examples improve prompt effectiveness \citep{wei2022chain}. 
+All experimental results reported in this paper were obtained using this final prompt version.
+
+
+
+
+
+
+
+\section{Communication ablation}\label{app:comm_ablation}
+
+
+Section~\ref{sec:role_of_communication} reports that communication does not improve cooperation success. Table~\ref{tab:merge_success_comm} provides the full breakdown across merge strategies. We evaluate three merging approaches in sequence: Naive (standard git merge), Union (accept both sides on conflict), and LLM (our learned resolver from App.~\ref{app:resolver}). The $\Delta$ column shows the net effect of communication on final merge success after all resolution steps. Communication slightly improves Naive merge rates by reducing raw conflicts, but this advantage disappears after Union and LLM resolution. The final effect is near zero or slightly negative across all models.
+
+
+\newcommand{\posdelta}[1]{{\scriptsize\textcolor{green!60!black}{#1}}}
+\newcommand{\negdelta}[1]{{\scriptsize\textcolor{red!70!black}{#1}}}
+\newcommand{\posd}[1]{$_{\text{\scriptsize\textcolor{green!60!black}{+#1}}}$}
+\newcommand{\negd}[1]{$_{\text{\scriptsize\textcolor{red!70!black}{#1}}}$}
+\newcommand{\zerod}{$_{\text{\scriptsize\textcolor{gray}{0.0}}}$}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Merge success (\%) on the 652-task summary. Subscripts show $\Delta$ from prior column; final column shows comm effect.}
+  \begin{tabular}{l|ccc|ccc|c}
+    \toprule
+    & \multicolumn{3}{c|}{No-comm} & \multicolumn{3}{c|}{With-comm} & \\
+    Model & Naive & Union & LLM & Naive & Union & LLM & $\Delta$ \\
+    \midrule
+    \texttt{GPT-5}          & \texttt{13.88} & \texttt{26.69}\posd{12.8} & \texttt{27.91}\posd{1.2} & \texttt{20.42} & \texttt{26.64}\posd{6.2} & \texttt{27.90}\posd{1.3} & \negdelta{-0.1} \\
+    \texttt{Claude 4.5}     & \texttt{12.27} & \texttt{26.84}\posd{14.6} & \texttt{27.30}\posd{0.5} & \texttt{16.72} & \texttt{24.85}\posd{8.1} & \texttt{25.92}\posd{1.1} & \negdelta{-1.4} \\
+    \texttt{MiniMax-M2}     & \texttt{8.62}  & \texttt{14.72}\posd{6.1}  & \texttt{14.88}\posd{0.2} & \texttt{7.36}  & \texttt{11.50}\posd{4.1} & \texttt{13.96}\posd{2.5} & \negdelta{-0.9} \\
+    \texttt{Qwen3-Coder}    & \texttt{6.90}  & \texttt{12.88}\posd{6.0}  & \texttt{14.72}\posd{1.8} & \texttt{6.75}  & \texttt{12.42}\posd{5.7} & \texttt{13.34}\posd{0.9} & \negdelta{-1.4} \\
+    \texttt{Qwen3-Instruct} & \texttt{1.53}  & \texttt{3.22}\posd{1.7}   & \texttt{3.37}\posd{0.2}  & \texttt{2.30}  & \texttt{4.45}\posd{2.1}  & \texttt{4.60}\posd{0.2}  & \posdelta{+1.2} \\
+    \midrule
+    \texttt{Avg.}           & \texttt{8.64}  & \texttt{16.87}\posd{8.2}  & \texttt{17.64}\posd{0.8} & \texttt{10.71} & \texttt{15.97}\posd{5.3} & \texttt{17.14}\posd{1.2} & \negd{-0.5} \\
+    \bottomrule
+  \end{tabular}
+  \label{tab:merge_success_comm}
+\end{table}
+
+
+
+
+\section{Communication error detection}\label{app:comm_error_detection}
+
+We use an LLM-as-judge to classify communication failures for Section~\ref{sec:role_of_communication}. Abstract labels like ``hallucination'' are difficult for LLMs to apply reliably, so we instead define fine-grained categories anchored to quotable evidence. The judge must cite exact quotes from the conversation and omits the label if evidence is weak. We then aggregate these detections into three high-level categories for reporting.
+
+\begin{tcolorbox}[
+    colback=gray!5!white,
+    colframe=gray!30,
+    title=\textbf{\textcolor{black}{Communication Error Detection Prompt}},
+    fonttitle=\normalsize,
+]
+\small
+You are a careful reviewer of two agent collaboration conversations. This is a \textbf{precision-first} detector of bad conversation patterns. Prefer returning no issue unless the evidence is strong and explicit.
+
+\medskip
+
+\textbf{Important exclusion.} Do not label state mismatch or visibility confusion itself as an error (e.g., agents on separate branches unable to see each other's changes). Bad conversation patterns around these topics should still be labeled.
+
+\medskip
+
+\textbf{Taxonomy.} Label at most one category per conversation.
+\begin{itemize}[leftmargin=*,itemsep=1pt]
+    \item \textbf{C1a} Unanswered direct question (no reply)
+    \item \textbf{C1b} Unanswered direct question (ignored)
+    \item \textbf{C2} Non-answer or vague answer
+    \item \textbf{C4a} Incorrect claim (uncorrected)
+    \item \textbf{C3b} Incorrect claim (corrected)
+    \item \textbf{C4a} Spammy repetition (repeats same information)
+    \item \textbf{C4b} Spammy repetition (near-duplicate status blocks)
+\end{itemize}
+
+\medskip
+
+\textbf{Evidence requirements.} Include at least two exact quotes that make the issue undeniable. C1a/C1b require the question plus demonstration of missing or irrelevant response. C3a requires the incorrect claim and later contradiction. C4a/C4b require two quotes showing the repetition.
+
+\medskip
+
+\textbf{Output.} Return JSON with \verb|evidence| (list of quotes) and optional \verb|issue| (category id and short description). Omit \verb|issue| if evidence is weak.
+\end{tcolorbox}
+
+\paragraph{Taxonomy design.} The eight categories decompose three failure modes into verifiable patterns. \textit{Unresponsiveness} (C1a, C1b, C2) covers questions that receive no reply, are ignored, or get vague non-answers. \textit{Hallucination} (C3a, C3b) covers false claims about code state or completion status. We distinguish corrected from uncorrected claims because uncorrected errors propagate to downstream decisions. \textit{Repetition} (C4a, C4b) covers redundant messages that consume budget without adding information.
+
+
+
+
+\section{Failure Symptom Annotation Procedure}\label{app:symptom_annotation}
+
+We followed a six-stage process, similar in spirit to recent work on multi-agent failure analysis~\citep{cemri2025multiagentllmsystemsfail}.
+(1) Collect multi-agent-system (MAS) traces from Collaborative runs; (2) identify failures from merged artifacts (e.g., failing tests or missing intended behavior), and link them back to the interaction; (3) develop symptom categories by iterative qualitative coding and resolve disagreements to reach inter-annotator agreement on a shared set of definitions; (4) finalize the resulting symptom set; (5) calibrate an LLM-based annotator on the agreed definitions; and (6) apply the annotator to produce symptom annotations at scale.
+
+Each labeled instance is grounded in three artifacts: (i) \emph{conversation evidence} (the coordination dialogue), (ii) \emph{patch/code evidence} (what each agent changed), and (iii) \emph{outcome evidence} (merge reports and test outputs).
+A key operational distinction in our rubric is between \emph{implementation failures} (an individual agent delivers incomplete/buggy code regardless of coordination) and \emph{coordination failures} (a breakdown that is only apparent when we consider what agents said and assumed under workspace isolation).
+Concretely, we require explicit conversation evidence to assign a coordination-failure label; if the only evidence is in the code or error trace, we default to implementation-level failure rather than inferring a coordination breakdown.
+We codified the final symptom definitions as a structured rubric (including verification requirements and common confusions, e.g., when to treat ``unverifiable claims'' versus ``work overlap'').
+We then calibrated an LLM-based annotator on this rubric and required it to emit structured labels (a primary symptom plus any secondary symptoms) together with short supporting evidence snippets.
+
+
+\paragraph{Human validation.}
+To validate the LLM-based annotator, we randomly sampled 50 trajectories and had human experts independently label them using the same rubric. Human labels matched the LLM annotations on 48 of 50 cases (96\% agreement). With $n=50$ and $\hat{p}=0.96$, the Wilson 95\% confidence interval is [86\%, 99\%], confirming the annotator's reliability.
+
+
+\section{Symptom examples}\label{app:symptom_examples}
+
+We provide representative examples for each coordination failure symptom identified in Table~\ref{tab:failure_symptoms}.
+
+\tcbset{
+  symptomcard/.style={
+    enhanced,
+    arc=1.6mm,
+    boxrule=0.35pt,
+    colframe=black!12,
+    colback=white,
+    left=4pt,
+    right=4pt,
+    top=3pt,
+    bottom=3pt,
+    fontupper=\scriptsize,
+  },
+  evidencebox/.style={
+    enhanced,
+    arc=1.2mm,
+    boxrule=0.3pt,
+    colframe=black!12,
+    colback=black!2,
+    left=4pt,
+    right=4pt,
+    top=3pt,
+    bottom=3pt,
+    boxsep=0pt,
+    fontupper=\ttfamily\scriptsize,
+  }
+}
+
+\newcommand{\symptomexample}[4]{%
+  \vspace{0.5em}
+  \noindent\textbf{#1}\par
+  \begin{tcolorbox}[symptomcard]
+    \begin{tcolorbox}[evidencebox]
+      #2
+    \end{tcolorbox}
+    \textbf{Explanation:} #3\par
+    \textbf{Outcome:} #4
+  \end{tcolorbox}%
+}
+
+\symptomexample{Work overlap}{%
+  A msg: guid regex includes surrounding curly braces (\texttt{\{\ldots\}}), and A warns about overlap.\par
+  A msg: WAIT Agent 10! If you add the section header AND my guid type to your branch, that WILL create a merge conflict!\par
+  B msg: I'll add the COMPLETE section (lines 72--81) to my branch, which includes both the section header, your guid type, AND my hash\_sha256 type.\par
+}{Despite explicit boundaries and warnings, B duplicates A's work; the merged artifact keeps B's (incorrect) version.}{Wrong regex version wins; GUID tests fail (merged guid pattern missing curly braces).}
+
+\symptomexample{Divergent architecture}{%
+  A msg: Lines 15--66: My global filter registry code is present\ldots Line 69: Still has \texttt{@dataclass} decorator.\par
+  B msg: Removed dataclass import\ldots Converted Prompt from dataclass to regular class with explicit \texttt{\_\_init\_\_}.\par
+  B msg: The 2-way merge should combine our changes cleanly.\par
+  Merge: clean (0 conflicts), but A's additions are missing from the merged module.\par
+}{Despite explicit expectations about merge behavior, B's class rewrite overwrites the region where A added \texttt{register\_filter}/\texttt{unregister\_filter}; the merge reports 0 conflicts but the exported API is missing.}{\texttt{ImportError: cannot import name register\_filter from outlines.prompts}.}
+
+\symptomexample{Repetition}{%
+  Near-duplicate status updates (different strings, same info).\par
+  A msg: I have successfully added the \texttt{url} type to \texttt{outlines/types/\_\_init\_\_.py}\@ at lines 72--77:\par
+  A msg: Successfully added to \texttt{outlines/types/\_\_init\_\_.py} at lines 72--77\par
+}{The same completion/location is restated with minimal new information, consuming turns without adding constraints a partner can act on.}{Repeated status updates reduce signal-to-noise and can crowd out missing coordination details.}
+
+\symptomexample{Unresponsiveness}{%
+  A msg: Which approach would you prefer?\@ I want to ensure we don't lose any functionality while resolving this conflict.\@\par
+  B:\@ no later message answers this question in the conversation log.\@\par
+}{The decision is explicitly requested and never resolved, breaking the coordination loop.}{The team proceeds without an agreed decision; implementation assumptions diverge.}
+
+\symptomexample{Unverifiable claims}{%
+  A claim: max\_resolution is already added at specific line ranges.\par
+  B constraint: I cannot verify your intermediate changes (separate branches).\par
+  Result: the merge can be clean while one side's asserted change is silently absent.\par
+}{The claim is specific but non-checkable; coordination lacks a verification mechanism (e.g., pasted signature, exact diff, or an agreed placeholder).}{False shared context about code state leads to incompatible downstream edits.}
+
+\symptomexample{Broken commitment}{%
+  A msg: I'll add BOTH parameters (fallback\_processor and max\_batch\_size) to the constructor signature, BOTH docstrings, and BOTH initializations.\par
+  A msg: \checkmark Line 26: Added BOTH parameters (fallback\_processor and max\_batch\_size) to constructor signature.\par
+  Observed after merge: constructor only has \texttt{fallback\_processor}, missing \texttt{max\_batch\_size}.\par
+}{A makes a confident completion claim that is not corrected or verified by B; under partial observability, this creates false shared context.}{\texttt{TypeError: \_\_init\_\_() got an unexpected keyword argument max\_batch\_size}\@\ (tests fail).}
+
+\symptomexample{Dependency access}{%
+  Conversation evidence: \textbf{0 coordination messages} were sent (\texttt{total\_messages=0}), so neither agent disclosed import/initialization risks.\par
+  Merge traceback excerpt: \texttt{src/PIL/Image.py:60} executes \texttt{from\ .\ import\ ImageDraw}. Then \texttt{src/PIL/ImageDraw.py:45} reads \texttt{Image.core}.\par
+  (\texttt{PIL.Image} still initializing \(\Rightarrow\) circular import failure).\par
+}{With no communication at all, the merged import graph is never discussed; the first shared integration check happens only at import time and fails deterministically.}{\texttt{AttributeError: partially initialized module PIL.Image has no attribute core (most likely due to a circular import)}.}
+
+\symptomexample{Placeholder misuse}{%
+  A msg: I'll add a clear comment marker: \texttt{[Conditional filters overlay insertion point]}.\par
+  A msg: Please insert your logic immediately AFTER the marker\ldots without modifying lines above it.\par
+  B msg: Given your marker plan, I didn't alter those methods\ldots I rely on \texttt{\_\_post\_init\_\_} to overlay filters.\par
+}{The agreed integration point (insert-after-marker) is not used; B implements an alternative wiring path, so the merged decorator surface no longer matches the expected call pattern.}{\texttt{TypeError: prompt got an unexpected keyword argument conditional\_filters}.}
+
+\symptomexample{Parameter flow}{%
+  A msg: renamed \texttt{edit\_file} to \texttt{edit\_files} with multi-file command construction.\par
+  B msg: I'm going to continue\ldots based on the current state I see (\texttt{edit\_file} method).\par
+  B code shape: builds a shell command by interpolating \texttt{filename} into a quoted string, assuming it is a single string.\par
+}{Ambiguity about a changing interface leaves one agent implementing against an outdated contract; after merge, a list flows into string-only formatting.}{\texttt{sed: can't read [\ldots]: No such file or directory} (list passed as a literal string).}
+
+\symptomexample{Timing dependency}{%
+  A msg: Processing Pipeline: load \(\to\) image.load \(\to\) EXIF correction (NEW) \(\to\) B crop (pending) \(\to\) mode conversion \(\to\) return.\par
+  B msg: Applied AFTER EXIF correction (A) and BEFORE mode conversion\ldots Pipeline (after merge): load \(\to\) EXIF correction \(\to\) center-crop.\par
+  Merge: CLEAN (0 textual conflicts); both declare No conflicts expected.\par
+  Merged code excerpt: \texttt{image = image.crop(\ldots)}\par
+  Merged code absence: no \texttt{ImageOps.exif\_transpose(\ldots)} call exists in the merged function.\par
+}{They agree on the intended order, but fail to ensure the EXIF correction block is actually present at the agreed insertion point after merge.}{\texttt{assert (640, 480) == (480, 640)} (EXIF correction missing).}
+
+
+
+
+\section{Case Study: Spatial vs.\ Semantic Coordination}\label{app:case_study}
+
+Section~\ref{sec:role_of_communication} shows that communication reduces merge conflicts but does not improve task success. To understand why, we examine a representative failure in detail. This case illustrates the distinction between \emph{spatial coordination} (agreeing on which lines to edit) and \emph{semantic coordination} (agreeing on what values and behaviors to implement). We find that agents excel at the former but neglect the latter.
+
+\subsection{Task Setup}
+
+The task comes from the Jinja2 template engine. Jinja2 provides a \texttt{groupby} filter that groups items by an attribute. For example, \texttt{users|groupby("city")} groups a list of users by their city. The original function signature looks like this:
+
+\begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
+def sync_do_groupby(
+    environment: "Environment",
+    value: "t.Iterable[V]",
+    attribute: t.Union[str, int],
+    default: t.Optional[t.Any] = None,
+) -> "t.List[t.Tuple[t.Any, t.List[V]]]":
+\end{lstlisting}
+
+Two agents must independently extend this filter with new parameters. Agent~1 adds a \texttt{case\_sensitive} parameter that controls whether grouping treats ``CA'' and ``ca'' as the same value. The intended default is \texttt{False}, matching the existing \texttt{sort} filter's case-insensitive behavior. Agent~2 adds a \texttt{reverse} parameter that controls whether groups appear in descending order.
+
+The coordination challenge is that both parameters must be added to the same function signature. Git performs conflict detection at the \emph{hunk} level (contiguous blocks of changes), not individual lines. If both agents modify the signature independently, Git will detect a conflict because both changes touch the same hunk. This creates a genuine coordination requirement where agents cannot simply work in isolation.
+
+\subsection{What Agents Communicated}
+
+The agents exchanged 10 messages totaling over 3,000 words. Their communication focused almost entirely on spatial coordination: line numbers, file paths, and edit ranges.
+
+\begin{tcolorbox}[symptomcard]
+\small
+\textbf{Agent 1:} I'll be modifying the \texttt{sync\_do\_groupby} and \texttt{do\_groupby} functions in \texttt{src/jinja2/filters.py} \textbf{lines 1161--1230}\ldots According to our coordination plan, both parameters will be added together to avoid merge conflicts.
+
+\medskip
+
+\textbf{Agent 2:} I'll wait for you to complete the implementation in \texttt{src/jinja2/filters.py} \textbf{lines 1161--1230}\ldots
+
+\medskip
+
+\textbf{Agent 1:} Your reverse insertion points remain:\\
+\texttt{- sync: for \_, values in groupby(sorted(value, key=group\_expr), group\_expr):}\\
+Please proceed to add \texttt{reverse: bool = False} immediately after \texttt{case\_sensitive}.
+\end{tcolorbox}
+
+This communication successfully identified the shared code region and established a protocol for who edits what. What the agents never discussed were the semantic details that matter for correctness. Agent~1 correctly states that \texttt{case\_sensitive} should default to \texttt{False} to match the \texttt{sort} filter, but this default value is never explicitly confirmed with Agent~2. Neither agent discusses whether the two parameters interact or whether their implementations are independent.
+
+\subsection{What Went Wrong}
+
+Because both agents anticipated the need to modify the same function signature, each independently added \emph{both} parameters to avoid a Git conflict. However, without semantic coordination, they made inconsistent choices.
+
+Agent~1's patch added only the \texttt{case\_sensitive} parameter with the correct default:
+
+\begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
+def sync_do_groupby(
+    environment: "Environment",
+    value: "t.Iterable[V]",
+    attribute: t.Union[str, int],
+    default: t.Optional[t.Any] = None,
+    case_sensitive: bool = False,  # Correct default
+) -> "t.List[_GroupTuple]":
+\end{lstlisting}
+
+Agent~2's patch added \emph{both} parameters (to avoid merge conflicts), but reported the wrong value in communication:
+
+\begin{tcolorbox}[evidencebox]
+\small
+\textbf{Agent 2's status message:}\\
+``Signatures now are: \texttt{(environment, value, attribute, default=None, case\_sensitive=True)}''
+\end{tcolorbox}
+
+Agent~2 reported \texttt{case\_sensitive=True} as the default while the correct value is \texttt{False}. This discrepancy was never caught because the conversation focused entirely on \emph{where} edits would happen, not \emph{what values} would be used. Neither agent verified the other's actual implementation; they relied on status messages. The semantic meaning of the default (``should match the \texttt{sort} filter'') was mentioned by Agent~1 but never confirmed by Agent~2.
+
+For reference, the gold (correct) patches show what each feature should look like. The gold patch for \texttt{case\_sensitive} adds:
+
+\begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
+    default: t.Optional[t.Any] = None,
+    case_sensitive: bool = False,
+) -> "t.List[_GroupTuple]":
+\end{lstlisting}
+
+And the gold patch for \texttt{reverse} adds:
+
+\begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
+    default: t.Optional[t.Any] = None,
+    reverse: bool = False,
+) -> "t.List[t.Tuple[t.Any, t.List[V]]]":
+\end{lstlisting}
+
+The correct merged signature would combine both:
+
+\begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
+def sync_do_groupby(
+    environment: "Environment",
+    value: "t.Iterable[V]",
+    attribute: t.Union[str, int],
+    default: t.Optional[t.Any] = None,
+    case_sensitive: bool = False,
+    reverse: bool = False,
+) -> "t.List[_GroupTuple]":
+\end{lstlisting}
+
+\subsection{What Would Have Worked}
+
+For this task to succeed, agents needed to coordinate on three levels. \emph{Spatial coordination} they achieved: ``I'm editing lines 1161--1230; please add your parameter after mine.'' \emph{Structural coordination} they partially achieved: ``Both parameters go in the signature; I'll add mine first.'' \emph{Semantic coordination} was missing entirely.
+
+A single message could have prevented the failure:
+
+\begin{tcolorbox}[evidencebox]
+\small
+\textbf{Missing coordination:}\\
+``I'm implementing \texttt{case\_sensitive} with default value \texttt{False} (not \texttt{True}). This matches the \texttt{sort} filter's case-insensitive default. If you need to include this parameter in your patch, please use exactly \texttt{case\_sensitive: bool = False}.''
+\end{tcolorbox}
+
+\subsection{Implications}
+
+This case study provides concrete evidence for the spatial-semantic gap discussed in Section~\ref{sec:role_of_communication}. Despite 10 messages and over 3,000 words of coordination, the agents never once discussed the actual default value that \texttt{case\_sensitive} should have. They successfully negotiated \emph{where} to edit but failed to negotiate \emph{what} to implement. A single clarifying message about the intended default value would have prevented the failure entirely.
+
+
+
+

@@ -1,0 +1,155 @@
+\section{The Framework for Automatic Agent Generation}
+
+To enhance the effectiveness of autonomous multi-agent groups in accomplishing their goals, the process of AutoAgents consists of two critical stages: \textbf{Drafting Stage} and \textbf{Execution Stage}, as illustrated in Figure~\ref{fig:process}. 
+The drafting stage synthesizes an agent team and an execution plan that are customized to the task by analyzing the input problem or task. 
+The execution stage refines the plan by enabling inter-agent collaboration and feedback, and delivers the final result. 
+The inter-agent collaboration is based on some principles of multi-agent cooperation, such as communication, coordination, and consensus. These principles help the agents to share information, align their actions, reach agreements, and adapt to the environment.
+
+
+\begin{figure}[!tbp]
+\centering
+% \setlength{\abovecaptionskip}{0.1cm}
+\includegraphics[width=\linewidth]{./figures/process.jpg}
+\caption{The execution process of AutoAgents. During the \textbf{Drafting Stage}, three predefined agents collaboratively determine the list of agents and the execution plan. During the \textbf{Execution Stage}, a predefined agent facilitates coordination and communication among the generated agent teams, and the individual generated agents enhance their execution efficiency through self-refinement.
+}
+\label{fig:process}
+\end{figure}
+
+\subsection{Drafting Stage}
+
+Empirical evidence ~\cite{woolley2015collective} suggests that diversity within human groups fosters diverse perspectives, which enhances the group’s performance across various tasks. The drafting stage, which determines the composition of a multi-agent group, plays a crucial role in setting the upper limits of the group’s capabilities. Therefore, it is imperative to generate the optimal agent team and execution plan that can maximize the group’s potential.
+
+Predominant methodologies~\cite{gravitasauto,hong2023metagpt,wu2023autogen} for assigning role descriptions to autonomous agents rely heavily on human intuition and prior knowledge, requiring manual assignment based on task understanding.
+Consistent with several parallel findings~\cite{xu2023expertprompting,wang2023unleashing,chen2023agentverse}, dynamically designing agents with different roles can significantly enhance their efficacy. 
+However, the scalability and rationality of agent and plan generation are still unclear, especially in the face of various complex problem environments.
+
+On the one hand, the generated agents should exhibit diversity to accommodate various tasks. On the other hand, the agent and the plan generation should adhere to certain principles, rendering their role allocation more rational. Therefore, we devise three artificially predefined agents to produce agent teams and execution plans, integrating artificial prior knowledge and the dynamic adaptation capability of LLMs to generate more sensible agent teams and execution plans. The three artificially predefined agents comprise \textbf{Planner}, \textbf{Agent Observer}, and \textbf{Plan Observer}:
+\begin{itemize} %[itemsep=1pt,topsep=1pt,leftmargin=15pt]
+\item \textbf{Planner} $\mathcal{P}$ generates and refines an agent team and an execution plan based on the content of the task.
+\item \textbf{Agent Observer} $\mathcal{O}_{agent}$ provides suggestions on the rationality of the agent team members and their matching degree with the task.
+\item \textbf{Plan Observer} $\mathcal{O}_{plan}$ provides suggestions on the rationality of the execution plan and its matching degree with the task and the agent team.
+\end{itemize}
+The Planner generates initial agent team members and a specific plan, and improves the agent team and execution plan based on continuous communication with the Agent Observer and Plan Observer.
+
+\noindent
+\textbf{Agent Generation.}
+The Planner generates the agent team and facilitates its continuous improvement through reciprocal communication with the Agent Observer. 
+To enable Planner to produce rational agents, we have devised a standard format for the essential elements of a single agent. For each agent $\mathcal{A} = \{\mathrm{P}, \mathrm{D}, \mathrm{T}, \mathrm{S}\}$, the Planner needs to specify its prompt $\mathrm{P}$, description $\mathrm{D}$, toolset $\mathrm{T}$, and suggestions $\mathrm{S}$.  
+
+\begin{itemize}
+    \item \textbf{Prompt} $\mathrm{P}$  provides a detailed and customized depiction of the expert identity for each specific agent, which comprises profile, goal, and constraints. \textbf{Profile} reflects the domain expertise of the role or job title. \textbf{Goal} indicates the primary responsibility or objective that the role aims to achieve. \textbf{Constraints} specify limitations or principles the role must adhere to when performing actions. %For instance, XXX.
+    \item \textbf{Description} $\mathrm{D}$  gives additional concrete identity to help establish a more comprehensive role, develop an execution plan, and inspect problems. %For example, XXX.
+    \item \textbf{Toolset} $\mathrm{T}$ equips the Agent with tools that it can use, selected from a predefined set of tools. The rationale for not using all the tools for each agent here is to prevent decision-making confusion caused by excessive tools.
+    \item \textbf{Suggestions} $\mathrm{S}$ supplies some suggestions for each agent to execute the current task, including but not limited to a clear output, extraction of historical information, and suggestions for execution steps.
+\end{itemize}
+
+Based on the agent list $\{\mathcal{A}_1, \mathcal{A}_2, \cdots, \mathcal{A}_n\}$ generated by Planner, the Agent Observer evaluates the quality and suitability of each agent. The Agent Observer first verifies whether every agent conforms to the aforementioned specifications and identifies any missing elements $\{\mathrm{P}$, description $\mathrm{D}$, toolset $\mathrm{T}\}$. Secondly, the Agent Observer assesses the compatibility of each agent with the task, according to their description information and task content. Finally, the Agent Observer examines the agent list for any redundant or missing roles and eliminates or adds them accordingly.
+
+After $n$ rounds of bidirectional communication between the Planner and the Agent Observer, the optimal agent list for accomplishing the task is established. Given the vital role of the agent list in the task execution, this framework employs a predefined agent and multiple rounds of iterative dialogue among multiple agents to finalize the agent list, thereby enhancing the stability and reliability of the execution phase.
+
+\noindent
+\textbf{Plan Generation.}
+In parallel to agent generation, the Planner formulates the execution plan and promotes its progressive improvement through reciprocal communication with the Plan Observer. For a given task, the Planner delineates the specific steps $\{\mathcal{S}_1, \mathcal{S}_2, \cdots \mathcal{S}_n\}$ to accomplish it in the execution plan $P$. Each step $\mathcal{S}_i$ entails a clear identification of the agent $\mathcal{A}_j$ responsible for it, as well as the input information and expected output required for it. 
+
+The Plan Observer subsequently validates the execution plan $P = \{\mathcal{S}_1, \mathcal{S}_2, \cdots \mathcal{S}_n\}$ according to the agent list $\{\mathcal{A}_1, \mathcal{A}_2, \cdots, \mathcal{A}_n\}$ and the task content. It firstly ensures that each step has a corresponding agent and that the step content is coherent and concise. It secondly assesses whether all the steps are sufficient, whether the task can be accomplished, and whether there are any gaps that need to be filled. It finally provides feedback to the Planner, who further refines the execution plan accordingly. After $n$ rounds of dialogue between the Planner and the Plan Observer, the ultimate execution plan for achieving the task is established.
+
+\begin{figure}[!tbp]
+\centering
+\includegraphics[width=\linewidth]{./figures/agents.pdf}
+\caption{Two types of actions for executing tasks: \textbf{Self-refinement} enables an individual agent to enhance its competence in performing some specialized tasks. \textbf{Collaborative refinement} facilitates knowledge exchange among multiple agents and accomplishes tasks that demand interdisciplinary expertise.
+}
+\label{fig:agents}
+\end{figure}
+
+\textbf{Task Execution Actions.}
+The Planner devises an execution plan that automatically assigns the requisite agents for diverse tasks. The execution plan comprises two actions of task execution: self-refinement by a single agent and collaborative refinement by multiple agents, as shown in Figure~\ref{fig:agents}. Self-refinement empowers an individual agent to augment its proficiency in accomplishing some specialized tasks. Collaborative refinement fosters knowledge sharing among multiple agents and achieves tasks requiring interdisciplinary expertise.
+
+\subsection{Execution Stage}
+In the drafting phase, the framework generates an agent list and an execution plan based on the task requirements. Then, the framework creates corresponding roles and executes the plans in the execution environment\footnote{Execution environment of AutoAgents is built based on MetaGPT's environment and workspace~\cite{hong2023metagpt}.}. The communication and cooperation among multi-agent systems are essential for accomplishing the tasks effectively. This section elaborates on the communication among multiple agents, the task execution strategies, and the knowledge-sharing mechanisms.
+
+\noindent
+\textbf{Communication of Multiple Agent.}
+The communication structures among agents have been investigated by many studies~\cite{chen2023agentverse,wang2023unleashing,qian2023communicative,chan2023chateval} to examine their impact on task performance. 
+In this framework, we adopt the vertical communication paradigm, which assigns different tasks to agents according to their roles.
+To facilitate the specific division of labor among the agents in the generated team, we introduce a predefined \textbf{Action Observer} as the team leader to coordinate the execution plan.
+Specifically,
+\begin{itemize}
+    \item \textbf{Action Observer} $\mathcal{O}_{action}$ acts as the task manager for the different agents, allocating different tasks to them, verifying the execution outcomes of each agent, and dynamically adapting the execution plan based on the execution status.
+\end{itemize}
+This mechanism of refinement and communication recurs until the Action Observer attains a unanimous agreement on the execution responses, or the process reaches its maximum iteration limit. For scenarios that demand iterative decision-making towards specific objectives, such as software development, vertical communication would be a preferable option.
+
+% \subsubsection{Self-refinement Agent}
+\noindent
+\textbf{Self-refinement Agent.}
+Besides the inter-agent communication, the performance of a single agent also exerts a significant impact on the overall quality of feedback results. Hence, drawing on mechanisms such as AutoGPT~\cite{gravitasauto} and ReAct~\cite{yao2022react}, we have devised a self-refinement mechanism for an individual agent.
+
+For a single agent $\mathcal{A}$, the action at step $t$ is at $a_t = l_t \cup p_t \cup o_t$, where $l_t$ denotes the \textit{thought} or the \textit{reasoning trace} in the language space, which does not alter the external environment, and thus yields no observational feedback, $p_t$ represents the execution plan for task completion, $o_t$ comprises the completion steps and execution output for this time.
+
+As illustrated in Figure ~\ref{fig:process}, various types of useful thoughts can assist in devising a refinement plan. The execution plan enables the agent to anticipate the steps they need to undertake in the future, and the observational content of the execution result construction allows the agent to reevaluate and enhance the plan arrangement, thereby constructing more refined and complete actions. Through a cycle of self-continuous thinking, planning, execution, and feedback, a single agent can effectively execute and accomplish task content.
+
+% \subsubsection{Collaborative Refinement}
+\noindent
+\textbf{Collaborative Refinement Action.}
+In the collaborative refinement action, the agents collaboratively refine and execute the tasks in a sequential manner. Each round of the collaboration involves a fixed order of turn-taking among the agents, who generate their responses based on the current observation. The chat history slot of each agent is updated by concatenating the previous utterances of the other agents. The collaboration terminates automatically when the agents reach a consensus or the maximum number of discussions is reached.
+
+\begin{figure}[!tbp]
+\centering
+\includegraphics[width=\linewidth]{./figures/memory.jpg}
+\caption{Legend of Three Knowledge Sharing Mechanisms. (a) \textit{Long-term memory} focuses on chronicling the historical trajectory of multiple actions. (b) \textit{Short-term memory} records the history of the self-refinement or collaborative refinement phases of an individual action. (c) \textit{Dynamic memory} serves actions necessitating specialized attention extracted from the long-term memory.
+}
+\label{fig:memory}
+\end{figure}
+
+\noindent
+\textbf{Knowledge Sharing Mechanism.}
+AutoAgents also facilitates the sharing of execution results among various agents for improved communication and feedback. However, when the number of agents is large and a single agent has more self-iterations, it will generate more historical information. Due to the token limitation of LLM models, they often cannot encompass all information. Hence, this framework provides short-term memory, long-term memory, and dynamic memory.
+
+\textit{Short-term memory} is chiefly concentrated on a singular action, encompassing the gamut of intermediary notions, strategies, and outcomes that emerge during the self-refinement or collaborative refinement phases of an individual action. It is salient to note that these actions frequently culminate in a distilled summary of critical information, epitomizing the final phase of the refinement trajectory.
+
+\textit{Long-term memory} principally focuses on chronicling the historical trajectory of multifarious actions, predominantly documenting the executed results of each task along with the synthesis of vital feedback information. This aspect is imperative for evaluating the comprehensive extent of task completion.
+
+\textit{Dynamic memory} predominantly serves actions necessitating specialized attention. The Action Observer, having access to long-term memory archives, adeptly extracts ancillary information, dynamically tailoring it to the specific requirements of the action for task execution. This process significantly augments the efficiency of a single action in task fulfillment.
+
+
+
+\begin{algorithm}[!htb]
+% \small
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\caption{AutoAgents Execution Process.}
+\label{alg:1}
+\begin{algorithmic}[1]
+\REQUIRE User task/Question
+\ENSURE Task solution/Answer
+\STATE \textbf{Drafting Stage}
+\STATE Initialize Planner $\mathcal{P}$, Agent Observer $\mathcal{O}_{\text{agent}}$, and Plan Observer $\mathcal{O}_{\text{plan}}$.
+\STATE $\mathcal{P}$ generates initial agent team $\{\mathcal{A}_1, \mathcal{A}_2, \cdots, \mathcal{A}_n\}$ and execution plan $P = \{\mathcal{S}_1, \mathcal{S}_2, \cdots \mathcal{S}_n\}$.
+\REPEAT
+    \STATE $\mathcal{O}_{\text{agent}}$ provides feedback on agent team.
+    \STATE $\mathcal{P}$ refines agent team based on feedback.
+    \STATE $\mathcal{O}_{\text{plan}}$ provides feedback on execution plan.
+    \STATE $P$ refines execution plan based on feedback.
+\UNTIL {No feedback or reached the maximum iteration limit.}
+
+\STATE \textbf{Execution Stage:}
+\STATE Initialize Action Observer $\mathcal{O}_{\text{action}}$ and long-term memory $M_{L}$.
+\FOR {$\{\mathcal{S}_1, \mathcal{S}_2, \cdots \mathcal{S}_n\}$}
+    \STATE $\mathcal{O}_{\text{action}}$ generate dynamic memory $M_{D}$.
+    \STATE $\mathcal{O}_{\text{action}}$ assign task $\mathcal{S}_k$ and $M_{D}$ to corresponding agents $\{\mathcal{A}_i, \cdots, \mathcal{A}_j\}$.
+    \STATE Initialize short-term memory $M_{S}$.
+    \REPEAT
+    \FOR {$\{\mathcal{A}_i, \cdots, \mathcal{A}_j\}$}
+        \STATE Agent $\mathcal{A}_m$ analyzes $\mathcal{S}_k$, $M_{S}$ and  $M_{D}$.
+        \STATE Agent $\mathcal{A}_m$ plans the current step and executes this step.
+        \STATE The execution result is stored in $M_{S}$.
+    \ENDFOR
+    \UNTIL {No step or reached the maximum iteration limit.}
+    \STATE The execution results of task $\mathcal{S}_k$ are stored in $M_{L}$.
+    \STATE $\mathcal{O}_{\text{action}}$ coordinates {$\{\mathcal{S}_1, \mathcal{S}_2, \cdots \mathcal{S}_n\}$} and monitors execution.
+\ENDFOR
+\STATE \textbf{return} Execution results of final step.
+\end{algorithmic}  
+\end{algorithm}
+
+
+

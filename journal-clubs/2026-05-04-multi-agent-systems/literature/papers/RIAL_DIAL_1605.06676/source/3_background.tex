@@ -1,0 +1,21 @@
+\section{Background}
+\label{sec:background}
+
+\textbf{Deep Q-Networks (DQN).} In a single-agent, fully-observable, RL setting \cite{SuttonBarto:1998}, an agent observes the current state $s_t \in \mathcal{S}$ at each discrete time step $t$, chooses an action $u_t \in \mathcal{U}$ according to a potentially stochastic policy $\pi$, observes a reward signal $r_t$, and transitions to a new state $s_{t+1}$. Its objective is to maximise an expectation over the discounted return, $R_t =  r_t + \gamma r_{t+1} + \gamma^2 r_{t+2} + \cdots$, where $r_t$ is the reward received at time $t$ and $\gamma \in [0,1]$ is a discount factor.
+The $Q$-function of a policy $\pi$ is $Q^{\pi}(s,u) = \E \left[  R_t | s_t = s,u_t = u \right]$. The optimal action-value function $Q^{*}(s,u) = \max_{\pi} Q^{\pi}(s,u)$ obeys the Bellman optimality equation $Q^{*}(s,u) = \E_{s'} \left[ r +  \gamma  \max_{u' } Q^{*}(s',u')~|~s,u \right]$.
+Deep $Q$-learning \cite{Mnih:2015} uses neural networks parameterised by $\theta$ to represent $Q(s,u;\theta)$. DQNs are optimised by minimising:
+$
+\mathcal{L}_i(\theta_i) = \E_{s,u,r,s'} [( y_i^{DQN} - Q(s,u; \theta_{i}))^{2}],
+\label{eq:loss}
+$
+at each iteration~$i$, with target $y_i^{DQN} =  r + \gamma \max_{u'} Q(s',u';\theta_{i}^{-})$. Here, $\theta_{i}^{-}$ are the parameters of a target network that is frozen for a number of iterations while updating the online network $Q(s,u; \theta_{i})$. % by gradient descent.
+The action $u$ is chosen from $Q(s,u; \theta_{i})$ by an \emph{action selector}, which typically implements an $\epsilon$-greedy policy that selects the action that maximises the Q-value with a probability of $1-\epsilon$ and chooses randomly with a probability of $\epsilon$. DQN uses \emph{experience replay}: during learning, the agent builds a dataset of episodic experiences and is then trained by sampling mini-batches of experiences.  
+
+\textbf{Independent DQN.} DQN has been extended to cooperative multi-agent settings, in which each agent $a$ observes the global $s_t$, selects an individual action $u^a_t$, and receives a team reward, $r_t$, shared among all agents.  \citet{tampuu2015multiagent} address this setting with a framework that combines DQN with \emph{independent Q-learning}, in which each agent $a$ independently and simultaneously learns its own Q-function $Q^a(s,u^a;\theta^a_i)$.  While independent Q-learning can in principle lead to convergence problems (since one agent's learning makes the environment appear non-stationary to other agents), it has a strong empirical track record \cite{MASfoundations09,Zawadzki:2014}, and was successfully applied to two-player pong.
+
+
+\textbf{Deep Recurrent Q-Networks.} Both DQN and independent DQN assume full observability, i.e., the agent receives $s_t$ as input.
+By contrast, in partially observable environments, $s_t$ is hidden and the agent receives only an observation $o_t$ that is correlated with $s_t$, but in general does not disambiguate it.
+\citet{hausknecht2015deep}, propose the \emph{deep recurrent Q-networks} to address single-agent, partially observable settings.  Instead of approximating $Q(s,u)$ with a feed-forward network, they approximate $Q(o,u)$ with a recurrent neural network that can maintain an internal state and aggregate observations over time. This can be modelled by adding an extra input $h_{t-1}$ that represents the hidden state of the network, yielding $Q(o_t,h_{t-1},u)$. For notational simplicity, we omit the dependence of $Q$ on $\theta$.
+
+

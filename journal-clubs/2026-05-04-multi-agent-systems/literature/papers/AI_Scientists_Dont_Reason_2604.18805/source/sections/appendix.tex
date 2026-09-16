@@ -1,0 +1,1434 @@
+\clearpage
+
+\begin{center}
+{\LARGE\bfseries Appendix\par}
+\end{center}
+\vspace{1em}
+
+\etocdepthtag.toc{app}
+\begingroup
+\etocsettagdepth{main}{none}
+\etocsettagdepth{app}{subsection}
+\etocsettocstyle{\subsection*{Contents}}{}
+\tableofcontents
+\endgroup
+
+\section{Related work} \label{app:related-work}
+
+\corral sits at the intersection of five lines of research: benchmarks for scientific agents, end-to-end AI scientist systems, the attribution of agent capability to the base model versus the scaffold, psychometric measurement of model ability, and process-level epistemic evaluation of AI-generated science.
+
+\subsection{Benchmarks for scientific agents}
+
+Existing benchmarks for scientific agents primarily score outcomes. Domain-specific evaluations such as ChemBench, MaCBench, and Lab-Bench probe knowledge and reasoning in chemistry, materials science, and biology through curated question sets \autocite{mirza2025framework, alampara2025macbench, laurent2024lab}. Workflow-oriented benchmarks including ScienceAgentBench, SciAgentGym, and Curie evaluate end-to-end execution of data analyses and discovery pipelines drawn from published work \autocite{chen2024scienceagentbench, shen2026sciagentgym, cui2025curie}. Replication-oriented evaluations such as Lessons-Learned, MLR-Bench, ResearchBench, and DeepResearch test whether agents can reproduce or extend specific results \autocite{alampara2025lessons, chen2025mlr, liu2025researchbench, du2025deepresearch}. AstaBench and BixBench evaluate agents across the full research pipeline, including manuscript-style outputs \autocite{bragg2025astabench, mitchener2025bixbench0}. Generalist agent benchmarks such as AgentBench, GAIA, Gaia2, MultiAgentBench, and ToolSandbox \autocite{liu2023agentbench, mialon2023gaia, froger2026gaia2, zhu2025multiagentbench, lu2025toolsandbox} measure capabilities that scientific agents draw on but were not designed for science.
+
+These evaluations score what an agent produced, not how it produced it. A correct answer reached by lookup is scored identically to the same answer reached by hypothesis testing; an incorrect answer reached by careful inquiry is scored identically to one reached by confabulation. Concerns that benchmarks measure narrow skill rather than the underlying capability they purport to assess are long-standing \autocite{chollet2019measure}. \corral preserves the outcome metrics these benchmarks provide and adds standardized environments with graded task scopes and fine-grained subtask diagnostics.
+
+\subsection{AI scientists}
+
+A growing body of work develops LLM-based systems intended to conduct end-to-end research: hypothesis generation, experimental design, execution, and write-up. Sakana's AI Scientist \autocite{lu2026towards} produces submission-ready manuscripts; Kosmos \autocite{mitchener2025kosmos} reports cross-domain discoveries; ChemCrow \autocite{MBran2024augmenting}, Coscientist \autocite{Boiko2023autonomous}, the El Agente series \autocite{zou2025agente}, Organa \autocite{Darvish2025organa}, and AlphaEvolve \autocite{novikov2025alphaevolve0} target specific scientific or engineering domains. Multi-agent architectures such as SciAgents, ScienceClaw, and virtual laboratories structure the workflow with role specialization or knowledge-graph guidance \autocite{ghafarollahi2025sciagents, wang2026autonomous, swanson2025virtual}, building on earlier instantiations for protein design \autocite{ghafarollahi2024protagents} and finite-element mechanics \autocite{ni2024mechagents}; recent work also adapts the objective each sub-agent optimizes to mitigate reward hacking \autocite{du2025accelerating}. Complementary efforts target reasoning at the base-model level, training models to produce reflection and recursive refinement steps explicitly \autocite{buehler2025preflexor}. Alongside this systems-building effort, risk-focused perspectives argue that AI scientists introduce novel vulnerabilities requiring explicit safeguards across user intent, agent alignment, and environmental feedback \autocite{Tang2025}. These systems are deployed and reported on without a shared instrument for assessing the quality of the reasoning that produced their outputs. \corral is designed to fill this role: its environments, tools, scoring functions, and runner can be reused as building blocks for new agents and scaffolds, and the diagnostic and epistemic instruments introduced here can be applied to any system built on top. The environments can also serve as training substrates: each supplies reproducible tasks and scoring over agent trajectories, sufficient to optimize agents against criteria defined on the reasoning process \autocite{ma2026skillclaw0}.
+
+\subsection{Scaffolds and the base-model/scaffold attribution}
+
+The capability of an LLM-based agent reflects two contributions: the base model's token-level competence and the scaffold's orchestration logic. Prompt-based scaffolds such as Chain-of-Thought, ReAct, and self-consistency \autocite{wei2022chain, yao2022react, wang2022self}, and agentic scaffolds with tool access such as Toolformer, Voyager, and Reflexion \autocite{schick2023toolformer, wang2023voyager, shinn2023reflexion0}, are now standard, and gains over base models are routinely reported. The question of how much of any gain is the scaffold and how much is the base model is rarely answered directly. \textcite{meirelesinfluence} are among the few to address it, showing that effective scaffolding preserves coordination scaling laws that deteriorate without it. \corral varies model and scaffold orthogonally on a fixed task set, allowing each contribution to be read directly from the results.
+
+\subsection{Item response theory for model evaluation}
+
+Item response theory (IRT), developed for educational assessment \autocite{hori2022item, toland2014practical, lovelace2013best}, models benchmark performance as the interaction between latent ability and item characteristics such as difficulty and discrimination. Early NLP applications used IRT to construct evaluation datasets and demonstrated that item difficulty predicts model behavior more reliably than aggregate accuracy \autocite{lalor2016building, lalor2018understanding}. Bayesian IRT-based leaderboards introduced uncertainty-aware ability estimates \autocite{rodriguez2021evaluation}, and subsequent work showed that hidden implementation choices distort raw rankings in ways that IRT can correct \autocite{schilling2025lifting, zhou2026lost}. For LLM agents, IRT-inspired task selection has been used to preserve ranking fidelity across scaffolds and environments \autocite{ndzomga2026efficient}. We apply IRT to our diagnostic subtask items to estimate latent capability profiles per model--environment pair, separating ability from item difficulty in a way that aggregate Pass@$k$ does not.
+
+\subsection{Epistemic evaluation of AI in science}
+
+Process-level epistemic evaluation of AI-generated science remains underdeveloped. Field-level critiques are well established: \textcite{ioannidis2015meta} on irreproducibility in the empirical sciences, and \textcite{hao2026artificial} on machine learning, narrowing the hypothesis space scientists pursue. More directly on large language models, \textcite{Mitchell2023} survey the debate over whether such systems exhibit genuine understanding, noting that surface-level competence on benchmarks does not settle the underlying epistemic question. \textcite{pittphilsci28744} extend these concerns to LLM-based scientific systems specifically, arguing that current AI-for-science work conflates predictive accuracy with epistemic warrant and lacks operational instruments for assessing whether claims are justified in the philosophical sense \autocite{sep-knowledge-analysis}. \corral provides such an instrument. The behavioral analysis introduced here annotates reasoning traces as graphs of operations and detects structural patterns of productive inquiry, such as Popperian falsification, exploratory-to-confirmatory transitions, and active learning \autocite{popper2005logic, tukey1977exploratory, lindley1956measure, fedorov2013theory}, as well as patterns of epistemic failure, such as untested hypotheses, ignored evidence, and unresolved contradictions. This shifts the evaluation from whether an agent reached the right answer to the process by which it arrived there.
+
+\subsection{Rise of AI Scientists} \label{app:rise_of_ai_scientists}
+
+Following \textcite{hao2026artificial}, we quantified the emergence of AI-scientist research within chemistry and materials science and contextualized its growth against the broader AI/ML-for-chemistry-and-materials literature. We constructed a narrow corpus targeting AI scientists, LLM agents, autonomous discovery systems, and closely related agentic workflows. Using OpenAlex \autocite{priem2022openalex}, we first retrieved the broader set of AI- and ML-related papers in chemistry and materials science, then applied a stricter keyword-based filter to isolate publications matching our AI-scientist definition. \Cref{fig:raise-scientists} reports yearly publication counts for both corpora on a log scale, along with the share of AI-scientist papers within the broader AI-for-chemistry literature.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/yearly_strict_vs_expanded.pdf}
+    \caption{\textbf{Sharp rise of AI-scientist publications within chemistry and materials AI literature.} Annual publication counts (log scale) for the broader AI-for-chemistry-and-materials corpus versus a strict AI-scientist subset. The right axis shows the share of AI-scientist papers within the broader corpus, revealing a steep recent increase.}
+    \label{fig:raise-scientists}
+\end{figure}
+
+Two patterns are immediately apparent. First, the broader AI-for-chemistry literature has reached roughly $10^{4}$ papers per year, while the strict AI-scientist subset has grown from about $10^{1}$ papers in 2018 to the upper $10^{2}$ range in the most recent partial year—already exceeding earlier full-year totals. Thus, although AI-scientist work remains much smaller than AI for chemistry as a whole, it is no longer a marginal subfield but a recognizable and rapidly growing research stream.
+
+Second, the relative share of AI-scientist papers within the AI-for-chemistry literature is rising even faster than absolute counts. This strict subset accounted for only about 1\% of AI-for-chemistry output through 2024, increased to roughly 2\% in 2025, and approaches 5\% in the current partial year. Consequently, while AI-scientist research still represents a very small fraction of all chemistry and materials science publishing---approximately 0.01\% through 2024 and around 0.06\% in 2025---its footprint within the AI segment of the field is expanding rapidly.
+
+
+\section{Glossary}
+\label{app:glossary}
+
+\begin{description}
+    \item[Domain.] One of the eight scientific areas covered by the benchmark (e.g.,\ retrosynthetic planning, atomic force microscopy); see \Cref{sec:domains_and_environments}.
+    \item[Scope.] A difficulty or ablation variant within a domain, varying task complexity, tool availability, or degree of agent guidance. Scopes are introduced per domain in \Cref{sec:domains_and_environments}.
+    \item[Environment.] A concrete instance of a domain at a specific scope, formalized as a language decision process in \Cref{sec:formalism}. Each environment exposes tools, a task description, and a scoring function through the \corral HTTP interface.
+    \item[Task.] A single problem an agent is asked to solve within an environment; may decompose into dependency-ordered subtasks (\Cref{sec:formalism}).
+    \item[Subtask.] A component of a task whose output is forwarded as input to downstream subtasks in the dependency graph (\Cref{sec:formalism}).
+    \item[Scaffold.] The orchestration layer wraps a base LLM: prompt formatting, tool routing, history management, and termination logic. The two scaffolds evaluated here are ReAct and structured tool calling (\Cref{sec:agents-implementations}).
+    \item[Tool-documentation verbosity.] The level of detail retained in tool docstrings presented to the agent varied as an experimental axis (\Cref{sec:tool-verbosity}).
+    \item[Configuration.] A particular combination of base model, scaffold, tool-documentation verbosity, and environment.
+    \item[Trial.] A single end-to-end execution of an agent configuration on a task.
+    \item[Trace.] The conversation history produced during a trial is used downstream for epistemological annotation (\Cref{sec:epistemological-graphs}).
+    \item[Pass@$k$.] Probability that at least one of $k$ independent trials on a task succeeds. Estimated from $n \ge k$ trials by the unbiased estimator $1 - \binom{n-c}{k} / \binom{n}{k}$, where $c$ is the number of successful trials.
+    \item[Pass$^k$.] Probability that all $k$ independent trials on a task succeed. A reliability measure, unlike Pass@$k$, requires every trial to succeed rather than at least one.
+    \item[Language decision process (LDP).] The formal model of agent--environment interaction adopted here: a partially observable Markov decision process whose observations and actions are represented in text (\Cref{sec:formalism}).
+    \item[ELPD-LOO.] Expected log predictive density estimated by leave-one-out cross-validation; used to compare the candidate hierarchical models in \Cref{app:binomial-subsec}.
+    \item[Inter-annotator agreement ($\kappa$).] Cohen's $\kappa$ between two independent annotators on the same set of traces, reported in \Cref{app:reasoning-process}, to quantify the reliability of the manual review.
+    \item[Epistemic operation.] A node type in the annotated reasoning graph, drawn from the fixed vocabulary \{hypothesis, test, evidence, judgment, update, commitment\}. Each operation corresponds to an identifiable epistemic act in the trace (\Cref{sec:epistemological-graphs}).
+    \item[Item response theory (IRT).] A psychometric modeling framework that jointly estimates respondent ability and item difficulty from a matrix of correct/incorrect outcomes. We fit the two-parameter logistic (2PL) form, in which each item has a difficulty $b$ and a discrimination $a$, and each respondent a latent ability $\theta$ (\Cref{sec:app_irt}).
+    \item[Latent ability ($\theta$).] The IRT parameter representing a model's capability on a set of items, separated from the items' own difficulty. Higher $\theta$ corresponds to a higher probability of success on items of a given difficulty.
+    \item[Posterior predictive check (PPC).] A fitted Bayesian model's predictions for held-out observations are compared against the observed outcomes to assess calibration and generalization. Reported for the selected hierarchical model in \Cref{app:binomial-subsec}.
+    \item[Capability item.] A question--answer item used to estimate latent model capability through IRT (\Cref{sec:qa}, \Cref{app:capability-items}).
+    \item[Productive motif.] A graph template over the annotated trace that matches a recognized practice of disciplined inquiry: Popperian falsification, exploratory-to-confirmatory transition, active-learning-style test redesign (\Cref{app:pattern-taxonomies}).
+    \item[Reasoning breakdown.] A graph template over the annotated trace that matches an established epistemic failure mode: untested claim, evidence non-uptake, fixed belief trace, contradiction without repair (\Cref{app:pattern-taxonomies}).
+\end{description}
+
+
+
+\section[Corral: Framework]{%
+    \texorpdfstring{\corral \corrallogo: Framework}{Corral: Framework}%
+} \label{sec:corral-framework}
+\label{app:framework-details}
+\corral is a composable evaluation framework that separates environments from agents through a standard HTTP interface. Environments are hosted by a FastAPI server that exposes task descriptions, tools, and scoring through a small set of RESTful endpoints (\Cref{tab:api-endpoints}, \Cref{fig:corral-framework-app}). Agents interact with an environment solely by issuing HTTP requests. The \corral runner drives evaluation by iterating trials over registered agent--environment pairs, checkpointing intermediate state, and aggregating results into per-configuration scores and diagnostics. The snippets below illustrate the three main extension points; the canonical API reference is maintained at \url{https://lamalab-org.github.io/corral}.
+
+\paragraph{Tools.} Tools are formally subclasses of the \texttt{Tool} base class. The \texttt{@tool} decorator is a convenience shortcut that wraps a plain Python function into such a subclass. In both cases, the docstring of the tool is part of the contract between environment and agent: \corral exposes it to the agent as the tool's natural-language description, and its tagged sections are filtered by the tool-documentation verbosity axis (\Cref{sec:tool-verbosity}).
+
+\begin{lstlisting}[caption={Defining a tool via the decorator shortcut.}]
+from corral.backend.tool import tool
+
+@tool
+def my_custom_tool(input_param: str) -> str:
+    """[BRIEF] One-sentence summary.
+
+    Args:
+        input_param: description of the parameter.
+    Returns:
+        description of the return value.
+    """
+    return f"Processed: {input_param}"
+\end{lstlisting}
+
+\paragraph{Environments.} An environment subclasses \texttt{Environment}, attaches its tools in the constructor, and overrides \texttt{get\_task\_prompt} and \texttt{score}. A dictionary of environment instances is then served over HTTP by \texttt{create\_benchmark\_server}.
+
+\begin{lstlisting}[caption={Defining and serving an environment.}]
+from corral.backend import Environment
+from corral.backend.server import create_benchmark_server
+import os, uvicorn
+
+BASE_WORK_DIR = os.getenv("CORRAL_WORK_DIR")
+
+class MyEnvironment(Environment):
+    def __init__(self, task_id, problem, answer,
+                 base_workdir=BASE_WORK_DIR):
+        self.problem = problem
+        self.correct_answer = answer
+        super().__init__(task_id, base_workdir)
+        self.add_tool(my_custom_tool)
+
+    def get_task_prompt(self):
+        return f"Solve this problem: {self.problem}"
+
+    def score(self):
+        if self.state.submitted_answer is None:
+            return 0.0
+        return 1.0 if self.state.submitted_answer == self.correct_answer else 0.0
+
+environments = {
+    "task_1": MyEnvironment("task_1", "Problem 1", "Answer 1"),
+    "task_2": MyEnvironment("task_2", "Problem 2", "Answer 2"),
+}
+
+if __name__ == "__main__":
+    app = create_benchmark_server(environments)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+\end{lstlisting}
+
+\paragraph{Agents.} An agent subclasses \texttt{BaseAgent} and implements \texttt{run}. The agent drives inquiry through the router interface: \texttt{get\_task\_guide} returns the task prompt, \texttt{execute\_tool} invokes a tool, and \texttt{get\_llm\_response} routes a message list through the configured base model.
+
+\begin{lstlisting}[caption={Defining a custom scaffold.}]
+from corral.agents import BaseAgent
+from corral.agents.prompt_utils import create_prompt
+from corral.agents.utils import LiteLLMMessage
+
+class MyAgent(BaseAgent):
+    def __init__(self, model: str, **kwargs):
+        super().__init__(model, **kwargs)
+
+    def run(self, interface, task_id: str) -> str:
+        task_guide = interface.get_task_guide(task_id)
+        messages = create_prompt(task_guide)
+        # loop: call base LLM, parse action, execute tool,
+        # append observation, repeat until termination
+        response = self.get_llm_response(messages)
+        return response
+\end{lstlisting}
+
+
+\paragraph{Runner.} The \corral runner iterates over tasks and trials, dispatches agent calls through the router, persists intermediate state for fault tolerance, and returns a unified result summary. Experiment execution and environment definition are kept separate.
+
+
+  \begin{lstlisting}[caption={Runner invocation with custom diagnostic metric.}]
+  from corral import CorralRouter, CorralRunner
+  from corral.agents import MyAgent
+
+
+  # Connect to the environment server
+  router = CorralRouter()
+
+  # Configure the agent (model + scaffold)
+  agent = MyAgent(model="gpt-4o", temperature=0.7, max_iterations=100)
+
+  # Create runner and register custom metrics
+  runner = CorralRunner(router, agent)
+
+  # Run evaluation
+  result = runner.bench(
+    ["task_1", "task_2"],
+    trials_per_task=3,
+    verbose=True
+  )
+
+  # Results include default + custom metrics
+  print(f"Average score: {result.metrics['average_score']}")
+  \end{lstlisting}
+
+\subsection{Prompt construction}
+\label{app:prompt-construction}
+
+The message sequence delivered to the base model is assembled from four independently authored components.
+
+\paragraph{System prompt.} A static instruction, identical across all configurations, that establishes the agent's role and a context management directive.
+
+\paragraph{Task prompt.} Each environment implements a \texttt{get\_task\_prompt()} method that assembles a structured prompt from the task definition (see the endpoints in \Cref{tab:api-endpoints}). All environments follow a common template: (i)~a task name, (ii)~a natural-language description of the scientific goal, (iii)~the required submission format (e.g., a SMILES string, a list of ions), and (iv)~any available input data. For task groups, the input data include the artifacts forwarded from predecessor subtasks in the dependency graph, plus initial parameters such as target molecule or material composition. Some environments prepend a brief role preamble or append workspace instructions when filesystem tools are available.
+
+\paragraph{Scaffold template.} The task prompt is inserted into a scaffold-specific user template. For ReAct, the template embeds the task prompt together with a textual tool-usage guide and instructs the model to respond in XML-tagged thought---action---observation turns; the final answer is submitted via a \texttt{<final\_answer>} tag. For structured tool calling, the template contains only the task prompt; tool schemas are passed separately through the native function-calling API, and the final answer is submitted with a \enquote{Final Answer:} keyword prefix.
+
+\paragraph{Tool descriptions.} Filtered by the verbosity axis (\Cref{sec:tool-verbosity}) and injected either inline in the user prompt (ReAct) or via the function-calling API (tool calling).
+
+\noindent  Only the task prompt varies across environments; the system prompt, scaffold template, and tool-injection mechanism are held constant.
+
+
+\subsection{Example of different verbosity}
+\label{sec:verobisty_examples}
+The example boxes below render the docstring of the tool search\_by\_smiles at each of the three verbosity levels. \Cref{sec:tool-verbosity} defines the basis on which information is controlled for different verbosity levels. \Cref{tab:verbosity-tags} lists the tagged sections and their content.
+
+  \begin{table}[H]
+  \centering
+  \caption{\textbf{Tagged sections used in tool docstrings.} Each tool's documentation is authored with the sections below. At each verbosity level, a cumulative subset of these sections is retained (\Cref{sec:tool-verbosity}).}
+  \label{tab:verbosity-tags}
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabular}{@{}lp{0.62\linewidth}@{}}
+    \toprule
+    \textbf{Tag} & \textbf{Content} \\
+    \midrule
+    \texttt{[BRIEF]}               & One-sentence functional summary \\
+    \texttt{[DETAILED]}            & Extended description of the function \\
+    \texttt{[PROCEDURAL]}          & Step-by-step usage instructions \\
+    \texttt{[CONTEXTUAL]}          & When and why to use this tool \\
+    \texttt{[WORKFLOW\_INTEGRATION]}& How this tool fits into multi-step workflows \\
+    \texttt{[SYNTACTICAL]}         & Argument formatting conventions \\
+    \texttt{[EXAMPLES]}            & Concrete input/output examples \\
+    \texttt{[RAISES]},\;\texttt{[LIMITATIONS]} & Error conditions and known constraints \\
+    \bottomrule
+  \end{tabular}
+  \end{table}
+
+
+\begin{hypobox}{Verbosity: Brief}
+  Search the NMRShift database for entries matching or chemically similar to the given SMILES.
+
+  \medskip
+\textbf{  \textsc{Arguments}}
+
+  \textbf{smiles}( \texttt{str})\\
+  \quad The SMILES representation of the compound to search for in the NMRShift database
+
+  \textbf{top\_k} (\texttt{int})\\
+  \quad The maximum number of results to return. Defaults to 10
+
+  \medskip
+\textbf{  \textsc{Returns}}
+
+  \quad A list of dictionaries containing the most relevant entries from the NMRShift database
+  \end{hypobox}
+
+
+ \begin{hypobox}{Verbosity: Workflow}
+    Search the NMRShift database for entries matching or chemically similar to the given SMILES.
+
+    This function searches the NMRShift database for entries that match or are chemically similar to the provided SMILES string. It uses a vector database search to find the top
+  \texttt{top\_k} results based on chemical similarity. The function returns a list of matching entries, each containing relevant information about the compound.
+
+    \textbf{When to use this tool:}
+    \begin{itemize}[nosep]
+      \item Use it to validate your proposed molecule against the NMRShift database.
+      \item Use it when you have a SMILES string and want to find related compounds in the NMRShift database.
+      \item When you need to retrieve chemical shifts or other NMR-related information for a specific compound.
+    \end{itemize}
+
+    \textbf{How this tool works:}
+    \begin{itemize}[nosep]
+      \item It uses a vector database search in the \texttt{"nmrshiftdb2"} collection.
+      \item The search uses chemical embeddings generated by the \texttt{"ibm-research/MoLFormer-XL-both-10pct"} model.
+      \item The function retrieves the top \texttt{top\_k} results based on chemical similarity.
+      \item Each result contains relevant information about the compound, such as its SMILES, chemical shifts, and other properties.
+    \end{itemize}
+
+    \textbf{Typical workflow integration:}
+    \begin{enumerate}[nosep]
+      \item Have a SMILES representation of the molecule you want to search for, or the SMILES of a structure that you think can be valid.
+      \item Apply this tool with the SMILES string to search for matching or chemically similar entries in the NMRShift database.
+      \item Use the retrieved entries to validate your proposed molecule, compare chemical shifts, or gather additional information. You can also use \texttt{get\_formula\_from\_smiles} to
+   validate the molecular formula.
+    \end{enumerate}
+
+    \medskip
+   \textbf{ \textsc{Arguments}}
+
+    \textbf{smiles} (\texttt{str})\\
+    \quad The SMILES representation of the compound to search for in the NMRShift database\\
+    \quad \textit{It should be a valid SMILES notation that can be processed by the vector database search.}
+
+    \textbf{top\_k} (\texttt{int})\\
+    \quad The maximum number of results to return. Defaults to 10\\
+    \quad \textit{It should be a positive integer.}
+
+    \medskip
+    \textbf{\textsc{Returns}}
+
+    \quad A list of dictionaries containing the most relevant entries from the NMRShift database. Each dictionary contains relevant information about the compound. Results are sorted by
+  similarity score in descending order.
+  \end{hypobox}
+
+
+\begin{hypobox}{Verbosity: Comprehensive}
+    Search the NMRShift database for entries matching or chemically similar to the given SMILES.
+
+    This function searches the NMRShift database for entries that match or are chemically similar to the provided SMILES string. It uses a vector database search to find the top
+  \texttt{top\_k} results based on chemical similarity. The function returns a list of matching entries, each containing relevant information about the compound.
+
+    \textbf{When to use this tool:}
+    \begin{itemize}[nosep]
+      \item Use it to validate your proposed molecule against the NMRShift database.
+      \item Use it when you have a SMILES string and want to find related compounds in the NMRShift database.
+      \item When you need to retrieve chemical shifts or other NMR-related information for a specific compound.
+    \end{itemize}
+
+    \textbf{How this tool works:}
+    \begin{itemize}[nosep]
+      \item It uses a vector database search in the \texttt{"nmrshiftdb2"} collection.
+      \item The search uses chemical embeddings generated by the \texttt{"ibm-research/MoLFormer-XL-both-10pct"} model.
+      \item The function retrieves the top \texttt{top\_k} results based on chemical similarity.
+      \item Each result contains relevant information about the compound, such as its SMILES, chemical shifts, and other properties.
+      \item The function returns a list of matching entries, each represented as a dictionary containing the relevant information.
+    \end{itemize}
+
+    \textbf{Typical workflow integration:}
+    \begin{enumerate}[nosep]
+      \item Have a SMILES representation of the molecule you want to search for, or the SMILES of a structure that you think can be valid.
+      \item Apply this tool with the SMILES string to search for matching or chemically similar entries in the NMRShift database.
+      \item Use the retrieved entries to validate your proposed molecule, compare chemical shifts, or gather additional information. You can also use \texttt{get\_formula\_from\_smiles} to
+   validate the molecular formula.
+    \end{enumerate}
+
+    \textbf{Usage examples:}
+    \begin{lstlisting}[language=Python, basicstyle=\ttfamily\small]
+  search_by_smiles("CCO")
+  search_by_smiles("C1=CC=CC=C1")
+  search_by_smiles("C(C(=O)O)N")
+  search_by_smiles("C1=CC=C(C=C1)C(=O)O")
+    \end{lstlisting}
+
+    \textbf{Exceptions:} If an error occurs during the search process, such as errors in the embedding of the query. This can also occur if the \texttt{top\_k} parameter is not a positive
+  integer. Try another tool.
+
+    \textbf{Known Limitations:}
+    \begin{itemize}[nosep]
+      \item The function requires a valid SMILES string that can be processed by the vector database search.
+      \item The search results are limited to the \texttt{top\_k} parameter, which defaults to 10.
+      \item The search is based on chemical embeddings, which may not capture all chemical similarities perfectly.
+    \end{itemize}
+
+    \medskip
+    \textbf{\textsc{Arguments}}
+
+    \textbf{smiles} (\texttt{str})\\
+    \quad The SMILES representation of the compound to search for in the NMRShift database\\
+    \quad \textit{The SMILES string representing the chemical structure of the molecule to search for in the NMRShift database. It should be a valid SMILES notation that can be processed
+  by the vector database search.}\\
+    \quad Valid SMILES string\\
+    \quad Examples: \texttt{"CCO"}, \texttt{"C1=CC=CC=C1"}, \texttt{"C(C(=O)O)N"}, \texttt{"C1=CC=C(C=C1)C(=O)O"}
+
+    \textbf{top\_k} (\texttt{int})\\
+    \quad The maximum number of results to return. Defaults to 10\\
+    \quad \textit{The maximum number of search results to return from the NMRShift database. It should be a positive integer.}\\
+    \quad Any positive integer (e.g., 10, 20, 50)\\
+    \quad Examples: \texttt{10}, \texttt{20}, \texttt{50}
+
+    \medskip
+    \textbf{\textsc{Returns}}
+
+    \quad A list of dictionaries containing the most relevant entries from the NMRShift database. Each dictionary contains relevant information about the compound, such as its SMILES,
+  chemical shifts, and other properties. The results are sorted by similarity score in descending order.\\
+    \quad Example: \texttt{[\{"entry\_id": "nmrshiftdb2:234", "compound\_name": "Benzene", "smiles": "c1ccccc1", ...\}]}
+  \end{hypobox}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/figure_corral_framewor.pdf}
+    \caption{\textbf{\corral framework overview.} Environments are hosted in a FastAPI server; each exposes a task description, tools, and a scoring function. Agents interact with an environment by issuing HTTP requests to query information, check state, or submit answers. The \corral runner drives evaluation, handling checkpointing, aggregation, and metric computation. New agents, environments, and metrics extend the framework through the three subclass interfaces described in this section.}
+    \label{fig:corral-framework-app}
+\end{figure}
+
+\include{tables/framework_endpoint}
+
+
+\section{Domains and environments}
+\label{app:environment-details}
+
+Each of the eight domains described in Methods exposes multiple task scopes; each scope is realized as a separate environment. The eight domains are summarised in \Cref{fig:envs-input-output}, which shows the input the agent receives and the artifact it produces in each case. An overview of the characteristics of each domain is provided in \Cref{tab:env-summary-table}. Full per-scope tool lists, scoring rubrics, and task specifications are maintained at \url{https://lamalab-org.github.io/corral/#environments}. One environment, the inorganic qualitative analysis (\textit{wetlab}), is used as a worked example below (\Cref{app:wetlab-section}).
+
+
+
+\begin{table}[H]
+    \centering
+    \caption{\textbf{Overview of the \corral environments.}For each of the eight scientific domains, the table reports: (i) the number of difficulty levels, (ii) the number of distinct tasks per level, (iii) the total number of domain‑specific tools available to the agent, (iv) the typical trace length, and (v) the backing: the engine, instrument, dataset, or library on which the environment is built. The trace length is defined as the mean number of agent‑generated messages (excluding system and initial user prompts), averaged across all models, agent architectures, and verbosity settings.}
+    \label{tab:env-summary-table}
+    \input{tables/domain_summary_table}
+\end{table}
+
+\subsection{Inorganic Qualitative Analysis Environment Example} \label{app:wetlab-section}
+
+\Cref{fig:wetlab-app} overviews the agent workflow in this environment.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/overview_wetlab.pdf}
+    \caption{\textbf{Overview of the Inorganic Qualitative Analysis environment.} The agent's workflow consists of three main phases: (1) Initialization: The prompt is constructed with the task description, a list of available tools (including their arguments), and the required response format. (2) Iterative Interaction: The agent calls tools to perform experiments (e.g., pH measurement, flame tests; a detailed view of the tools is provided in \Cref{tab:wetlab-tools}) and can reference external information, such as lists of possible ions, reagent properties, color indicators, and the current inventory. (3) Final Scoring: The agent outputs a list of ions present in the sample. The environment scores this answer by comparing it to the ground truth, returning a binary score based on its correctness.}
+    \label{fig:wetlab-app}
+\end{figure}
+
+\section{Capability assessment items}
+\label{app:capability-items}
+
+The latent capability profiles in \Cref{sec:app_irt} are estimated from a bank of question-answer items curated for each environment. For every environment, items are partitioned into a knowledge set that probes domain-specific facts required to operate the environment and a reasoning set that requires multi-step inference over domain concepts. \Cref{tab:qa-know-examples} and \Cref{tab:qa-reas-examples} show one representative item of each type per environment. Per-model scores on the full bank are in \Cref{tab:qa-scores}.
+
+\subsection{Item generation protocol}
+
+Benchmark items follow a structured review protocol.
+Items are authored by the domain expert responsible for the corresponding
+environment.
+Two categories of items are distinguished:
+\emph{knowledge} items, which test factual and procedural understanding of the
+domain (e.g.,\ instrument settings, simulation parameters),
+and \emph{reasoning} items, which require multi-step logical inference, scenario
+analysis, or quantitative problem-solving within the domain. Each collection of items is submitted as a pull request. Two independent expert reviewers then assess the items against a predefined rubric (see \Cref{par:qa-rubric}). Items that do not pass receive change requests and return to the review stage for reassessment. Once approved, items undergo a final review and are merged into the benchmark.
+\Cref{fig:item-generation-protocol} illustrates at a high level the protocol followed. After consolidation of the items, the dataset is pushed and maintained on Hugging Face  \autocite{lab_of_kevin_jablonka_at_uni_jena_2026_qas} for versioning.
+
+
+\resizebox{\textwidth}{!}{\input{figures/qa_curation}}
+
+\paragraph{Item format and scoring rubric}
+
+Every benchmark item is a four- to six-option multiple-choice question stored in JSON.
+Each item carries a unique \texttt{uuid}, a human-readable \texttt{name}, a short
+\texttt{description}, and a list of \texttt{keywords} whose first entry
+identifies the environment, and whose second entry is either
+\texttt{requires\_knowledge} or \texttt{requires\_reasoning}.
+The question text and answer options are stored in an \texttt{examples} list, where
+each entry contains an \texttt{input} string (the question) and a
+\texttt{target\_scores} dictionary mapping every option to~$1$ (correct) or~$0$
+(incorrect). Exactly one option is marked correct.
+All items use the metric \texttt{multiple\_choice\_grade}: a model receives a score
+of~$1$ if it selects all and only the correct option and~$0$ otherwise.
+A canary string is prepended to every item to enable the detection of the benchmark
+contamination in training corpora.
+Listing \Cref{lst:qa-example} shows an example item.
+
+\begin{hypobox}{Example format of a benchmark item in JSON format.}
+  \begin{lstlisting}[
+  language={},
+  basicstyle=\ttfamily\small,
+  caption={},
+  label={lst:qa-example},
+  frame=single,
+  xleftmargin=1em,
+  xrightmargin=1em,
+  breaklines=true
+]
+{
+  "name": "AFM_QA_25",
+  "uuid": "5f17549c-7bf4-4eb6-a547-7274c7dddcb3",
+  "description": "Reasoning-based",
+  "examples": [
+    {
+      "input": "Which scanning mode best balances tip safety?",
+      "target_scores": {
+        "Contact
+mode": 0,
+        "Tapping mode": 1,
+        "Lateral force mode": 0,
+        "Conductive AFM" : 0
+      }
+    }
+  ],
+  "keywords": ["requires_knowledge", "AFM", 
+               "microscopy", "scanning"],
+  "metrics": ["multiple_choice_grade"],
+  "preferred_score": "multiple_choice_grade"
+}
+\end{lstlisting}
+\end{hypobox}
+
+
+
+\paragraph{Quality-assessment procedure}
+\label{par:qa-rubric}
+
+Each pull request is reviewed by two independent expert reviewers who evaluate every item against the following rubric:
+ 
+\begin{enumerate}
+  \item \textit{Correctness.}
+    The marked answer must be verifiably correct and all distractors genuinely
+    incorrect; reviewers independently re-derive calculations where applicable.
+    Items containing factual errors or misconceptions are rejected. Incorrect options must be plausible enough to require domain knowledge to
+    eliminate.
+    
+ 
+  \item \textit{Clarity and ambiguity.}
+    Questions must be unambiguous, use consistent notation (e.g.\
+    \texttt{siunitx} units, \verb|\ce{}| formulae, SMILES), expand
+    domain-specific acronyms, and be compatible with the evaluation harness.
+ 
+  \item \textit{Originality.}
+    Questions must not be readily findable online or in standard textbooks;
+    items that can be answered by retrieving a verbatim source are rejected.
+ 
+  \item \textit{Scope and relevance.}
+    Each item must be tightly linked to its environment's domain and must
+    measure domain expertise rather than general instruction-following ability.
+    Out-of-scope questions are rejected.
+ 
+  \item \textit{Difficulty and diversity.}
+    Items should pose a genuine challenge to a domain expert, and the item set. Each environment should cover a broad range based on the tasks in the environment.
+ 
+  \item \textit{Format and metadata.}
+    Keyword ordering, the \texttt{requires\_knowledge}/\texttt{requires\_reasoning} tag, and the format of the JSON are verified for consistency.
+\end{enumerate}
+
+
+
+\begin{table}[H]
+    \centering
+    \caption{\textbf{Example knowledge-based questions.} For each environment, one representative factual question is shown, testing domain-specific knowledge required to operate the environment. The correct answer is indicated in the last column.}
+    \label{tab:qa-know-examples}
+    \resizebox{\textwidth}{!}{
+    \input{tables/qa_example_qa}
+    }
+\end{table}
+
+
+\begin{table}[H]
+    \centering
+    \tiny
+    \caption{\textbf{Example reasoning-based questions.} For each environment, one representative reasoning question is shown, requiring multi-step inference over observations or domain concepts. Answer options are truncated for brevity. The correct answer is indicated in the last column.}
+    \label{tab:qa-reas-examples}
+    \resizebox{\textwidth}{!}{
+    \input{tables/qa_example_reasoning_qa}
+    }
+\end{table}
+
+\paragraph{Per-model scores.} \Cref{tab:qa-scores} presents the scores for each model on knowledge and reasoning questions. \claudesonnet achieves the highest scores in most environments, winning or tying on 13 of 16 environment–question-type pairs. \gptfourO performs competitively on several environments (e.g., AFM experiment execution and adsorption surface construction knowledge questions, where all models tie at 0.88–0.90), but lags substantially behind on spectroscopic structure elucidation (0.46 vs. 0.81 for \claudesonnet) and inorganic qualitative analysis (0.25 vs. 0.70). \gptoss shows its strongest relative performance in molecular simulation, where it attains the top knowledge score (0.95) and ties for the best reasoning score (0.95). Reasoning questions are generally more difficult. Spectroscopic structure elucidation is the hardest domain for every model: \claudesonnet, \gptfourO, and \gptoss score 0.31, 0.14, and 0.31, respectively.
+
+\begin{table}[H]
+    \centering
+    \caption{\textbf{Q\&A Scores for each of the analyzed models across the different tasks.} Bold text indicates the best scores for each of the topics. \textit{Knowledge questions} evaluate the factual knowledge needed to solve the agentic tasks, while the \textit{Reasoning Questions} aim to simulate the reasoning-related processes that agents face during problem-solving.}
+    \label{tab:qa-scores}
+    \resizebox{\textwidth}{!}{
+    \input{tables/qa_scores_table}
+    }
+\end{table}
+
+
+\section{Marker manual annotation} \label{app:manual_annotation_description}
+
+Domain experts annotated agent execution traces using a custom web-based tool (see \Cref{fig:marker_annotation_app}) that renders each trace as a navigable sequence of steps: model outputs, tool calls, and environment responses. One expert was assigned to each scientific environment. Each expert reviewed all accepted traces within their assigned environment, covering both the \gptfourO and \claudesonnet models, across combinations with ReAct and tool‑calling agents for the different scopes.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/annotation_app.pdf}
+    \caption{\textbf{Screenshot of the Agent Trace Visualizer annotation interface.} The tool renders each execution trace as a navigable sequence of steps (model outputs, tool calls, and environment responses), allowing the expert annotator to assign one or more behavioral markers from a controlled taxonomy and optionally add free-text observations at the step level and an overall trace-level comment.}
+    \label{fig:marker_annotation_app}
+\end{figure}
+
+For each step in a trace, the annotator assigned one or more behavioral markers drawn from a controlled taxonomy (\Cref{tab:markers}). Annotators could supplement marker selections with free-text observations at the step level and an overall comment characterizing the trace as a whole.
+
+As a result, 773 traces were annotated end-to-end following this procedure. The detailed results of the marker counts are described in \Cref{app:marker_annotation_results}.
+
+\begin{table}[H]
+\centering
+\caption{\textbf{Behavioral marker taxonomy used during expert annotation of agent execution traces.} Markers are organized into three tiers: \textit{positive} markers capture effective reasoning and task execution; \textit{neutral} markers flag unremarkable steps; and \textit{negative} markers identify failure modes ranging from hallucination and looping to premature answer submission.}
+\label{tab:markers}
+\small
+\input{tables/markers_definitions}
+\end{table}
+
+
+\section{Performance analysis}
+\label{app:performance}
+
+
+The base model is the primary determinant of agent performance. Scaffold, tool-documentation verbosity, and item-level factors account for a smaller share of the variance (\Cref{fig:performance}). Aggregate scores (\Cref{tab:aggregate-scores,tab:aggregate-scores-subtask}) and per-skill performance (\Cref{fig:2c_task_category}) are examined in the following subsections. A hierarchical Bayesian model of per-trial outcomes supplies the variance decomposition and a task-level calibration check (\Cref{app:binomial-subsec}). A two-parameter IRT analysis of curated question-answer items separates knowledge from reasoning ability for each model--environment pair (\Cref{sec:app_irt}). Intervention experiments on the conversation history (\Cref{app:interventions}) and ablations of tool-documentation verbosity (\Cref{app:verbosity}) complement these analyses.
+
+\subsection{Aggregate scores} \label{app:aggregate-scores}
+
+\Cref{tab:aggregate-scores} and \Cref{tab:aggregate-scores-subtask} present mean scores across all eight environments for each model–agent combination. \Cref{tab:aggregate-scores} reports task-level outcomes, where each cell is the mean over complete end-to-end trial episodes within the corresponding environment–scope bin. \Cref{tab:aggregate-scores-subtask} provides the analogous results at the subtask level; the assignments are divided over the individual constituent steps rather than over full trials, allowing fine-grained evaluation. Consequently, subtask scores are generally higher than task scores, because partial credit accumulates across a trial even when the overall task is not solved.
+
+The ranking of models is largely consistent across both tables: \claudesonnet leads in most environments, followed by \gptfourO and \gptoss, although the performance gap narrows for lower‑complexity scopes (S1) and for environments that require tight multi‑step planning (e.g., Retrosynthesis). ReAct and Tool‑Calling agents perform comparably on average, with differences becoming more pronounced at higher scope levels and in workflow‑construction environments (e.g., \textit{AFM Experiment}, \textit{Molecular Simulation}), where the structured action space of Tool Calling confers a modest advantage.
+
+\begin{table}[H]
+    \centering
+    \caption{\textbf{Average scores by environment and scope for each model and agent type.} R=ReAct, TC=Tool Calling. Environments are grouped by task category: \textit{Hypothesis-driven inquiry} (Spectra Elucidation, Circuit Inference), \textit{Strategic reasoning} (Retrosynthesis), and \textit{Workflow construction} (AFM Experiment, Molecular Simulation, Adsorption Surface, ML Property). Scope levels (S1–S4) reflect increasing task difficulty within each environment.}
+    \label{tab:aggregate-scores}
+    \input{tables/score_tables/score_table_brief_tasks}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{\textbf{Subtask-level average scores by environment and scope for each model and agent type.} R=ReAct, TC=Tool Calling. Each cell reports the mean over the individual subtask items belonging to that environment–scope combination, providing a finer-grained view of model capabilities.}
+    \label{tab:aggregate-scores-subtask}
+    \input{tables/score_tables/score_table_brief_subtasks}
+\end{table}
+
+
+\subsection{Subtask-category gradient}
+
+\Cref{fig:2c_task_category} presents average \passat{} broken down by the four skill categories (retrieval, execution, reasoning, and validation) across all model--agent combinations. Across most combinations, retrieval and execution scores are higher than reasoning and validation scores, and the spread across combinations is larger for the latter two categories. Reasoning and validation require logical inference, consistency checking, and hypothesis testing, whereas retrieval and execution test more routine information access and action selection. The pattern aligns with the gradient in epistemic demand reported in the main text.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/performance/2c_task_category.pdf}
+    \caption{\textbf{Performance decreases as epistemic demand increases.} All tasks were broken down into subtasks, each classified by experts into four categories (retrieval, execution, reasoning, validation). Both scaffolds for all models show the same trend.}
+    \label{fig:2c_task_category}
+\end{figure}
+
+
+\subsection{Manual marker annotation} \label{app:marker_annotation_results}
+
+\Cref{tab:marker-count} presents the total occurrence counts of each behavioral marker across all annotated traces, broken down by model and scaffold. Positive markers are dominated by \texttt{validation\_attempt} and \texttt{reasoning\_statement}, with \claudesonnet producing substantially more explicit reasoning steps than \gptfourO across both scaffolds (e.g., 392 vs. 69 under ReAct). ReAct consistently elicits more \texttt{planning\_statement} annotations for \claudesonnet (240 vs. 34 for tool calling), suggesting that the scaffold shapes high-level planning behavior more for that model than for \gptfourO. Among negative markers, \texttt{loop\_instance} and \texttt{wrong\_reasoning} are the most prevalent across all conditions. \gptfourO shows notably higher rates of \texttt{non\_sense} and \texttt{syntax\_error} under ReAct (141 and 100, respectively), pointing to formatting difficulties with that scaffold. \texttt{misunderstood\_tool} is almost exclusively observed in the \claudesonnet tool-calling condition (31 out of 38 occurrences), indicating a scaffold-specific failure mode.
+
+
+\begin{table}[H]
+\centering
+\caption{\textbf{Behavioral marker counts per model and scaffold.} Total number of times each marker was observed across all annotated traces, grouped by sentiment category (Positive, Neutral, Negative). Markers are defined in \Cref{tab:markers}.}
+\label{tab:marker-count}
+\small
+\input{tables/marker_counts_table}
+\end{table}
+
+\subsection{Latent factor modelling}
+\label{sec:app_irt}
+
+\paragraph{IRT capability estimation.}
+  We estimate latent knowledge and reasoning capabilities for each
+  model-environment pair using a separate two-parameter logistic (2PL)
+  item response theory (IRT) models \autocite{hori2022item}. For each
+  of the eight benchmark environments, we prepared two sets of
+  question-answer (QA) items: one targeting domain-specific factual
+  knowledge and one targeting multi-step reasoning (\Cref{tab:qa-scores}; item generation and review protocol in \Cref{app:capability-items}). All three models
+  were evaluated on the full QA across all environments,
+  yielding binary correctness outcomes. We fit one 2PL IRT model to the
+  knowledge QA responses and a second, independent 2PL IRT model to the
+  reasoning QA responses. In each model, a latent ability parameter
+  $\theta_{m,e}$ is estimated for every model--environment pair $(m,e)$
+  via a hierarchical prior $\theta_{m,e} \sim
+  \mathcal{N}(\mu_m + \nu_e,\, \sigma_\theta)$, where $\mu_m$ and
+  $\nu_e$ are the sum-to-zero model and environment effects. Item
+  parameters follow the standard 2PL parameterization: discrimination
+  $a_i = \exp(\log a_i)$ with $\log a_i \sim \mathcal{N}(0, 0.5)$ and
+  difficulty $b_i \sim \mathcal{N}(0, 2)$, giving item response
+  probability $P(\text{correct}) = \mathrm{logistic}(a_i \theta - b_i)$.
+  All parameters are estimated via MCMC (4 chains, 2000 post-warmup
+  draws each, target acceptance 0.9); we report posterior means and
+  standard deviations of $\theta$. The knowledge model yields
+  $\theta_K$ and the reasoning model yield $\theta_R$, enabling a
+  direct comparison of where each model's knowledge versus reasoning
+  capabilities diverge across scientific domains. The extracted capabilities are plotted as a heatmap in \Cref{fig:capability_heatmaps}; a complementary scatter view comparing knowledge against reasoning abilities per model--environment pair is shown in \Cref{fig:knowledge_vs_reasoning}.
+  
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/capability_heatmaps.pdf}
+    \caption{\textbf{Model capabilities vary sharply across scientific domains, with knowledge and reasoning deficits concentrated in the hypothesis-driven inquiry domain.}
+      Side-by-side heatmaps of the latent knowledge ($\theta_K$, left) and reasoning ($\theta_R$, right) capabilities estimated from a two-parameter IRT model fit to task outcomes
+  across all agent configurations. Rows correspond to the eight benchmark environments; columns show the three evaluated models. Cell values are posterior means of the per-model,
+  per-environment capability parameters, with color intensity scaled from low (light) to high (dark purple), centered at zero. Both heatmaps share a common $y$-axis for direct comparison.}
+      \label{fig:capability_heatmaps}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{figures/appendix/knowledge_vs_reasoning.pdf}
+    \caption{\textbf{Knowledge and reasoning capabilities are broadly correlated, but retrosynthesis demands reasoning far beyond what domain knowledge alone predicts.}
+      Scatter plot of latent knowledge capability ($\theta_K$) against reasoning capability ($\theta_R$) for each model--environment pair, estimated from a two-parameter IRT model. Marker
+  shape encodes the model (circle: \claudesonnetfull; square: \gptfourOfull; diamond: \gptossfull) and color encodes the domain group (blue: workflow construction; purple: hypothesis-driven
+  inquiry; magenta: strategic reasoning). The dashed diagonal marks $\theta_K = \theta_R$; points above the line indicate environments where reasoning demands exceed knowledge demands.
+  Retrosynthetic planning (magenta) sits far above the diagonal with strongly negative $\theta_K$, suggesting models rely on chain-of-thought reasoning rather than retrievable domain
+  knowledge to navigate the combinatorial search space.}
+      \label{fig:knowledge_vs_reasoning}
+\end{figure}
+
+
+
+\subsection{Binomial modeling}
+\label{app:binomial-subsec}
+
+The goal of the latent factor modeling stage is to quantify how much of the variance in agent success is attributable to model capability (knowledge and reasoning), how much to agent-design choices (scaffold, verbosity). This decomposition is not uniquely determined since it depends on modeling assumptions about which factors interact and at what granularity grouping structure is imposed. For instance, task difficulty might be adequately captured at the environment level, or it might require finer environment×scope resolution. To avoid committing to a single set of assumptions, we specified a family of eight candidate models (M1–M8) that span a range of structural choices. All models share the same likelihood, priors, and core covariates (\Cref{tab:irt_notation}); they differ only in how they partition residual variance. We then select among them using Pareto-smoothed importance sampling leave-one-out cross-validation \autocite{vehtari2017practical} (PSIS-LOO; \Cref{fig:elpd_vs_complexity}), which balances predictive accuracy against model complexity without requiring a held-out test set. The variance decomposition reported in the main text (\Cref{fig:irt-main-fig}C) and the posterior predictive checks in \Cref{fig:lfm_fitting} are both based on the top-ranked model on the ELPD-LOO frontier.
+
+
+\subsubsection{Model specifications}
+\label{sec:models_irt}
+
+All models include the common sum-to-zero effects; they differ in how the
+remaining variance is partitioned. The common notation used across models is described in \Cref{tab:irt_notation}; the full prior specification
+  for the selected model (M7) is given in \Cref{tab:m7_priors}.
+
+\begin{table}[H]
+  \centering
+  \caption{Notation used in the phenomenological latent factor models (M1--M8).}
+  \label{tab:irt_notation}
+  \small
+  \begin{tabular}{@{}lll@{}}
+  \toprule
+  \textbf{Symbol} & \textbf{Name} & \textbf{Description} \\
+  \midrule
+  \multicolumn{3}{@{}l}{\textit{IRT-derived ability covariates}} \\[2pt]
+  $\tilde{\theta}_K$        & Knowledge ability   & Standardised 2PL IRT estimate (zero mean, unit variance) \\
+  $\tilde{\theta}_R$        & Reasoning ability    & Standardised 2PL IRT estimate (zero mean, unit variance) \\
+  \midrule
+  \multicolumn{3}{@{}l}{\textit{Global ability slopes}} \\[2pt]
+  $\lambda$                 & Knowledge slope      & Base regression coefficient for $\tilde{\theta}_K$ \\
+  $\psi$                    & Reasoning slope      & Base regression coefficient for $\tilde{\theta}_R$ \\
+  \midrule
+  \multicolumn{3}{@{}l}{\textit{Sum-to-zero categorical effects}} \\[2pt]
+  $\gamma_s$                & Scaffold             & Agent approach (\texttt{react}, \texttt{tool\_calling}) \\
+  $\delta_\ell$             & Scope                & Task difficulty scope (1--4; 4 is hardest) \\
+  $\xi_v$                   & Verbosity            & Tool-description verbosity (3 different verbosity levels) \\
+  $\kappa_c$                & Category             & Task category (\texttt{task} vs.\ \texttt{subtask}) \\
+  \midrule
+  \multicolumn{3}{@{}l}{\textit{Grouping variables}} \\[2pt]
+  $e$                       & Environment          & 8 Scientific environments  \\
+  $t$                       & Task UID             & Unique task identity (task\,$\times$\,scope combinations) \\
+  \midrule
+  \multicolumn{3}{@{}l}{\textit{Hierarchical and interaction terms}} \\[2pt]
+  $\tau_t$                  & Task effect          & Random intercept per task;\; $\tau_t \sim \mathcal{N}(0,\sigma_\tau)$ \\
+  $\alpha_e$ / $\alpha_{e,\ell}$ & Group intercept & Hierarchical intercept for environment (or env\,$\times$\,scope) \\
+  $\theta_e$ / $\theta_{e,\ell}$ & Knowledge slope adj. & Sum-to-zero deviation from $\lambda$, by env (or env\,$\times$\,scope) \\
+  $\phi_e$ / $\phi_{e,\ell}$     & Reasoning slope adj. & Sum-to-zero deviation from $\psi$, by env (or env\,$\times$\,scope) \\
+  $\gamma_{(s,e)}$          & Scaffold\,$\times$\,env    & Joint scaffold--environment interaction effect \\  % ADDED: M4 uses this
+  $\gamma_{(s,\ell)}$       & Scaffold\,$\times$\,scope  & Joint scaffold--scope interaction effect\\
+  $\delta_{(e,\ell)}$       & Env\,$\times$\,scope       & Joint interaction effect  \\
+  \midrule
+  \multicolumn{3}{@{}l}{\textit{Priors}} \\[2pt]
+  $\beta_0$                 & Intercept            & $\mathcal{N}(0,\,2)$ --- weakly informative on logit scale \\
+  $\sigma_\tau$, $\sigma_\alpha$ & Hierarchical SDs & $\mathrm{Half}\text{-}\mathcal{N}(0.5)$ --- regularises toward homogeneity \\
+  \bottomrule
+  \end{tabular}
+  \end{table}
+
+
+\label{sec:models}
+
+%% ── Model 1 ──
+\begin{hypobox}{M1 : Basic model without interactions}
+\begin{equation*}
+  \eta_i
+    = \beta_0
+    + \lambda\,\tilde{\theta}_{K,i}
+    + \psi\,\tilde{\theta}_{R,i}
+    + \gamma_{s[i]}
+    + \delta_{\ell[i]}
+    + \xi_{v[i]}
+    + \kappa_{c[i]}
+    + \tau_{t[i]}
+\end{equation*}
+\end{hypobox}
+
+\bigskip
+
+%% ── Model 2 ──
+  \begin{hypobox}{M2: Tasks + Environment}
+  \begin{equation*}
+    \eta_i
+      = \beta_0
+      + \lambda\,\tilde{\theta}_{K,i}
+      + \psi\,\tilde{\theta}_{R,i}
+      + \gamma_{s[i]}
+      + \delta_{\ell[i]}
+      + \xi_{v[i]}
+      + \kappa_{c[i]}
+      + \alpha_{e[i]}
+      + \tau_{t[i]}
+  \end{equation*}
+  % \textbf{Hypothesis.}
+  % Environments have systematically different baseline difficulties.
+  % Compared with M1, the additional environment
+  % grouping tests whether domain identity explains variance beyond what
+  % the categorical fixed effects already absorb.
+  \end{hypobox}
+
+\bigskip
+
+%% ── Model 3 ──
+\begin{hypobox}{M3: Ability Slopes $\times$ Environment}
+  \begin{equation*}
+    \eta_i
+      = \beta_0
+      + \bigl(\lambda + \theta_{e[i]}\bigr)\,\tilde{\theta}_{K,i}
+      + \bigl(\psi   + \phi_{e[i]}\bigr)\,\tilde{\theta}_{R,i}
+      + \gamma_{s[i]}
+      + \delta_{\ell[i]}
+      + \xi_{v[i]}
+      + \kappa_{c[i]}
+      + \alpha_{e[i]}
+      + \tau_{t[i]}
+  \end{equation*}
+  % \textbf{Hypothesis.}
+  % Cognitive-ability slopes vary by environment.
+  % $\theta_e$ and $\phi_e$ are sum-to-zero deviations from the base slopes
+  % $\lambda$ and $\psi$, allowing knowledge to matter more.  The hierarchical intercept
+  % $\alpha_e$ and task effect $\tau_t$ are retained from M2.
+  \end{hypobox}
+
+\bigskip
+
+%% ── Model 4 ──
+\begin{hypobox}{M4: Scaffold $\times$ Environment}
+  \begin{equation*}
+    \eta_i
+      = \beta_0
+      + \lambda\,\tilde{\theta}_{K,i}
+      + \psi\,\tilde{\theta}_{R,i}
+      + \gamma_{(s,e)[i]}
+      + \delta_{\ell[i]}
+      + \xi_{v[i]}
+      + \kappa_{c[i]}
+      + \tau_{t[i]}
+  \end{equation*}
+  % \textbf{Hypothesis.}
+  % Scaffold effectiveness varies by scientific domain.
+  % $\gamma_{(s,e)}$ captures the joint scaffold\,$\times$\,environment
+  % interaction.
+\end{hypobox}
+
+\bigskip
+
+%% ── Model 5 ──
+\begin{hypobox}{M5: Scaffold $\times$ Scope Interaction}
+\begin{equation*}
+  \eta_i
+    = \beta_0
+    + \lambda\,\tilde{\theta}_{K,i}
+    + \psi\,\tilde{\theta}_{R,i}
+    + \xi_{v[i]}
+    + \kappa_{c[i]}
+    + \gamma_{(s,\ell)[i]}
+    + \alpha_{e[i]}
+    + \tau_{t[i]}
+\end{equation*}
+% \textbf{Hypothesis.}
+% Scaffold effectiveness depends on task scope.
+% $\gamma_{(s,\ell)}$ captures the joint scaffold\,$\times$\,scope interaction
+% across 8 cells (\texttt{react}/\texttt{tool\_calling}\,$\times$\,scope
+% 1--4).
+\end{hypobox}
+
+\bigskip
+
+%% ── Model 6 ──
+\begin{hypobox}{M6: Environment $\times$ Scope Intercepts}
+\begin{equation*}
+  \eta_i
+    = \beta_0
+    + \lambda\,\tilde{\theta}_{K,i}
+    + \psi\,\tilde{\theta}_{R,i}
+    + \gamma_{s[i]}
+    + \xi_{v[i]}
+    + \kappa_{c[i]}
+    + \delta_{(e,\ell)[i]}
+    + \tau_{t[i]}
+\end{equation*}
+% \textbf{Hypothesis.}
+% Difficulty progression is non-uniform across environments.
+% $\delta_{(e,\ell)}$ are sum-to-zero effects for each of the 14 observed
+% environment\,$\times$\,scope cells.
+\end{hypobox}
+
+\bigskip
+
+%% ── Model 7 ──
+\begin{hypobox}{M7: Ability Slopes $\times$ Environment--Scope (Best Model)}
+\begin{equation*}
+  \eta_i
+    = \beta_0
+    + \bigl(\lambda + \theta_{(e,\ell)[i]}\bigr)\,\tilde{\theta}_{K,i}
+    + \bigl(\psi   + \phi_{(e,\ell)[i]}\bigr)\,\tilde{\theta}_{R,i}
+    + \gamma_{s[i]}
+    + \xi_{v[i]}
+    + \kappa_{c[i]}
+    + \alpha_{(e,\ell)[i]}
+    + \tau_{t[i]}
+\end{equation*}
+% \textbf{Hypothesis.}
+% Ability slopes vary by the joint
+% environment\,$\times$\,scope pair.  $\theta_{(e,\ell)}$ and
+% $\phi_{(e,\ell)}$ are sum-to-zero adjustments over 14 cells;
+% $\alpha_{(e,\ell)}$ is a hierarchical intercept.  Knowledge may matter
+% little for easy tasks in one domain yet become critical for hard tasks in
+% another; reasoning likewise.
+\end{hypobox}
+
+\bigskip
+
+%% ── Model 8 ──
+\begin{hypobox}{M8: Hybrid --- Ability Slopes $\times$ Environment + Env--Scope Intercept}
+\begin{equation*}
+  \eta_i
+    = \beta_0
+    + \bigl(\lambda + \theta_{e[i]}\bigr)\,\tilde{\theta}_{K,i}
+    + \bigl(\psi   + \phi_{e[i]}\bigr)\,\tilde{\theta}_{R,i}
+    + \gamma_{s[i]}
+    + \xi_{v[i]}
+    + \kappa_{c[i]}
+    + \alpha_{(e,\ell)[i]}
+    + \tau_{t[i]}
+\end{equation*}
+% \textbf{Hypothesis.}
+%  A more parsimonious alternative to M7: ability slopes vary by
+% environment only ($\theta_e$, $\phi_e$; 8 adjustments each), while the
+% baseline difficulty varies by the full environment\,$\times$\,scope grid
+% ($\alpha_{(e,\ell)}$).  Tests whether the extra level-varying
+% slopes in M7 are needed once environment--scope intercepts absorb
+% scope-specific difficulty.
+\end{hypobox}
+
+
+
+
+ \begin{table}[H]
+    \centering
+    \caption{Prior specification for M7.
+      All priors are weakly informative on the logit scale.
+      Sum-to-zero constraints are imposed via soft centering:
+      $\tilde{x} = x_{\mathrm{raw}} - \bar{x}_{\mathrm{raw}}$.
+      Hierarchical effects use a non-centered parameterization
+      $x = \sigma \cdot x_{\mathrm{raw}}$.
+      The number of groups $J$ is listed for each categorical or hierarchical term.}
+    \label{tab:m7_priors}
+    \small
+    \begin{tabular}{@{}llrl@{}}
+    \toprule
+    \textbf{Parameter} & \textbf{Prior} & $J$ & \textbf{Constraint / role} \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textit{Global terms}} \\[2pt]
+    $\beta_0$ (intercept)
+        & $\mathcal{N}(0,\,2)$ & 1 & Baseline log-odds \\
+    $\lambda$ (knowledge slope)
+        & $\mathcal{N}(0,\,1)$ & 1 & Base effect of $\tilde{\theta}_K$ \\
+    $\psi$ (reasoning slope)
+        & $\mathcal{N}(0,\,1)$ & 1 & Base effect of $\tilde{\theta}_R$ \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textit{Ability slope adjustments (env\,$\times$\,scope)}} \\[2pt]
+    $\theta_{(e,\ell)}^{\mathrm{raw}}$ (knowledge)
+        & $\mathcal{N}(0,\,0.5)$ & 16 & Sum-to-zero centered \\
+    $\phi_{(e,\ell)}^{\mathrm{raw}}$ (reasoning)
+        & $\mathcal{N}(0,\,0.5)$ & 16 & Sum-to-zero centered \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textit{Sum-to-zero categorical effects}} \\[2pt]
+    $\gamma_s^{\mathrm{raw}}$ (scaffold)
+        & $\mathcal{N}(0,\,1)$ & 2 & Sum-to-zero centered \\
+    $\kappa_c^{\mathrm{raw}}$ (category)
+        & $\mathcal{N}(0,\,1)$ & 2 & Sum-to-zero centered \\
+    $\xi_v^{\mathrm{raw}}$ (verbosity)
+        & $\mathcal{N}(0,\,1)$ & 3 & Sum-to-zero centered \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textit{Hierarchical random effects (non-centred)}} \\[2pt]
+    $\sigma_\alpha$ (env\,$\times$\,scope SD)
+        & $\mathrm{Half}\text{-}\mathcal{N}(0.5)$ & --- & Scale for $\alpha_{(e,\ell)}$ \\
+    $\alpha_{(e,\ell)}^{\mathrm{raw}}$
+        & $\mathcal{N}(0,\,1)$ & 16 & $\alpha = \sigma_\alpha \cdot \alpha^{\mathrm{raw}}$ \\
+    $\sigma_\tau$ (task SD)
+        & $\mathrm{Half}\text{-}\mathcal{N}(0.5)$ & --- & Scale for $\tau_t$ \\
+    $\tau_t^{\mathrm{raw}}$
+        & $\mathcal{N}(0,\,1)$ & 120 & $\tau = \sigma_\tau \cdot \tau^{\mathrm{raw}}$ \\
+    \midrule
+    \multicolumn{4}{@{}l}{\textit{Likelihood}} \\[2pt]
+    $y_i \mid n_i, p_i$
+        & $\mathrm{Binomial}(n_i,\,p_i)$ & --- & $\mathrm{logit}(p_i) = \eta_i$ \\
+    \bottomrule
+    \end{tabular}
+  \end{table}
+
+
+
+  \paragraph{Posterior predictive assessment.}
+  We evaluate the predictive fidelity of the best-fitting latent factor
+  model (M7, see \Cref{sec:models_irt}) using Pareto-smoothed importance sampling (PSIS) to
+  approximate genuine leave-one-out predictions without refitting. In
+  panel~(a), LOO-predicted probabilities are grouped by the empirical
+  success rate of each observation; well-calibrated predictions fall on
+  the diagonal, meaning the model assigns $\approx$60\% probability to
+  observations that succeed 60\% of the time, and so on. Panel~(b)
+  aggregates predictions to the task level: for each unique task, we average the LOO-predicted and observed success rates across all
+  agent configurations and plot one against the other. The tight
+  clustering around the identity line ($R^2 > 0.95$) confirms that the hierarchical model generalizes beyond in-sample fit, accurately recovering per-task difficulty even after accounting for model abilities, scaffold choice, and tool-description verbosity.
+
+\begin{figure}[ht]
+      \centering
+      \includegraphics[width=\textwidth]{figures/appendix/lfm_panel.pdf}
+      \caption{\textbf{The best-fitting latent factor model is well calibrated
+      and accurately recovers task-level success rates.}
+      \textbf{(a)}~\textit{Leave-one-out (LOO) predicted probabilities grouped by
+      observed success rate ($k/n$)}. Each point is one observation, jittered
+      horizontally for visibility; pink bars mark group medians. The dashed
+      diagonal indicates perfect calibration. Median predictions closely
+      track the diagonal across the full range, confirming that the model
+      does not systematically over- or under-predict at any difficulty level.
+      \textbf{(b)}~\textit{Task-averaged LOO predicted success rate versus observed
+      success rate}. Each point represents one task, averaged over all
+      model--scaffold--verbosity configurations. Points cluster tightly
+      around the identity line, indicating that the model captures
+      task-level variation rather than merely fitting marginal statistics.
+      Both panels use M7 (abilities $\times$ environment $\times$ scope),
+      the top-ranked model on the ELPD-LOO frontier.}
+      \label{fig:lfm_fitting}
+  \end{figure}
+
+  
+
+
+\paragraph{Model comparison metrics.}
+We compare candidate models using Pareto-smoothed importance sampling
+leave-one-out cross-validation (PSIS-LOO) \autocite{vehtari2017practical}.
+The expected log pointwise predictive density (ELPD-LOO) estimates each model's out-of-sample predictive accuracy: higher values indicate better generalization. The effective number of parameters ($p_\mathrm{loo}$) measures model complexity as the difference between the in-sample and leave-one-out log predictive densities, providing a bias-corrected analog of classical parameter counts that accounts for shrinkage in hierarchical models. Together, ELPD-LOO and $p_\mathrm{loo}$ form a predictive-accuracy--complexity trade-off analogous to the information-criterion frontier: models in the upper-left of a scatter plot achieve better prediction with less overfitting.
+Convergence is assessed via the split-$\hat{R}$ statistic, where
+$\hat{R} < 1.01$ across all parameters indicates reliable posterior
+sampling. \Cref{fig:elpd_vs_complexity} compares complexity against performance. All modeling is implemented in PyMC~v5 \autocite{salvatier2016probabilistic} with inference via the NUTS
+sampler, and post-processing uses ArviZ \cite{kumar2019arviz} for diagnostics and model
+comparison.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{figures/appendix/elpd_vs_complexity.pdf}
+    \caption{\textbf{Ability-based models achieve better predictive accuracy with fewer effective parameters.}
+      Scatter plot of leave-one-out expected log pointwise predictive density
+      (ELPD-LOO) against the effective number of parameters ($p_\mathrm{loo}$)
+      for eight candidate latent factor models (M1--M8). Each marker represents
+      one model specification; color distinguishes models, and the legend reports
+      the maximum $\hat{R}$ across all parameters as a convergence diagnostic.
+      Models in the upper-left corner are preferred: they explain held-out data
+      better (higher ELPD-LOO) while using fewer effective parameters. M7
+      (abilities + environment + scope) and M3 (abilities + environment) dominate
+      the remaining specifications, indicating that explicit knowledge and
+      reasoning ability terms capture the dominant structure in agent performance. M7 is used in our main text.
+      Only models that converged ($\hat{R} < 1.01$, zero divergences) are included.}
+      \label{fig:elpd_vs_complexity}
+\end{figure}
+
+  \paragraph{Variance decomposition across specifications.}
+  \Cref{fig:variance_forest_all} compares the posterior variance budget of all eight candidate models. Two patterns are robust to specification choice. First, the model-identity component ($\sigma_{\mathrm{model}}$, driven by the IRT-derived knowledge and reasoning abilities) is consistently the largest or second-largest contributor, ranging from 31\% in the baseline (M1) to 46\% in the hybrid (M8). Second, scaffold choice, tool-description verbosity, and task category account for less than 4\% combined in every specification. The choice of LLM thus dominates over scaffold configuration. The remaining variance is split between environment-related intercepts and task-specific effects; their relative share depends on the granularity of the grouping structure, but neither overtakes the model component once ability--environment interactions are included (M3, M7, M8).
+
+
+
+\begin{figure}[ht]
+      \centering
+      \includegraphics[width=\textwidth]{figures/appendix/variance_forest_all_models.pdf}
+      \caption{\textbf{Model identity dominates the variance budget regardless of
+        model specification.}
+        Forest plots of the top-five posterior variance-share components for
+        each of the eight latent factor models (M1--M8).  Dots show the median
+        and bars the 90\% credible interval over 8\,000 MCMC draws.
+        In simpler specifications (M1, M2, M4, M5) task random effects absorb
+        the largest share (45--62\%) because environment- and scope-level
+        structure is not modeled explicitly.  Once ability slopes are allowed
+        to interact with environment (M3, M7, M8), model identity rises to the
+        dominant component (44--46\%), while task effects shrink correspondingly.
+        Scaffold, verbosity, and category contribute $<$4\% across all eight
+        specifications.}
+      \label{fig:variance_forest_all}
+  \end{figure}
+
+
+
+  
+  In the best model (see \Cref{fig:m7_variance_forest}), model identity alone explains 45.2\% [41.4, 48.8] of the variance, more than any other source and with a credible interval that does not overlap the next-largest contributor (environment\,$\times$\,scope, 32.5\%). Scaffold choice and tool-description verbosity together account for less than 2\%. Total reasoning slopes ($\psi + \phi_{(e,\ell)}$) are positive across all 16 environment\,$\times$\,scope cells (range 0.48--5.76), so higher reasoning ability predicts better task performance regardless of domain or problem scope.
+
+
+
+  
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/appendix/m7_variance_forest.pdf}
+    \caption{\textbf{The base model identity dominates the variance budget of
+        the best-fitting latent factor model (M7).}
+        Forest plot of posterior variance shares for the five linear-predictor
+        components of M7.
+        Each row shows the median (dot) and 90\% highest-density interval (bar)
+        over all 8\,000 MCMC draws.
+        $\sigma_{\mathrm{model}}$ (knowledge + reasoning ability, indexed by LLM
+        identity) accounts for 45.2\% of the explained variance, with a
+        credible interval that does not overlap any other component.
+        Environment $\times$ scope intercepts and task-specific effects contribute
+        most of the remaining variance (32.5\% and 20.7\%, respectively),
+        while scaffold choice and tool-description verbosity are negligible
+        ($<$2\% combined).}
+    \label{fig:m7_variance_forest}
+\end{figure}
+
+
+\newpage
+\subsection{Intervention experiments}
+\label{app:interventions}
+
+\paragraph{Protocol.} To study whether partial trajectories from prior runs can steer an agent toward recovery or failure, we implement an intervention mechanism. For every (environment, agent, task) triple, we maintain a \emph{trace registry}~$\mathcal{R}$ that maps the triple to two pools of recorded conversation traces: one drawn from successful baseline trials and one from failed baseline trials, selected from tasks with mixed outcomes (success rates between 20\% and 80\%).
+
+  \paragraph{Trace materialisation.}
+  Given an intervention type $\tau \in \{\textsc{success},
+  \textsc{failed}\}$ and a step index~$k$, the hook samples a trace from
+  the corresponding pool and extracts the subsequence of assistant
+  turns~$\mathbf{a} = (a_1, \dots, a_N)$, where each~$a_i$ usually comprises
+  thoughts \emph{and} tool invocations.  We write
+  $|\mathbf{a}|_p$ for the number of assistant turns in trace~$p$.  The
+  \emph{prefix slice} operator selects the turns to inject:
+  \begin{equation}
+    \operatorname{slice}(\mathbf{a}, k) =
+    \begin{cases}
+      (a_1, \dots, a_k)        & k > 0, \\[4pt]
+      (a_1, \dots, a_{N+k})    & k < 0,
+    \end{cases}
+    \label{eq:slice}
+  \end{equation}
+  where positive~$k$ takes the first~$k$ steps and negative~$k$ retains
+  all but the final~$|k|$.  In our experiments we use
+  $k \in \{1, 2, -2, -1\}$, probing both early-stage and near-terminal
+  interventions.
+
+  The sliced steps are appended to the initial task prompt~$u_0$ to form
+  the seed history~$\mathcal{H}_0$.  
+  %Because traces originate from
+  %different trials, file paths referencing the source workspace~$W_{\mathrm{old}}$
+  %are rewritten to the current trial's workspace~$W_{\mathrm{new}}$, and
+  Every tool call is \emph{re-executed} against the live environment so
+  those observations reflect the true current state.  The full procedure is
+  given in Algorithm~\ref{alg:trace-intervention}.
+
+  \begin{algorithm}[H]
+  \caption{Trace Intervention at Step $k$}
+  \label{alg:trace-intervention}
+  \begin{algorithmic}[1]
+  \Require Trace registry $\mathcal{R}$, intervention type $\tau$, step index $k$, task id
+  %, workspaces $W_{\mathrm{old}}, W_{\mathrm{new}}$
+  \Ensure Seeded message history $\mathcal{H}_0$
+  \Statex
+  \State $\mathcal{P} \gets \mathcal{R}[\text{env}, \text{agent}, \text{task}].\tau\texttt{\_traces}$ \Comment{Look up trace pool}
+  \State $\mathcal{P}' \gets \bigl\{\, p \in \mathcal{P} \;\big|\; (k > 0 \,\land\, |\mathbf{a}|_p \ge k) \;\lor\; (k < 0 \,\land\, |\mathbf{a}|_p > |k|) \,\bigr\}$
+  \State $p^{*} \sim \mathrm{Uniform}(\mathcal{P}')$ \Comment{Sample one trace per trial}
+  \State $\mathbf{a} \gets [\,m \in \textsc{Load}(p^{*}) \mid m.\texttt{role} = \texttt{"assistant"}\,]$
+  \State $\mathbf{s} \gets \operatorname{slice}(\mathbf{a},\, k)$ \Comment{Eq.~\ref{eq:slice}}
+  % \Statex
+  % \For{each $s_j \in \mathbf{s}$} \Comment{Rewrite stale paths}
+  %     \State $s_j \gets s_j.\textsc{Replace}(W_{\mathrm{old}},\, W_{\mathrm{new}})$
+  % \EndFor
+  % \Statex
+  \State $\mathcal{H}_0 \gets [u_0]$ \Comment{Task prompt}
+  \For{each $s_j \in \mathbf{s}$}
+      \State $\textsc{Append}(\mathcal{H}_0,\; s_j)$ \Comment{Thought + action}
+      \For{each action $c \in \textsc{ParseActions}(s_j)$}
+          \State $o \gets \textsc{ExecuteTool}(c.\texttt{name},\; c.\texttt{args})$
+          \State $\textsc{Append}(\mathcal{H}_0,\; \texttt{Observation}(o))$
+      \EndFor
+  \EndFor
+  \Statex
+  \State \Return $\mathcal{H}_0$ \Comment{Agent continues from here}
+  \end{algorithmic}
+  \end{algorithm}
+
+  The agent resumes auto-regressively from~$\mathcal{H}_0$, unaware that
+  the initial turns were replayed.
+
+  \paragraph{Controls.}
+  Each task is run under three regimes: \emph{baseline} (no intervention), \emph{success intervention}, and \emph{failed intervention}. We run 15~trials per condition, yielding \passat{} and \passhat{} metrics for $k = 1, \dots, 15$. Failed-trace injections serve as a negative control: if injecting successful reasoning genuinely aids recovery, injecting failed reasoning should not confer the same benefit and may hinder performance. A different trace is sampled uniformly from the pool for each trial, mitigating single-trace confounds. All trials use a temperature of 0.7. Per-environment recovery curves are shown in \Cref{fig:recovery_curves_appendix}, and \passat{} decay by scaffold in \Cref{fig:pass_at_per_agent}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{figures/appendix/recovery_curves.pdf}
+    \caption{\textbf{Recovery curves under success and failed trace interventions across environments.}
+      Top two rows show agent success rates when injecting steps from a successful trajectory;
+      bottom two rows show the same for a failed trajectory.
+      Environments exhibit two distinct recovery profiles.
+      \emph{Hypothesis-driven inquiry} environments (\spectra, \wetlab) show minimal benefit from early successful steps---often at or below baseline---followed by a sharp jump when later steps are injected (Step~$n{-}2$, Step~$n{-}1$).
+      Conversely, injecting late steps from a failed trace is catastrophic in these environments, dropping success rates to near zero (${\leq}0.12$), indicating that erroneous reasoning
+  strongly anchors the agent.
+      In contrast, \emph{Workflow construction} environments (\ml) exhibit monotonic, gradual improvement from early steps onward, and are more
+  robust to failed traces (success rates remain ${\geq}0.40$).
+      Dashed lines denote the tool-calling agent; solid lines denote ReAct.}
+    \label{fig:recovery_curves_appendix}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/intervention_pass_at_per_agent.pdf}
+    \caption{\textbf{\passat{} decay under trace interventions across scaffold architectures.} \passat{} as a function of $k$ under trace interventions, shown separately for ReAct and tool-calling agents.
+      Rows correspond to successful interventions (top two) and failed interventions (bottom two), with columns representing each environment.
+      The grey baseline curve is repeated in each panel for reference.
+      Marker opacity decreases with distance from the intervention point (Step~1 darkest, Step~$n{-}2$ lightest).}
+      \label{fig:pass_at_per_agent}
+\end{figure}
+
+
+% fig:pass_hat_per_agent moved to Extended Data in main.tex
+
+\subsection{Token-level log-probability analysis}
+  \label{app:logprob-results}
+
+  We use mean token-level log-probabilities (\Cref{sec:logprob-analysis})
+  as an environment-level proxy for model uncertainty.
+  For each environment, we pool the log-probability of the top-1 token
+  across all assistant messages and trials, excluding special control
+  tokens, and report the per-environment mean $\bar{\ell}_e$
+  (\Cref{fig:logprob_breakdown}).
+  Workflow-construction domains (\ml,
+  \catalyst, \md) exhibit the
+  least negative log-probabilities ($\bar{\ell}_e \ge -0.22$),
+  indicating high token-level confidence consistent with well-defined
+  solution paths.
+  Hypothesis-driven and strategic-reasoning domains (\wetlab,\spectra,\retro) share the most negative values
+  ($\bar{\ell}_e = -0.27$).
+  This ordering mirrors the gradient in epistemic demand described in
+  the main text and aligns with the trace-intervention finding that
+  near-complete trajectories are required to improve performance in
+  exactly those environments where token-level confidence is lowest
+  (\Cref{fig:combined}A).
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/appendix/panel2_logprobs.pdf}
+    \caption{\textbf{Mean log probability assigned by \gptoss averaged over all tokens in completions across all traces for each environment type.} Hypothesis-driven environments yield consistently lower mean log probability than workflow-based environments.}
+    \label{fig:logprob_breakdown}
+\end{figure}
+
+\subsection{Verbosity detailed results}
+\label{app:verbosity}
+
+We compare agent scores at the three tool-documentation verbosity levels defined in \Cref{sec:tool-verbosity}, holding the model, scaffold, environment, and scope fixed. Scores are aggregated per environment, per model, and per scaffold. \Cref{fig:fig-5_app} shows that verbosity has a negligible effect, consistent with the $<$0.1\% variance share attributed to verbosity by the latent factor model (\Cref{fig:irt-main-fig}C).
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/app_fig5_ver1.pdf}
+    \caption{\textbf{Detailed results across tool-documentation verbosity levels.}
+    (A) Results across environments. Scores are close across verbosity levels.
+    (B) Change in workflow and comprehensive scores relative to brief. Differences are within 0.05 points in every environment.
+    (C) Results per model. Each model's scores are close across the three verbosity levels.
+    (D) Results per agent. Scores for the two scaffolds track each other across verbosity levels.}
+    \label{fig:fig-5_app}
+\end{figure}
+
+
+
+\section{Reasoning process analysis}
+\label{app:reasoning-process}
+
+This analysis examines how agents reach their answers, independent of whether the answer is correct. Each reasoning trace is annotated as a graph of epistemic operations (\Cref{sec:epistemological-graphs}); productive patterns and reasoning breakdowns are detected as structural templates over the graph.
+
+\paragraph{Annotation and review.} The two-stage LLM annotation pipeline is described in \Cref{sec:epistemological-graphs} and expanded with implementation details in \Cref{app:annotation-pipeline}. Manual review by two domain-expert annotators was performed on 626 selected traces to quantify agreement with the LLM pipeline. A detailed analysis of the annotation results can be found in \Cref{app:annotation-agreement}.
+
+\paragraph{Pattern prevalence across models.} Reasoning breakdowns dominate in both annotated models. Evidence non-uptake appears in 88\% of traces for both \claudesonnet and \gptfourO, and untested claims in 66\% and 62\% respectively (\Cref{tab:epist-full-scores}). Productive counterparts to these breakdowns are rare: convergent multi-test evidence and evidence-guided test redesign each appear in at most 1\% of traces; refutation-driven belief revision appears in 4\% and 1\%. The two models diverge most on fixed belief traces (47\% versus 67\%) and on stalled revision (21\% versus 8\%); elsewhere their profiles are close.
+
+\paragraph{Pattern prevalence across environments.} \Cref{fig:epist_res-env} shows that reasoning breakdowns exceed productive motifs at every environment level. This is consistent with the main-text claim that undisciplined reasoning appears across task types rather than emerging only under the highest task difficulty.
+
+
+\subsection{LLM annotation pipeline}
+\label{app:annotation-pipeline}
+
+The epistemological graph prevalences summarised in \Cref{tab:epist-full-scores} and \Cref{fig:epist_res-env} are produced by a two-stage annotation pipeline operating on the serialized message history of each completed agent run.
+
+\paragraph{Input representation.} Each trace is serialized to a linear message list with role, content, and step index preserved. System prompts and iteration-limit error messages are excluded. Task descriptions remain eligible for annotation because they carry information the agent subsequently uses.
+
+\paragraph{Stage 1: node labeling.} \claudesonnet\ is prompted to label message-level nodes with epistemic operations drawn from the fixed vocabulary \{hypothesis, test, evidence, judgment, commitment, final answer\}. Annotation proceeds in overlapping windows of 20 messages with a stride of 15, so each message appears in several windows. For each eligible node, the model returns a label, a supporting quote taken verbatim from the message, and a short gloss. Decoding uses temperature 0.7. After all windows are processed, nodes referring to the same message are merged and duplicates removed. Tool responses are assigned as evidence. 
+
+\paragraph{Stage 2: edge construction.} The labeled graph and the original messages are passed to a second \claudesonnet\ call, using the same windowing as in stage 1. The call adds directed edges between related nodes, typed from the fixed vocabulary \{testing, observing, informing, contradicting, competing, updating\}. Each edge carries a supporting quote and the source-message index. Decoding uses temperature 0.7.
+
+In the pilot prompt-development experiments (see \Cref{app:epist-prompts}), \claudesonnet provided the best balance between annotation quality and cost, and showed the strongest overall performance in schema adherence, quote grounding, and consistency across long traces, as judged by the experts reviewing the annotations.
+
+\paragraph{Validation} Every graph undergoes three automated checks: (i) every supporting quote is checked for verbatim substring membership in the cited message. Under the default mode, failures are logged as warnings, and the item is retained; (ii) each edge must connect nodes that exist in the graph, and (iii) only permitted edge‑node combinations are allowed (see Appendix \ref{app:epist-prompts}). Graphs failing any of these checks are discarded, and a warning is raised. 
+
+\Cref{tab:epist_val} shows that most validation warnings arise from non-verbatim quote mismatches rather than structural problems. Edge-stage quote mismatches account for 56.0\% of all warnings, and node-stage mismatches for 25.8\%, together over 80\% of flagged cases. Disallowed edge-node combinations are less frequent (11.1\%). Corrections on observation messages (extra nodes and type changes) and other structural fixes are rare. No schema violations were observed for any model; the constrained-generation setup reliably enforced the node and edge vocabularies.
+
+\begin{table}[H]
+    \centering
+    \caption{\textbf{Quality‑control warning counts by failure mode and model.} Each annotated reasoning graph was automatically validated after generation. Non‑verbatim quote warnings occur when the cited evidence excerpt for a node (node stage) or an edge (edge stage) is not an exact substring of the source trace; such annotations are retained but flagged. \textit{Disallowed combination} denotes an edge whose relation–type triple falls outside the permitted schema vocabulary. \textit{Extra node at observation message} counts evidence/claim nodes that were injected into observation‑only messages and subsequently removed. \textit{Node type corrected to enforce E‑only rule} counts nodes whose type was automatically changed to enforce the constraint that observation messages may contain only Evidence nodes. \textit{Other} captures miscellaneous structural corrections (e.g., node additions or residual type fixes). Schema violations (invalid node types or edge relations outside the vocabulary) were never observed. Percentages are computed over the total number of warnings across all models.}
+    \label{tab:epist_val}
+    \input{tables/qc_warning_table}
+\end{table}
+
+
+\subsection{Annotations prompts} \label{app:epist-prompts}
+
+The annotation pipeline comprises two sequential passes, each consisting of a system prompt followed by a user instruction prompt. The system prompts define the model’s behavioral constraints and high-level rules. Both prompts conclude with an explicit directive to produce JSON that conforms to the required schema, without any surrounding prose or explanation.
+
+\input{prompts/system_stage_1_epist}
+
+\input{prompts/user_stage_1_epist}
+
+In the second pass (Stage 2), the model receives the previously extracted nodes alongside the same message window. Its task is to identify directed edges between those nodes. The user prompt enumerates all permissible relation types and, for each type, specifies the valid source–destination pair combinations. This ensures that only structurally grounded edges are extracted. Edges that are not permitted are deleted programmatically after annotation.
+
+\input{prompts/system_stage_2_epist}
+
+\input{prompts/user_stage_2_epist}
+
+\paragraph{Prompt optimization}
+
+Two experts optimized the annotation prompts for both stages by defining node and edge definitions in an iterative process on a 50-trace training set. The experts manually reviewed the LLM’s annotations and suggested improvements. When both agreed that the annotations reliably captured the underlying reasoning patterns, they proceeded with the full annotation.
+
+\paragraph{Effect of prompt optimization.}
+
+Prompt optimization led to substantial improvements in annotation agreement (\Cref{fig:prompt-optimization}). Human‑human agreement measured by PABAK increased from 85.8\% to 92.6\%, while human‑LLM percent agreement rose from 89.3\% to 95.7\%. The gains were similar for node and edge annotations.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/agreement_plot.pdf}
+    \caption{\textbf{Effect of prompt optimization on annotation agreement.} Human‑human (PABAK) and human‑LLM (percent agreement) scores for node and edge annotations, comparing the initial round (old) and the optimized round (new).}
+    \label{fig:prompt-optimization}
+\end{figure}
+
+\subsection{Pattern taxonomies}
+\label{app:pattern-taxonomies}
+
+Productive motifs and reasoning breakdowns are defined as explicit structural templates over the annotated graphs. Each template specifies the required node types, edge types, and their configuration; traces are scored by detecting instances of these templates. Templates are organized into three families. \textit{Hypothesis handling} captures how candidate explanations are generated, weighed against evidence, and revised. \textit{Evidence handling} captures how the results of tests are incorporated into belief. \textit{Inquiry control} captures how the overall test strategy is planned and adjusted.
+
+\paragraph{Productive motifs.} Productive motifs are drawn from recognized practices of disciplined inquiry: Popperian falsification \autocite{popper2005logic}, exploratory-to-confirmatory transitions \autocite{tukey1977exploratory}, triangulation by convergent multi-test evidence, and active-learning-style test redesign \autocite{lindley1956measure, fedorov2013theory}. \Cref{tab:prod-motifs-def} lists every template with its short description and graph form.
+
+\begin{table}[H]
+    \centering
+    \caption{\textbf{Descriptions and graph showing the productive motifs in the epistemological analysis.} Note that \textit{data-first hypothesis} and \textit{iterative test refinement} include two graphs each that refer to the same productive reasoning behavior. }
+    \label{tab:prod-motifs-def}
+    \input{tables/productive_motifs}
+\end{table}
+
+\clearpage
+
+\paragraph{Reasoning breakdowns.} Reasoning breakdowns are drawn from established work on scientific-reasoning failure and from patterns observed during trace review. Hypothesis-handling breakdowns include untested claims, contradictions left without repair, and premature commitment. Evidence-handling breakdowns include evidence non-uptake, disconnected evidence, and unsupported judgment. Inquiry-control breakdowns include fixed belief traces, stalled revision, and fixed hypothesis test tuning (ad-hoc rescue in the Popperian sense). Both capture configurations in which the agent does not revise its plan in response to new information. \Cref{tab:reas-break-def} lists every template with its short description and graph form.
+
+\begin{table}[H]
+    \centering
+    \caption{\textbf{Definitions and graphs illustrating the different reasoning breakdowns.} Each pattern is detailed as a graph and a short description. Note that \textit{untested hypothesis}, \textit{unused evidence}, and \textit{absent/stalled revision} include two different graphs per pattern, which are different cases of the same breakdown.}
+    \label{tab:reas-break-def}
+    \input{tables/reasoning_breakdowns}
+\end{table}
+
+\subsection{Detailed annotation results}
+
+\paragraph{Detailed per-model results.} \Cref{tab:epist-full-scores} reports, for each model, the fraction of traces that exhibit each motif or breakdown, averaged across environments. The table is organized into three reasoning groups (hypothesis handling, evidence handling, and inquiry control), with productive motifs and breakdowns listed separately within each group. Breakdown prevalence consistently exceeds productive-motif prevalence across all models, confirming that the aggregate trend reported in \Cref{fig:epistemology} is not driven by any single system.
+
+\begin{table}[H]
+    \centering
+    \caption{\textbf{Detailed pattern presence for the epistemological analysis}. The table presents the percentages for each model included in our work, averaged across environments.}
+    \label{tab:epist-full-scores}
+    \input{tables/overall_pattern_bars_horizontal_individual_per_model}
+\end{table}
+
+\paragraph{Environment-level prevalence.} \Cref{fig:epist_res-env} breaks down the same prevalence estimates by environment and subtask level, aggregating across models. Each row represents one environment (e.g., \textit{Spectroscopic structure elucidation S1}) and is color-coded according to its category among the three environment types: workflow execution, strategic reasoning, and hypothesis-driven inquiry. Across every environment level, reasoning breakdowns consistently outnumber productive motifs. Hypothesis-driven environments show the highest overall annotation density, which aligns with their greater demands for iterative belief revision.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/env_level_pattern_prevalence.pdf}
+    \caption{\textbf{Motif mean prevalence detailed for each environment.} Values are averaged across the corresponding annotated pattern sets and aggregated across models. Reasoning breakdowns are more prevalent than productive motifs across all environment scopes.
+    }
+    \label{fig:epist_res-env}
+\end{figure}
+
+\paragraph{Scope invariance across subtask levels.} \Cref{fig:scope_invariance} examines how epistemic operation prevalence changes as problem scope increases from S1 to S4, averaging across all multi-level environments. Despite the fourfold increase in task complexity, neither the absolute prevalence nor the relative ordering of these operations shifts systematically. This invariance suggests that agents do not adapt their epistemic behavior to broader or more complex problem settings.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/scope_invariance.pdf}
+    \caption{\textbf{Epistemic operation prevalence remains invariant to increasing problem scope.} Mean prevalence of productive motifs (solid lines) and reasoning breakdowns (dashed lines) across the three epistemic groups (hypothesis handling, evidence handling, and inquiry control), plotted against increasing problem scope (S1--S4), averaged over all multi-level environments. Error bars denote the standard error of the mean across environments. Despite a fourfold increase in task complexity, neither the absolute prevalence nor the relative ordering of epistemic operations shifts systematically, indicating that agents apply a fixed repertoire of reasoning strategies regardless of problem scope.}
+    \label{fig:scope_invariance}
+\end{figure}
+
+\subsection{Annotation agreement analysis} \label{app:annotation-agreement}
+
+To validate the automated LLM annotation pipeline, three domain-expert annotators independently reviewed a representative sample of 25 traces drawn from the full set of 626 traces, covering both annotation rounds (before and after prompt optimization). We report inter-annotator agreement at two levels: human--human and human--LLM. Because the label distribution is heavily skewed toward correct, which deflates Cohen's $\kappa$, we additionally report the prevalence- and bias-adjusted kappa (PABAK) as a more informative chance-corrected measure.
+
+\paragraph{Human–human agreement.}
+\Cref{tab:agreement-hh-new} summarizes pairwise agreement among the three annotators on the optimized prompt annotations. Overall percent agreement reaches 92.6\%, with a mean PABAK of 0.853, indicating substantial agreement. Node-level annotations show higher concordance (PABAK up to 0.976) than edge-level ones (PABAK 0.737--0.913); this is expected, as judging relational edges requires more nuanced interpretation of the trace. Cohen's $\kappa$ values are low (overall 0.067) due to the extreme prevalence of the \emph{correct} class. PABAK corrects for this imbalance and confirms that observed disagreements are rare.
+
+\begin{table}[H]
+\centering
+\caption{\textbf{Human–human inter-annotator agreement on optimized annotations.} Pairwise Cohen's $\kappa$, PABAK, and percent agreement for nodes and edges across three domain experts. Low $\kappa$ values reflect the high prevalence of the \emph{correct} class; PABAK corrects for this imbalance.}
+\label{tab:agreement-hh-new}
+\input{tables/agreement_hh_new}
+\end{table}
+
+\paragraph{Human–LLM agreement.}
+\Cref{tab:agreement-hl-new} reports the percent agreement between each annotator and the LLM pipeline on the optimized annotations. Overall human--LLM agreement is 95.7\%, which exceeds the human--human baseline of 92.6\%. For nodes, all three reviewers agree with the LLM on at least 92.8\% of items, with two reviewers reaching 99.3\%. Edge agreement is slightly lower (87.1\%--99.8\%), consistent with the pattern observed in the human--human analysis. These results indicate that the LLM pipeline produces annotations whose quality is comparable to, and in aggregate slightly above, the level of agreement among human experts.
+
+\begin{table}[H]
+\centering
+\caption{\textbf{Human–LLM agreement on optimized annotations.} Percent agreement between each of the three annotators and the LLM pipeline, reported separately for nodes and edges. Overall agreement (95.7\%) exceeds the human–human baseline, showing that the automated pipeline operates within the range of human expert judgment.}
+\label{tab:agreement-hl-new}
+\input{tables/agreement_hl_new}
+\end{table}
+
+\subsection{Other agent behavior analysis}
+
+To complement the main performance results, we also analyze how agents interact with the environment at a behavioral level. Specifically, we examine the distribution of tool actions, the verbosity of model outputs, and the number of tool calls per trial. These analyses help clarify whether differences in task performance stem from distinct interaction strategies or from more subtle variations in how models use the same tool ecosystem. \Cref{fig:fig-4-app-a,fig:fig-4-app-b} summarize these behavioral patterns across environments, agent scaffolds, and model families.
+
+\Cref{fig:fig-4-app-a} shows the distribution of action categories across environments, split by agent type and by model. The two agent scaffolds exhibit similar action profiles, suggesting that ReAct and tool-calling agents rely on comparable tool-use patterns. In contrast, differences across models are more pronounced in specific environments, indicating that the model family has a stronger influence than the agent scaffold on which types of tools are invoked.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/app_fig4_behavior_panel_1.pdf}
+    \caption{\textbf{Detailed results of action distributions in \corral}. Tools are classified according to the task type they perform. (A) Action distribution percentages by agent type. Differences between agents are minor, with both showing similar tool use patterns across environments. (B) Action distribution percentages by model type. Notable differences across models emerge in specific environments: only GPT-4o employs code execution tools in the Resistor environment. In AFM, both Claude and GPT-4o use these tools substantially more than GPT-Oss, whereas in MD, Claude shows the highest usage among the three models.}
+    \label{fig:fig-4-app-a}
+\end{figure}
+
+\Cref{fig:fig-4-app-b} provides a complementary view based on output length and tool-use intensity. The figure shows that verbosity varies substantially across environments (some settings elicit longer responses than others) and that models also differ in how many tokens they produce and how many tools they call during a trial. The behavioral differences in this figure are stronger than those in the action-mixture analysis, suggesting that models differ less in what types of actions they take than in how extensively they reason and interact with tools while solving the task.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/app_fig4_behavior_panel_2.pdf}
+    \caption{\textbf{Detailed results on tool calls and output tokens across environments and models.}
+    (A) Average output tokens per message across environments. Resistor yields markedly more tokens per message than the other environments. Environments with lower performance tend to produce a higher number of tokens.
+    (B) Tokens per message for each agent. Despite ReAct explicitly incorporating a Thought category to prompt reasoning, the token distributions across agents are similar.
+    (C) Tokens per message for each model. GPT-Oss is the most verbose model, most likely due to its use of reasoning tokens.
+    (D) Tool calls per trial across environments. Average number of tool calls per trial, aggregated over models and agents.
+    (E) Tool distribution for each agent. Both agents exhibit similar tool‑call distributions. Although the tool‑calling agent shows a slightly longer tail, the overall differences are minimal.
+    (F) Number of tool calls per model. Claude, the best‑performing model, also tends to make more tool calls than the other models.}
+    \label{fig:fig-4-app-b}
+\end{figure}
+
+% Have it here to avoid such a chunk of text in the middle of the appendix
+\clearpage
+\input{tables/wetlab_level_1_tools}
+
+\input{sections/illustrative_traces}
+
+\clearpage
+\section{Scope and limitations}
+\label{app:limitations}
+
+The results reported here are bounded by deliberate design choices and by practical constraints on model access and compute. We state both so that comparisons to future work, whether with richer scaffolds, broader model coverage, or larger compute budgets, can be made on equal terms.
+
+\paragraph{Scope of the evaluation.}
+Each task is treated as an independent episode: agents receive no carry-over of knowledge, strategies, or refined heuristics across tasks, in contrast with the iterative accumulation of intuition that characterizes real scientific work. We evaluate two simple scaffolds, ReAct and native tool calling, with a flat, append-only conversation history and a simple truncation heuristic (earlier non-assistant messages shortened to 100 characters) when the context window is exceeded. Advanced orchestration is outside the scope of this evaluation: plan-then-execute pipelines, hierarchical planners, explicit summarisation or retrieval, and multi-agent architectures such as debate or specialist delegation. This isolates the contribution of the base model and scaffold from engineering-intensive orchestration; the scores reported here, therefore, bound what minimal scaffolds achieve rather than what is achievable in general. All agents operate under a fixed budget of 20--40 LLM calls per task, calibrated in pilot runs to be sufficient for task completion, and at a fixed sampling temperature of $0.0$.
+We do not vary this budget per task nor conduct a temperature sensitivity analysis.
+
+\paragraph{Model coverage and compute.}
+Our evaluation spans three models, \claudesonnet, \gptfourO, and \gptossfull, selected to span proprietary and open-weight systems at the current capability frontier; other prominent families are omitted. The full benchmark consumed approximately 3 billion tokens across 138 configuration-environment pairs at five trials each, with an estimated API cost of \$7.5k for the two proprietary models (excluding infrastructure for the self-hosted open-weight model) for the main final runs shown in the main text (not including interventions and subtasks). \passat metrics account for stochastic variation, but scaling to additional models, trials, or environments carries a non-trivial cost.
+
+\paragraph{Measurement caveats.}
+Log-probability-based analyses of model confidence and calibration are restricted to \gptossfull, as proprietary API providers do not expose per-token log-probabilities for tool-calling or for sufficiently long completions. We also observed higher rates of malformed responses from \gptoss (41\% of traces affected, with 1.26 errors per trace), and to a lesser extent \gptfourO (0.28 errors per trial, affecting 6.2\% of traces), compared with \claudesonnet (0.5\% of traces affected); the most common failure modes were invalid JSON in tool arguments and missing XML closing tags in ReAct traces. We did not apply engineering mitigations such as constrained decoding, output grammars, or retry-with-repair loops. The reported numbers thus reflect the behavior of each system under the same minimal scaffold, not their best-case performance with model-specific hardening.

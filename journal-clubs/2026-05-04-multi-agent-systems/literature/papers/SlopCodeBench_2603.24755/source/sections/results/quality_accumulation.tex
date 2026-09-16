@@ -1,0 +1,50 @@
+\subsection{Iterative Agent Trajectories Accumulate Quality Issues}
+\label{sec:erosion}
+\label{sec:verbosity}
+\label{sec:compounding}
+
+\begin{figure}[ht]
+    \centering
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=1.15\textwidth]{figures/complexity_sign_flip.pdf}%
+    }
+    \caption{Erosion and verbosity across problem progress for six representative models (three per provider). Both metrics increase monotonically.}
+    \label{fig:accumulation-results}
+\end{figure}
+
+Our first question is whether agent trajectories accumulate quality issues under iterative self-extension. They do. \autoref{fig:accumulation-results} shows results across all evaluated settings. Erosion increases over problem progress in \erosionPctIncreasing\% of trajectories and verbosity in \vfTrajIncPct{}\%. The driver is not just more code; it is concentration of decision-point load into a growing set of high-complexity functions. Mean high-CC function count rises from \erosionHighCcCountFirstMean{} to \erosionHighCcCountLastMean{}, and mean maximum CC rises from \newErosionFirstCcMaxMean{} to \newErosionLastCcMaxMean{}.
+
+\paragraph{Compounding in a single function.}
+On \texttt{circuit\_eval}, Opus~4.6's \texttt{main()} grows \erosionCeMainCcMultiplier{}$\times$ in cyclomatic complexity over \erosionCeNumCkpts{} checkpoints, from \erosionCeMainCcFirst{} to \erosionCeMainCcLast{}, expanding from \erosionCeMainLinesFirst{} to \erosionCeMainLinesLast{} lines. By $\ckpt{8}$, nine command branches repeat the same argument-parsing scaffold shown in \autoref{lst:erosion-example} rather than extracting shared logic. 
+
+\begin{lstlisting}[
+    caption={Collapsed control flow of Opus~4.6's \texttt{circuit\_eval} \texttt{main()} at $\ckpt{8}$. Nine command branches share repeated parsing logic inside a 1{,}099-line dispatcher with CC\,=\,285.},
+    label={lst:erosion-example},
+    firstnumber=3923
+]
+def main():                          # 1,099 lines, CC = 285
+    # global flags, --format, --seed   127 lines of
+    #   while-loop arg extraction      boilerplate
+    command = args[0]
+    if command == 'check':           #  31 lines  (CP 1)
+        # validate, call cmd_check()
+    elif command == 'eval':          # 141 lines
+        # --set, --default, --allow-extra,
+        # --radix, --mode: 5 flags x 2 forms
+    elif command == 'stats':         #  31 lines
+    elif command == 'lint':          #  47 lines
+    elif command == 'dot':           #  66 lines
+    elif command == 'cone':          #  88 lines
+    elif command == 'truth-table':   # 141 lines
+    elif command == 'equiv':         # 117 lines
+    elif command == 'opt':           # 312 lines
+        # 13 flags, same pattern repeated
+    else: ...                        #   6 lines
+\end{lstlisting}
+
+\paragraph{Verbosity.} Structural duplication accounts for most of the growth, increasing by \vfCloneGrowthPct{}\% across \vfCloneIncPct{}\% of trajectories. AST-grep violation density grows a more modest \vfAstOverallGrowth{}\%.
+
+\paragraph{Early design decisions compound.}
+On \codesearch{}, all \abNumConfigs{} configurations score 100\% at $\ckpt{1}$ and $\ckpt{2}$, yet their implementations already diverge: some build extensible dispatch, others hardcode the initial rule kinds. At $\ckpt{3}$, AST-based metavariable patterns split the field into three tiers. \abCsTierOneModel{} retains \abCsTierOneRate\%, passing \abCsTierOnePassedTests{} of \abCsNumCpThreeTests{} tests. Four configurations cluster at \abCsTierTwoMin--\abCsTierTwoMax\%. GPT~5.2~Codex and GPT~5.3~Spark collapse to \abCsTierThreeRate\%, failing all \abCsTierThreeCoreFailed{} core tests. By $\ckpt{5}$, that tier's failures grow from \abCsTierThreeCpThreeFailures{} to \abCsTierThreeCpFiveFailures{}. Investment shows the same pattern. On \texttt{eve\_industry}, Opus~4.6 spends more than double any other configuration at $\ckpt{2}$ for exact fractional arithmetic, then posts three consecutive 100\% checkpoints and leads at $\ckpt{6}$ with \abEveBestCpSixRate\% versus \abEveSecondCpSixRate\%. On \texttt{dag\_execution}, a modular package at $\ckpt{1}$ accommodates four subsequent checkpoints without rework, finishing \abDagCpOneGap{} points above the runner-up.
+
+

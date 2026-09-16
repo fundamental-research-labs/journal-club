@@ -1,0 +1,57 @@
+\section{Introduction}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/mind2web-figure1-combined.pdf}
+    \caption{Sample tasks and all domains featured in \mind. The array of diversity allows for testing an agent's generalizability across tasks on the same website (a vs.\ b), similar tasks on different websites (a vs.\ c), and even to entirely disparate tasks, websites, and domains (d$-$f).}
+    \label{fig:data_overall}
+    \vspace{-1em}
+\end{figure}
+
+The web now hosts billions of websites~\cite{howmany} that cover virtually every aspect of the digital world. 
+In this work, we seek to answer the question: \textit{How can we build a generalist agent for the web that, given any website, can follow language instructions and carry out the corresponding tasks?}
+Some exemplar tasks for such an agent are shown in Figure~\ref{fig:data_overall}.
+A generalist agent could make the web more accessible, which is becoming increasingly difficult as modern websites provide increasingly more functionalities that also increase their complexity and learning curve.  
+On the other hand, such an agent may also turn the entire web into an unprecedentedly powerful and versatile tool~\cite{augmented,tool-survey} that can enhance large language models (LLMs). 
+For example, it may be used as a plugin for ChatGPT~\cite{chatgpt-plugins} to directly acquire information and carry out actions on HTML websites, instead of only retrieving web content through a retriever tool~\cite{chen-etal-2017-reading,karpukhin-etal-2020-dense} or relying on pre-defined APIs for each web service~\cite{nl2api, taskcompletionflows}.
+
+A generalist agent for the web shall meet the following desiderata:
+First, \textbf{it shall work on any website on the Internet}. 
+Since it is infeasible to collect sufficient training data that covers all websites, this requires the agent to be inherently generalizable to websites or even domains it has never seen before. 
+Second, \textbf{it shall work on real-world websites, which can be dynamic, complex, and noisy}.
+Most modern websites are dynamic, generating and rendering different content in response to user actions. 
+This necessitates the agent to model each website as a partially-observable environment instead of assuming full knowledge \textit{a priori}. 
+The agent should also not make strong simplifying assumptions about the environments but must embrace the full complexity and sometimes noise, \eg, due to sub-optimal website designs. 
+Finally, \textbf{it shall support diverse and sophisticated interactions with websites.}
+Tasks from users can be highly diverse and take a large number of steps to complete (\eg, the task in Figure~\ref{fig:data_overall}(b) would take \num{14} actions).
+An agent that only supports simple tasks may provide limited value to users.
+
+Building an agent for the web is not entirely new.
+There have been numerous prior efforts in varied forms. 
+However, none of them meets all the requirements for a generalist agent listed above. 
+Existing work falls short in one to all of the following aspects: 1) Only operating in a limited and pre-specified set of websites~\cite{yaoWebShopScalableRealWorld2022, sunMETAGUIMultimodalConversational2022, Liu2018ReinforcementLO, Li2020MappingNL, Burns2022ADF}, 2) making strong simplifying assumptions about the websites~\cite{Liu2018ReinforcementLO, yaoWebShopScalableRealWorld2022}, and 3) only supporting specific types of tasks~\cite{yaoWebShopScalableRealWorld2022, Li2020MappingNL, Liu2018ReinforcementLO} and/or requiring tedious step-by-step instructions from users~\cite{Liu2018ReinforcementLO, Xu2021GroundingOI, Li2020MappingNL, Burns2022ADF}. 
+Meanwhile, LLMs have been shown to excel at grounded language understanding in complex environments with good generalizability and sample efficiency~\cite{pangu, SayCan, llm-planner, structgpt}.
+It is therefore promising to explore LLMs as a candidate solution towards generalist agents for the web.
+However, there lacks a good dataset that can support the development and evaluation of generalist web agents, which is the focus of this work.
+
+In light of this, we present \mind, a new dataset with natural language tasks and manually annotated action sequences for developing and evaluating generalist agents for the web. 
+It offers the following unique features:
+
+\textbf{1. Diverse coverage of domains, websites, and tasks.} \mind\ boasts a collection of over \num{2000} tasks curated from \num{137} websites that span \num{31} different domains. This extensive range of tasks and domains not only provides a vast landscape for exploration and learning but also opens up a new level of versatility and complexity, fostering a more comprehensive evaluation of generalist web agents.
+
+\textbf{2. Use of real-world websites.} \mind\ replaces the oversimplified simulation environments commonly found in other datasets with an authentic, vibrant, and unpredictable realm of real-world websites. We provide full traces of user interactions, webpage snapshots, and network traffic, making it a rich source of raw, unfiltered, and dynamic data. By doing so, \mind\ equips models with the capacity to interact and cope with the complexities and uncertainties of real-world environments, thereby encouraging the development of more robust and adaptive models.
+
+\textbf{3. A broad spectrum of user interaction patterns.} \mind\ enables users to engage in sophisticated ways with websites, as opposed to basic operations such as searching, following links, and reading content commonly found in existing work. Users can \textit{click, select, and type in any elements} on the website, which significantly expands the space of possible tasks. This captures all the common actions users do on websites in real life and promotes the development of agents capable of handling complex tasks.
+
+With the diverse domains and websites, we create challenging out-of-distribution evaluation settings where agents are tested on their generalizability to websites or even entire domains never seen during training.
+This presents a representative evaluation of generalist agents working on unseen websites.
+
+\mind\ enables us to conduct an initial exploration in using LLMs for building generalist web agents.
+The HTML document of real-world webpages may contain thousands of elements, which makes it infeasible or too costly to be fed into an LLM's context. To address this issue, we propose \model, a two-stage model that involves first using a fine-tuned small LM to filter the web elements and then using an LLM to select from the filtered elements in a multi-choice question answering fashion and predict the corresponding action with the selected element.
+We show that \model\ significantly outperforms modeling strategies commonly adopted by prior work and achieves a decent level of generalization.
+It can also work well with both open-source LLMs like Flan-T5~\cite{flant5} through fine-tuning and closed-source LLMs like GPT-3.5-turbo and GPT-4 through in-context learning.
+However, there is still substantial room for further improvement towards generalist agents for the web.
+Promising future directions include integrating multi-modal information, reinforcement learning with feedback from real websites, and specialized LMs for web understanding and action taking.
+
+
+

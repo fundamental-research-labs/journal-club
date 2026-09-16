@@ -1,0 +1,145 @@
+\section{TarMAC: Targeted Multi-Agent Communication}
+\label{sec:approach}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/main/approach_v5.png}
+    \vspace{2pt}
+    \caption{Overview of our multi-agent architecture with targeted communication.
+    Left: At every timestep, each agent policy gets a local observation $\omega_i^t$
+    and aggregated message $c_i^t$ as input, and predicts an environment action $a_i^t$
+    and a targeted communication message $m_i^t$. Right: Targeted communication
+    between agents is implemented as a signature-based soft attention mechanism.
+    Each agent broadcasts a message $m_i^t$ consisting of a signature $k_i^t$,
+    which can be used to encode agent-specific information and
+    a value $v_i^t$, which contains the actual message. At the next timestep, each receiving agent
+    gets as input a convex combination of message values, where the
+    attention weights are obtained by a dot product between sender's signature $k_i^t$
+    and a query vector $q_j^{t+1}$ predicted from the receiver's hidden state.}
+    \vspace{-15pt}
+\end{figure*}
+
+We now describe our multi-agent communication architecture in detail.
+Recall that we have $N$ agents with policies $\{\pi_1, ..., \pi_N\}$, respectively
+parameterized by $\{\theta_1, ..., \theta_N\}$, jointly performing a cooperative task.
+At every timestep $t$, the $i$th agent for all $i \in \{1, ..., N\}$ sees a local
+observation $\omega_i^t$, and must select a discrete environment action $a_i^t \sim \pi_{\theta_i}$
+and send a continuous communication message $m_i^t$, received by other agents at the next timestep,
+in order to maximize global reward $r_t \sim R$. Since no agent has access to the
+underlying complete state of the environment $s_t$, there is incentive in communicating
+with each other and being mutually helpful to do better as a team.
+
+\textbf{Policies and Decentralized Execution.} Each agent is essentially modeled as a
+Dec-POMDP augmented with communication.  Each agent's policy $\pi_{\theta_i}$
+is implemented as a $1$-layer Gated Recurrent Unit~\citep{cho_emnlp14}.
+At every timestep, the local observation $\omega_i^t$ and a vector $c_i^t$
+aggregating messages sent by all agents at the previous timestep (described in
+more detail below) are used to update the hidden state $h_i^t$ of the GRU,
+which encodes the entire message-action-observation history up to time $t$.
+From this internal state representation, the agent's policy
+$\pi_{\theta_i} \left(a_i^t \, | \, h_i^t \right)$ predicts a categorical
+distribution over the space of actions, and another output head produces an
+outgoing message vector $m_i^t$. Note that for our experiments,
+agents are symmetric and policy parameters are shared across agents,
+\ie $\theta_1 = ... = \theta_N$.
+This considerably speeds up learning.
+
+\textbf{Centralized Critic.} Following prior work~\citep{lowe_nips17,foerster_aaai18},
+we operate under the centralized learning and decentralized execution
+paradigm wherein during training, a centralized Critic
+guides the optimization of individual agent policies. The Critic takes as
+input predicted actions $\{ a_1^t, ..., a_N^t \}$ and internal state
+representations $\{h_1^t, ..., h_N^t \}$ from all agents to estimate the
+joint action-value $\hat Q_t$ at every timestep. The centralized Critic
+is learned by temporal difference~\citep{sutton_book98} and the gradient
+of the expected return $J(\theta_i) = \mathbb{E}[R]$ with respect to
+policy parameters is approximated by:
+
+\resizebox{1. \columnwidth}{!}
+{
+$
+    \nabla_{\theta_{i}} J(\theta_i) =
+        \mathbb{E}
+            \left[ \nabla_{\theta_{i}} \log \pi_{\theta_{i}} (a_i^t | h_i^t)
+                \,\, \hat{Q}_{t} (h_1^t, ..., h_N^t, a_t^1, ..., a_t^N) \right].
+$
+}
+
+
+Note that compared to an individual Critic $\hat{Q}_i(h_i^t, a_i^t)$ per agent,
+having a centralized Critic leads to considerably lower variance
+in policy gradient estimates since it takes into account actions from all agents.
+At test time, the Critic is not needed and policy execution is
+fully decentralized.
+
+\textbf{Targeted, Multi-Round Communication.}
+Establishing complex collaboration strategies requires targeted communication
+\ie the ability to address specific messages to specific agents, as well as
+multi-round communication \ie multiple rounds of back-and-forth interactions between
+agents. We use a signature-based soft-attention mechanism in our communication
+structure to enable targeting. Each message $m_i^t$ consists of $2$ parts:
+a signature $k_i^t \in \mathbb{R}^{d_k}$ to encode properties of intended recipients
+and a value $v_i^t \in \mathbb{R}^{d_v}$:
+\begin{equation}\label{eq:message}
+m_i^t = [\,\,\,\overbracket{\,\,\,\,\,\, k_i^t \,\,\,\,\,\,}^{\textnormal{signature}} \quad
+    \underbracket{\,\,\, v_i^t \,\,\,}_{\textnormal{value}}\,\,\,] \;.
+\end{equation}
+At the receiving end, each agent (indexed by $j$) predicts a query
+vector $q_j^{t+1} \in \mathbb{R}^{d_k}$ from its hidden state $h_j^{t+1}$,
+which is used to compute a dot product with signatures of all $N$ messages.
+This is scaled by $1 / \sqrt{d_k}$ followed by a softmax to
+obtain attention weights $\alpha_{ji}$ for each incoming message:
+\begin{equation}\label{eq:alpha}
+\mathbf{\alpha}_{j} = \textnormal{softmax}\left[
+\frac{{q_j^{t+1}}^T {k_1^t}}{\sqrt{d_k}} \,\, ... \,\,
+    \underbracket{\frac{ {{q_j^{t+1}}^T {k_i^t}}}{\sqrt{d_k}}}_{\alpha_{ji}} \,\, ... \,\, \frac{{q_j^{t+1}}^T {k_N^t}}{\sqrt{d_k}} \right] \quad \quad \quad
+\end{equation}
+
+\begin{figure*}[t!]
+    \centering
+    \includegraphics[width=\textwidth]{figures/main/shapes_example_3x3_rrgb.jpg}
+    \vspace{-15pt}
+    \caption{Visualizations of learned targeted communication in SHAPES. Figure best viewed in color.
+    $4$ agents have to find $[$\texttt{red}, \texttt{red}, \texttt{green}, \texttt{blue}$]$ respectively.
+    $t=1$: inital spawn locations;
+    $t=2$: $4$ was on \texttt{red} at $t=1$ so $1$ and $2$ attend to messages from $4$ since they have to find \texttt{red}. $3$ has found its goal (\texttt{green}) and is self-attending;
+    $t=6$: $4$ attends to messages from $2$ as $2$ is on $4$'s target -- \texttt{blue};
+    $t=8$: $1$ finds \texttt{red}, so $1$ and $2$ shift attention to $1$;
+    $t=21$: all agents are at their respective goal locations and primarily self-attending.}
+    \label{fig:shapes_3x3}
+    \vspace{-15pt}
+\end{figure*}
+used to compute
+$c_j^{t+1}$, the input message for agent $j$ at $t+1$:
+\begin{equation}\label{eq:attended}
+c_j^{t+1} = \sum_{i=1}^N \alpha_{ji} v_i^t.
+\end{equation}
+Intuitively, attention weights are high when both sender and receiver
+predict similar signature and query vectors respectively.
+Note that \Eqref{eq:alpha} also includes $\alpha_{ii}$ corresponding
+to the ability to \emph{self-attend}~\citep{vaswani_nips17}, which we empirically found
+to improve performance, especially in situations when an agent has found
+the goal in a coordinated navigation task and all it is required to
+do is stay at the goal, so others benefit from attending to this agent's
+message but return communication is not necessary.
+Note that the targeting mechanism in our formulation is implicit
+\ie agents implicitly encode properties without addressing specific recipients.
+For example, in a self-driving car network, a particular message may be for
+``cars travelling on the west to east road" (implicitly encoding properties)
+as opposed to specifically for ``car 2'' (explicit addressing).
+
+For multi-round communication, aggregated message vector $c_j^{t+1}$ and
+internal state $h_j^t$ are first used to predict the next internal state
+${h'}_j^t$ taking into account the first round:
+\begin{equation}\label{eq:nextstate}
+{h'}_j^t = \tanh\left( W_{h\rightarrow h'} [ \,\, c_j^{t+1} \,\, \Vert \,\, h_j^t \,\, ]  \right).
+\end{equation}
+Next, the updated hidden state ${h'}_j^t$ is used to predict signature, query, value
+followed by repeating Equations~\refeq{eq:message}-\refeq{eq:nextstate} for
+multiple rounds until we get a final aggregated message vector $c_j^{t+1}$
+to be used as input at the next timestep.
+Number of rounds of communication is treated as a hyperparameter.
+
+Our entire communication architecture is differentiable, and
+message vectors are learnt through backpropagation.
+

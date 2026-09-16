@@ -1,0 +1,212 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+\section{Observation Space}\label{appendix:observationspace}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\textwidth]{figures/dotahud.pdf}
+    \caption{\dota's human ``Observation Space''}
+    \label{fig:dotahud}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/unit-observations.png}
+    \caption{\textbf{Observation Space Overview:} 
+    The arrays that \openaifive observes at each timestep.
+    Most of \openaifive's observations  are unit-centered; for 189 different units on the map, we observe a set of basic properties. These units are grouped along the top of the figure.
+    We observe some data about all units, some extra data about the primary units (the heroes), and even more data about the heroes on our team.
+    A few observations are not tied to any unit. 
+    Finally, two observations having to do with hero control (terrain near me, and my previous action) are only observed about the individual hero that this LSTM replica operates.
+    In this diagram blue bands represent categorical data and yellow bands represent continuous or boolean data; most entities (units, modifiers, abilities, items, and pickups), have some of each.
+    Each piece of the figure summarizes the total dimensionality of that portion of the input.
+    All together, an \openaifive hero observes 1,200 categorical values % 10 + 10 + 164*4 + 30*2 + 10 + 100 + 60 + 160 + 6 + 128
+    and 14,534 continuous/boolean % 215*2 + 3526*2 + 645 + 125*2 + 1055 + 100*2 + 328*2 + 60 + 210*2 + 1040*2 + 22 + 90 + 900 + 384 + 310
+    values.\nicetohave{Add little images to the minimap and other places where it will help.}}
+    \label{fig:obs-space}
+\end{figure}
+
+
+\begin{table}
+%%% This table's formatting is really hacky. If anyone wants to fix it that would be great.
+\begin{scriptsize}
+\begin{threeparttable}
+\begin{subtable}[t]{0.3\textwidth}
+\begin{tabular}[t]{|p{4cm}|c|}
+  \hline
+  \textbf{Global data}   & \textbf{22}\\\hline
+  time since game started & 1 \\\hline
+  is it day or night? &  \\
+  time to next day/night change & 2 \\\hline
+  time to next spawn: creep, neutral, bounty, runes & 4 \\\hline
+  time since seen enemy courier &  \\
+  is that $>$ 40 seconds?\tnote{a} & 2 \\\hline
+  min\&max time to Rosh spawn & 2 \\\hline
+  Roshan's current max hp & 1 \\\hline
+  is Roshan definitely alive? & 1 \\\hline
+  is Roshan definitely dead? & 1 \\\hline
+  Next Roshan drops cheese? & 1 \\\hline
+  Next Roshan drops refresher? & 1 \\\hline
+  Roshan health randomization\tnote{b} & 1 \\\hline
+  Glyph cooldown (both teams) & 2 \\\hline
+  Stock counts\tnote{c} & 4 \\\hline
+\end{tabular}
+\begin{tabular}{|p{4cm}|c|}
+  \hline
+  \textbf{Per-unit (189 units)}   &  \textbf{43}\\\hline
+  position (x, y, z) & 3 \\\hline
+  facing angle (cos, sin) & 2 \\\hline
+  currently attacking?\tnote{e} & \\
+  time since last attack\tnote{d} & 2 \\\hline
+  max health & \\
+  last 16 timesteps' hit points & 17 \\\hline
+  attack damage, attack speed & 2 \\\hline
+  physical resistance & 1 \\\hline
+  invulnerable due to glyph? & \\
+  glyph timer & 2 \\\hline
+  movement speed & 1 \\\hline
+  on my team? neutral? & 2 \\\hline
+  animation cycle time & 1 \\\hline
+  eta of incoming ranged \& tower creep projectile (if any) & \\
+  \# melee creeps atking this unit\tnote{d} & 3 \\\hline
+  [Shrine only] shrine cooldown & 1 \\\hline
+  vector to me (dx, dy, length)\tnote{e} & 3 \\\hline
+  am I attacking this unit?\tnote{e} & \\
+  is this unit attacking me?\tnote{d,e} & \\
+  eta projectile from unit to me\tnote{e} & 3 \\\hline
+  % \hline
+  % textbf{Per-unit categorical data}   &  \\\hline
+  \categorical unit type & \categorical 1 \\\hline
+  \categorical current animation & \categorical 1 \\
+  \hline
+\end{tabular}
+\end{subtable}
+\hfill
+\begin{subtable}[t]{0.3\textwidth}
+\begin{tabular}[t]{|p{4cm}|c|}
+  \hline
+  \textbf{Per-hero add'l (10 heroes)}   &  \textbf{25}\\\hline
+  is currently alive? & 1 \\\hline
+  number of deaths & 1 \\\hline
+  hero currently in sight? & \\
+  time since this hero last seen & 2 \\\hline
+  hero currently teleporting? & \\
+  if so, target coordinates (x, y) & \\
+  time they've been channeling & 4 \\\hline
+  respawn time & 1 \\\hline
+  current gold (allies only) & 1 \\\hline
+  level & 1 \\\hline
+  mana: max, current, \& regen & 3 \\\hline
+  health regen rate & 1 \\\hline
+  magic resistance & 1 \\\hline
+  strength, agility, intelligence & 3 \\\hline
+  currently invisible? & 1 \\\hline
+  % Due to a bug this is always zero.
+  % is\_in\_ability\_phase & \\
+  % I think this is the same as the next one.
+  % has\_active\_ability & \\
+  is using ability? & 1\\\hline
+  \# allied/enemy creeps/heroes in line btwn me and this hero\tnote{e} & 4 \\\hline
+  \hline
+  \textbf{Per-allied-hero additional (5 allied heroes)}   & \textbf{211} \\\hline
+  Scripted purchasing settings\tnote{b} & 7 \\\hline
+  Buyback: has?, cost, cooldown & 3 \\\hline
+  Empty inventory \& backpack slots & 2 \\\hline
+  Lane Assignments\tnote{b} & 3 \\\hline
+  Flattened nearby terrain: 14x14 grid of passable/impassable? & 196 \\\hline
+  \categorical scripted build id & \categorical\\
+  \categorical next item to purchase\tnote{b} & \categorical 2 \\\hline
+  \hline
+  \textbf{Nearby map (8x8)\tnote{e}}   & \textbf{6} \\\hline
+  terrain: elevation, passable? & 2 \\\hline
+  allied \& enemy creep density & 2 \\\hline
+  area of effect spells in effect.\tnote{f} & 2 \\\hline
+  \categorical area of effect spells in effect.\tnote{f} & \categorical 2 \\\hline
+  \hline
+  \textbf{Previous Sampled Action\tnote{e}}   & \textbf{310} \\\hline
+  Offset? (Regular, Caster, Ward) & 3x2x9 \\\hline
+  % Omitting tp head because that can't possibly matter and it's hard to explain.
+  Unit Target's Embedding & 128 \\\hline
+  Primary Action's Embedding & 128 \\\hline
+\end{tabular}
+\end{subtable}
+\hfill
+\begin{subtable}[t]{0.3\textwidth}
+\begin{tabular}[t]{|p{4cm}|c|}
+  \hline
+  \textbf{Per-modifier (10 heroes x 10 modifiers \& 179 non-heroes x 2 modifiers)}   &  \textbf{2}\\\hline
+  remaining duration & 1 \\\hline
+  stack count & 1 \\\hline
+  \categorical modifier name & \categorical 1 \\
+  \hline
+  \hline
+  \textbf{Per-item (10 heroes x 16 items)}   & \textbf{13}\\\hline
+  location one-hot (inventory/backpack/stash) & 3 \\\hline
+  charges & 1 \\\hline
+  is on cooldown? & \\
+  cooldown time & 2 \\\hline
+  is disabled by recent swap? & \\
+  item swap cooldown & 2 \\\hline
+  toggled state & 1 \\\hline
+  special Power Treads one-hot & \\
+  (str/agi/int/none) & 4\\\hline
+  \categorical item name & \categorical 1 \\
+  \hline
+  \hline
+  \textbf{Per-ability (10 heroes x 6 abilities)}   &  \textbf{7}\\\hline
+  cooldown time & 1 \\\hline
+  in use? & 1 \\\hline
+  castable & 1 \\\hline
+  Level 1/2/3/4 unlocked?\tnote{d} & 4\\\hline
+  \categorical ability name & \categorical 1 \\
+  \hline
+  \hline
+  \textbf{Per-pickup (6 pickups)}   &  15\\\hline
+  status one-hot (present/not present/unknown) & 3 \\\hline
+  location (x, y) & 2 \\\hline
+  distance from all 10 heroes & 10 \\\hline
+  \categorical pickup name & \categorical 1 \\
+  \hline
+  \hline
+  \textbf{Minimap (10 tiles x 10 tiles)}   &  \textbf{9}\\\hline
+  fraction of tile visible & 1 \\\hline
+  \# allied \& enemy creeps & 2 \\\hline
+  \# allied \& enemy wards & 2 \\\hline
+  \# enemy heroes & 1 \\\hline
+  cell (x, y, id) & 3 \\\hline
+  % "id" is my description of a really confusing thing that appears to be number of neutral camps in the cell (Roshan counts as 2) + 3 if there's a bounty rune.
+  % It's actually a 10x10x12 array, but we appear to never use indices 1 and 2, and index 3 is identical to index 4.
+\end{tabular}
+\end{subtable}
+\end{threeparttable}
+\begin{threeparttable}
+\begin{tablenotes}
+    \item[a] These observations are leftover from an early version of Five which played a restricted 1v1 version of the game. They are likely obsolete and not needed, but this was not tested.
+    \item[b] These observations are about our per-game randomizations. See \autoref{sec:methods:exploration}.
+    \item[c] For items: gem, smoke of deciept, observer ward, infused raindrop.
+    \item[d] Observations are not visible per-se, but can be estimated. We use scripted logic to estimate them from visible observations.
+    \item[e] These observations (only) are different for the five different heroes on the team.
+    \item[f] This observation appears twice, and serves as an example of the difficulties of surgery. Although this is a categorical input, we began by treating it as a float input to save on engineering work (this observation is unlikely to be very important). Later the time came to upgrade it to a properly embedded categorical input, but our surgery tools do not support removing existing observations. Hence we added the new observation, but were forced to leave the deprecated observation as well.
+\end{tablenotes}
+\end{threeparttable}
+\end{scriptsize}
+\caption{
+\textbf{Full Observation Space: }
+All observations \openaifive receives at each time step. Blue rows are categorical data. Entries with a question mark are boolean observations (only take values 0 or 1 but treated as floats otherwise). The bulk of the observations are per-unit observations, observed for each of 189 units: heroes (5), creeps (30), buildings (21), wards (30), and courier (1) for each team, plus 15 neutrals. If the number of visible units in a category is less than the allotted number, the rest are padded with zeroes. If more, we observe only the units closest to allied heroes. Units in fog of war are not observed. When enemy heroes are in fog of war, we reuse the observation from the last time step when the unit was visible.
+}
+\label{table:full-obs}
+\end{table}
+
+At each time step one of our heroes observes \obssize inputs about the game state (mostly real numbers with some integer categorical data as well). 
+See \autoref{fig:obs-space} for a schematic outline of our observation space and \autoref{table:full-obs} for a full listing of the observations. 
+
+Instead of using the pixels on the screen, we approximate the information available to a human player in a set of data arrays. 
+This approximation is imperfect; there are small pieces of information which humans can gain access to which we have not encoded in the observations. 
+On the flip side, while we were careful to ensure that all the information available to the model is also available to a human, the model does get to see \emph{all} the information available simultaneously every time step, whereas a human needs to click into various menus and options to get that data. 
+Although these discrepancies are a limitation, we do not believe they meaningfully detract from our ability to benchmark against human players.
+
+Humans observe the game via a rendered screen, depicted in \autoref{fig:dotahud}. 
+\openaifive uses a more semantic observation space than this for two reasons: First, because our goal is to study strategic planning and gameplay rather than focus on visual processing. 
+Second, it is infeasible for us to render each frame to pixels in all training games; this would multiply the computation resources required for the project manyfold.
+
+All float observations (including booleans which are treated as floats that happen to take values 0 or 1) are normalized before feeding into the neural network. For each observation, we keep a running mean and standard deviation of all data ever observed; at each timestep we subtract the mean and divide by the st dev, clipping the final result to be within (-5, 5). 
+
+\end{document}

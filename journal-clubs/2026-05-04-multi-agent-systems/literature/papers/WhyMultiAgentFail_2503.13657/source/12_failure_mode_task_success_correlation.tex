@@ -1,0 +1,67 @@
+\section{Correlation of Failure Modes with Different Statistics}
+\label{sec:mast_correlations}
+
+In this section, we provide how the failure modes in \taxonomy{} correlate with some important statistics, such as the actual task completion rates, and different benchmarks.
+
+
+\subsection{How Indicative are Different Failure Modes of Actual Success?}
+
+One important question to ask is, for traces where we know whether they succeeded or failed and if we do not provide the success or failure result to the LLM Annotator, how do different failure modes correlate with actual task success and failures? In particular, we want to measure how indicative of the failure modes given by the LLM Annotator on actual task completions. The analysis on ChatDev and MetaGPT are provided in Table \ref{tab:failure_mode_occurrence_on_successful_traces}.  This new analysis reveals three key findings:
+\begin{itemize}
+    \item Successful runs are not failure-free. Our results show that failures occur in both successful and failed traces, but failed traces have a higher overall frequency of failures. This confirms that a higher number of failures do signal a higher chance of final task failure.
+    \item Some failures are more "fatal" than others. The data shows a clear distinction between failure types. Certain failures, such as 1.5 Unaware of Termination Conditions and 2.4 Information Withholding, appear almost exclusively in failed runs, suggesting they are critical bugs that are highly likely to derail the task.
+    \item Some failures are non-fatal. In contrast, verification-related failures like 3.2 No or Incomplete Verification and 3.3 Incorrect Verification appear frequently even in successful runs. This suggests that while these systems can complete some tasks, their verification process still contains flaws. MAST identifies such systemic weaknesses, even when they do not cause an immediate task failure.
+\end{itemize}
+
+
+\begin{table*}[ht!]
+    \small
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{3.5pt}
+    \centering
+    \caption{Failure mode occurrence rates for ChatDev and MetaGPT on successful and unsuccessful examples.}
+    \label{tab:per-failure-mode-outcomes}
+    \begin{tabular}{p{3.0cm} *{14}{c}}
+        \toprule
+        \textbf{MAS Framework} & \multicolumn{14}{c}{\textbf{Failure mode occurrence (\%)}} \\
+        \cmidrule(lr){2-15}
+         & \textbf{1.1} & \textbf{1.2} & \textbf{1.3} & \textbf{1.4} & \textbf{1.5} & \textbf{2.1} & \textbf{2.2} & \textbf{2.3} & \textbf{2.4} & \textbf{2.5} & \textbf{2.6} & \textbf{3.1} & \textbf{3.2} & \textbf{3.3} \\
+        \midrule
+        ChatDev Success & 20.0 & 0.0 & 20.0 & 0.0 & 0.0 & 0.0 & 10.0 & 10.0 & 0.0 & 0.0 & 10.0 & 0.0 & 10.0 & 20.0 \\
+        \hline
+        ChatDev Fail    & 25.0 & 0.0 & 20.0 & 5.0 & 10.0 & 5.0 & 5.0  & 5.0  & 5.0 & 0.0 & 15.0 & 5.0 & 10.0 & 25.0 \\
+        \hline
+        MetaGPT Success & 33.3 & 0.0 & 16.7 & 0.0 & 0.0 & 0.0 & 8.3  & 8.3  & 0.0 & 0.0 & 8.3  & 0.0 & 16.7 & 16.7 \\
+        \hline
+        MetaGPT Fail    & 16.7 & 0.0 & 22.2 & 5.6 & 11.1 & 5.6 & 5.6  & 5.6  & 5.6 & 0.0 & 16.7 & 5.6 & 5.6  & 27.8 \\
+        \hline
+    \end{tabular}
+        \label{tab:failure_mode_occurrence_on_successful_traces}
+
+\end{table*}
+
+\subsection{Failure Mode Occurrence Rates on Different Benchmarks}
+
+We also analyze the rate of failure modes on different benchmarks, ranging from general question answering like MMLU to math problems like GSM and harder reasoning problems in OlympiadBench. For this, we fixed the MAS framework (AG2) and the model (GPT-4o) while varying the benchmark. The results are presented in Table \ref{tab:failure_mode_rates_on_benchmarks}. The failure rate is normalized by the number of traces.
+We observed that the more challenging the benchmark is (e.g., Olympiad vs. GSM), the higher the failure rate. The distribution also changes significantly. While the failure profiles for MMLU and Olympiad are similar, the GSM benchmark results in a much lower number of Inter-Agent Misalignment and Specification failures.
+
+\begin{table*}[ht!]
+    \small
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{4pt}
+    \centering
+    \caption{Failure Category Rates on Different Benchmarks}
+    \label{tab:fc-components}
+    \begin{tabular}{p{2cm} p{1.4cm} c c c}
+        \toprule
+        \textbf{MAS / LLM} & \textbf{Benchmark} & \textbf{FC1: System Design} & \textbf{FC2: Inter-Agent Misalignment} & \textbf{FC3: Verification} \\
+        \midrule
+        AG2 / GPT-4o & GSM       & 0.53 & 1.33 & 0.37 \\
+        AG2 / GPT-4o & MMLU      & 1.06 & 1.01 & 0.60 \\
+        AG2 / GPT-4o & Olympiad  & 1.19 & 1.21 & 0.67 \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:failure_mode_rates_on_benchmarks}
+\end{table*}
+
+

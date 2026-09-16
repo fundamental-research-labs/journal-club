@@ -1,0 +1,59 @@
+\begin{tcolorbox}[breakable,title=Prompt Details for PDDL ]
+\textbf{\textcolor{blue}{System Prompt}}\\ 
+You are a master in planning. Generate your next step of action after Action. Action must not be empty. e.g. Action: put down cup.\\
+\begin{tikzpicture}
+\draw[dashed] (0,0) -- (\linewidth,0); % 绘制一条宽度为\linewidth的虚线
+\end{tikzpicture}
+\textbf{\textcolor{blue}{Instruction}}\\
+The robot has four actions: pickup, putdown, stack, and unstack. The domain assumes a world where there are a set of blocks that can be stacked on top of each other, an arm that can hold one block at a time, and a table where blocks can be placed.
+
+The actions defined in this domain include:
+
+pickup  \verb|<block>|: allows the arm to pick up a block from the table if it is clear and the arm is empty. After the pickup action, the arm will be holding the block, and the block will no longer be on the table or clear.
+
+putdown \verb|<block>|: allows the arm to put down a block on the table if it is holding a block. After the putdown action, the arm will be empty, and the block will be on the table and clear.
+
+stack \verb|<block> <block>|: allows the arm to stack a block on top of another block if the arm is holding the top block and the bottom block is clear. After the stack action, the arm will be empty, the top block will be on top of the bottom block, and the bottom block will no longer be clear.
+
+
+unstack \verb|<block> <block>|: allows the arm to unstack a block from on top of another block if the arm is empty and the top block is clear. After the unstack action, the arm will be holding the top block, the top block will no longer be on top of the bottom block, and the bottom block will be clear.
+
+
+\begin{tikzpicture}
+\draw[dashed] (0,0) -- (\linewidth,0); % 绘制一条宽度为\linewidth的虚线
+\end{tikzpicture}
+\textbf{\textcolor{blue}{Examples}}\\
+Goal: The goal is to satisfy the following conditions: b1 is on b2., b2 is on b3.
+Observation: b1 is on the table.  b2 is on the table.  B3 is on the table. Robot arm is empty. The b1 is clear. The b2 is clear. The b3 is clear. 
+
+Action: pickup b2
+
+Observation: b1 is on the table.  B2 is on the table.  The b1 is clear. The b3 is clear. You are holding b2.  
+
+Action: stack b2 b3
+
+Observation: b1 is on the table.  b1 is on b2. B3 is on the table. Robot arm is empty. The b1 is clear. The b2 is clear. 
+
+Action: pickup b2. 
+
+Observation: The action is not valid and therefore takes no effect. Please remember to satisfy the restriction of actions. You can also check valid actions. 
+
+Action: check valid actions. 
+
+Observation: valid actions are: pickup b2, unstack b1 b2.
+
+
+Action: pickup b1
+
+Observation: b2 is on b3. B3 is on the table.  Robot arm is empty. The b2 is clear.  You are holding b1. 
+
+Action: stack b1 b2
+
+Observation: b1 is on b2. b2 is on b3. B3 is on the table.  Robot arm is empty. The b1 is clear. The goal is satisfied.
+
+\end{tcolorbox}
+\begin{figure}[!h]
+    \vspace{0.01cm}
+    \caption{Prompt details for PDDL. The provided instruction/example are changed based on the type of the specific environment instance.}
+    \label{fig:pddl_prompt}
+\end{figure}

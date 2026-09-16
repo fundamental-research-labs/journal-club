@@ -1,0 +1,16 @@
+\label{sec:compare_intrinsic_motivation}
+
+Intrinsic motivation has become a popular paradigm for incentivizing unsupervised exploration and skill discovery, and there has been recent success in using intrinsic motivation to make progress in sparsely rewarded settings \citep{bellemare2016unifying, burda2018exploration}.
+Because intrinsically motivated agents are incentivized to explore uniformly, it is conceivable that they may not have meaningful interactions with the environment (as with the ``noisy-TV" problem~\citep{burda2018large}). As a proxy for comparing meaningful interaction in the environment, we measure agent and object movement over the course of an episode.
+
+We first compare behaviors learned in hide-and-seek to a count-based exploration baseline \citep{strehl2008analysis} with an object invariant state representation, which is computed in a similar way as in the policy architecture in Figure~\ref{fig:policyarchitecture}. Count-based objectives are the simplest form of state density based incentives, where one explicitly keeps track of state visitation counts and rewards agents for reaching infrequently visited states (details can be found in Appendix~\ref{appendix:intrinsic_motivation}). In contrast to the original hide-and-seek environment where the initial locations of agents and objects are randomized, we restrict the initial locations to a quarter of the game area to ensure that the intrinsically motivated agents receive additional rewards for exploring.
+
+We find that count-based exploration leads to the largest agent and box movement if the state representation only contains the 2-D location of boxes: the agent consistently interacts with objects and learns to navigate. Yet, when using progressively higher-dimensional state representations, such as box location, rotation and velocity or 1-3 agents with full observation space, agent movement and, in particular, box movement decrease substantially. This is a severe limitation because it indicates that, when faced with highly complex environments, count-based exploration techniques require identifying by hand the ``interesting'' dimensions in state space that are relevant for the behaviors one would like the agents to discover. Conversely, multi-agent self-play does not need this degree of supervision. We also train agents with random network distillation (RND) \citep{burda2018exploration}, an intrinsic motivation method designed for high dimensional observation spaces, and find it to perform slightly better than count-based exploration in the full state setting. 
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{assets/count_based_variants.pdf}
+\caption{
+Behavioral Statistics from Count-Based Exploration Variants and Random Network Distillation (RND) Across 3 Seeds. We compare net box movement and maximum agent movement between state representations for count-based exploration: Single agent, 2-D box location (blue); Single agent, box location, rotation and velocity (green); 1-3 agents, full observation space (red). Also shown is RND for 1-3 agents with full observation space (purple). We train all agents to convergence as measured by their behavioral statistics.}
+\label{fig:cnt-based}
+\end{figure}

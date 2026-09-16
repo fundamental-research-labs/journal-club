@@ -1,0 +1,55 @@
+
+
+\section{Optimization Dimension Details}\label{sec:dim_detail}
+
+
+
+We first articulate the intuition and motivation underlying the proposal of these five dimensions. As outlined in Section \ref{sec:five_dim}, they are deliberately designed to capture the fundamental aspects of MAS optimization. While task-dependent considerations such as computational efficiency may arise, our proposed dimensions highlight the core, generalizable elements of multi-agent collaboration, which constitute the central conceptual contribution of this work.
+
+Specifically, we conceptualize the collaboration process in MAS as information flow over a graph, where agents correspond to nodes and communication channels to edges. Within this abstraction, the two functional dimensions focus on optimizing node-level capabilities, either by enhancing existing agents or constructing new ones. On the other hand, the three structural dimensions pertain to graph structure design: they govern the mechanisms of global and dynamic local agent selection, as well as the configuration of inter-agent communication pathways.
+
+Taken together, these five dimensions form a comprehensive framework that addresses both the functional and structural foundations of MAS. By doing so, they provide principled coverage of the essential components required for optimizing the multi-agent collaboration graph. Since the central theme of the paper is to establish a MAS optimization framework, we intentionally focus on defining the optimization dimensions and methodology rather than conducting a rigorous theoretical analysis of the optimization landscape or deriving formal guarantees of optimal configurations. We'd like to leave these explorations for future work. See Appendix~\ref{sec:future} for a brief discussion.
+
+
+
+We next present more details of the rationale and implementation details of the five dimensions.
+
+
+\noindent \textbf{Fun-1: Optimizing existing agents.} This dimension focuses on enhancing the functionality of an existing agent within a MAS. Specifically, we optimize the agent's instruction prompt and/or associated few-shot examples (in few-shot learning settings) following the optimization procedure detailed in Section \ref{sec:indi_opt}. 
+
+When optimizing this dimension, the input to the Semantic Initializer includes the task description and the functional role of the agent. We also provide the original instruction prompt and/or associated few-shot examples of the agent being optimized as a one-shot example for the expected output. For the Contrastive Comparator, the input context consists of the task description, the functional illustration of the agent, and the sampled positive-negative pair. Both the Semantic Initializer and the Contrastive Comparator output newly generated prompts and/or few-shot examples to power the targeted agent.
+
+
+\noindent \textbf{Fun-2: Optimizing construction of new agents.} This dimension aims to optimize the design and construction of a new agent, which is subsequently integrated into the existing MAS to enhance task performance. Specifically, we generate and optimize the instruction prompt and/or associated few-shot examples used to guide a new LLM-based agent which will be incorporated into existing MAS for collaboration. 
+
+During optimization, the Semantic Initializer receives the task description and the functional roles of all existing agents in the MAS as input context. We then provide a handcrafted instruction prompt as a one-shot example of the expected output from the Semantic Initializer. For the Contrastive Comparator, the input context includes the task description along with the sampled positive-negative pair. Both the Semantic Initializer and Contrastive Comparator generate the instruction prompts and/or associated few-shot examples powering the new agent.
+
+
+\noindent \textbf{Str-1: Optimizing candidate agent selection.} This dimension focuses on optimizing an LLM-powered controller to select appropriate candidate agents from all available agents before collaboration begins. Specifically, we optimize the instruction prompt that guides the controller's selection process based on the provided task context and the functional roles of all available agents. 
+
+During optimization of it, the Semantic Initializer receives as input the task description and the expected functionality of the controller. Also, a handcrafted instruction prompt is given as a one-shot example. For the Contrastive Comparator, the input context consists of the task description, the controller's expected functionality, and the sampled positive-negative pair. Both the Semantic Initializer and Contrastive Comparator produce the instruction prompts for guiding the controller in candidate agent selection. 
+
+The rationale for optimizing this controller is to selectively incorporate only those agents most beneficial for resolving the given task, thus reducing harmful disturbance and enhancing the overall effectiveness and efficiency of the MAS.
+
+
+
+\noindent \textbf{Str-2: Optimizing dynamic agent participation.} This dimension targets to optimize an LLM-powered controller that dynamically selects agents from the candidate pool for participation in the current collaboration step. Specifically, the controller's instruction prompt is optimized to enable it to choose the most suitable agents based on the task context, the functional roles of candidate agents, and the agents' outputs generated in previous steps. 
+
+During optimization for this dimension, the input to the Semantic Initializer includes the task description, the expected functionality of the controller, and a handcrafted instruction prompt as a one-shot example. Similarly, the input context for the Contrastive Comparator comprises the task description, the controller’s intended functionality, and the sampled positive-negative pair. Both the Semantic Initializer and Contrastive Comparator generate prompts instructing the controller to dynamically select appropriate agents. 
+
+The rationale for optimizing this controller is to enable the selection of only those agents most relevant and beneficial for the current collaboration step, based on analysis of the task context, agent functionality, and agents' outputs from previous steps. For instance, an agent responsible for initial problem decomposition would ideally be selected by this controller only during the early stages of the collaboration.
+
+
+\noindent \textbf{Str-3: Optimizing agent communication flows.} This dimension is designed to optimize an LLM-powered controller responsible for determining whether the output from one agent should be incorporated as input context for another agent during collaboration. Specifically, we optimize the controller's instruction prompt to guide communication-structure decisions based on the given task context and the functional roles of candidate agents.
+
+
+During the optimization procedure for this dimension, the input provided to the Semantic Initializer includes the task description, the expected functionality of the controller, and a handcrafted instruction prompt as a one-shot example. For the Contrastive Comparator, the input context comprises the task description, the controller’s intended functionality, and the sampled positive-negative pair. Both the Semantic Initializer and the Contrastive Comparator generate prompts instructing the controller to manage communication flows between agents.
+
+The rationale behind optimizing this controller is to route information selectively, ensuring that an agent receives input only from other agents whose outputs are directly relevant and beneficial to the recipient agent's task resolution. For example, in the code-generation task, the output from an agent serving as a ``Tester,'' which generates and executes unit tests to evaluate previously generated code, should ideally be routed by the controller only to agents responsible for further refining the code further, rather than to another ``Tester'' agent.
+
+
+% Then we discuss the intuition and motivation to derive and summarize these five points. As stated in Section \ref{sec:five_dim}, these five dimensions are intentionally designed to represent the fundamental aspects for MAS optimization. While task-specific factors like computational efficiency might exist, our dimensions cover the core generalizable aspects of multi-agent collaboration, which are considered as a key conceptual contribution of our paper. Actually, the multi-agent collaboration process can be generally conceptualized as information flow through a graph, where agents serve as nodes and communication paths as edges. Thus, the two functional dimensions optimize node capabilities, either improving existing agents or constructing new ones. Conversely, the three structural dimensions define graph construction, encompassing global and dynamic local agent selection, as well as inter-agent communication routes. Together, these five dimensions provide comprehensive coverage of the essential elements required for optimizing this graph of MAS.
+
+
+
+

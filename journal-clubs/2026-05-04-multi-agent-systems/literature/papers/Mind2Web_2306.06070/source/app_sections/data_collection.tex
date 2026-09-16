@@ -1,0 +1,130 @@
+\section{Data Collection Details}
+\label{app:data}
+\subsection{Crowdsourcing Details}
+\begin{table}[]
+    \centering
+    \small
+    \caption{Prompt for ChatGPT to generate seed tasks to inspire the annotators during task proposal.}
+    \begin{tabular}{lp{10cm}}
+    \toprule
+      \textbf{Prompt}   &  
+      {We are testing the website\newline\newline
+      https://aa.com | American Airlines - Airline tickets and low fares at aa.com\newline
+      Book low fares to destinations around the world and find the latest deals on airline tickets, hotels, car rentals and vacations at aa.com. As an AAdantage member you earn miles on every trip and everyday spend.\newline\newline
+      We want to test practical daily tasks that a user would do on the website.\newline
+      Come up with a list of 5 example tasks and try to cover different cases.\newline
+      Requirements:\newline\newline
+    \ - Each example should be a single sentence and not just click one of the elements.\newline
+    \ - Don't give step-by-step instructions or directly mention the element to interact.\newline
+    \ - Describe the goal of the task and provide concrete information or constraints. Use mock-up information (identifier, number, personal information, name, date, attributes, constraints, etc.) to make the task more specific and realistic.}\\\midrule
+        \textbf{Sample Responses}&Retrieve the confirmation number for a reservation made under the name jane smith departing from dallas (dfw) to miami (mia) on january 20th.\\\addlinespace
+            &Find and book a round-trip flight from new york to london departing on december 15th and returning on december 22nd for under \$800.\\\addlinespace
+            &Find the lowest fare for a one-way flight from new york city (jfk) to los angeles (lax) leaving on august 15th and returning on august 20th, with no layovers exceeding 2 hours.\\\addlinespace
+            &Rent a car in honolulu for one week starting on august 1st that can fit at least four passengers and has gps navigation included.\\\addlinespace
+            &Cancel a car rental reservation for a compact car in orlando, florida that was scheduled to be picked up on may 25th at 5 pm without incurring any cancellation fees.\\
+         \bottomrule
+    \end{tabular}
+    \label{tab:task_generation_prompt}
+\end{table}
+
+In this study, we employ annotators from the Amazon Mechanical Turk (mturk) platform. The annotators are required to have a minimum of \num{1000} approved HITs with an approval rate exceeding \num{98}\% on the platform.
+We design the compensation with an estimated hourly rate of \$10.10 to respect the minimum wage guidelines in Ohio, United States.
+Every worker passing our qualification receives a bonus, and we pay \$\num{0.80} for each approved final task.
+We do not collect any identifiable private information during the study, and explicitly instruct the annotators to refrain from entering personal or sensitive data into the system. Annotators engage with our annotation tool only within a secure, remote sandbox environment, posing no foreseeable harm.
+The study complies with the IRB exemption criteria, per the Office of Responsible Research Practices at The Ohio State University. All annotators are presented with a consent form, to which they must agree before participating in the study.
+To prepare the workers for the task, we provide a comprehensive training document and a video tutorial, followed by a qualification assessment comprising a questionnaire and a series of test demonstrations using our tool.
+It is noteworthy that the task is divided into two phases: task proposal and task demonstration. The proposal phase comes with a nominal reward, with the majority of the compensation dispensed upon successful completion of the demonstration.
+
+Quality and diversity are ensured through a two-stage review process.
+The first author reviews all tasks after task proposal and manually select the tasks for demonstration.
+After task demonstration, a thorough final verification of all collected data is conducted by all authors to authenticate the tasks and recorded actions.
+Each demonstration is first verified by one of the authors, and uncertain ones are further verified by the first author to reach consensus.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/tool_0.png}
+    \caption{Illustration of our annotation tool, which consists of two side-by-side windows. On the left we provide a dialogue window for the user to control the tool and select operations to take. On the right we provide the browser window for the user to interact with and select web elements.}
+    \label{fig:tool_0}
+\end{figure}
+
+\subsection{Task Proposal}
+We use ChatGPT to generate sample tasks to provide inspiration to the annotators, and the prompt used is shown in Table~\ref{tab:task_generation_prompt}.
+For each HIT, we ask the annotator to select a website of their interest first.
+Following this, we present them with ten sample tasks produced by ChatGPT, and request them to propose a maximum of five additional tasks.
+The annotator is instructed not to directly copy the sample tasks.
+We manually evaluate all submitted tasks and reject those that demonstrate low quality or are too similar to previously accepted tasks.
+We set a nominal reward of \$\num{0.05} for each task proposal HIT, and the annotator will receive it no matter whether the tasks are accepted or not. For accepted ones, the annotator will receive the full reward of \$\num{0.80} on successful demonstration of the task.
+Once we have collected a total of around \num{20} tasks for a specific website, we desist from showing it to the user, aiming for a balanced distribution among websites and increased task diversity.
+
+\subsection{Task Demonstration}
+\begin{figure}
+    \centering
+    \includegraphics[width=.85\linewidth]{figures/tool_flow.pdf}
+    \caption{The overall procedure for task demonstration.}
+    \label{fig:tool_flow}
+\end{figure}
+We develop a dedicated annotation tool for task demonstration using Playwright,\footnote{\url{https://playwright.dev/}} which allows us to interact with the browser and record user actions.
+As shown in Figure~\ref{fig:tool_0}. the tool is composed of two windows.
+The dialogue window on the left serves as the annotator's control panel for guiding the interaction flow and choosing operations.
+The browser window on the right is where the annotator navigates the website and selects elements for interaction.
+Figure~\ref{fig:tool_flow} shows the overall procedure for task demonstration.
+The annotator starts by selecting the website and task to be demonstrated. Once selected, the tool will bring up the website in the browser.
+The annotator is then instructed to explore the website and practice the task.
+To collect clean actions during actual demonstration, the workers are asked to close pop-up windows during exploration. We also provide anonymous accounts for the workers to use so that no private information is entered.
+The exploration stage is not recorded and primarily serves to familiarize the annotator with the website and task, as well as to prepare the website to prevent future pop-ups, thereby ensuring a clean, streamlined set of final recorded actions.
+After exploration, the annotator is directed to return to the homepage and reset any altered values, allowing us to begin the demonstration in a fresh state.
+During the demonstration, the annotator will illustrate how to accomplish the task step-by-step using both the browser and the dialogue window. 
+To ensure a clean set of annotated actions, annotators are restricted from directly engaging with the browser during the demonstration phase.
+Instead, we divide each action step into two stages: Element selection and operation selection.
+At each step, the annotator first selects the target element by clicking it in the browser. We will highlight the selected element in the browser window but block the actual click event.
+The annotator is then prompted to select the operation to perform within the dialogue window, which is then carried out by the annotation tool in the browser.
+We provide \num{6} operations: \texttt{Click}, \texttt{Type}, \texttt{Hover}, \texttt{Press Enter}, \texttt{Click (Fake)} and \texttt{Ignore}.
+For the \texttt{Type} operation, the annotator is additionally required to supply the value as shown in Figure~\ref{fig:tool_type}.
+If the chosen element is a \texttt{select} HTML element, and the annotator opts for \texttt{Click}, it translates to a \texttt{Select Option} operation and we will prompt the annotator to select one of the options as shown in Figure~\ref{fig:tool_select}.
+To avoid ambiguity, the \texttt{Click}, \texttt{Hover} and \texttt{Press Enter} operations are all mapped to \texttt{Click} in the final dataset.
+\texttt{Click (Fake)} is a special operation. It will be recorded the same as a normal \texttt{Click} but will not get executed in the browser. This is designed for safeguarding against state-changing actions (i.e., actions that produce side effects to the world), such as posting a comment or scheduling an appointment, since it will interfere with other real users of the website.
+In practice, once a model predicts \texttt{Click (Fake)}, it may prompt the user for confirmation before executing such state-changing actions.
+Finally, the annotator can also choose \texttt{Ignore} in case they select a wrong element.
+Once all the actions have been annotated, the annotator can choose to complete the task. They will then be asked to confirm the task description again and make any necessary modifications.
+
+\begin{figure}
+\begin{minipage}[t]{.56\linewidth}
+       \centering
+        \includegraphics[width=0.9\textwidth]{figures/tool_1.png}
+        \caption{Dialogue window for the \texttt{Type} operation.}
+        \label{fig:tool_type}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{.42\linewidth}
+        \centering
+        \includegraphics[width=0.93\textwidth]{figures/tool_2.png}
+        \caption{Dialogue window for the \texttt{Select Option} operation.}
+        \label{fig:tool_select}
+    \end{minipage} 
+\end{figure}
+
+\noindent\textbf{Pop-ups and CAPTCHAs.}
+In this study, we emphasize on clean and direct task execution actions, intentionally omitting extraneous steps like pop-ups and CAPTCHAs that might introduce ambiguity in evaluation. We carefully select only those websites that pose no access issues when used with our tool.
+Before recording the task demonstration, annotators are requested to familiarize themselves with the website, and preemptively close pop-up windows and clear CAPTCHAs to avoid their recurrence during the actual demonstration.
+Annotators are further guided not to engage in extra steps such as closing ads unless necessary during the task demonstration.
+In the final task verification, we revisit the actions and filter out those unrelated to direct task execution.
+At the same time, we acknowledge that these instances constitute a significant aspect of the dynamic web environment in the real world.
+Enhancing systems to robustly tackle such scenarios on-the-go could form an interesting avenue for future research.
+
+\noindent\textbf{Mitigating Disruptions on the Websites.}
+The annotator are advised against actions that could potentially interfere the normal operation of the website. 
+To handle tasks such as scheduling appointments, we introduce a \texttt{Click (Fake)} operation that annotators can utilize to indicate the action without actually executing it on the website.
+
+\subsection{Task Verification}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/tool_verification.png}
+    \caption{Illustration of our verification tool.}
+    \label{fig:tool_verification}
+    \vspace{-10pt}
+\end{figure}
+All collected data undergoes an additional verification process conducted by the authors, as demonstrated in Figure~\ref{fig:tool_verification}. The verification interface is shown in Figure~\ref{fig:tool_verification}. This verification consists of three tasks.
+Firstly, we evaluate whether a task should be discarded due to its low quality. 
+Secondly, we examine each step to determine if any action should be discarded. This includes reviewing the initial and final actions of the task, and excluding any additional actions (e.g., closing ads) that are not outlined in the task description to ensure consistency across task annotations.
+Finally, we verify the task description to confirm that all actions are accurately represented and make modifications if necessary.
+If there is uncertainty regarding any action, the verifier can opt for the `unsure' option, prompting a re-evaluation by the first author.

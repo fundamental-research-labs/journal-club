@@ -1,0 +1,79 @@
+\subsection{Machines Cooperating with Humans}
+\label{sec:nll-learning}
+
+One of the most ambitious goals of AI is to develop intelligent agents able to interact with humans.  Endowing agents with communication is an important milestone towards reaching this goal. Indeed, \citeA{Crandall:etal:2018} reported an experiment where humans had to coordinate with machines in repeated games \cite{Crandall:Goodrich:2010}. Importantly,  the machines were extended with scripted communication behaviour in natural language.  %
+% Machines had a scripted linguistic behaviour, where certain linguistic phases (e.g., \textit{Don't play $\langle$action$\rangle$}, \textit{Let's always play $\langle$action pair$\rangle$}, \textit{I'm changing my strategy}) were hand-coded to be communicated when the machine would commit to a particular policy.
+When cheap talk was not permitted, human-human and human-machine interactions rarely resulted in cooperation. Natural-language-based cheap talk, instead, increased cooperation and coordination in both cases.
+
+The experimental setup of current multi-agent simulations, standard in machine learning, dictates stability of interlocutors between the training and testing phases, i.e., agents learn to communicate with a closed set of partners, and we then test their co-adaptation skills, or, to put it bluntly, how well they overfit their interlocutors. It is arguable whether advances in this setup will translate to genuine progress towards acquiring 
+%emergent communication correspond to advances in learning
+general communication skills transferable to other situations,
+including interaction with different partners, such as
+humans. \citeA{Carroll:etal:2019} studied humans cooperating with
+machines trained via machine-machine (non-verbal) interaction, and
+found that transfer from machine-machine to machine-human is not trivial. Agents co-adapt by establishing very idiosyncratic
+conventions, since they possess different cognitive biases from
+humans. We expect similar phenomena to also arise when cooperation
+involves emergent communication protocols, which, as discussed above, often
+develop counterintuitive properties.
+%How can we ensure that agents will adopt protocols allowing them to communicate with humans. 
+
+Agent talk would be more easily generalizable, particularly in human-machine communication scenarios, if it were somehow aligned with natural language from the start. %
+% Humans' most natural and effortless communication channel is natural language. %
+%and as it is sensible to think of human-agent interaction as happening in the same
+%Desiderata: generality, flexibility, and adapting to new interlocutors
+%way.
+% In fact, communicating via natural language should facilitate the transfer of cooperation skills, as language is a general-purpose means of representation with desirable properties such as compositionality. %While it is interesting to ask whether interpretable protocols lead to 
+% more effective agent-agent  interaction, they are not a necessary requirement.~\footnote{Say something about ethics and security} However, if we envisage humans in the loop, interpretability is a key requirement. 
+% The multi-agent framework puts communication and interaction at the heart of agents' learning, resulting in effective coordination through learned communication protocols. However, as we discussed above, emergent protocols are often alarmingly different from human language in core properties.
+Since the dominating approach to natural language processing consists in passively extracting statistical generalizations from large amount of human-generated text \cite<e.g.,>{Radford:etal:2019}, thus guaranteeing alignment with the latter, some studies are starting to explore how to combine this approach with interactive multi-agent language learning~\cite{Lowe:etal:2020}. 
+%Some studies are trying to combine the best of both worlds. 
+% , a significant departure from previous work with hand-coded protocols. Thus, this framework presents a good scaffolding for extending it to human-agent coordination. However, we have presented  here a growing line of alarming results regarding the uninterpretability of emergent communication protocols and the fact that these emergent communication protocols do not bear core
+% properties of natural language; ~\cite{Chaabouni:etal:2019} report that protocols found through emergent communication, unlike natural language, do not conform to Zipf's Law of Abbreviation while ~\cite{Kottur:etal:2017} find that communication protocols do not follow compositionality patterns of natural language.
+
+% The question of teaching agents natural language is not a new one, however traditional data-driven machine learning approaches to natural language learning~\cite{Kneser:Ney:1995,Mikolov:etal:2010} are dissociated from communication. Human language learning and use has a strong interactive component, i.e., we learn language through interaction with the world and we use language to make things happen in the real world, as repeatedly emphasized by several philosophers including Wittgenstein~\cite{Wittgenstein:1953} and Austin~\cite{Austin:1975}, but current algorithms exclusively rely on statistical generalizations extracted from large amounts of written text. 
+
+% Multi-agent emergent communication provides a complementary framework to traditional machine learning approaches for natural language learning, emphasizing the interactive nature of language and recent efforts are aiming at combining the best of both worlds in the context of visual referential games  with natural language.
+\citeA{Lazaridou:etal:2017}, inspired by analogous ideas in AI game
+playing \cite{Silver:etal:2016}, explored a simple way to achieve this
+combination, interleaving emergent communication and supervised
+learning of names for a subset of the objects in their referential game (Fig.~\ref{fig:referential-game}). Under this mixed training
+regime, the ``words'' used by the agents, even to refer to categories
+for which the sender received no direct supervision, were generally
+interpretable by humans. Interesting semantic shift phenomena also
+emerged, such as the use of ``metonymic'' reference (using the word
+for dolphin to refer to the sea). 
+
+The main challenge when combining interactive multi-agent learning with natural language is language drift, i.e., the fact that pressures from the multi-agent tasks push protocols away from human language. 
+ \citeA{Havrylov:Titov:2017} pre-trained a language model on English text corpora, and used its
+statistics to constrain the emergent protocol. In practice, this meant
+that the agents' utterances were fluent and grammatical, however there
+was no constraint to align word meanings with English (i.e., the agent
+word \emph{dogs} could refer to cats). 
+To alleviate this nuisance, \citeA{Lee:etal:2019} explicitly enforced grounded alignment with natural
+language by combining emergent communication and supervised
+caption generation in a multi-task setup.  \citeA{Lu:etal:2020} take inspiration from the iterated learning paradigm in laboratory simulations of language evolution \cite{Kirby:Hurford:2002}. The first generation of learners starts with an agent that is pre-trained on task-specific natural language data using supervised learning and subsequently fine-tuned using rewards generated within a multi-agent framework. Each subsequent generation of learners is then pre-trained on samples of the language generated by the previous generation. %
+% and then used to create a corpus of interactions.  The next generation of learners is obtained by using the previous generation learners and pre-trained with supervised learning on this generated corpus.
+~\citeA{Lazaridou:etal:2020} directly equip agents with a pre-trained general (i.e., not task-specific) image-conditioned language model, and use the rewards generated through multi-agent interaction to steer it towards the functional aspects of the particular task the agents are faced with (a vision-based referential game). Using pre-trained language models helps alleviate aspects of drift related to syntax and semantics. However, human evaluation shows that learning to use natural language within this multi-agent framework leads to pragmatic drift phenomena, where agents' and humans' contextual utterance interpretation might differ (e.g.,  \textit{Mike has a hat} is interpreted by agents as meaning \textit{Mike has a yellow hat} in a context where this inference is not valid). 
+
+%   These studies present first
+% steps towards human-machine interaction in natural language.
+
+%Future work should bridge the gap between the primitive communication
+%needs of agents in emergent language simulations, typically satisfied
+%by a code consisting of single words or short sentences, and the
+%grammatical nuance deep networks can exhibit when trained with large-scale language
+%modeling (\cite{Radford:etal:2019}
+
+Aiming for realistic applications involving human-machine communication, such as natural language dialogue, future work should bridge the gap between the primitive communication
+needs of agents in emergent language simulations, typically satisfied
+by a code consisting of single words or short sentences, and the
+grammatical nuance deep networks can exhibit when trained with large-scale language
+modeling.  
+
+% The linguistic communication in these studies is limited to single words or short sentences, but we expect that, as the language  skills of deep agents  improve, as recently demonstrated by
+% the GPT-2 language modeling results (\cite{Radford:etal:2019}), these
+% could potential translate to improved human-machine communication in
+% more complex scenarios such as natural language dialogue.
+
+

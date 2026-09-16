@@ -1,0 +1,446 @@
+\documentclass{article}
+\usepackage[table,dvipsnames]{xcolor}
+\usepackage{iclr2025_conference}
+\usepackage{times}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{inconsolata}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumerate}
+\usepackage{balance}
+\usepackage{blindtext}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{float}
+\usepackage{makecell}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{marvosym}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{stfloats}
+\usepackage{subfigure}
+\usepackage{subcaption}
+\usepackage{ulem}
+\normalem
+\usepackage{bm}
+\usepackage{longtable}
+\usepackage{array}
+
+\lstdefinestyle{PythonCode}{
+    language=Python,
+    basicstyle=\ttfamily,
+    breaklines=true,
+    keywordstyle=\bfseries\color{NavyBlue},
+    morekeywords={},
+    emph={self},
+    emphstyle=\bfseries\color{Rhodamine},
+    commentstyle=\itshape\color{black!50!white},
+    stringstyle=\bfseries\color{PineGreen!90!black},
+    columns=flexible,
+}
+
+\lstdefinestyle{BashCode}{
+    language=Bash,
+    basicstyle=\ttfamily\color{white},
+    backgroundcolor=\color{black},
+    breaklines=true,
+    keywordstyle=\bfseries\color{MidnightBlue},
+    morekeywords={},
+    emph={},
+    emphstyle=\bfseries\color{Purple},
+    commentstyle=\itshape\color{black!50!white},
+    stringstyle=\bfseries\color{OliveGreen!90!black},
+    columns=flexible,
+}
+
+\newcommand{\ie}{\textit{i.e., }}
+\newcommand{\eg}{\textit{e.g., }}
+\newcommand{\etal}{\textit{et al. }}
+\newcommand{\etc}{\textit{etc. }}
+\newcommand{\wrt}{\textit{w.r.t. }}
+\newcommand{\cf}{\textit{cf. }}
+\newcommand{\aka}{\textit{a.k.a. }}
+
+\newcommand\footnoteONLYtext[1]{
+    \let \mybackup \thefootnote
+    \let \thefootnote \relax
+    \footnotetext{#1}
+    \let \thefootnote \mybackup
+    \let \mybackup \imareallyundefinedcommand}
+
+\definecolor{whiteColor}{RGB}{255,255,255}
+\definecolor{grayColor}{gray}{0.965}
+\definecolor{redColor}{RGB}{223,83,83}
+
+
+\title{Scaling Large Language Model-based \\ Multi-Agent Collaboration}
+
+\author{Chen Qian{\tiny $^{\bigstar\dagger}$}, \  Zihao Xie{\tiny $^{\bigstar\dagger}$}, \  YiFei Wang{\tiny $^{\bigstar}$}, \  Wei Liu{\tiny $^{\bigstar}$},\  Kunlun Zhu{\tiny $^{\bigstar}$}, \  Hanchen Xia{\tiny $^{\bigstar}$},\\ \textbf{Yufan Dang}{\tiny $^{\bigstar}$}, \textbf{Zhuoyun Du}{\tiny $^{\bigstar}$}, \textbf{Weize Chen}{\tiny $^{\bigstar}$}, \textbf{Cheng Yang}{\tiny $^{\clubsuit}$}, \textbf{Zhiyuan Liu}{\tiny $^{\bigstar}$}, \textbf{Maosong Sun}{\tiny $^{\bigstar}$\textsuperscript{\Letter}}\\
+{\tiny $^{\bigstar}$}Tsinghua University \quad {\tiny $^{\clubsuit}$}Peng Cheng Laboratory\\
+\texttt{qianc62@gmail.com} \quad \texttt{xie-zh22@mails.tsinghua.edu.cn} \quad \texttt{sms@tsinghua.edu.cn}
+}
+
+\footnoteONLYtext{\textdagger: Equal Contributions. \quad \Letter: Corresponding Authors.}
+
+\iclrfinalcopy
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Recent breakthroughs in large language model-driven \textit{autonomous agents} have revealed that \textit{multi-agent collaboration} often surpasses each individual through collective reasoning.
+Inspired by the neural scaling law—increasing neurons enhances performance, this study explores whether the continuous addition of collaborative agents can yield similar benefits.
+Technically, we utilize directed acyclic graphs to organize agents into a \uwave{m}ulti-agent \uwave{c}ollaboration \uwave{net}work (\textsc{MacNet}), upon which their interactive reasoning is topologically orchestrated for autonomous task solving.
+Extensive evaluations reveal that it effectively supports collaboration among over a thousand agents, with irregular topologies outperforming regular ones.
+We also identify a \textit{collaborative scaling law}—the overall performance follows a logistic growth pattern as agents scale, with collaborative emergence occurring earlier than traditional neural emergence.
+We speculate this may be because scaling agents catalyzes their multidimensional considerations during interactive reflection and refinement, thereby producing more comprehensive artifacts. The code is available at \url{https://github.com/OpenBMB/ChatDev/tree/macnet}.
+\end{abstract}
+
+
+\begin{figure}[h]
+	\centering
+    \includegraphics[width=0.80\textwidth]{./network.pdf}
+    \caption{Multi-agent collaboration network (\textsc{MacNet}) uses directed acyclic graphs to arrange agents for collaborative interactions, facilitating autonomous task-solving through collective reasoning.}
+    \label{fig:network}
+\end{figure}
+
+
+\section{Introduction}
+In the rapidly advancing field of artificial intelligence, \textit{large language models} (LLMs) have driven transformative shifts across numerous domains due to their remarkable linguistic capacity to seamlessly integrate extensive world knowledge~\citep{vaswani2017attention,NEURIPS2020_1457c0d6}.
+Central to this breakthrough is the \textit{neural scaling law}, where well-trained neural networks often exhibit power-law scaling relations primarily with the number of neurons, alongside factors such as dataset size and training time~\citep{kaplan2020scaling,Muennighoff2024Scaling}.
+Despite this, LLMs have inherent limitations in their enclosed reasoning, particularly when addressing complex situations that extend beyond textual boundaries~\citep{schick2023toolformer}.
+To this end, during the inference phase, pioneering studies transform foundational LLMs into versatile \textit{autonomous agents}~\citep{AutoGPT,HuggingGPT} by encapsulating external capabilities like context-aware memory~\citep{park2023generative}, tool use~\citep{qin2023toolllm}, and procedural planning~\citep{Zhao2023Large}.
+In this context, \textit{multi-agent collaboration}, within an interactive environment, prompts agents to engage in iterative reflection and refinement, explicitly facilitating a process of "slow thinking"~\citep{Daniel2017Thinking,OpenAI2024Learning}. This paradigm effectively unites the distinct expertise of diverse agents~\citep{qian2023communicative}, ultimately leading to artifacts\footnote{Artifacts can vary from multiple-choice answers to repository-level code or coherent narratives, among many other possibilities.} derived from their dialogues.
+
+Although numerous studies have confirmed that task-oriented multi-agent collaboration, facilitated by interactive behaviors, often surpasses standalone intelligence~\citep{chen2023agentverse,Chen2024ReConcile}, the potential for continuously increasing agents remains largely overlooked—with most research involving fewer than ten agents and only a limited number extending to several dozen \citep{li2023camel,park2023generative,Zhang2024Controlling}.
+Inspired by the neural scaling law, a thought-provoking question arises: \textit{how does the continuous addition of collaborative agents impact performance?}
+Exploring the \textit{collaborative scaling law} is essential for linking performance trends with inference resources, revealing underlying phenomena in agent networking, and promoting the development of scalable and predictable LLM systems.
+However, technically, effective collaboration should not depend on simple majority voting~\citep{Brown2024Large,chen2024are}; instead, it should incorporate strategic mechanisms for scalable networking, cooperative interaction, and progressive decision-making~\citep{Hopfield1982Neural,Almaatouq2021Task,Du2024Improving}.
+Toward this end, as depicted in Figure~\ref{fig:network}, we organize multiple agents into a \uwave{m}ulti-\uwave{a}gent \uwave{c}ollaboration \uwave{net}work (\textsc{MacNet}), upon which their interactive reasoning is topologically orchestrated for autonomous task solving.
+\begin{enumerate}[$\bullet$]
+\setlength{\itemsep}{2pt}
+\setlength{\parsep}{2pt}
+\item For network construction, agents' topology is constructed as a directed acyclic graph, with each edge managed by a supervisory \textit{critic} issuing commands, and each node by a compliant \textit{actor} providing tailored artifacts. This establishes a functional bipartition of labor among agents, promoting role specialization while inherently preventing backflow in information propagation.
+\item For interactive reasoning, agents interact in a topological order, where each round involves two adjacent agents refining a previous artifact, and only the refined artifact, rather than the entire dialogue, is propagated to the next rounds.
+This prevents global broadcasting and suppresses context explosion, thereby enhancing collaboration scalability for much larger networks.
+\end{enumerate}
+
+We performed extensive evaluations across different downstream scenarios, employing three types of representative topologies—chain, tree, and graph—further divided into six representative variants.
+The results show that \textsc{MacNet} surpasses all baselines on average and supports effective collaboration among over a thousand agents.
+Counterintuitively, collaborating within irregular topologies unexpectedly outperforms that within regular ones.
+Notably, we reveal a \textit{collaborative scaling law}, indicating that the overall performance exhibits a logistic growth pattern as the process of scaling agents, with collaborative emergence occurring earlier than previous instances of neural emergence.
+We speculate this may be because scaling agents catalyzes their multidimensional considerations during interactive reflection and refinement, thereby producing more comprehensive artifacts.
+Longer term, we aim for this research to extrapolate the traditional scaling from training to inference, circumventing the need for resource-intensive retraining through inference-time procedural thinking.
+
+
+\section{Multi-Agent Collaboration Network}
+To create a scalable environment for effective collaboration, as depicted in Figure~\ref{fig:network}, we organize multiple agents into a \uwave{m}ulti-\uwave{a}gent \uwave{c}ollaboration \uwave{net}work (\textsc{MacNet}), upon which their interactive reasoning is topologically orchestrated for autonomous task solving.
+
+
+\subsection{Network Construction}
+Although training-time neuron collaboration has been well-established with Transformer architectures~\citep{vaswani2017attention}, the suitable architectures for inference-time agent collaboration remain unclear and lack consensus.
+Toward this end, we draw on the concept of graphs—a data structure that describes entities and their interrelations—and extend from previous efforts to propose a more general topology as a \textit{directed acyclic graph} (DAG)~\citep{Nilsson2020A}:
+\begin{equation}
+\mathcal{G} = (\mathcal{V}, \mathcal{E}) \quad
+\mathcal{V}=\{ v_i | i \in I \} \quad \mathcal{E} = \{\langle v_i, v_j \rangle | i, j \in I \wedge i \neq j\}
+\end{equation}
+where \(\mathcal{V}\) denotes the set of nodes indexed by the index set \(I\), and \(\mathcal{E}\) denotes the set of edges, with each edge directed from one node to another and no cycles exist. 
+A graph will orchestrate agent interactions, akin to social networks where information propagates through directed edges.
+Intuitively, the acyclic nature prevents information backflow, eliminating the need for additional designs like task-specific cycle-breaking, thereby enhancing generalizability and adaptability across contexts.
+
+\begin{figure*}[htbp]
+	\centering
+	\begin{minipage}{0.47\textwidth}
+		\centering
+		\includegraphics[width=1.00\textwidth]{./graph.pdf}
+		\caption{Representative topologies.}
+		\label{fig:graph}
+	\end{minipage}
+    \qquad
+	\begin{minipage}{0.47\textwidth}
+		\centering
+		\includegraphics[width=1.00\textwidth]{./graph_agentization.pdf}
+		\caption{Assign functionally bipartite agents on nodes and edges, respectively.}
+		\label{fig:graph_agentization}
+	\end{minipage}
+\end{figure*}
+
+Given the impracticality of enumerating all possible topologies, we focus on three prevalent types—chain, tree, and graph—further divided into six representative sub-topologies, as depicted in Figure~\ref{fig:graph}.
+Chain topologies, resembling the waterfall model~\citep{petersen2009waterfall}, linearly structuring interactions along agents~\citep{wei2022chain,hong2023metagpt}.
+Tree topologies enable agents to branch out, interacting in independent directions~\citep{Yao2023Tree,Zhuang2023ToolChain}; further categorized into "wider" star-shaped and "deeper" tree-shaped topologies.
+Graph topologies support arbitrary interaction dependencies, with nodes having multiple children and parents, forming either divergent or convergent interactions~\citep{besta2024graph,chen2023agentverse,zhuge2024language,Liu2023Dynamic}; further classified into fully-connected mesh topologies, MLP-shaped layered topologies, and irregular random topologies.
+These representative topologies are extensively studied in complex network~\citep{Dodds2003Information,Newman2001The,Ma2024Efficient} and procedural reasoning~\citep{Zhang2024On,Yin2023Exchange,Besta2024Demystifying}, ensuring a comprehensive coverage of the most widespread and practical topologies in multi-agent networking.
+
+Since a functional bipartition—consisting of supervisory critics who issue directional instructions and compliant actors who provide tailored artifacts—can effectively establish division of labor, activate functional behaviors, and facilitate progressive task-solving~\citep{li2023camel}, as depicted in Figure~\ref{fig:graph_agentization}, we strategically assign a critic to each edge and an actor to each node:
+\begin{equation}
+\bm{a_{i}} = \rho(v_i), \ \forall v_i \in \mathcal{V} \quad
+\bm{a_{ij}} = \rho(\langle v_i, v_j \rangle), \ \forall \langle v_i, v_j \rangle \in \mathcal{E}
+\end{equation}
+where \(\rho(x)\) represents the \textit{agentization} operation on an element \(x\), achieved by equipping a foundation model with context-aware memory, external tools, and professional roles; \(\bm{a_{i}}\) and \(\bm{a_{ij}}\) denote an actor assigned to node \(v_i\) and a critic assigned to edge \(v_{ij}\), respectively.
+
+
+\subsection{Interactive Reasoning}\label{Interactive Reasoning}
+In procedural task-solving, interactive reasoning among agents within a static network requires strategical traversal to establish an orderly interaction criterion~\citep{Liu2024Autonomous,Chen2024Internet}.
+In a directed acyclic setting, our graph traversal strategy adheres to the principles of \textit{topological ordering}~\citep{Kahn1962Topological}, which ensures that each node is visited only after all its dependencies have been traversed.
+Formally, for a network \(\mathcal{G}\), its topological order is a linear arrangement of agents \(\bm{a_{i}}\) and \(\bm{a_{ij}}\) such that for every directed edge \( \langle v_i, v_j \rangle \in \mathcal{E}\), the ordering satisfies:
+\begin{equation}
+\forall \langle v_i, v_j \rangle \in \mathcal{E}, \ \mathbb{I}(\bm{a_{i}}) < \mathbb{I}(\bm{a_{ij}}) < \mathbb{I}(\bm{a_{j}})
+\end{equation}
+where \(\mathbb{I}(x)\) denotes the index of agent \(x\) in a topological sequence. This arrangement ensures that each node-occupied agent \(\bm{a_{i}}\) precedes its corresponding edge-occupied agent \(\bm{a_{ij}}\), and \(\bm{a_{ij}}\) precedes \(\bm{a_{j}}\), thereby ensuring orderly information propogation along the network.
+
+\begin{figure*}[thbp]
+	\centering
+    \includegraphics[width=0.99\textwidth]{./dynamics.pdf}
+    \caption{Orchestrating the agents' reasoning process involves a series of dual-agent interactions. The topological order serves as the control flow, while the original connectivity governs the data flow.}
+    \label{fig:dynamics}
+\end{figure*}
+
+After establishing the global order, as illustrated in Figure~\ref{fig:dynamics}, we enable each pair of edge-connected adjacent agents to interact for artifact refinement, which results in a total assignment of \(|\mathcal{V}| + |\mathcal{E}|\) agents and require at least \(2 \times |\mathcal{E}|\) interaction rounds. Specifically, within each edge, the interactions between critics and actors follows a dual-agent multi-turn  pattern:
+\begin{equation}
+\begin{aligned}
+& \tau(\bm{a_{i}, \bm{a_{ij}}}, \bm{a_{j}}) = \big( \tau(\bm{a_{i}, \bm{a_{ij}}}), \tau(\bm{a_{ij}}, \bm{a_{j}}) \big) \\
+\tau(\bm{a_{i}, \bm{a_{ij}}}) = ( \bm{a_{i}} \rightarrow&  \bm{a_{ij}}, \ \bm{a_{ij}} \leadsto \bm{a_{i}} )_{\circlearrowleft} \quad 
+\tau(\bm{a_{ij}}, \bm{a_{j}}) = ( \bm{a_{ij}}\rightarrow \bm{a_{j}}, \ \bm{a_{j}} \leadsto \bm{a_{ij}} )_{\circlearrowleft}
+\end{aligned}
+\end{equation}
+where $\tau(\cdot)$ represents the interaction between agents, $\rightarrow$ signifies an act of requesting, $\leadsto$ indicates a corresponding reply—within which the critic provides an instruction and the actor offers an artifact, and $\circlearrowleft$ denotes an iterative process.
+That is, \(\bm{a_{i}}\) requests feedback, \(\bm{a_{ij}}\) offers reflected suggestions and requests further refinement, and \(\bm{a_{j}}\) provides a refined artifact. 
+Thus, the agents associated with a single edge can engage in iterative reflection and refinement, effectively implementing an refinement of a previous artifact~\citep{Madaan2023Self,Renze2024Self}.\footnote{Note that although the interaction order is unfolded as a sequence for visualization purposes only, certain sub-topologies (\eg star) inherently support parallel processing.}
+
+
+\subsection{Memory Control}
+Note that unrestrained information exchange among agents inevitably leads to \textit{context explosion}~\citep{Liu2024Autonomous,Xu2024Retrieval}, ultimately hindering scalability by limiting support for additional entities.
+To address this, we adopt both short- and long-term memory to manage the context visibility for each agent~\citep{sumers2023cognitive}.
+\textit{Short-term memory} captures the working memory within each interaction, ensuring context-aware decision-making~\citep{li2023camel}. 
+\textit{Long-term memory} maintains context continuity by retaining only the final artifact derived from current dialogue, rather than the entire conversational history, ensuring that non-artifact contexts (\eg the detailed analysis process preceding an artifact) remain inaccessible\footnote{Inaccessibility doesn't mean abandonment; when agents incorporate previous contexts into an artifact, these contexts are implicitly embedded and carried forward with the artifact.} to subsequent agents~\citep{qian2023communicative}.
+This mechanism ensures that only the artifact propagates through the network, which explicitly minimizes context explosion risk while maintaining continuity.
+Artifacts propagate by branching at divergent nodes, or merging at convergent nodes requiring effective aggregation; technically, before refinement, convergent agents integrate the strengths of incoming artifacts through hierarchical aggregation~\citep{Du2024Multi} to yield a "non-linearly" strength-aggregated artifact.
+
+Theoretically, in a mesh structure characterized by the highest interaction density, the total token consumption for the sink\footnote{The "sink agent" refers to the agent assigned to the sink node. In a multi-sink structure, a final sink node is automatically appended to form a structure with only one sink.} agent who experiences maximum context pressure, with and without this mechanism, is derived as follows:
+\begin{equation}
+\begin{aligned}
+\mathcal{O}(n)_{\text{w/o}} &= t + p + s  + (2m-1)(i+s) ( n(n-1)/2 + 2(n-2) ) \overset{n \gg 1}{\approx} Cn^2 \propto n^2 \\
+\mathcal{O}(n)_{\text{w/}} &= t + p + s + m(i+s) ( (n-1) + 2(n-2) ) \overset{n \gg 1}{\approx} \bar{C}n \propto n \\
+\text{where} & \quad  C \equiv (2m-1)(i+s)/2 \quad \bar{C} \equiv 3m(i+s)
+\end{aligned}
+\end{equation}
+where \( n \) is the network scale (\ie $|\mathcal{V}|$), \( t \) the task length,  \( p \) the profile length, \( i \) the average instruction length, \( s \) the average artifact length, and \( m \) the maximum interaction rounds between adjacent agents.
+This token complexity analysis implies that, without memory control, context length grows with \( n^2 \), causing squared increases in time and cost as the network scales.
+Conversely, our mechanism decouples context length from quadratic to linear growth, effectively suppressing context explosion and enabling better scalability for larger networks.
+
+
+\section{Evaluation}
+\paragraph{Baselines} We select a diverse set of representative methods to facilitate a comprehensive multidimensional comparison:
+\begin{enumerate}[$\bullet$]
+\setlength{\itemsep}{0pt}
+\setlength{\parsep}{0pt}
+\item \textsc{CoT}~\citep{wei2022chain} is a technically general and empirically powerful approach that endows LLMs with the ability to generate a coherent series of intermediate reasoning steps, naturally leading to the final artifact through process-aware thoughtful thinking.
+\item \textsc{AutoGPT}~\citep{AutoGPT} is a versatile agent that employs multi-step planning and tool-augmented reasoning to decompose complex tasks into chained subtasks and leverages external tools within an environment-feedback cycle to progressively develop effective artifacts.
+\item \textsc{GPTSwarm}~\citep{zhuge2024language} formalizes a swarm of autonomous agents as computational graphs, with nodes as manually-customized functions and edges facilitating information flow, adaptively optimizing node prompts and modifying graph connectivity during collective reasoning.
+\item \textsc{AgentVerse}~\citep{chen2023agentverse} dynamically assembles and coordinates a team of expert agents in chained or hierarchical structures, employing multi-agent linguistic interaction to autonomously reflect and refine artifacts while displaying emergent social behaviors.
+\end{enumerate}
+
+\paragraph{Datasets and Metrics}
+We adopt publicly available and logically challenging benchmarks to evaluate performance across heterogeneous downstream scenarios.
+\begin{enumerate}[$\bullet$]
+\setlength{\itemsep}{0pt}
+\setlength{\parsep}{0pt}
+\item  MMLU~\citep{Hendrycks2020MeasuringMM} provides a comprehensive set of logical reasoning assessments across diverse subjects and difficulties, utilizing multiple-option questions to measure general world knowledge and logical inference capabilities. We assess the quality of generated artifacts via \textit{accuracy}, which reflects the correctness of responses to multiple-choice questions.
+\item HumanEval~\citep{chen2021evaluating}, a widely recognized benchmark for function-level code generation, designed for measuring basic programming skills. We assess via \textit{pass@k}, which reflects function correctness across multiple standard test cases.
+\item SRDD~\citep{qian2023communicative} integrates complex textual software requirements from major real-world application platforms, tailored for repository-level software development, involving requirement comprehension, system design, code generation and testing. We assess using the official comprehensive metric encompassing completeness, executability, and consistency.
+\item CommonGen-Hard~\citep{Madaan2023Self} tests the ability to generate coherent sentences with discrete concepts, assessing contextual understanding, commonsense reasoning, and creative writing skills. We assess using a comprehensive metric that integrates crucial factors including grammar, fluency, context relevance, and logic consistency~\citep{li2018generating}.
+\end{enumerate}
+
+\paragraph{Implementation Details}\label{Implementation Details}
+We construct non-deterministic topologies such as trees and graphs utilizing fundamental structures, including binary trees, layered structures balanced in both width and depth, and random structures crafted by removing edges from a mesh while maintaining connectivity. 
+By default, we employ a topology consisting of approximately four nodes, aligning with multi-agent baselines. 
+GPT-3.5 is employed for interactive reasoning due to its optimal balance of efficacy and efficiency, with each iterative interaction limited to three exchange rounds.
+
+
+\begin{table*}[t]
+\centering
+\rowcolors{2}{whiteColor}{grayColor}
+\resizebox{0.99\textwidth}{!}{
+\begin{tabular}{l|c|cccc|c}
+\toprule[1.0pt]
+\textbf{Method} & \textbf{Paradigm} & \textbf{MMLU} & \textbf{HumanEval} & \textbf{SRDD} & \textbf{CommonGen} & \textbf{Quality} \\
+\midrule[0.75pt]
+\textsc{CoT} & \includegraphics[height=10pt]{./sa.pdf} & 0.3544$^\dagger$ & \underline{0.6098}$^\dagger$ & 0.7222$^\dagger$ & 0.6165$^\dagger$ & \cellcolor{redColor!49}0.5757$^\dagger$ \\
+\textsc{AutoGPT} & \includegraphics[height=10pt]{./sa.pdf} & 0.4485$^\dagger$ & 0.4809$^\dagger$ & 0.7353$^\dagger$ & 0.5972 & \cellcolor{redColor!43}0.5655$^\dagger$ \\
+\textsc{GPTSwarm} & \includegraphics[height=10pt]{./ma.pdf} & 0.2368$^\dagger$ & 0.4969$^\dagger$ & 0.7096$^\dagger$ & 0.6222$^\dagger$ & \cellcolor{redColor!10}0.5163$^\dagger$ \\
+\textsc{AgentVerse} & \includegraphics[height=10pt]{./ma.pdf} & 0.2977$^\dagger$ & \textbf{0.7256}$^\dagger$ & 0.7587$^\dagger$ & 0.5399$^\dagger$ & \cellcolor{redColor!53}0.5805 \\
+\midrule[0.50pt]
+\textsc{MacNet-Chain} & \includegraphics[height=10pt]{./ma.pdf} & 0.6632 & 0.3720 & \textbf{0.8056} & 0.5903 & \cellcolor{redColor!71}0.6078 \\
+\textsc{MacNet-Star} & \includegraphics[height=10pt]{./ma.pdf} & 0.4456$^\dagger$ & 0.5549$^\dagger$ & 0.7679$^\dagger$ & \underline{0.7382}$^\dagger$ & \cellcolor{redColor!83}0.6267 \\
+\textsc{MacNet-Tree} & \includegraphics[height=10pt]{./ma.pdf} & 0.3421$^\dagger$ & 0.4878$^\dagger$ & 0.8044 & \textbf{0.7718}$^\dagger$ & \cellcolor{redColor!66}0.6015 \\
+\textsc{MacNet-Mesh} & \includegraphics[height=10pt]{./ma.pdf} & \underline{0.6825} & 0.5122$^\dagger$ & 0.7792$^\dagger$ & 0.5525$^\dagger$ & \cellcolor{redColor!86}\underline{0.6316}$^\dagger$ \\
+\textsc{MacNet-Layer} & \includegraphics[height=10pt]{./ma.pdf} & 0.2780$^\dagger$ & 0.4939$^\dagger$ & 0.7623$^\dagger$ & 0.7176$^\dagger$ & \cellcolor{redColor!41}0.5629$^\dagger$ \\
+\textsc{MacNet-Random} & \includegraphics[height=10pt]{./ma.pdf} & \textbf{0.6877} & 0.5244$^\dagger$ & \underline{0.8054} & 0.5912 & \cellcolor{redColor!100}\textbf{0.6522}$^\dagger$ \\
+\bottomrule[1.0pt]
+\end{tabular}
+}
+\caption{The overall performance of LLM-driven methods across various datasets, including both single-agent (\includegraphics[height=8pt]{./sa.pdf}) and multi-agent (\includegraphics[height=8pt]{./ma.pdf}) paradigms. Quality represents the average performance over all tasks. For each dataset, the highest scores are highlighted in bold, while the second-highest scores are underlined. A dagger ($\dagger$) denotes statistically significant differences ($p \le 0.05$) between a method and our chain-structured setting.}
+\label{tab:main-results}
+\end{table*}
+
+
+\subsection{Does Our Method Lead to Improved Performance?}
+
+We employ the simplest topology—chain—as the default setting for comparative analysis. As demonstrated in Table~\ref{tab:main-results}, the chain-structured method consistently surpasses all baselines across most metrics, showing a significant margin of improvement.
+The primary advantage of \textsc{MacNet-Chain}, over a single agent who provides artifacts directly, lies in its facilitation of a procedural thinking in which artifacts are continually reflected and refined. This process effectively mitigates previous inaccuracies or unexpected hallucinations, aligning with previous findings~\citep{Cohen2023LM,Du2024Improving,Qian2024Iterative}.
+Moreover, we observe that \textsc{CoT} exhibits strong performance on certain datasets, which is largely because the underlying knowledge of widely-researched benchmarks is already embedded in foundational models, giving single agents a notable capability in these relatively "simple" tasks. 
+While \textsc{GPTSwarm} self-organizes agents through dynamic optimization of nodes and edges, it necessitates extensive task-specific customization for all nodes and edges, complicating usage and thus hindering seamless generalization to heterogeneous downstream tasks.
+Given the growing need for highly performant and automatic real-world systems, it is impractical to expect that all preparatory knowledge can be fully pre-encoded in foundation models, nor can specific adaptations be pre-made for all unforeseen complex tasks. 
+Fortunately, \textsc{MacNet} bridges this gap by automatically generating various networks through simple hyperparameters (\eg topology type and scale), enabling agents to engage in cooperative interactions without needing specific adjustments\footnote{Experiments with open-source models demonstrate a similar pattern.}, which represents a promising pathway to achieving both autonomy and generalizability.
+Furthermore, we simulate a regression to graph-of-thought reasoning~\citep{besta2024graph} with a simplified agent by ablating agents' profiles, which led to an average performance drop of 3.67\% across all topologies. This result underscores the effectiveness of collective intelligence over singular-aspect reasoning, as the latter represents a variant of dimensionality reduction within multi-agent environments, inevitably blocking its potential to extrapolate potential opportunities.
+
+
+\subsection{How Do Different Topologies Perform Against Each Other?}
+To gain a deeper understanding of the impact on organizational structures within multi-agent collaboration, we examine \textsc{MacNet}'s topologies across six representative topologies. The analysis focuses on three key perspectives: density, shape, and direction.
+
+\paragraph{Density Perspective}
+Table~\ref{tab:main-results} illustrates that different types of topologies vary significantly in effectiveness for specific tasks; no single topology consistently excels across all tasks.
+For instance, a chain topology is more suitable for software development, while a tree topology is ideal for creative writing. 
+This phenomenon may arise from the inherent suitability of software engineering to a linear process, which is accomplished through sequential steps such as analysis, coding, review, and testing; in contrast, tasks requiring high creativity necessitate more divergent structures to foster agent interactions from various aspects.
+Additionally, higher interaction density, associated with edge density (see Figure~\ref{fig:density}), correlates with improved average performance across the three primary topological types. 
+Specifically, the densely connected mesh topology outperforms the moderately dense tree topology, which in turn outperforms the sparsely connected chain topology.
+This can be attributed to the fact that increased density natually prolongs the reasoning process among collective agents, potentially enhancing opportunities for optimizing artifacts from various aspects.
+
+\paragraph{Shape Perspective}
+Despite the intuitive appeal of densest interactions (\ie mesh), they do not always yield optimal performance. In contrast, irregular topologies often demonstrate statistically significant advantages. 
+We hypothesize that this phenomenon is because overly dense interactions can overwhelm agents with information overload, impeding effective reflection and refinement. Conversely, network randomization frequently induces small-world properties~\citep{Watts1998Collective}, characterized by a shorter \textit{average path length}\footnote{Average path length~\citep{Albert2001StatisticalMO} is the average number of steps along the shortest paths for all possible pairs of network nodes, which is a measure of the efficiency of information transport on a network.} or a higher \textit{clustering coefficient}\footnote{The clustering coefficient measures the connectivity density among a node's neighbors~\citep{Strogatz2001Exploring}.}.
+These random edge connections, akin to residual connections, can link "unacquainted" agents via direct shortcuts, transforming them into "acquaintances" and implicitly reducing the average path length, which naturally decreases the likelihood of long-distance artifact invisibility. 
+This phenomenon, seemingly counterintuitive when compared to well-established regular organizational structures in the real world, suggests that collaboration patterns in an agent's world need not precisely mirror those in human society.
+Additionally, random topologies consume approximately 51.92\% less time than mesh topologies, striking an optimal balance between reduced density and enhanced efficiency, thus serving as a more practical choice.
+It has also been noticed that, with the same density, star-shaped topologies that are "wider" tend to perform better than "deeper" tree-shaped ones.
+This is primarily due to the memory control mechanism; while it efficiently manages the spread of overly lengthy contexts across the network, it may cause deeper topologies to lose track of distant agents, occasionally resulting in artifact version rollbacks \citep{qian2023experiential}.
+This points to an empirical search strategy that manages network scale and clustering coefficients, whether through automated searching or manual design, to find an optimal balance between effectiveness and efficiency.
+Delving deeper, an in-depth inductive bias analysis reveals that in closed-domain scenarios (\eg logical choices), a chain structure significantly aids in facilitating step-by-step reasoning. Conversely, a proliferation of parallel branches (\eg stars) can lead to convoluted brainstorming, which may not always be advantageous.
+In open-domain scenarios, topologies characterized by more convergent nodes are shown to revise artifacts more frequently and produce longer artifacts\footnote{The layer topologies exhibit a 92.16\% modification probability and an average artifact length of 586.57, compared to 68.48\% and 308.26 for chain topologies}.
+This occurs because more convergent nodes, with increased input diversity, increase the likelihood of refining artifacts, benefiting length-sensitive metrics as longer artifacts are more likely to meet rich requirements.
+Ultimately, no task is confined to a particular topology; the optimal configuration should be chosen based on the openness of scenarios, available computing resources, and associated reasoning costs.
+
+\begin{figure}[t]
+	\centering
+	\begin{minipage}{0.55\linewidth}
+		\centering
+		\includegraphics[height=102pt]{./density.pdf}
+		\caption{Density of different topologies at different scales.}
+		\label{fig:density}
+	\end{minipage}
+    \hspace{6pt}
+	\begin{minipage}{0.42\linewidth}
+		\centering
+		\includegraphics[height=102pt]{./reverse.pdf}
+		\caption{Comparison between topologies and their reversed counterparts.}
+		\label{fig:reverse}
+	\end{minipage}
+\end{figure}
+
+\paragraph{Direction Perspective}
+Beyond density and shape perspectives, the inherent asymmetry in certain topologies—where reversing the edges results in a topologically distinct configuration—has interested us in exploring the effects of reversed topologies.
+As shown in Figure~\ref{fig:reverse}, merely reversing the directions of specific topologies can lead to significant performance degradation.
+Typically, divergent topologies, characterized by having more child nodes than parent nodes, substantially outperform their convergent counterparts.
+Intuitively, artifact propagation diverges smoothly, enabling each agent to discuss artifacts from varied aspects. 
+In contrast, aggregating multiple artifacts at a convergent node is more challenging, highlighting the complexity of integrating diverse aspects into a cohesive artifact.
+Therefore, to minimize potential degradation during artifact aggregation, it is recommended to employ topologies that maximize divergence while minimizing convergence.
+
+
+\subsection{Could A Collaborative Scaling Law Be Observed?}
+
+\begin{figure}[ht]
+	\centering
+    \includegraphics[width=0.99\textwidth]{./scaling.pdf}
+    \caption{Scaling performance of multi-agent collaboration under different topologies. Quality represents the average performance over all tasks.}
+    \label{fig:scaling}
+\end{figure}
+
+\paragraph{Trend Perspective}
+Recall the neural scaling law, which posits that increasing neurons leads to an continual performance improvement~\citep{kaplan2020scaling}. 
+To investigate the \textit{collaborative scaling law}, which excavates the relationship between agent scale and performance, we initiated an attempt by exponentially increasing the number of nodes ($|\mathcal{V}|$) from $2^0$ (regressing to a single-agent variant) to $2^6$ (equating to over a thousand agents in a mesh network).
+As depicted in Figure~\ref{fig:scaling}, scaling our networks initially grows slowly in the quality of artifacts generated by various multi-agent systems, then leads to a rapid improvement before reaching a saturation point. 
+This pattern resembles a sigmoid-variant function:
+\begin{equation}
+f(|\mathcal{V}|)= \frac{\gamma}{1+e^{-\beta(\log|\mathcal{V}|-\alpha)}} + \delta
+\end{equation}
+where $\{\alpha, \beta, \gamma, \delta\}$ are real numbers specific to a particular topology.
+Roughly speaking, a node magnitude of $2^4$ appears to be a reasonable choice.
+However, considering the efficiency of sparse topologies and the superior performance of dense ones, we advocate balancing shape and scale through multidimensional trade-offs when applying this trend to various downstream applications.
+This finding suggests that many existing agent systems may be operating below their full potential, which underscores a promising path for enhancing performance by increasing the number of agents, provided they collaborate effectively, rather than solely focusing on scaling foundational models.\footnote{Looking further, this fitting only reflects a general pattern from the perspective of network scales; future research should aim for a more precise characterization by incorporating additional factors like profiles, tools and communication protocols, or social routing.}
+
+Besides, the validation of baseline scaling reveals that equalizing the number of LLM calls—whether through majority voting in closed-domain tasks \citep{chen2024are} or best-of-N in open-domain tasks \citep{Sessa2024BOND}—consistently highlights a lack of effective scalability across all baselines. 
+Majority voting enhances performance by merely 0.9\%, even when augmented with \textsc{CoT} or \textsc{AutoGPT}, plateauing at approximately eight agents.
+\textsc{AgentVerse} implicitly reduces to a star topology and frequently encounters context explosion issues when scaling beyond thirty agents, thus hindering scalability.
+The energy-intensive setup of \textsc{GPTSwarm} necessitates manual, task-specific structuring and prompting, which restricts both multitasking capabilities and overall scalability.
+
+
+\paragraph{Timing Perspective}
+The neural scaling law requires models with at least a billion parameters and over \(10^{22}\) training FLOPs to show emergent trends~\citep{Schaeffer2024Are}.
+In contrast, collaborative emergence in \textsc{MacNet} manifests at much smaller scales, with most topologies reaching performance saturation with approximately a hundred agents.
+The fundamental reason is that neuron coordination (during training) relies on numeric matrix operations, requiring all neurons to precisely and simultaneously learn from scratch to assimilate extensive world knowledge.
+Conversely, individual agents (during inference) already possess certain knowledge from the foundational models, and their coordination through interdependent interactions utilizes existing reasoning skills to disseminate knowledge from diverse aspects; the most critical aspects for artifact refinement in agents' interactions typically do not require such a large scale to be thoroughly reflected and refined.
+Thus, alongside neuron collaboration, agent collaboration may serve as a ``shortcut'' to enhance intelligence levels, especially when large-scale retraining resources such as data and hardware are constrained.
+
+\subsection{What Factors Might Contribute to Collaborative Emergence?}
+
+\begin{figure*}[ht]
+	\centering
+    \includegraphics[width=0.99\textwidth]{./analysis.pdf}
+    \caption{The number and distribution of aspects in agent interactions, along with the length of artifacts. The pie chart features primary aspects in the inner circle and secondary aspects in the outer circle, with a long-tail layout to visualize tail aspects. Zoom in for more detailed information.}
+    \label{fig:analysis}
+\end{figure*}
+
+To delve deeper into the underlying mechanisms, we selected the moderately-dense layer typology employed in software development, which serves as a representative case, with similar phenomena consistently occurring in other topologies and scenarios.
+Specifically, we classified the aspects discussed in agents' interactions into five main categories~\citep{Wonseok2022PyTER,Kohn2019The}: four levels of errors (syntax, runtime, logic, and unmet requirements) and a non-error category; each category contains multiple subcategories.
+Figure~\ref{fig:analysis} displays the total number of interaction aspects, along with their detailed distribution.
+Within smaller topologies (\(2^0 \leq |\mathcal{V}| \leq 2^3\)), the limited interaction density confines aspects to approximately a dozen secondary aspects. However, as the network expands (\(2^4 \leq |\mathcal{V}| \leq 2^6\)), the interaction density increases quadratically, resulting in a sudden increase to dozens of aspects, followed by a more gradual rise. 
+This progression closely parallels the trend observed in emergent capabilities, which may partially attribute the emergence to the sharp rise in detailed interacted aspects among agents.
+This phenomenon occurs because the token distribution from underlying models typically follows a long-tail pattern, necessitating larger-scale sampling to likely capture these tail tokens.
+Consequently, this encourages the emergence of more infrequent "tail aspects", allowing the collaborative process to extend beyond the most common aspects.
+Theoretically, the probability of a long-tail token \( t \) appearing at least once in \( n \) samples is:
+\begin{equation}
+p^n(t) = 1 - \left(1-p(t)\right)^n \propto 1 - \left(1-1/r(t)\right)^{|\mathcal{V}|^2} \quad \lim_{|\mathcal{V}| \rightarrow \infty} p^n(t) = \lim_{n \rightarrow \infty} p^n(t) = 1
+\end{equation}
+where \( p(t) \propto 1/r(t) \) represents a standard Zipf's law characterizing a long-tailed distribution~\citep{Newman2005Power}; the sampling size \( n \) is proportional to the interaction density, \ie \( n \propto |\mathcal{V}|^2 \). It can be inferred that increasing the network size significantly enhances the probability of tail token occurrences, gradually approaching an asymptote. This probability becomes an inevitable event once the sample size is sufficiently large.
+Statistically, when a critic suggests a particular aspect, there is a 93.10\% statistical likelihood that an actor will implement the recommended refinement rather than disregard it. The scaling up enables critics to pinpoint finer issues within artifacts, guiding actors to initiate corresponding refinements. Consequently, each round of dialogue in the collaborative process refines artifacts from different aspects, naturally elevating the probability of producing more nuanced artifacts~\citep{Liang2024Encouraging,Du2024Improving,Cohen2023LM}.
+
+In response to multidimensional considerations, scaling agents accordingly prolongs the overall length of artifacts. For instance, the token length increased by 7.51 times when scaling from \(2^0\) to \(2^4\). 
+This characteristic, over small-scale networks, facilitates the integration of detailed requirements, performance optimization, and other advanced factors, potentially encompassing abilities that shorter artifacts cannot. This is mainly due to the graph's naturally divergent and convergent topologies, which enable artifacts to porpagate for strength-aggregated refinement. Therefore, unlike majority voting, this paradigm fosters interdependent interaction and length-extended regeneration among diversified artifacts, thereby producing more comprehensive ones.
+
+
+\section{Related Work}
+\paragraph{Large Language Models}
+Trained on vast datasets through next token prediction~\citep{vaswani2017attention} and capable of manipulating billions of parameters~\citep{Muennighoff2024Scaling}, LLMs have become pivotal in natural language processing due to their seamless integration of extensive knowledge~\citep{NEURIPS2020_1457c0d6,bubeck2023sparks,radford2019language,touvron2023llama,wei2022emergent,Shanahan2023,chen2021evaluating,brants2007large,chen2021evaluating,ouyang2022training,yang2023large,qin2023large}.
+Central to this breakthrough is the neural scaling law, which posits that loss descends as a power law with model size, dataset size, and the amount of compute used for training~\citep{kaplan2020scaling,Smith2022Using,Ruan2024Observational}. 
+The principle underscores that scaling up language models can lead to emergent abilities—where performance experiences a sudden leap as the model scales~\citep{wei2022emergent,Schaeffer2024Are}.
+
+\paragraph{Autonomous Agents}
+Despite these advancements, LLMs possess inherent limitations in enclosed reasoning, driving further research to integrate advanced capabilities such as context-aware memory~\citep{park2023generative,hua2023war}, tool use~\citep{schick2023toolformer,qin2023toolllm}, procedural planning~\citep{Wang2023Plan,Zelikman2024Quiet}, and role playing~\citep{chan2023chateval,Wang2024Unleashing,Liu2024Training}, thereby transforming fundamental LLMs into versatile autonomous agents~\citep{AutoGPT,shinn2024reflexion,zhao2024expel,Lin2023SwiftSage,Mei2024AIOS,Chu2024Professional}.
+Along this line, multi-agent collaboration has proven beneficial in uniting the expertise of diverse agents for autonomous task-solving~\citep{Khan2024Debating,Liang2024Encouraging,qian2023communicative,Wang2024Rethinking,Wang2024Learning,Zhou2024Symbolic,Talebirad2023Multi,Chen2024CoMM,Li2023MetaAgents}, which has widely propelled progress across various domains such as software development~\citep{hong2023metagpt,qian2023experiential}, game playing~\citep{Vinyals2019Grandmaster}, personalized recommendation~\citep{wang2023recagent,zhang2023generative}, medical treatment~\citep{Tang2023MedAgents,Li2024AgentHospital}, financial marketing~\citep{Gao2024Simulating,EconAgent}, educational teaching~\citep{zheyuan2024simulating,Yu2024From}, scientific research~\citep{Zeng2024ChatMol,ResearchAgent,Ghafarollahi2024SciAgents} and embodied control~\citep{Guo2024Embodied,Chen2024Scalable,mandi2023roco}.
+Technically, in contrast to straightforward majority voting where individuals act independently~\citep{chen2024are}, collective emergence~\citep{woolley2010evidence,Hopfield1982Neural,Watts1998Collective} posits that effective collaboration should evolve into an integrated system that promotes interdependent interactions and thoughtful decision-making~\citep{li2024more,piatti2024cooperate}.
+As such, recent studies differentiate agents into distinct expertise and encourage task-oriented interactions, forming a chained workflow to sequentially reach final artifacts~\citep{qian2023communicative}. Subsequent research seeks to organize expert agents in a tree structure for hierarchical information propagation~\citep{chen2023agentverse} or in a graph with predefined node and edge functions~\citep{zhuge2024language}.
+
+
+\section{Conclusion}
+This study explores the impact of scaling multi-agent collaboration by introducing \textsc{MacNet}, a scalable framework that utilizes graphs to organize agents and orchestrate their reasoning for autonomous task solving.
+Extensive evaluations reveal that it effectively supports collaboration among over a thousand agents, with irregular topologies outperforming regular ones.
+We also identify a \textit{collaborative scaling law}—the overall performance follows a logistic growth pattern as agents scale, with collaborative emergence occurring earlier than previously observed neural emergence.
+We speculate this may be because scaling agents catalyzes their multidimensional considerations during interactive reflection and refinement, thereby producing more comprehensive artifacts.
+However, our research also indicates that there are limits on the scaling horizon. By extrapolating traditional scaling from training to inference, we posit that agent collaboration could serve as a "shortcut" to bypass the need for resource-intensive retraining by employing inference-time procedural thinking.
+
+\section*{Acknowledgements}
+The work was supported by the Tencent Rhino-Bird Focused Research Program and the Postdoctoral Fellowship Program of CPSF under Grant Number GZB20230348.
+
+\bibliography{references}
+\bibliographystyle{iclr2025_conference}
+
+\end{document}

@@ -1,0 +1,59 @@
+\section{Fault-Tolerant Mechanisms}
+\label{sec:tolerance}
+
+In the realm of multi-agent systems, particularly those interfacing with diverse open-source LLMs with various instruction-following capabilities, fault tolerance is a key property to ensure seamless operation.
+\ours is engineered to autonomously handle a wide range of errors with minimal human intervention required, drawing upon a comprehensive fault-tolerant infrastructure that is acutely aware of the complexities involved in multi-agent coordination and LLM dependencies.
+
+\paragraph{Error Classification and Handling Strategies}
+Our approach begins with a methodical classification of errors into distinct levels, each with tailored handling strategies:
+
+\begin{itemize}
+    \item 
+    \textbf{Accessibility errors}:
+    In \ours, an agent's functionalities rely on different kinds of services, but those services may be subject to temporary inaccessible errors.
+    These errors may be caused by model instability or network conditions.
+    For example, the model APIs may return a timeout error when there is traffic congestion during busy hours, or a database on a remote machine may be inaccessible because of transient network outages.
+    \item 
+    \textbf{Rule-resolvable errors}:
+    As many multi-agent applications require information exchange between services or agents, it is essential to follow the protocols for those communications, e.g., in JSON format.
+    However, as the responses of LLMs are not fully controllable yet, their return may not follow the format required in the prompts.
+    For example, we may expect a response from an LLM in JSON, but a right brace is missed at the end of the return, leading to parsing failure.
+    As the JSON format has clear specifications, it is reasonable to assume that a subset of these errors can be resolved by correcting the format according to the rules to meet the specifications.
+    \item 
+    \textbf{Model-resolvable errors}:
+    When a multi-agent system handles some complicated tasks, the ability of the agent to understand the input, make decisions, and deliver outputs mostly depends on the capability of LLMs.
+    In some cases, the responses of LLMs are in the expected format, but the content has problems, such as argument errors, semantic errors, or programming mistakes.
+    It is hard to have pre-defined rules to regularize those responses for diverse tasks, but it has also been shown that such errors may be detected and recovered by further interaction with the LLMs.
+    \item 
+    \textbf{Unresolvable errors}:
+    Eventually, there must be some errors that cannot be detected or solved.
+    A typical example is that the API key of an LLM is expired or unauthorized.
+    The agents relying on it or the system can do nothing to resolve such errors without human intervention.
+\end{itemize}
+
+\paragraph{Fault Tolerance mechanisms in \ours}
+In \ours, we provide different mechanisms to encounter the errors summarized above.
+\begin{itemize}
+    \item 
+    \textbf{Basic auto-retry mechanisms}:
+    To combat accessibility errors, \ours's API services and model wrappers are fortified with retry logic that developers can customize, such as setting the maximum retry count. This ensures that agents can recover from sporadic disruptions and maintain their operational continuity.
+    \item 
+    \textbf{Rule-based correction tools}:
+    The rule-based correction tools are introduced into \ours to efficiently and economically handle some easy-to-fix format errors in the responses of LLMs.
+    For example, we establish a set of default rules in \ours that can complete unmatchable braces and extract JSON data from strings. 
+    Such rule-based correction tools can correct some of the common rule-resolvable errors without calling LLM APIs again, which means shorter processing time and no LLM API call cost.
+    \item 
+    \textbf{Customizable fault handlers}:
+    \ours also integrates flexible interfaces of fault handlers in model wrappers for developers to define how to parse the responses from LLMs and handle the unexpected outputs.
+    Application developers can configure their fault handling mechanism by providing a parsing function, fault handling function, and the number of chances given to LLMs through configurable parameters (i.e., \texttt{parse\_func} and \texttt{fault\_handler} and \texttt{max\_retries}) when invoking LLMs.
+    With such developer-friendly design, \ours can be configurably robust to rule-resolvable errors (when the build-in rules fail to handle) and some model-resolvable errors that can be detected and handled by a single agent (e.g., distilling a verbose summary to a more concise one).
+    \item 
+    \textbf{Agent-level fault handling}:
+    There are model-resolvable errors that require more advanced LLM usages or agent-level interaction to recover.
+    For example, detecting semantic errors, which usually include factual inaccuracy, logical inconsistency, contextual incoherence, unreasonable inference, and inappropriate vocabulary usage, is challenging since they may not necessarily trigger immediate red flags within the system's existing validation processes. 
+    Developers can utilize the agent's ability in \ours (e.g., memory module and message hub) to critique for semantic error checking such as self-critique, pairwise critique, and human-augmented critique.
+    \item 
+    \textbf{Logging system}:
+    Although the unsolvable errors are too tricky for the system to handle, \ours provides an improved logging system for developers to quickly monitor and identify the problems in multi-agent applications.
+    The logging system in \ours has customized features for the multi-agent application scenarios, including adding a logging level called \texttt{CHAT} for logging conversations between agents, providing formatted logs with various execution information, and a WebUI user interface to facilitate monitoring.
+\end{itemize}

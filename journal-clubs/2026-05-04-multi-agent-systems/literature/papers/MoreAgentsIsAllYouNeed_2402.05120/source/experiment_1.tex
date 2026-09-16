@@ -1,0 +1,385 @@
+\section{Experimental Setup}
+\label{sec:experiments}
+% debate just claim the results from paper. ontology claims separately. more agent + debate, more agent + zero-shot cot
+
+%We conducted various experiments to applied the more agents mechanism to existing approaches, applying them across a diverse array of benchmarks that span reasoning and generation tasks, and utilizing LLMs of varying scales. These experiments demonstrated that an increased number of agents typically leads to performance improvements. By directly utilizing vanilla more agents mechanism without any additional specialized prompt engineering or using multi-agent framework, the results not only matched but occasionally exceeded the performance of more sophisticated methods. This indicates that the more agents mechanism operates with ubiquitous efficiency. Furthermore, the mechanism exhibited robustness in the face of hyperparameter variations.
+
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+
+
+
+We separate the experimental setup (this section) with evaluations (next section), to introduce the coverage of scenarios/tasks compared with the most related works (for examining the comprehensiveness of our work), the backbone language models we adopted (for examining the applicability of our work), and the methods combined with ours (for examining the compatibility and orthogonality of our work). 
+
+% Our experiments are conducted to evaluate the sampling-and-voting method across various LLM benchmarks, including tasks that challenge both reasoning and generative capacities of LLMs of varying sizes. More precisely, two forms of our method are considered: vanilla form and integration with other methods.
+
+%\textbf{Vanilla Form.} Our method operates standalone without any prompt engineering or multiple LLM-Agent collaboration frameworks. By querying the LLM multiple times, we gather a set of candidate answers. The final output is determined through majority voting.
+
+%\textbf{Integration with Other Methods.} Our method can be integrated with various existing method aimed at enhancing the performance of LLMs. These external methods are treated as modular components, or `black boxes', which can be executed repeatedly to yield a set of responses. Subsequently, majority voting is employed to synthesize these responses into a single consensus-based answer.
+
+% Initially, we evaluate the method in its vanilla form to verify its generalizability. Further, we investigate the method's compatibility by integrating it with diverse prompt engineering techniques and multiple LLM-Agents collaboration frameworks, demonstrating that our method complements and enhances these methods. Lastly, we conduct a robustness analysis to explore the method's performance stability against variations in hyperparameters of LLMs.
+
+
+
+% Detailed experimental settings are provided in the Appendix \ref{appendix:settings} and all accuracy curves are provided in the Appendix \ref{appendix:curves}.
+
+\paragraph{Tasks} 
+
+Our method is evaluated on the following task:
+\begin{itemize}
+    \item Arithmetic Reasoning. Similar to \citet{cotsc,complexity-cot,debate}, we select the GSM8K \cite{gsm} as one of the test sets. Additionally, we select the more challenging MATH dataset \cite{math}, which is used by \citet{autogen}.
+    \item General Reasoning. Similar to \citet{debate,llm-blender}, we select the MMLU \cite{mmlu}. Additionally, we select the dataset from the chess state tracking task (Chess) \footnote{\href{https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/chess_state_tracking/synthetic_short/task.json}{Chess State Tracking}}, which is used by \citet{debate,som}. 
+    \item Code Generation. Similar to \citet{dylan}, we select the HumanEval \cite{humaneval}. To implement our method, we compute the BLEU score \cite{bleu} among all pairs of generated candidate answers. The answer with the highest cumulative BLEU score is then selected as the final output.
+\end{itemize}
+
+% \textbf{Tasks and tasks.} We evaluate our method on the following benchmarks including reasoning and generation tasks.
+% \begin{itemize}
+%     \item \textbf{Arithmetic Reasoning.} We employ grade-school math problems from the GSM8K dataset \cite{gsm} as one of the test sets, from which we randomly select $100$ cases. Additionally, we utilize the more challenging MATH dataset \cite{math}, which is composed of $7$ subareas and includes $5$ different levels of difficulty, totaling $5,000$ questions. From this dataset, we extract $20$ cases from each level of difficulty, ensuring a comprehensive evaluation across different level of challenges it presents.
+%     \item \textbf{General Reasoning.} For these tasks, we utilize the MMLU dataset \cite{mmlu}, which contains a wide array of problems across $4$ aspects in $57$ subjects. Additionally, we employ the dataset from the chess state tracking task (Chess) \footnote{\url{https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/chess_state_tracking/synthetic_short/task.json}} included in the comprehensive BIG-Bench Benchmark \cite{bbb}. From each dataset, we randomly select $100$ cases for our evaluation.
+%     \item \textbf{Code Generation.} For the code generation task, we employ the HumanEval benchmark \cite{humaneval}, consisting of 164 human-annotated function-level code completion challenges, each with corresponding unit tests for validation. To implement our method, we compute the BLEU score \cite{bleu} among all pairs of generated candidate answers. The answer with the highest cumulative BLEU score is then selected as the final output.
+% \end{itemize}
+
+
+\begin{table*}[h]
+\caption{Comparing the conducted experiments with the most related works. Our comprehensive study encompasses various LLMs, multiple tasks, and the integration with multiple methods. }
+\label{table:compare with others}
+\begin{center}
+\begin{adjustbox}{width=\linewidth}
+\begin{tabular}{lccccccc}
+\toprule
+\multirow{3}{*}{\textbf{Methods}}   & \multirow{3}{*}{\textbf{Various LLMs}}                & \multicolumn{3}{c}{\textbf{Tasks}}                                         &           & \multicolumn{2}{c}{\textbf{Integrated with Methods}}              \\ \cmidrule(r){3-6} \cmidrule(l){7-8}
+    &  & Chat   & \begin{tabular}[c]{@{}c@{}}Arithmetic\\ Reasoning\end{tabular}  & \begin{tabular}[c]{@{}c@{}}General\\ Reasoning\end{tabular}    & \begin{tabular}[c]{@{}c@{}}Code\\ Generation\end{tabular}     & \begin{tabular}[c]{@{}c@{}}Prompt\\ Engineering\end{tabular}   & \begin{tabular}[c]{@{}c@{}}Multiple LLM-Agents\\ Collaboration\end{tabular} \\ \midrule
+CoT-SC \cite{cotsc}                               & \checkmark      &               & \checkmark                     & \checkmark                     &                      & Only CoT \cite{cot}                    &                                                         \\
+Complexity-CoT \cite{complexity-cot}  & \checkmark     &                &                      &  \checkmark                    &                      & Only CoT \cite{cot}                   &                                                         \\
+Debate \cite{debate}                                & &  & \checkmark   &  &  &  &                 \\
+Blended \cite{llm-blending} & \checkmark & \checkmark   &  &  &  &     &            \\ \midrule
+Ours    & \checkmark        &            & \checkmark                      & \checkmark                      &  \checkmark                     &   \checkmark                    &   \checkmark                                                       \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+\end{table*}
+
+\paragraph{Language models adopted} 
+
+We evaluate our method using language models of different scales from the Llama2 \cite{llama2} and GPT series \cite{chatgpt}. Specifically, we evaluate two versions of Llama2-Chat\footnote{\href{https://github.com/facebookresearch/llama}{Llama2-Chat}}, optimized for conversational use cases through alignment techniques, with model sizes of 13B and 70B parameters. Additionally, we include GPT-3.5-Turbo and GPT-4 in our evaluation.
+
+\paragraph{Methods enhanced by our method}
+
+To examine the comparability of our method, we study the integration of  various typical methods from two distinct categories with our method: 
+\begin{itemize}
+    \item Prompt Engineering. Various prompt engineering methods are considered to conduct comprehensive experiments. We evaluate Chain-of-Thought prompting (CoT) \cite{cot}, Zero-Shot Chain-of-Thought prompting (Zero-Shot Cot) \cite{zs-cot}, and more sophisticated methods such as Solo Performance Prompting (SPP) \cite{spp}. Initially, these methods are applied with a single LLM query. We then increase the number of queries and employ majority voting to determine the most consistent answer as the final response. 
+    \item Multiple LLM Agents Collaboration. We select LLM-Debate \cite{debate} denoted as Debate, and self-reflection \cite{reflexion} denoted as Reflection. Within these methods, we generate multiple samples by iteratively operating these methods and using majority voting to produce the final answer.
+\end{itemize}
+
+Specifically, the effectiveness of our method is evaluated by averaging the results across $10$ independent runs. During each run, we scale up the ensemble size to $40$ to ensure maximum gains. However, when integrating our method with the Debate \cite{debate}, the ensemble size is limited to $10$ due to the significant computational overhead introduced by the communication architecture. Detailed experimental settings are provided in the Appendix \ref{appendix:settings}.
+
+
+
+
+
+% We scaled up three distinct existing methods to demonstrate the performance gains achieved by increasing the number of agents: (i) Chain-of-thought prompting \cite{cot}, hereafter referred to as \textbf{CoT}. Initially, we utilized CoT with a single agent and then scaled up the number of agents by incorporating Self-Consistency \cite{cotsc}, referred to as \textbf{CoT-SC}; (ii) Zero-Shot Chain-of-thought prompting \cite{zs-cot}, referred to as \textbf{Zero-Shot CoT}. We began with single-agent results using Zero-Shot CoT and increased the agent number by applying Self-Consistency referred to as \textbf{Zero-Shot CoT-SC}; (iii) LLM Debate \cite{debate}, referred to as \textbf{Debate}. For this mechanism, we directly scaled up the number of agents.
+
+%We contrasted the more agent mechanism with five unsupervised baselines spanning from ensemble optimization to LLM-%based multi-agent coordination: (i) Chain-of-thought prompting \cite{cot}, referred to as \textbf{CoT}; (ii) Self-%Consistency \cite{cotsc}, referred to as \textbf{CoT-SC}; (iii) Self-Consistency with Zero-Shot CoT \cite{zs-cot}, %referred to as \textbf{Zero-Shot CoT-SC}; (iv) LLM Debate \cite{debate}, referred to as \textbf{Debate}.
+
+\section{Experimental Results}
+
+%We conduct experiments in four aspects. Initially, we evaluate the generalizability of our method. Furthermore, we investigate the compatibility of our method by integrating it with diverse prompt engineering methods and multiple LLM-Agent collaboration frameworks. Subsequently, we analyze the effectiveness of our method by comparing its performance with that of other methods enhanced by ours. Lastly, we conduct a robustness analysis to explore the performance of our method with various sampling-related hyperparameters of LLMs.
+
+% adrienzhang_rebuttal
+\label{sec:main_results}
+\begin{figure*}[ht!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{fig/main_exp_rebuttal.pdf}
+    \caption{The accuracy scales with the ensemble size of our method across different tasks with various LLMs. The error bars represent the standard error.}
+    \label{fig:main_exp}
+\end{figure*}
+
+\begin{table*}[ht!]
+\caption{Our method generally enhances performance across all tasks and LLMs. The bolded instances indicate that smaller LLMs outperform the larger LLMs. ``Single'' denotes that the LLM is queried only once. GPT-4 is used only for comparison with other methods, hence it only presents ``Single'' results. ``Ours'' denotes our method where the ensemble size is 40. The error bars represent the standard error.}
+\label{table:tab1}
+\vskip 0.15in
+\begin{center}
+\begin{adjustbox}{width=\textwidth}
+\begin{tabular}{lcccccccccc}
+\toprule
+\multirow{2}{*}{\textbf{Model}} & \multicolumn{2}{c}{\textbf{GSM8K}} & \multicolumn{2}{c}{\textbf{MATH}} & \multicolumn{2}{c}{\textbf{Chess}} & \multicolumn{2}{c}{\textbf{MMLU}} & \multicolumn{2}{c}{\textbf{HumanEval}} \\ 
+\cmidrule(lr){2-11}
+% \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9} \cmidrule(lr){10-11}
+ & Single & Ours & Single & Ours & Single & Ours & Single & Ours & Single & Ours \\ \midrule
+ 
+Llama2-13B \cite{llama2} & 0.35 ± \text{\small 3e-2} & \textbf{0.59} ± \text{\small 5e-4} & 0.03 ± \text{\small 7e-3} & \textbf{0.09} ± \text{\small 2e-3} & 0.14 ± \text{\small 2e-2} & \textbf{0.18} ± \text{\small 2e-3} & 0.42 ± \text{\small 3e-2} & 0.51 ± \text{\small 1e-3} & 0.14 ± \text{\small 1e-2} & 0.18 ± \text{\small 1e-3} \\
+
+Llama2-70B \cite{llama2} & 0.54 ± \text{\small 3e-2} & \textbf{0.74} ± \text{\small 1e-3} & 0.05 ± \text{\small 1e-2} & 0.11 ± \text{\small 1e-3} & 0.12 ± \text{\small 2e-2} & 0.13 ± \text{\small 2e-3} & 0.55 ± \text{\small 2e-2} & \textbf{0.60} ± \text{\small 3e-3} & 0.24 ± \text{\small 1e-2} & 0.33 ± \text{\small 1e-3} \\
+
+GPT-3.5-Turbo \cite{chatgpt} & 0.73 ± \text{\small 2e-2} & 0.85 ± \text{\small 3e-3} & 0.29 ± \text{\small 2e-2} & 0.39 ± \text{\small 2e-3} & 0.51 ± \text{\small 3e-2} & 0.55 ± \text{\small{2e-3}} & 0.59 ± \text{\small 3e-2} & 0.70 ± \text{\small 2e-3} & 0.67 ± \text{\small 2e-2} & 0.73 ± \text{\small 1e-2}  \\
+
+GPT-4 \cite{chatgpt} & 0.88 ± \text{\small 2e-2} & {---} & 0.40 ± \text{\small 3e-2} & {---} & 0.65 ± \text{\small 2e-2} & {---} & 0.77 ± \text{\small 2e-2} & {---} & 0.88 ± \text{\small 3e-2} & {---} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+\end{table*}
+
+\begin{table*}[ht!]
+\caption{Our method outperforms other methods used standalone in most cases and always enhances other methods across various tasks and LLMs. The bolded instances indicate the highest accuracy for each task and the underlined instances indicate the highest accuracy in standalone cases.}
+\label{table:other_methods}
+\vskip 0.15in
+\begin{center}
+\begin{large}
+\begin{adjustbox}{width=\textwidth}
+\begin{tabular}{clcccccccccc}
+\toprule
+\multirow{2}{*}{\textbf{Model}}   & \multirow{2}{*}{\textbf{Method}} & \multicolumn{2}{c}{\textbf{GSM8K}} & \multicolumn{2}{c}{\textbf{MATH}} & \multicolumn{2}{c}{\textbf{Chess}} & \multicolumn{2}{c}{\textbf{MMLU}} & \multicolumn{2}{c}{\textbf{HumanEval}} \\ \cmidrule{3-12}
+                         &                         & Standalone     & +Ours          & Standalone    & +Ours          & Standalone     & +Ours          & Standalone    & +Ours          & Standalone       & +Ours            \\ \midrule
+                         
+\multirow{6}{*}{\begin{tabular}[c]{@{}c@{}}Llama2-13B\\ \cite{llama2}\end{tabular}} & COT \cite{cot}                     & 0.39     & 0.56 \text{\small(+0.17)}    & 0.04    & 0.06 \text{\small(+0.02)}    & 0.18     & 0.23 \text{\small(+0.07)}    & 0.42    & 0.43 \text{\small(+0.01)}    & 0.13       & 0.20 \text{\small(+0.07)}      \\
+                         & ZS-COT \cite{zs-cot}                 & 0.40     & \textbf{0.61} \text{\small(+0.21)}    & 0.03    & 0.08 \text{\small(+0.05)}    & 0.15     & 0.20 \text{\small(+0.05)}    & 0.42    & 0.48 \text{\small(+0.06)}    & 0.15       & 0.22 \text{\small(+0.07)}      \\
+                         & SPP \cite{spp}                    &0.19          &0.42 \text{\small(+0.23)}                &0.01         &0.04 \text{\small(+0.03)}                & \uline{0.21}          &\textbf{0.26} \text{\small(+0.05)}                &0.32         &\textbf{0.53} \text{\small(+0.21)}                &0.03            &0.08 \text{\small(+0.05)}                  \\
+                         & Debate \cite{debate}                 & 0.38     & 0.48 \text{\small(+0.10)}    & 0.05    & 0.07 \text{\small(+0.02)}    & 0.18     & 0.19 \text{\small(+0.01)}    & 0.37    & 0.39 \text{\small(+0.02)}    & 0       & 0      \\
+                         & Reflection \cite{reflexion}             & 0.36         &0.59 \text{\small(+0.23)}                &0.01         &0.03 \text{\small(+0.02)}                &0.13          &0.19 \text{\small(+0.06)}                &0.45         &0.50 \text{\small(+0.05)}                &0.06            &0.13 \text{\small(+0.07)}                  \\ \cmidrule{2-12}
+                         & Ours            & \uline{0.59}  &   & \textbf{\uline{0.09}} & & 0.18 &  & \uline{0.51} & & \textbf{\uline{0.25}}      \\ \midrule
+\multirow{6}{*}{\begin{tabular}[c]{@{}c@{}}Llama2-70B\\ \cite{llama2}\end{tabular}} & COT \cite{cot}                    & 0.57     & 0.72 \text{\small(+0.15)}    & 0.06    & \textbf{0.13} \text{\small(+0.07)}    & 0.10     & 0.11 \text{\small(+0.01)}    & 0.56    & 0.57 \text{\small(+0.01)}    & 0.30       & 0.32 \text{\small(+0.02)}      \\
+                         & ZS-COT \cite{zs-cot}                 & 0.57     & 0.73 \text{\small(+0.16)}    & 0.04    & 0.10 \text{\small(+0.06)}    & \uline{0.20}     & \textbf{0.27} \text{\small(+0.07)}    & 0.54    & \textbf{0.65} \text{\small(+0.11)}    & 0.23       & 0.29 \text{\small(+0.06)}      \\
+                         & SPP \cite{spp}                    & 0.42         & 0.69 \text{\small(+0.27)}               & 0.03        & 0.09 \text{\small(+0.06)}               &0.16          &\textbf{0.27} \text{\small(+0.11)}                & 0.49        &0.63 \text{\small(+0.14)}                & 0.15            & 0.20 \text{\small(+0.05)}                 \\
+                         & Debate \cite{debate}                 & 0.59     & 0.65 \text{\small(+0.06)}    & 0.10    & 0.11 \text{\small(+0.01)}    & 0.14     & 0.17 \text{\small(+0.03)}    & 0.56    & 0.58 \text{\small(+0.02)}    & 0       & 0      \\
+                         & Reflection \cite{reflexion}             & 0.52         & \textbf{0.77} \text{\small(+0.25)}               & 0.02        & 0.05 \text{\small(+0.03)}               & 0.15         & 0.26 \text{\small(+0.11)}               & 0.42        & 0.55 \text{\small(+0.13)}               & 0.16           & 0.26 \text{\small(+0.10)}                 \\ \cmidrule{2-12}
+                         & Ours                 & \uline{0.74} &  & \uline{0.11} & & 0.13  & & \uline{0.60} & & \textbf{\uline{0.33}}      \\ \midrule
+\multirow{6}{*}{\begin{tabular}[c]{@{}c@{}}GPT-3.5-Turbo\\ \cite{chatgpt}\end{tabular}} & COT \cite{cot}                     & 0.74     & 0.84 \text{\small(+0.10)}    & 0.28    & \textbf{0.41} \text{\small(+0.13)}    & 0.50     & 0.55 \text{\small(+0.05)}    & 0.61    & 0.64 \text{\small(+0.03)}    & 0.70       & \textbf{0.75} \text{\small(+0.05)}      \\
+                         & ZS-COT \cite{zs-cot}                  & 0.74     & \textbf{0.88} \text{\small(+0.14)}    & 0.25    & 0.40 \text{\small(+0.15)}    & 0.35     & 0.48 \text{\small(+0.13)}    & 0.58    & 0.69 \text{\small(+0.11)}    & 0.67       & 0.74 \text{\small(+0.07)}      \\
+                         & SPP \cite{spp}                     & 0.70         & 0.83 \text{\small(+0.13)}               &0.26         &0.39 \text{\small(+0.13)}                &0.37          &0.54 \text{\small(+0.17)}                &0.53         &0.68 \text{\small(+0.15)}                &0.57            &0.64 \text{\small(+0.07)}                  \\
+                         & Debate \cite{debate}                 & 0.83     & 0.85 \text{\small(+0.02)}    & 0.32    & 0.36 \text{\small(+0.04)}    & 0.49     & \textbf{0.57} \text{\small(+0.08)}    & 0.56    & 0.67 \text{\small(+0.11)}    & 0.18       & 0.24 \text{\small(+0.06)}      \\
+                         & Reflection \cite{reflexion}             &0.76          &0.84 \text{\small(+0.08)}                &0.27         &\textbf{0.41} \text{\small(+0.14)}                &0.44          &\textbf{0.57} \text{\small(+0.13)}                &0.39         &0.44 \text{\small(+0.05)}                &0.58            &0.73 \text{\small(+0.15)}                  \\ \cmidrule{2-12}
+                         & Ours                 & \uline{0.85} &  & \uline{0.39} & & \uline{0.55}  & & \textbf{\uline{0.70}}  & & \uline{0.73}      \\ \bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{large}
+\end{center}
+\end{table*}
+
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=1.0\linewidth]{fig/abliation.png}
+    \caption{Our method improves accuracy over various hyperparameters and tasks. The default $T$ is 1.0 and the default $p$ is 1.0.}
+    \label{fig:ablation}
+\end{figure*}
+
+\subsection{Generalizability}
+
+Table \ref{table:tab1} and Figure \ref{fig:main_exp} show that our method generally enhances performance across all tasks and LLMs by increasing the ensemble size. Specifically, in arithmetic reasoning tasks, the accuracy gains range from $12\%$ to $24\%$ on the GSM8K and from $6\%$ to $10\%$ on the MATH. In general reasoning tasks, the accuracy gains range from $1\%$ to $4\%$ on the Chess and from $5\%$ to $11\%$ on the MMLU. In code generation task, the accuracy gains range from $4\%$ to $9\%$ on HumanEval. Surprisingly, our method enables a smaller LLM to outperform a larger counterpart by simply scaling up the ensemble size. For instance, the enhanced Llama2-13B model achieves $59\%$ accuracy on the GSM8K dataset, outperforming the Llama2-70B model, which scores  $54\%$. Additional statistical results are presented in Appendix \ref{appendix:statistical}.
+% Additionally, we observe that weaker LLMs seem to exhibit a higher percentage of performance improvement after enhancement, this finding which will be elaborated upon in the following Section \ref{sec:analysis}.
+
+\subsection{Compatibility}
+
+Table \ref{table:other_methods} shows that by integrating our method with other methods, the performance can be further improved across different LLMs and tasks, despite these methods have different implementations. To be specific, in arithmetic reasoning tasks, our method enhances these methods to further improvement, yielding increases between $10\%$ and $21\%$ on the GSM8K dataset, and between $1\%$ and $15\%$ on the MATH dataset. In general reasoning tasks, integration with other methods generally achieves performance gains ranging from $1\%$ to $13\%$ in the Chess task and from $1\%$ to $11\%$ in the MMLU task. In code generation task, when combined with other methods, gains range from $2\%$ to $7\%$. However, two notable exceptions are observed when integrated with the debate method with the Llama2-13B and Llama2-70B models, which result in failed cases. This failure in performance is attributed primarily to the noise generated by referencing the answers of other agents during the debate process. The synthesized responses, which incorporate input from multiple agents, disrupt the coherence of the code logic, leading to the observed performance degradation. All accuracy curves are provided in the Appendix \ref{appendix:curves}.
+
+\subsection{Effectiveness}
+From Table \ref{table:other_methods}, we find that our method outperforms other methods in standalone cases, except on the Chess task using Llama2-13B and Llama2-70B. Additionally, based on the data from Table \ref{table:other_methods}, we have calculated the average performance ranking of each enhanced method across various tasks, with the results presented in Table \ref{table:average_rankings}. Notably, without the need for additional prompts or complex LLM collaboration frameworks, our method achieves the highest average ranking across different LLMs and tasks.
+
+
+\begin{table}[ht!]
+\caption{Our method achieved the highest average ranking across different LLMs and tasks. Rankings are derived from Table \ref{table:other_methods} and are based on the average rank each method achieves across all five tasks for a given LLM. The bolded instances indicate the top ranking.}
+\label{table:average_rankings}
+\begin{center}
+%\begin{large}
+\begin{adjustbox}{width=0.6\linewidth}
+\begin{tabular}{lccc|c}
+\toprule
+\textbf{Method} \text{\small+Ours}      & \textbf{GPT-3.5} & \textbf{70B} & \textbf{13B} & \textbf{Overall} \\
+\midrule
+COT \cite{cot}         & 2.8           & 3.6        & 3.6        & 3.3 \\
+ZS-COT \cite{zs-cot}      & 2.8           & \textbf{2.4}        & 3        & 2.7 \\
+SPP \cite{spp}         & 4.6           & 3.6        & 3.8        & 4 \\
+Debate \cite{debate}     & 3.8           & 4.4        & 5        & 4.4 \\
+Reflection \cite{reflexion} & 3           & 4.0        & 3        & 3.3 \\ \midrule
+Ours     & \textbf{2.6}           & 2.6        & \textbf{2.2}        & \textbf{2.5} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+%\end{large}
+\end{center}
+\end{table}
+
+% The results in Table \ref{table:tab1} indicate that the vanilla form of our method generally enhances performance across both arithmetic reasoning tasks, with different LLMs experiencing varying performance gains ranging from $12\%$ to $24\%$ on the GSM8K dataset and from $6\%$ to $10\%$ on the MATH dataset. Notably, without any prompt engineering or multiple LLM-Agents cooperation frameworks, the vanilla form of our method yielded the highest accuracy on the GSM8K dataset while using the Llama2-70B model, and on the MATH dataset while using the Llama2-13B model. A surprising finding is that a smaller model combined with our method can surpass a larger model in performance simply by increasing the ensemble size. For instance, the Llama2-13B model with $40$ agents achieved a $59\%$ accuracy on the GSM8K dataset, outperforming the Llama2-70B model with a single agent, which scored $54\%$. When integrated with alternative enhancement methods, our method demonstrated further performance improvements, yielding increases between $10\%$ and $21\%$ on the GSM8K dataset, and between $1\%$ and $15\%$ on the MATH dataset.
+
+% As shown in Table \ref{table2}, a similar trend of improved performance is observed in general reasoning tasks. By using our method in the vanilla form, performance gains range from $1\%$ to $4\%$ in the Chess Move Validity task and from $5\%$ to $11\%$ in the MMLU task. Remarkably, the vanilla form of our method attains the highest accuracy in the MMLU task when utilizing the Llama2-13B and GPT-3.5-Turbo models. Furthermore, integration with other methods generally achieve the performance gains ranging from $1\%$ to $13\%$ in the Chess Move Validity task and from $1\%$ to $11\%$ in the MMLU task. By increasing the ensemble size, small model can outperform large model. For instance, by employing our method, a Llama2-13B model surpass the performance of a single Llama2-70B model both in its vanilla form and when integrated with CoT or Debate method in the Chess Move Validity task.
+
+% Consistent with the similar observation in reasoning tasks, Table \ref{table3} illustrates that employing our method in its vanilla form typically results in performance improvements, with gains ranging from $4\%$ to $9\%$. When combined with other techniques, we observe further enhancements, with increases from $2\%$ to $7\%$. However, two notable exceptions are observed when integrated with the debate method with the Llama2-13B and Llama2-70B models, which result in failed cases. Additionally, the GPT-3.5-Turbo model exhibits a performance decline, underperforming even the result of a single agent. This decrease in performance is attributed primarily to the noise generated by referencing answers of other agents during the debate process. The synthesized responses, which incorporate input from multiple agents, disrupt the coherence of the code logic, leading to the observed performance degradation.
+
+
+% \textbf{Arithmetic Reasoning} The results in Table \ref{table1} indicate that the vanilla form of our method generally enhances performance across both arithmetic reasoning tasks, with different LLMs experiencing varying performance gains ranging from $12\%$ to $24\%$ on the GSM8K dataset and from $6\%$ to $10\%$ on the MATH dataset. Notably, without any prompt engineering or multiple LLM-Agents cooperation frameworks, the vanilla form of our method yielded the highest accuracy on the GSM8K dataset while using the Llama2-70B model, and on the MATH dataset while using the Llama2-13B model. A surprising finding is that a smaller model combined with our method can surpass a larger model in performance simply by increasing the ensemble size. For instance, the Llama2-13B model with $40$ agents achieved a $59\%$ accuracy on the GSM8K dataset, outperforming the Llama2-70B model with a single agent, which scored $54\%$. When integrated with alternative enhancement methods, our method demonstrated further performance improvements, yielding increases between $10\%$ and $21\%$ on the GSM8K dataset, and between $1\%$ and $15\%$ on the MATH dataset.
+
+
+
+
+
+
+
+
+% \begin{table*}[ht!]
+% \caption{The results of arithmetic reasoning tasks shown by accuracy. The best performance for each task is shown in bold.}
+% \label{table1}
+% \centering
+% \scalebox{0.85}{
+% \begin{tabular}{ccllll}
+% \toprule
+%                        & \multirow{2}{*}{Method} & \multicolumn{3}{c}{Models}              \\ \cline{3-6} 
+%                        &                         & Llama2-13B               & Llama2-70B                & GPT-3.5-Turbo         & GPT-4     \\ \midrule
+% \multirow{8}{*}        & Single            & 0.35                     & 0.54                      & 0.73        & 0.88               \\
+%                        & \textbf{Ours (Vanilla)}    & 0.59 {\small(+0.24)}     & \textbf{0.74} {\small(+0.20)}      & 0.85 {\small(+0.12)}      \\ \cline{2-6} 
+%                        & CoT \cite{cot}                     & 0.39                     & 0.57                      & 0.74                  \\
+%                        & \textbf{CoT + Ours}                  & 0.56 {\small(+0.17)}     & 0.72 {\small(+0.15)}      & 0.84 {\small(+0.10)}  \\ \cline{2-6} 
+%                        & Zero-Shot CoT \cite{zs-cot}        & 0.40                     & 0.57                      & 0.74                  \\
+%             GSM8K      & \textbf{Zero-Shot CoT + Ours}        & \textbf{0.61} {\small(+0.21)}     & 0.73 {\small(0.16)}       & \textbf{0.88} {\small(+0.14)}  \\ \cline{2-6}
+%                        & SPP \cite{spp}          &                      &                       &                   \\
+%                        & \textbf{SPP + Ours}        &      &        &   \\ \cline{2-6} 
+%                        & Debate \cite{debate}      & 0.38                     & 0.59                      & 0.83                  \\
+%                        & \textbf{Debate + Ours}       & 0.48 {\small(+0.10)}     & 0.65 {\small(+0.06)}      & 0.85 {\small(+0.02)}  \\ \cline{2-6} 
+%                        & Reflection \cite{reflexion}      &                      &                       &                   \\
+%                        & \textbf{Reflection + Ours}       &      &       &   \\ \midrule
+% \multirow{8}{*}        & Single            & 0.03                     & 0.05                      & 0.29        & 0.40               \\
+%                        & \textbf{Ours (Vanilla)}    & \textbf{0.09} {\small(+0.06)}     & 0.11 {\small(+0.06)}      & 0.39 {\small(+0.10)} \\ \cline{2-6} 
+%                        & CoT \cite{cot}                    & 0.04                     & 0.06                      & 0.28                  \\
+%                        & \textbf{CoT + Ours}                  & 0.06 {\small(+0.02)}     & \textbf{0.13} {\small(+0.07)}      & \textbf{0.41} {\small(+0.13)}  \\ \cline{2-6} 
+%                        & Zero-Shot CoT \cite{zs-cot}         & 0.03                     & 0.04                      & 0.25                  \\
+%             MATH       & \textbf{Zero-Shot CoT + Ours}        & 0.08 {\small(+0.05)}     & 0.10 {\small(+0.06)}      & 0.40 {\small(+0.15)}  \\ \cline{2-6} 
+%                        & SPP \cite{spp}         &                      &                       &                   \\
+%                        & \textbf{SPP + Ours}        &      &        &   \\ \cline{2-6} 
+%                        & Debate \cite{debate}      & 0.05                     & 0.10                      & 0.32                  \\
+%                        & \textbf{Debate + Ours}       & 0.07 {\small(+0.02)}     & 0.11 {\small(+0.01)}      & 0.36 {\small(+0.04)}  \\ \cline{2-6} 
+%                         & Reflection \cite{reflexion}      &                      &                       &                   \\
+%                        & \textbf{Reflection + Ours}       &      &       &   \\ \bottomrule
+% \end{tabular}
+% }
+
+% \end{table*}
+
+% \textbf{General Reasoning} As shown in Table \ref{table2}, a similar trend of improved performance is observed in general reasoning tasks. By using our method in the vanilla form, performance gains range from $1\%$ to $4\%$ in the Chess Move Validity task and from $5\%$ to $11\%$ in the MMLU task. Remarkably, the vanilla form of our method attains the highest accuracy in the MMLU task when utilizing the Llama2-13B and GPT-3.5-Turbo models. Furthermore, integration with other methods generally achieve the performance gains ranging from $1\%$ to $13\%$ in the Chess Move Validity task and from $1\%$ to $11\%$ in the MMLU task. By increasing the ensemble size, small model can outperform large model. For instance, by employing our method, a Llama2-13B model surpass the performance of a single Llama2-70B model both in its vanilla form and when integrated with CoT or Debate method in the Chess Move Validity task.
+
+%there are instances within the MMLU task where neither CoT methods nor the debate mechanism yield performance gains compared to results obtained directly from the LLM without any specialized techniques. For example, when using the Llama2-13B model, CoT methods achieve an accuracy of $42\%$, that is equivalent to the performance without the CoT approach. In contrast, the debate mechanism underperforms with an accuracy of $37\%$ in the same scenario.
+
+%Table \ref{table2} presents the results on general reasoning tasks, where we observe that increasing the number of %agents enhances performance across both tasks. The performance gains range from $1\%$ to $13\%$ for the Chess %Move Validity task, and from $1\%$ to $11\%$ for the MMLU task. Note that the more agents mechanism achieves the %highest accuracy in the MMLU task when employing the Llama2-13B model and GPT-3.5-Turbo model. More surprisingly, %in the MMLU task, there are instances where CoT methods or the debate mechanism do not yield performance gains %compared to results obtained directly from the LLM without any specialized techniques. For instance, when using the %Llama2-13B model, CoT methods achieve an accuracy of $42\%$, that is equivalent to the performance without the CoT %approach. In contrast, the debate mechanism underperforms with an accuracy of $37\%$ in the same scenario.
+
+% \begin{table*}[htbp]
+% \centering
+% \begin{tabular}{ccllll}
+% \midrule
+%                                      & \multirow{2}{*}{Method} & \multicolumn{3}{c}{Models}              \\ \cline{3-6} 
+%                                      &                         & Llama2-13B                 & Llama2-70B                & GPT-3.5-Turbo         & GPT-4        \\ \midrule
+% \multirow{8}{*}{Chess Move Validity} & CoT                     & 0.18                       & 0.10                      & 0.50                          \\
+%                                      & CoT-SC                  & \textbf{0.23} {\small(+0.07)}       & 0.11 {\small(+0.01)}      & 0.55 {\small(+0.05)}          \\ \cline{2-6} 
+%                                      & Zero-Shot CoT           & 0.15                       & 0.20                      & 0.35                          \\
+%                                      & Zero-Shot CoT-SC        & 0.16 {\small(+0.01)}       & \textbf{0.27} {\small(+0.07)}      & 0.48 {\small(+0.13)}          \\ \cline{2-6} 
+%                                      & Debate (3 agents)       & 0.18                       & 0.14                      & 0.49                          \\
+%                                      & Debate (6 agents)       & 0.19 {\small(+0.01)}       & 0.17 {\small(+0.03)}      & \textbf{0.57} {\small(+0.08)}          \\ \cline{2-6} 
+%                                      & Single Agent            & 0.14                       & 0.12                      & 0.51                   & 0.65       \\
+%                                      & \textbf{Our Method (Vanilla)}    & 0.18 {\small(+0.04)}       & 0.13 {\small(+0.01)}      & 0.55 {\small(+0.04)}          \\ \midrule
+% \multirow{8}{*}{MMLU}                & CoT                     & 0.42                       & 0.56                      & 0.61                          \\
+%                                      & CoT-SC                  & 0.43 {\small(+0.01)}       & 0.57 {\small(+0.01)}      & 0.64 {\small(+0.03)}          \\ \cline{2-6} 
+%                                      & Zero-Shot CoT           & 0.42                       & 0.54                      & 0.58                          \\
+%                                      & Zero-Shot CoT-SC        & 0.48 {\small(+0.06)}       & \textbf{0.65} {\small(+0.11)}      & 0.69 {\small(+0.11)}          \\ \cline{2-6} 
+%                                      & Debate (3 agents)       & 0.37                       & 0.56                      & 0.56                          \\
+%                                      & Debate (6 agents)       & 0.39 {\small(+0.02)}       & 0.58 {\small(+0.02)}      & 0.67 {\small(+0.11)}          \\ \cline{2-6} 
+%                                      & Single Agent            & 0.42                       & 0.55                      & 0.59                    & 0.77     \\
+%                                      & \textbf{Our Method (Vanilla)}             & \textbf{0.51} {\small(+0.09)}       & 0.60 {\small(+0.05)}      & \textbf{0.70} {\small(+0.11)}          \\ \midrule
+% \end{tabular}
+% \caption{The results of general reasoning tasks shown by accuracy. The best performance for each task is shown in bold.}
+% \label{table2}
+% \end{table*}
+% \begin{table*}[ht!]
+% \caption{The results of general reasoning tasks shown by accuracy. The best performance for each task is shown in bold.}
+% \label{table2}
+% \centering
+% \scalebox{0.85}{
+% \begin{tabular}{ccllll}
+% \toprule
+%                                      & \multirow{2}{*}{Method} & \multicolumn{3}{c}{Models}              \\ \cline{3-6} 
+%                                      &                         & Llama2-13B                 & Llama2-70B                & GPT-3.5-Turbo         & GPT-4        \\ \midrule
+% \multirow{8}{*}                      & Single            & 0.14                       & 0.12                      & 0.51                   & 0.65       \\
+%                                      & \textbf{Ours (Vanilla)}    & 0.18 {\small(+0.04)}       & 0.13 {\small(+0.01)}      & 0.55 {\small(+0.04)}          \\  \cline{2-6}
+%                                      & CoT \cite{cot}                   & 0.18                       & 0.10                      & 0.50                          \\
+%                                      & \textbf{CoT + Ours} & \textbf{0.23} {\small(+0.07)}       & 0.11 {\small(+0.01)}      & 0.55 {\small(+0.05)}          \\ \cline{2-6} 
+%                                      & Zero-Shot CoT \cite{zs-cot}          & 0.15                       & 0.20                      & 0.35                          \\
+%                Chess Move Validity   & \textbf{Zero-Shot CoT + Ours}  & 0.16 {\small(+0.01)}       & \textbf{0.27} {\small(+0.07)}      & 0.48 {\small(+0.13)}          \\ \cline{2-6} 
+%                                      & SPP \cite{spp}                    &                            &                           &                               \\
+%                                      & \textbf{SPP + Ours}       &                            &                           &                               \\ \cline{2-6} 
+%                                      & Debate \cite{debate}      & 0.18                       & 0.14                      & 0.49                          \\
+%                                      & \textbf{Debate + Ours}     & 0.19 {\small(+0.01)}       & 0.17 {\small(+0.03)}      & \textbf{0.57} {\small(+0.08)}          \\ \cline{2-6} 
+%                                      & Reflection \cite{reflexion}             &                            &                           &                               \\
+%                                      & \textbf{Reflection + Ours} &                            &                           &                               \\ \midrule
+% \multirow{8}{*}                      & Single            & 0.42                       & 0.55                      & 0.59                    & 0.77     \\ 
+%                                      & \textbf{Ours (Vanilla)}             & \textbf{0.51} {\small(+0.09)}       & 0.60 {\small(+0.05)}      & \textbf{0.70} {\small(+0.11)} \\ \cline{2-6}
+%                                      & CoT \cite{cot}                    & 0.42                       & 0.56                      & 0.61                          \\
+%                                      & \textbf{CoT + Ours}          & 0.43 {\small(+0.01)}       & 0.57 {\small(+0.01)}      & 0.64 {\small(+0.03)}          \\ \cline{2-6} 
+%                                      & Zero-Shot CoT \cite{zs-cot}          & 0.42                       & 0.54                      & 0.58                          \\
+%                     MMLU             & \textbf{Zero-Shot CoT + Ours}     & 0.48 {\small(+0.06)}       & \textbf{0.65} {\small(+0.11)}      & 0.69 {\small(+0.11)}          \\ \cline{2-6} 
+%                                      & SPP \cite{spp}                    &                            &                           &                               \\
+%                                      & \textbf{SPP + Ours}       &                            &                           &                               \\ \cline{2-6} 
+%                                      & Debate \cite{debate}      & 0.37                       & 0.56                      & 0.56                          \\
+%                                      & \textbf{Debate + Ours}      & 0.39 {\small(+0.02)}       & 0.58 {\small(+0.02)}      & 0.67 {\small(+0.11)}          \\ \cline{2-6} 
+%                                      & Reflection \cite{reflexion}             &                            &                           &                               \\
+%                                      & \textbf{Reflection + Ours} &                            &                           &                               \\ 
+% \bottomrule
+% \end{tabular}
+% }
+
+% \end{table*}
+
+
+% \textbf{Code Generation} Consistent with the similar observation in reasoning tasks, Table \ref{table3} illustrates that employing our method in its vanilla form typically results in performance improvements, with gains ranging from $4\%$ to $9\%$. When combined with other techniques, we observe further enhancements, with increases from $2\%$ to $7\%$. However, two notable exceptions are observed when integrated with the debate method with the Llama2-13B and Llama2-70B models, which result in failed cases. Additionally, the GPT-3.5-Turbo model exhibits a performance decline, underperforming even the result of a single agent. This decrease in performance is attributed primarily to the noise generated by referencing answers of other agents during the debate process. The synthesized responses, which incorporate input from multiple agents, disrupt the coherence of the code logic, leading to the observed performance degradation.
+
+
+% \begin{table*}[ht!]
+% \centering
+% \caption{The results of code generation shown by pass@1. The best performance for each task is shown in bold. }
+% \scalebox{0.85}{
+% \begin{tabular}{ccllll}
+% \toprule
+%                            & \multirow{2}{*}{Method} & \multicolumn{3}{c}{Models}                                                                          \\ \cline{3-6} 
+%                            &                         & \multicolumn{1}{c}{Llama2-13B} & \multicolumn{1}{c}{Llama2-70B} & \multicolumn{1}{c}{GPT-3.5-Turbo} & \multicolumn{1}{c}{GPT-4}\\ \midrule
+% \multirow{8}{*} & Single            & 0.14                           & 0.24                           & 0.67                               & 0.88            \\
+%                            & \textbf{Ours (Vanilla)}    & 0.18 {\small(+0.04)}           & \textbf{0.33} {\small(+0.09)}           & 0.73 {\small(+0.06)}           \\ \cline{2-6} 
+%                            & CoT \cite{cot}                    & 0.13                           & 0.3                            & 0.70                              \\
+%                            & \textbf{CoT + Ours}                  & 0.20 {\small(+0.07)}           & 0.32 {\small(+0.02)}           & \textbf{0.75} {\small(+0.05)}           \\ \cline{2-6} 
+%                            & Zero-Shot CoT \cite{zs-cot}          & 0.15                           & 0.23                           & 0.67                              \\
+%             HumanEval      & \textbf{Zero-Shot CoT + Ours}        & \textbf{0.22} {\small(+0.07)}           & 0.29 {\small(+0.06)}           & 0.74 {\small(+0.07)}           \\ \cline{2-6}
+%                             & SPP \cite{spp}                    &                            &                           &                               \\
+%                             & \textbf{SPP + Ours}       &                            &                           &                               \\ \cline{2-6} 
+%                            & Debate \cite{debate}      & 0                              & 0                              & 0.18                              \\
+%                            & \textbf{Debate + Ours}     & 0                              & 0                              & 0.24 {\small(+0.06)}           \\ \cline{2-6} 
+%                            & Reflection \cite{reflexion}             &                            &                           &                               \\
+%                            & \textbf{Reflection + Ours} &                            &                           &                               \\ \bottomrule
+% \end{tabular}
+% }
+% \label{table3}
+% \end{table*}
+
+\subsection{Robustness} 
+
+We conduct ablation studies to evaluate the impact of changes in various hyperparameters on the final performance. The experiment is conducted by altering the temperature \textit{T} \cite{temperature} and the nucleus probability \textit{p} \cite{neucler}, using the GPT-3.5-Turbo model over an average of 20 runs. As shown in Figure \ref{fig:ablation}, scaling up ensemble size improves the LLM performance consistently across different tasks, despite the variation of these hyperparameters.
+
+%We have established an ablation study to observe the impacts that modifications to various sampling-related hyper-%parameters exert on the eventual outcomes. We conduct the experiment by varying \textit{T} in temperature sampling %\cite{temperature} and \textit{p} in nucleus sampling \cite{neucler}, over GPT-3.5-turbo by averaged 20 runs. %Figure \ref{fig:ablation} shows that the extent of the performance enhancement, as well as the sensitivity to the %hyper-parameters, vary significantly across different tasks. In general terms, the greater the number of agents, %the more beneficial the effect; similarly, increased randomness correlates with improved outcomes.
+
+{\subsection{Token usage}
+We record the token usage for different methods, with the Table \ref{table:token_cost} presenting the token usage for a single agent. Given that our method scales up by increasing the ensemble size, the token usage increases proportionally with the number of agents or when combined with other methods. When addressing specific tasks, one can trade a higher token budget for improved performance. More details are presented in Appendix \ref{appendix:token_accuracy}
+
+\begin{table}[ht!]
+\caption{Token usage of GPT-3.5}
+\label{table:token_cost}
+\begin{center}
+\begin{adjustbox}{width=0.8\linewidth}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Method} & \textbf{GSM8K} & \textbf{MATH} & \textbf{Chess} & \textbf{MMLU} & \textbf{HumanEval} \\
+\midrule
+Ours (single agent) & 235 ± 54 & 326 ± 131 & 138 ± 14 & 247 ± 91 & 495 ± 120 \\
+COT \cite{cot} & 261 ± 63 & 360 ± 134 & 284 ± 76 & 330 ± 110 & 330 ± 116 \\
+ZS-COT \cite{zs-cot} & 228 ± 56 & 305 ± 122 & 132 ± 12 & 230 ± 92 & 305 ± 132 \\
+SPP \cite{spp} & 341 ± 85 & 471 ± 161 & 363 ± 35 & 428 ± 123 & 501 ± 125 \\
+Reflection \cite{reflexion} & 214 ± 45 & 281 ± 96 & 146 ± 13 & 218 ± 80 &338 ± 110 \\ \bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+\end{table}
+}

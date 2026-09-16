@@ -1,0 +1,136 @@
+\documentclass[11pt, oneside]{article}
+
+\input{preamble.tex}
+\usepackage{credits}
+\usepackage{orcidlink}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{arydshln}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{svg}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{etoc}
+\usepackage{listings}
+\lstdefinestyle{corralpy}{
+    language=Python,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue!70!black}\bfseries,
+    commentstyle=\color{gray!70!black}\itshape,
+    stringstyle=\color{teal!70!black},
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray!40},
+    backgroundcolor=\color{gray!5},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    xleftmargin=1.5em,
+    aboveskip=0.5em,
+    belowskip=0.5em,
+}
+\lstset{style=corralpy}
+\addbibresource{references.bib}
+
+\title{\textsf{AI scientists produce results without reasoning scientifically}}
+
+
+\input{authors.tex}
+\begin{document}
+\etocdepthtag.toc{main}
+\maketitle
+\vspace*{-1em}
+\begin{abstract}
+\noindent Large language model (LLM)-based systems are increasingly deployed to conduct scientific research autonomously, yet whether their reasoning adheres to the epistemic norms that make scientific inquiry self-correcting is poorly understood. Here, we evaluate LLM-based scientific agents across eight domains, spanning workflow execution to hypothesis-driven inquiry, through more than 25,000 agent runs and two complementary lenses: (i) a systematic performance analysis that decomposes the contributions of the base model and the agent scaffold, and (ii) a behavioral analysis of the epistemological structure of agent reasoning. We observe that the base model is the primary determinant of both performance and behavior, accounting for 41.4\% of explained variance versus 1.5\% for the scaffold. Across all configurations, evidence is ignored in 68\% of traces, refutation-driven belief revision occurs in 26\%, and convergent multi-test evidence is rare. The same reasoning pattern appears whether the agent executes a computational workflow or conducts hypothesis-driven inquiry. They persist even when agents receive near-complete successful reasoning trajectories as context, and the resulting unreliability compounds across repeated trials in epistemically demanding domains. Thus, current LLM-based agents execute scientific workflows but do not exhibit the epistemic patterns that characterize scientific reasoning. Outcome-based evaluation cannot detect these failures, and scaffold engineering alone cannot repair them. Until reasoning itself becomes a training target, the scientific knowledge produced by such agents cannot be justified by the process that generated it.
+\end{abstract}
+
+\pagebreak
+
+\begin{refsection}
+
+\input{sections/introduction}
+\input{sections/results}
+\input{sections/conclusions}
+\input{sections/methods}
+
+\input{sections/acknowledgment}
+
+\input{sections/data_availability}
+\input{sections/competing_interests}
+\input{sections/ai_declaration}
+\input{sections/author_contributions}
+
+\normalsize 
+
+\clearpage
+\printbibliography
+\end{refsection}
+\clearpage
+
+%% Extended Data
+\setcounter{figure}{0}
+\setcounter{table}{0}
+
+\begin{extdatafig}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/appendix/corral_env_app_fig2.pdf}
+    \caption{\textbf{Overview of the inputs and outputs of the environments available in \corral.} In \afm, the agent operates an atomic force microscope to capture material images and compute properties such as surface roughness. In \catalyst, the agent builds catalytic surfaces for simulation, producing surface structure files. In \md, the agent runs simulations to obtain material properties. In \ml, the agent trains an XGBoost model to predict a property. In \resistor, the agent infers the complete system topology from resistor measurements. In \retro, the agent constructs a synthesis path for a target molecule under economic constraints. In \spectra, the agent elucidates the molecule from spectral data. In \wetlab, the agent identifies the ions present in a provided sample.}
+    \label{fig:envs-input-output}
+\end{extdatafig}
+
+\begin{extdatafig}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/JOURNAL_APRIL17/marker_impact_raw_counts.pdf}
+    \caption{\textbf{Trace quality markers are more strongly influenced by the model than by the scaffold.}
+    (A) Normalized effect sizes for each annotated marker. Most points lie above the diagonal, indicating that model differences exceed scaffold differences for the majority of markers.
+    (B) Proportion of positive, negative, and neutral markers across scaffold-model combinations. The annotation process and the marker taxonomy are described in \Cref{app:manual_annotation_description}. 773 traces were manually annotated across all environments; detailed results per marker are in \Cref{app:marker_annotation_results}.}
+    \label{fig:annotation-main-fig}
+\end{extdatafig}
+
+\begin{extdatafig}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/JOURNAL_APRIL17/intervention_pass_caret_per_agent.pdf}
+    \caption{\textbf{\passhat decay under trace interventions is consistent across scaffold architectures.} \passhat as a function of $k$ under trace interventions, shown separately for ReAct and tool-calling agents.
+      Rows correspond to interventions with traces from successful baseline runs (top two) and traces from failed baseline runs (bottom two), with columns representing each environment.
+      Unlike \passat, \passhat requires all $k$ trials to succeed.}
+      \label{fig:pass_hat_per_agent}
+\end{extdatafig}
+
+% TODO: build the figure asset with 3-4 short annotated trace excerpts (one
+% per breakdown category: evidence non-uptake, untested claim, fixed belief
+% trace, contradiction without repair). Each panel should show the relevant
+% messages and an annotation arrow to the supporting quote the LLM annotator
+% used. Worked excerpts are also reproduced in \Cref{app:illustrative-traces};
+% the full annotated traces are browsable at the interactive explorer (URL
+% placeholder elsewhere in the document).
+\begin{extdatafig}[H]
+    \centering
+    % TODO: replace placeholder with the actual figure file once produced.
+    \includegraphics[width=1\linewidth]{figures/extended_data/antipattern_excerpts.pdf}
+    % \fbox{\parbox{0.9\linewidth}{\centering\vspace{4em}\textbf{TODO: figure asset}\\[0.5em]Annotated trace excerpts illustrating the four major reasoning-breakdown categories.\vspace{4em}}}
+    \caption{\textbf{Autonomous agents repeatedly fail to correct flawed reasoning: they ignore accessible evidence, leave hypotheses untested, cling to false beliefs, and accept contradictions.} Each panel lists model, environment, scope, and trial index. Evidence non-uptake (top left): Agent retrieves 20 isomers (including the correct one) but never consults the list, guessing instead. Untested claim (top right): From proton NMR, the agent infers methylene groups, acetyl, and benzene ring, but designs no test, skipping to mass spectrometry. Fixed belief trace (bottom left): LAMMPS simulation: agent mistakes \texttt{/potentials/SW} (a directory) for a file, blames \enquote{lost atoms} on heating rate, and never revises any of six hypotheses across three errors. Contradiction without repair (bottom right): Agent's proposed isopropyl ester predicts 6H doublet at 1.46 ppm (NMR) vs. experimental 3H at 1.43 ppm; agent notes the discrepancy but keeps structure as final answer. Full annotated traces are browsable at \url{https://lamalab-org.github.io/corral/\#explainers} (see also \Cref{app:illustrative-traces}).}
+    \label{fig:reasoning-breakdown-examples}
+\end{extdatafig}
+
+\clearpage
+
+\renewcommand\thefigure{\thesection.\arabic{figure}}
+
+\renewcommand\thetable{\thesection.\arabic{table}}
+\renewcommand\theequation{\thesection\arabic{equation}}
+\setcounter{figure}{0}
+\setcounter{table}{0}
+\setcounter{equation}{0}
+
+\begin{refsection}
+\appendix
+\input{sections/appendix}
+
+\clearpage
+\printbibliography
+\end{refsection}
+
+\end{document}
+ 

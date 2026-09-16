@@ -1,0 +1,285 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: light;
+    font-family:
+      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    min-width: 320px;
+    margin: 0;
+    background: #f1f5f9;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .graph-stage {
+    position: relative;
+    overflow: auto;
+    background:
+      linear-gradient(rgba(24, 32, 38, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(24, 32, 38, 0.04) 1px, transparent 1px),
+      #fbfcfc;
+    background-size: 28px 28px;
+  }
+
+  .graph-stage.map-mode {
+    overflow: hidden;
+  }
+
+  .graph-stage.tech-mode {
+    overflow: auto;
+  }
+
+  #graph {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+  }
+
+  .graph-stage.tech-mode #graph {
+    min-width: 100%;
+    min-height: 100%;
+    touch-action: auto;
+  }
+
+  .tree-axis-layer {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 20;
+    width: 100%;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .tree-axis-x {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 44px;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(203, 213, 225, 0.9);
+    background: rgba(255, 255, 255, 0.93);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(6px);
+  }
+
+  .tree-axis-y {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    border-right: 1px solid rgba(203, 213, 225, 0.9);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.9) 76%, rgba(255, 255, 255, 0) 100%);
+  }
+
+  .tree-axis-label,
+  .tree-axis-lane-label {
+    fill: #475569;
+    font-size: 12px;
+    font-weight: 750;
+  }
+
+  .tree-axis-lane-label {
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  .tree-axis-tick {
+    stroke: rgba(100, 116, 139, 0.38);
+    stroke-width: 1;
+  }
+
+  .tree-axis-lane-rule {
+    stroke: rgba(100, 116, 139, 0.16);
+    stroke-width: 1;
+  }
+
+  .legend-line,
+  .legend-dot {
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .legend-line {
+    width: 20px;
+    height: 2px;
+    margin-right: 4px;
+  }
+
+  .legend-line.bib {
+    background: #2563eb;
+  }
+
+  .legend-line.mention {
+    background: #a16207;
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    margin-right: 4px;
+    border-radius: 999px;
+    background: #0f766e;
+  }
+
+  .edge {
+    fill: none;
+    stroke-width: 1.3;
+    opacity: 0.35;
+  }
+
+  .edge.bibliography {
+    stroke: #2563eb;
+  }
+
+  .edge.curated-mention {
+    stroke: #a16207;
+    stroke-dasharray: 5 4;
+  }
+
+  .edge.dimmed {
+    opacity: 0.08;
+  }
+
+  .edge.highlight {
+    stroke-width: 2.4;
+    opacity: 0.78;
+  }
+
+  .node {
+    cursor: pointer;
+  }
+
+  .node circle {
+    stroke: #ffffff;
+    stroke-width: 1.5;
+    filter: drop-shadow(0 2px 3px rgba(24, 32, 38, 0.18));
+  }
+
+  .node text {
+    pointer-events: none;
+    fill: #25313a;
+    paint-order: stroke;
+    stroke: rgba(255, 255, 255, 0.92);
+    stroke-width: 4px;
+    font-size: 11px;
+  }
+
+  .tech-node text {
+    paint-order: normal;
+    stroke: none;
+  }
+
+  .node.dimmed {
+    opacity: 0.22;
+  }
+
+  .node.selected circle {
+    stroke: #111827;
+    stroke-width: 2.2;
+  }
+
+  .tech-node .card {
+    stroke: #d8e0e5;
+    stroke-width: 1;
+    fill: #ffffff;
+    filter: drop-shadow(0 5px 10px rgba(24, 32, 38, 0.12));
+  }
+
+  .tech-node.selected .card {
+    stroke: #111827;
+    stroke-width: 2;
+  }
+
+  .tech-node .status-strip {
+    opacity: 0.95;
+  }
+
+  .tech-node .card-title {
+    fill: #182026;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .tech-node .card-meta {
+    fill: #66737d;
+    font-size: 10px;
+  }
+
+  .year-column line {
+    stroke: rgba(102, 115, 125, 0.22);
+    stroke-width: 1;
+  }
+
+  .year-column text {
+    fill: #66737d;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .lane-label {
+    fill: rgba(24, 32, 38, 0.42);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .lane-guide {
+    stroke: rgba(102, 115, 125, 0.12);
+    stroke-width: 1;
+  }
+}
+
+@media (max-width: 1100px) {
+  .graph-stage {
+    min-height: 520px;
+  }
+
+  .details {
+    grid-column: 1 / -1;
+    border-top: 1px solid #e2e8f0;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .sidebar,
+  .details {
+    max-height: none;
+    border-right: 0;
+    border-left: 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .graph-stage {
+    height: 68vh;
+    min-height: 420px;
+  }
+}

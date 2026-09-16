@@ -1,0 +1,237 @@
+\section{Introduction}
+\label{sec:intro}
+
+%%%%%%%%%%% https://cs.stanford.edu/people/widom/paper-writing.html#intro 
+% \nr{
+% What is the problem?
+% Why is it interesting and important?
+% Why is it hard? (E.g., why do naive approaches fail?)
+% Why hasn't it been solved before? (Or, what's wrong with previous proposed solutions? How does mine differ?)
+% What are the key components of my approach and results? Also include any specific limitations.}
+%%%%%%%%%%%
+
+% \rr{rewrote the intro, please take a look and leave any feedback}
+
+%\nr{What is the problem?}
+Accelerating scientific discovery has been a long-standing ambition in artificial intelligence (AI) research, with early initiatives like the Oak Ridge Applied Artificial Intelligence Project in 1979 exploring~\citep{team1985artifical, emrich1988potential, johnson1994oak}. More recent explorations enabled by advances in foundation models~\citep{achiam2023gpt, anthropic2024claude, team2024gemini, dubey2024llama} provide a  proof-of-concept of a fully automated pipeline for end-to-end paper generation~\citep{luAIScientistFully2024}. In the future, we envision AI Research Agents capable of independently conducting literature search, generating scientific hypotheses, designing experiments, implementing new methods, analyzing results, disseminating findings by writing scientific papers, and applying this research in products, thus assisting with all parts of the research process. Such agents should be capable of both working fully autonomously, or be guided by human supervision, taking into account feedback from users. 
+
+% Why is it interesting and important?
+This vision stems from the recognition that AI, with its capacity to process vast datasets and discern complex patterns, could accelerate scientific breakthroughs in areas such as drug discovery and materials science by identifying promising drug candidates or predicting the properties of novel materials~\citep{hessler2018artificial,schneider2020rethinking,guo2021artificial}. Unlike traditional methods, AI agents can reveal hidden interdisciplinary relationships by analyzing vast knowledge graphs, leading to novel insights and solutions for complex challenges like climate modeling. By automating laborious tasks and exploring unconventional avenues, AI agents can liberate scientists to focus on higher-level cognitive activities, ultimately driving innovation and expanding the frontiers of knowledge. Machine learning (ML) research, with its emphasis on empirical validation and systematic experimentation in simulation, presents an ideal testbed for exploring and improving the utlity of LLMs for advancing scientific research. 
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth]{assets/mlgym_paper_diagram.pdf}
+    \caption{Diagram of \mlgym, a unified framework designed to integrate diverse and open-ended AI research tasks into a single platform for  developing and evaluating LLM agents on these tasks.}
+    \label{fig:mlgym_diagram}
+\end{figure*}
+
+
+% Why is it hard? (E.g., why do naive approaches fail?)
+However, the scientific method inherently relies on empirical validation, rigorous evaluation, and standardized benchmarks to ensure the reliability and reproducibility of findings. While significant progress has been made in developing AI agents for various domains~\citep{yangSWEagentAgentComputerInterfaces2024,wu2024copilot,ma2024sciagenttoolaugmentedlanguagemodels,deng2023mind2webgeneralistagentweb,wang2023voyager}, we currently lack comprehensive frameworks and benchmarks specifically designed to assess their capabilities in conducting open-ended AI research tasks in diverse domains. This absence of standardized evaluation tools hinders our ability to objectively measure progress and identify areas for improvement in this emerging field. 
+
+% Why hasn't it been solved before? (Or, what's wrong with previous proposed solutions? How does mine differ?)
+Recently, a number of papers have started to evaluate LLM agents on various SWE and ML tasks; notable examples include SWE-Bench \citep{jimenez2023swe}, SWE-agent~\citep{yangSWEagentAgentComputerInterfaces2024}, ScienceAgentBench~\citep{chenScienceAgentBenchRigorousAssessment2024}, SUPER~\citep{boginSUPEREvaluatingAgents2024}, MLE-Bench~\citep{chanMLEbenchEvaluatingMachine2024}, MLAgentBench~\citep{huangMLAgentBenchEvaluatingLanguage2024}, and RE-Bench~\citep{rebench-metr}.
+%
+However, existing benchmarks for AI Research Agents either do not include open-ended research tasks, or only cover a narrow range of research domains. In addition, existing frameworks are not designed to enable research on different training algorithms for AI Research Agents such as reinforcement learning, curriculum learning, or open-ended learning. Finally, current frameworks do not allow flexible artifacts to be evaluated (e.g. different outputs of the agent's research such as a model, algorithm, or set of predictions). 
+
+% What are the key components of my approach and results? Also include any specific limitations.}
+% This paper introduces \textsc{\mlgym} and \textsc{\mlgym-bench}, a novel framework and benchmark designed to \textit{easily evaluate and develop the capabilities of LLMs and LLM agents on open-ended diverse AI research tasks}, contributing to the ongoing endeavor of accelerating scientific discovery with AI. 
+
+% What are the key components of my approach and results? Also include any specific limitations.}
+% \dn{This font has no small caps so we cannot use "\\textsc"}
+In this paper, we introduce \mlgym---the first Gym~\citep{brockman2016openaigym} environment for AI Research Agents and a unified framework designed to integrate diverse and open-ended AI research tasks into a single platform for developing and evaluating LLM agents on such tasks (see \autoref{fig:mlgym_diagram} for a diagram of \mlgym). Being a Gym environment, our framework enables research on different training algorithms for AI Research Agents such as reinforcement learning (RL), curriculum learning, and open-ended learning. 
+%
+We also release \mlgym-Bench, a curated set of 13 
+open-ended research tasks, covering a wide range of domains such as computer vision, natural language processing, reinforcement learning, and game theory, carefully crafted to evaluate the performance of agents in realistic, multifaceted workflows. 
+%
+\mlgym and \mlgym-Bench expand the range of problems considered by current LLM agent frameworks and benchmarks, by offering the ability to flexibly evaluate performance on open-ended research tasks. For example, performance can be measured based on various artefacts such as model weights, RL training algorithms, or code representing game theory strategies.
+%
+We compare five frontier LLMs across the tasks in \mlgym-Bench under consistent experimental settings, highlighting their strengths and limitations. 
+%
+Finally, we propose a new evaluation metric for agents, adapted from the optimization~\citep{dolanBenchmarkingOptimizationSoftware2002} and automated machine learning~\citep[AutoML;][]{automldecathlon} literature, to more fairly assess the relative performance of LLM agents across tasks with their own distinct performance metrics. 
+
+% \dm{How do we back the claim of \mlgym being cheaper to use?}
+
+
+
+% \begin{table*}[!h]
+%     \centering
+%     \begin{adjustbox}{width=\textwidth}
+%     \begin{NiceTabular}{lcccccc}
+%         \toprule
+%         Benchmark & Open-Ended & Algorithmic Reasoning  & Flexible Artifacts & Agentic Harness\\
+%         \midrule
+%         \mlgym-Bench (ours) & \greencheck & \greencheck & \greencheck & \greencheck & \greencheck  \\
+%         MLE-Bench & \cross & \cross & \cross & \cross & \cross  \\
+%         SWE-Bench & \cross & \cross & \cross & \cross & \cross \\
+%         SWE-Agent & \cross & \cross & \cross & \cross & \greencheck \\
+%         MLAgentBench & \greencheck &  \greencheck  & \cross & \greencheck & \greencheck \\
+%         RE-Bench & \greencheck & \cross & \cross & \greencheck & \cross \\
+%         ScienceAgentBench & \cross &  \cross & \cross & \greencheck &  \cross  \\
+%         \bottomrule
+%     \end{NiceTabular}
+%     \end{adjustbox}
+%     \caption{Comparison of \mlgym-Bench with other related LLM agent frameworks and benchmarks.}
+%     \label{tab:mlgym_novelty_table_tex}
+% \end{table*}
+% YB - added latex table, figure is better but harder to edit? Perhaps add the source for generating it? 
+
+
+% YB - I don't follow this one - please elaborate. 
+% Finally, \mlgym is designed to have relatively little compute and memory overhead as compared to other alternatives such as MLE-Bench. This is particularly important in domains where the evaluation itself is relatively quick, so that the process is not bottlenecked due to the agent harness infrastructure cost. 
+% YB - I hope this is what you meant, please correct if not. Also, perhaps explains what in the design makes it cheap (possibly similar choices to MLAgentBench)? 
+
+
+
+% facilitating fair comparisons of how effectively different models use the same toolchain and agent scaffolding. 
+
+To summarize our contributions, we (i) introduce \mlgym, the first Gym environment for evaluating and developing AI Research Agents, (ii) release \mlgym-Bench, a suite of diverse open-ended AI research tasks for evaluating LLM agents, (iii) propose a new evaluation metric for comparing multiple agents on a variety of tasks, and (iv) extensively evaluate frontier LLMs on \mlgym-Bench. Finally, \mlgym makes it easy for researchers and developers to integrate and evaluate new tasks, agents, or models. 
+% \begin{enumerate}
+% \item Introduce the \textsc{\mlgym} framework for benchmarking and developing LLM agents, 
+% \item Release \textsc{\mlgym-Bench}, a benchmark for agents for research tasks built on top of \mlgym, 
+% \item\textbf{Extensively evaluate} existing agents within the \mlgym-Bench framework, and 
+% \item \textbf{Propose a new standard} for agent evaluation based on prior work in optimization and AutoML. 
+% \end{enumerate} 
+
+In the rest of the paper, we discuss related LLM agent frameworks and benchmarks, provide an overview of the \mlgym framework, introduce the mechanics behind \mlgym-Bench and its evaluation, present our experimental setup and results, and conclude with a discussion of limitations and future extensions.
+
+
+%%%%%%%%%%%%%%%%%%%%%% Graveyard %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% This paper introduces \mlgym, a novel framework and benchmark designed to evaluate the capabilities of AI agents in executing machine learning (ML) research tasks, contributing to the ongoing endeavor of automating scientific discovery.   
+
+
+% The quest to automate scientific discovery has captivated researchers for decades, dating back to pioneering works like the Automated Mathematician (Lenat, 1977; Lenat and Brown, 1984) and DENDRAL (Buchanan and Feigenbaum, 1981) in the 1970s. Recently, 
+% Recent foundation models have demonstrated remarkable general abilities such as generating code, solving knowledge-intensive tasks, or performing scientific reasoning (Anthropic, 2024; Google DeepMind Gemini Team, 2023; Llama Team, 2024; OpenAI, 2023), their impact has largely been confined to augmenting isolated aspects of the research pipeline, such as manuscript writing (Altmäe et al., 2023; Dinu et al., 2024; Ifargan et al., 2024; Majumder et al., 2024), idea generation (Baek et al., 2024; Girotra et al., 2023; Wang et al., 2024b), and coding assistance (Gauthier, 2024). However, the grand challenge of developing an AI system capable of autonomously executing entire research projects from conception to completion remains an elusive frontier.
+
+
+% Recent advances in large language models (LLMs) have demonstrated impressive capabilities across a wide range of tasks, including code generation~\citep{lozhkov2024starcoder2stackv2}, knowledge-intensive tasks~\citep{taylor2022galacticalargelanguagemodel}, and scientific reasoning~\citep{ma2024sciagenttoolaugmentedlanguagemodels}. 
+% % %
+% Alongside improved code-generation tools, autonomous “agents” built on top of LLMs have already begun to prove useful in software engineering, as exemplified by systems such as SWE-Agent~\citep{yangSWEagentAgentComputerInterfaces2024} and benchmarks like SWE-Bench~\citep{jimenez2023swe}. 
+% %
+% These developments signal a broader shift toward end-to-end automation of knowledge-intensive tasks, wherein LLMs can navigate software environments and iteratively refine their outputs based on real-time feedback~\cite{baekResearchAgentIterativeResearch2024}. 
+
+% %\nr{Why is it interesting and important?}
+% Motivated by the rapid progress of LLM research, the scientific community has turned its attention to harnessing these models for the entire research lifecycle—from hypothesis generation to experimentation and analysis \citep{si2024llmsgeneratenovelresearch, jansenDISCOVERYWORLDVirtualEnvironment2024, chenScienceAgentBenchRigorousAssessment2024}. 
+% Application of agents towards scientific resources on a larger scale, within broad coverage of areas and methods, can greatly accelerate scientific progress and the achievement of scientific truth in many areas at once.
+
+% However, none of the existing works provide both an environment for open-ended research, diverse coverage of research domains, and the evaluation setup with objective metrics and flexible ways of optimizing them.
+% %\nr{However, ... (something like, there is a lack of standardized frameworks for new research on agents).}
+% %
+% Machine learning research, with its emphasis on empirical validation and systematic experimentation in simulations, presents an ideal testbed for exploring using LLMs for advancing scientific research. 
+%
+% This poses a unique opportunity for the development of new frameworks and benchmarks for LLM agents based on challenging but rigorous evaluated scientific workflows. 
+
+% \nr{Why is it hard? (E.g., why do naive approaches fail?)}
+% \nr{Not sure what the best angle is here. Maybe they're hard because some of these problems can be so open-ended? Or a lack of standardized frameworks for implementing such things? Maybe naive approaches to such open-ended problems can end up being very expensive?}
+
+
+% \nr{Why hasn't it been solved before? (Or, what's wrong with previous proposed solutions? How does mine differ?)}
+
+%\ibold{Points for intro:}
+%\begin{itemize}
+%    \item Recent advances in large language models (LLMs) have demonstrated impressive capabilities across a wide range of tasks, from code generation to scientific reasoning.
+%    \item With improving code abilities, Agents have already proven useful in some software engineering tasks, SWE-Agent and SWE-Bench.
+%    \item The rapid pace of LLM development presents an opportunity to leverage AI for science.
+%    \item Machine learning research, with its emphasis on empirical validation and systematic experimentation, provides an ideal testbed for exploring LLM-assisted scientific workflows.
+%    \item Discuss recent works on testing different agentic workflows for ML research. %(ScienceAgentBench, MLE-Bench, MLAgentBench, RE-Bench)
+%\end{itemize}
+% \yb{This relates to the table contrasting \mlgym and alternatives. Could you please make sure all of these are presented before this part? }
+% \yb{taken a stab at this, please check carefully! Left some comments below on the table.} 
+
+
+%\ibold{Our contributions:}
+%\begin{itemize}
+%    \item We present \mlgym, a framework for integrating diverse ML and Logic research tasks to benchmark and develop agents for quantitative scientific workflows.
+%    \item We also release \mlgym-Bench, a set of 11 research tasks to evaluate and develop agents for scientific workflows. This benchmark covers a diverse range of tasks, including domains such as Vision, Language, Reinforcement Learning, Game Theory, and more.
+%    \item We perform extensive experiments with 5 frontier models and compare the performance of agents in each task.
+%    \item Introduce/borrowing a new metric for evaluating the relative performance of the models under a fixed environment, tools, and agent scaffolding.
+%\end{itemize}
+
+% \begin{figure*}[t]
+%      \centering
+%      \begin{subfigure}[b]{0.48\textwidth}
+%          \centering
+%          \includegraphics[]{assets/plot_demo.pdf}
+%          \caption{First plot.}
+%          \label{fig:plots:a}
+%      \end{subfigure}
+%      \hfill
+%      \begin{subfigure}[b]{0.48\textwidth}
+%          \centering
+%          \includegraphics[]{assets/plot_demo.pdf}
+%          \caption{Second plot.}
+%          \label{fig:plots:b}
+%      \end{subfigure}
+%      \caption{Plots generated with the script \texttt{nice\_plot.py} included in this template.
+%      % 
+%      For more information on producing figures, please refer to \href{https://fb.workplace.com/notes/1767028093764250}{this Workplace post}.
+%      %
+%      If you would like to use a figure teaser, place it immediately after \texttt{\textbackslash{}maketitle}, forcing its location with the \texttt{[h!]} optional argument.
+%      %
+%      Please consider using the \href{https://www.facebook.com/brand/meta/color/}{Meta palette} to color your figures.
+%      }
+%      \label{fig:plots}
+% \end{figure*}
+
+
+% \begin{figure*}[t]
+%      \centering
+%      \includegraphics[width=0.9\textwidth]{assets/mlgym_novelty.png}
+%      \caption{}
+%      \label{fig:mlgym_novelty_table}
+% \end{figure*}
+
+\subsection{Capability Levels for AI Research Agents}
+
+We propose a hierarchical framework to categorize the capabilities of LLM agents for accelerating AI research.
+%
+This framework consists of six levels, each representing a distinct degree of autonomy and scientific contribution.
+
+\textbf{Level 0: Reproduction}
+At this level, LLM agents can reproduce existing research papers either with or without access to the original code.
+%
+This level demonstrates a basic understanding of the research domain and the ability to replicate established results.
+%
+% The SUPER benchmark~\citep{boginSUPEREvaluatingAgents2024} is a great example for this level.
+
+% \rr{changed the definition of the levels a bit, please take a look}
+
+\textbf{Level 1: Baseline Improvement}
+At Level 1, LLM agents can improve performance on a benchmark given a baseline code that is not state-of-the-art (SOTA).
+%
+This level indicates the ability to analyze and optimize existing solutions, even if they are not the most advanced.
+%
+
+\textbf{Level 2: SOTA Achievement}
+At Level 2, LLM agents can achieve SOTA performance on a benchmark given only a task description and access to the published literature before the invention of the SOTA approach, but no access to the SOTA paper or code. 
+%
+This level demonstrates the ability to come up with a solution to an open research problem which is as good as the one found by humans.
+
+\textbf{Level 3: Novel Scientific Contribution}
+At Level 3, LLM agents can make a novel scientific contribution, such as coming up with a new method that establishes a new SOTA on multiple benchmarks, and is worthy of publication at a top ML conference such as NeurIPS. 
+% can achieve a new SOTA performance on a benchmark with no additional code or instructions.
+% %
+% This capability indicates the ability to develop novel solutions from scratch, leveraging only the problem definition and the available data.
+
+\textbf{Level 4: Groundbreaking Scientific Contribution}
+At Level 4, LLM agents can identify key research questions, directions, solutions, and make a notable scientific contribution worthy of being published as an oral or best paper award at a prestigious ML conference such as NeurIPS.
+% %
+% This capability demonstrates an ability to generate groundbreaking research that advances the field.
+
+% \dn{level 3 and level 4 are hard to differentiate right now}
+% \rr{IMO there's a clear distinction whereby one is a single novel contribution e.g. first PhD paper and another one is pursuing a long-term research agenda e.g. a professor's / researcher's career}
+
+\textbf{Level 5: Long-Term Research Agenda}
+At Level 5, LLM agents can pursue a long-term research agenda, coming up with the research questions, directions, and solutions, continuously producing scientific discoveries over the span of weeks, months, or years. LLMs at this level should be capable of paradigm-shifting research breakthroughs worthy of prizes such as Nobel or Turing.
+% In the context of LLM agents working on the problem of language modeling itself, they can continuously improve themselves over time, making advances in AI research through self-directed learning and experimentation.
+% %
+% This capability represents the pinnacle of autonomy, where the agent can adapt, learn, and evolve without human intervention.
+
+By defining these capability levels, we provide a framework for evaluating frontier AI Research Agents. 
+
+\mlgym-Bench focuses on \ul{Level 1: Baseline Improvement} of the categorisation defined above.
+
+% Existing Level 1 benchmarks, such as MLAgentBench \citep{huangMLAgentBenchEvaluatingLanguage2024}, ScienceAgentBench \citep{chenScienceAgentBenchRigorousAssessment2024}, and MLE-Bench \citep{chanMLEbenchEvaluatingMachine2024} include a diverse set of tasks, with ScienceAgentBench including data centric non-ML tasks, MLE-Bench including diverse ML engineering tasks from Kaggle, and MLAgentBench including canonical ML as well as ML research tasks.
+% %
+% However, \mlgym-Bench expands the range of domains to include reinforcement learning, game theory, and logic tasks as well.

@@ -1,0 +1,90 @@
+\vspace{-20pt}
+\section{Introduction}
+\label{sec:intro}
+
+Effective communication is a key ability for collaboration.
+Indeed, intelligent agents (humans or artificial) in real-world scenarios can
+significantly benefit from exchanging information that enables them to coordinate,
+strategize, and utilize their combined sensory experiences to act in the physical world.
+The ability to communicate has wide-ranging applications for artificial agents --
+from multi-player gameplay in simulated (\eg DoTA, StarCraft) or
+physical worlds (\eg robot soccer), to self-driving car networks communicating
+with each other to achieve safe and swift transport, to teams of robots on
+search-and-rescue missions deployed in hostile, fast-evolving environments.
+
+A salient property of human communication is the ability to hold \emph{targeted} interactions.
+Rather than the `one-size-fits-all' approach of broadcasting messages to all participating agents,
+as has been previously explored~\citep{sukhbaatar_nips16,foerster_nips16,singh_iclr19},
+it can be useful to direct certain messages to specific recipients.
+This enables a more flexible collaboration strategy in complex environments.
+For example, within a team of search-and-rescue robots with a diverse set of roles and goals,
+a message for a fire-fighter (\eg ``smoke is coming from the kitchen'') is largely
+meaningless for a bomb-defuser.
+
+\begin{table*}[t]
+    \vspace{-5pt}
+    \setlength\tabcolsep{6pt}
+    \centering
+    \begin{tabular}{@{}l c c c r@{}}
+        &  \footnotesize Decentralized  & \footnotesize Targeted & \footnotesize Multi-Round & \footnotesize Reinforcement  \\[-3pt]
+        & \footnotesize Execution & \footnotesize  Communication & \footnotesize Decisions & \footnotesize Learning \\
+        \cmidrule(r){1-1} \cmidrule(lr){2-2} \cmidrule(lr){3-3} \cmidrule(lr){4-4} \cmidrule(lr){5-5}
+        DIAL~\citep{foerster_nips16}
+            & Yes & No & No & Yes (Q-Learning) \\
+        CommNet~\citep{sukhbaatar_nips16}
+            & Yes & No & Yes & Yes (REINFORCE) \\
+        VAIN~\citep{hoshen_nips17}
+            & No & Yes & Yes & No (Supervised) \\
+        ATOC~\citep{jiang_nips18}
+            & Yes & No & No & Yes (Actor-Critic) \\
+        IC3Net~\citep{singh_iclr19}
+            & Yes & No & Yes & Yes (REINFORCE) \\ \midrule
+        TarMAC (this paper) & Yes & Yes & Yes & Yes (Actor-Critic) \\ \bottomrule
+    \end{tabular}
+    \vspace{5pt}
+    \caption{Comparison with previous work on collaborative multi-agent communication with continuous vectors.}
+    \vspace{-15pt}
+    \label{table:related}
+\end{table*}
+
+We develop TarMAC, a Targeted Multi-Agent Communication
+architecture for collaborative multi-agent deep reinforcement learning.
+Our key insight in TarMAC is to allow each individual agent to \emph{actively select}
+which other agents to address messages to. This targeted communication
+behavior is operationalized via a simple signature-based soft attention mechanism: along with the message, the sender broadcasts
+a key which encodes properties of agents the message is intended for, and is used by receivers to gauge the relevance of the message.
+This communication mechanism is learned implicitly, without any attention supervision,
+as a result of end-to-end training using task reward.
+
+The inductive bias provided by soft attention in the communication architecture is sufficient to enable agents to 1) communicate agent-goal-specific messages (\eg guide fire-fighter towards fire, bomb-defuser towards
+bomb, \etc), 2) be adaptive to variable team sizes (\eg the size of the local neighborhood a self-driving car can communicate with changes as it moves), and 3) be interpretable through predicted attention probabilities that allow for inspection of \emph{which} agent is communicating \emph{what} message and to \emph{whom}.
+
+Our results however show that just using targeted communication is not enough.
+Complex real-world tasks might require \emph{large populations of agents} to go through
+\emph{multiple rounds of collaborative communication and reasoning}, involving
+large amounts of information to be \emph{persistent in memory} and exchanged via
+\emph{high-bandwidth communication channels}. To this end, our actor-critic
+framework combines centralized training with decentralized execution~\citep{lowe_nips17},
+thus enabling scaling to large team sizes. In this context, our inter-agent
+communication architecture also supports multiple rounds of targeted interactions at
+every time-step, wherein the agents' recurrent policies persist
+relevant information in internal states.
+
+While natural language, \ie a finite set of discrete tokens with pre-specified human-conventionalized meanings, may seem like an intuitive protocol for inter-agent communication -- one that enables human-interpretability of interactions -- forcing machines to communicate among themselves in discrete tokens presents additional training challenges. Since our work focuses on machine-only multi-agent teams, we allow agents to communicate via continuous vectors (rather than discrete symbols),
+as has been explored in~\cite{sukhbaatar_nips16,singh_iclr19},
+and agents have the flexibility to discover and optimize their communication protocol as per task requirements.
+
+We provide extensive empirical evaluation of our approach across
+a range of tasks, environments, and team sizes.
+\begin{compactitem}
+\item We begin by benchmarking TarMAC and its ablation without attention on a
+    cooperative navigation task derived from the SHAPES environment~\citep{andreas_cvpr16} in \Secref{sec:shapes}.
+    We show that agents learn intuitive attention behavior across task difficulties.
+\item Next, we evaluate TarMAC on the traffic junction environment~\citep{sukhbaatar_nips16} in \Secref{sec:tj},
+    and show that agents are able to adaptively focus on `active' agents in the
+    case of varying team sizes.
+\item We then demonstrate its efficacy in $3$D environments with a cooperative first-person point-goal navigation task in House$3$D~\citep{house3d} (\Secref{sec:h3d}).
+\item Finally, in \Secref{sec:competitive}, we show that TarMAC can be easily combined with IC3Net~\cite{singh_iclr19},
+    thus extending its applicability to mixed and competitive environments, and
+    leading to significant improvements in performance and sample complexity.
+\end{compactitem}

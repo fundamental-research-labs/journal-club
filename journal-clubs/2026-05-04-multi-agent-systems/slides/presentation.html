@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>When Multi-Agent Helps and When It Doesn't</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" id="theme" />
+  <style>
+    :root {
+      --accent: #4A9FED;
+      --accent-dim: #2d6da8;
+      --bg: #1a1a2e;
+      --bg-slide: #16213e;
+      --text: #e8e8e8;
+      --text-dim: #a0a0b8;
+      --green: #5cb85c;
+      --red: #e74c3c;
+      --orange: #f0ad4e;
+    }
+    .reveal {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 32px; color: var(--text);
+    }
+    .reveal .slides { text-align: left; }
+    .reveal .slides section { background: var(--bg-slide); border-radius: 4px; }
+    body { background: var(--bg); }
+    .reveal h1, .reveal h2, .reveal h3 {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-weight: 700; color: #fff; text-transform: none; letter-spacing: -0.01em;
+    }
+    .reveal h1 { font-size: 2.0em; }
+    .reveal h2 { font-size: 1.35em; margin-bottom: 0.5em; }
+    .reveal h3 { font-size: 1.0em; color: var(--accent); margin-bottom: 0.3em; }
+    .reveal ul { list-style: none; padding-left: 0; margin-left: 0; }
+    .reveal ul li {
+      padding-left: 1.4em; position: relative;
+      margin-bottom: 0.3em; line-height: 1.4; font-size: 0.78em;
+    }
+    .reveal ul li::before {
+      content: "\25B8"; color: var(--accent);
+      position: absolute; left: 0; font-size: 0.9em;
+    }
+    .reveal ul ul li { font-size: 0.88em; color: var(--text-dim); margin-bottom: 0.15em; }
+    .reveal ul ul li::before { content: "\2013"; color: var(--accent-dim); }
+    .accent { color: var(--accent); font-weight: 600; }
+    .green  { color: var(--green); }
+    .red    { color: var(--red); }
+    .orange { color: var(--orange); }
+    .dim    { color: var(--text-dim); }
+    .small  { font-size: 0.7em; }
+    .stat-box {
+      display: inline-block; background: rgba(74,159,237,0.12);
+      border: 1px solid rgba(74,159,237,0.3); border-radius: 6px;
+      padding: 0.2em 0.6em; margin: 0.1em 0.15em; font-weight: 600;
+    }
+    .stat-green { background: rgba(92,184,92,0.12); border-color: rgba(92,184,92,0.3); }
+    .stat-red { background: rgba(231,76,60,0.12); border-color: rgba(231,76,60,0.3); }
+    .title-slide { text-align: center !important; }
+    .title-slide h1 { font-size: 1.8em; text-align: center; margin-bottom: 0.2em; }
+    .title-slide p { text-align: center; }
+    .two-col {
+      display: grid; grid-template-columns: 42% 56%; gap: 1em;
+      align-items: start; margin-top: 0.3em;
+    }
+    .two-col img {
+      max-height: 420px; width: 100%; object-fit: contain;
+      border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .fig-full { text-align: center; margin-top: 0.3em; }
+    .fig-full img {
+      max-height: 410px; object-fit: contain;
+      border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .callout {
+      background: rgba(74,159,237,0.08); border-radius: 6px;
+      padding: 0.4em 0.6em; margin-top: 0.4em;
+    }
+    .callout p { font-size: 0.75em; margin: 0; }
+    .callout-red {
+      background: rgba(231,76,60,0.08); border-radius: 6px;
+      padding: 0.4em 0.6em; margin-top: 0.4em;
+    }
+    .callout-red p { font-size: 0.75em; margin: 0; }
+    .section-label {
+      text-align: center !important;
+    }
+    .section-label h2 {
+      font-size: 1.6em; margin-bottom: 0.2em;
+    }
+    .section-label p {
+      text-align: center; color: var(--text-dim); font-size: 0.75em;
+    }
+    .paper-table {
+      font-size: 0.5em; width: 100%; border-collapse: collapse; margin-top: 0.2em;
+    }
+    .paper-table th {
+      color: var(--accent); border-bottom: 1px solid rgba(74,159,237,0.3);
+      padding: 0.3em 0.5em; text-align: left; font-weight: 600;
+    }
+    .paper-table td {
+      padding: 0.25em 0.5em;
+      border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top;
+    }
+    .paper-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    .framework-grid {
+      display: grid; grid-template-columns: auto 1fr;
+      gap: 0.15em 0.7em; font-size: 0.78em;
+    }
+    .fnum { color: var(--accent); font-weight: 700; font-size: 1.1em; }
+    .reveal .progress { color: var(--accent); }
+    .reveal .controls button { color: var(--accent); }
+    .bignum { font-size: 2.2em; font-weight: 800; line-height: 1; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============================================================== -->
+<!-- TITLE                                                          -->
+<!-- ============================================================== -->
+<section class="title-slide">
+  <h1>When Multi-Agent Helps<br/>and When It Doesn't</h1>
+  <p style="color: var(--text-dim); font-size: 0.65em; margin-top: 0.8em;">A Survey of 11 Recent Papers</p>
+  <p style="color: var(--accent); font-size: 0.55em; margin-top: 1.2em;">Journal Club &middot; May 2026</p>
+  <aside class="notes">
+    11 papers from the last 6 months. The goal: build an empirical decision framework
+    for when multi-agent coordination is worth the overhead.
+  </aside>
+</section>
+
+<!-- ============================================================== -->
+<!-- THESIS                                                         -->
+<!-- ============================================================== -->
+<section>
+  <h2>The Thesis</h2>
+  <p class="fragment" style="font-size: 0.85em; margin-bottom: 0.6em;">
+    Multi-agent LLM systems promise division of labor, parallelism, and diverse perspectives.
+  </p>
+  <p class="fragment" style="font-size: 0.85em; margin-bottom: 0.6em;">
+    But across 11 recent papers, a sharper picture emerges:
+  </p>
+  <div class="fragment callout">
+    <p style="font-size: 0.85em;">
+      Multi-agent helps for <span class="accent">decomposable, verifiable, isolated</span> tasks.<br/>
+      For everything else, the overhead usually isn't worth it &mdash; and may make things worse.
+    </p>
+  </div>
+  <p class="fragment dim" style="font-size: 0.7em; margin-top: 0.7em;">
+    This talk walks through the evidence: where multi-agent wins, where it loses,<br/>
+    why scaling agents hits a wall, and what architectural patterns survive.
+  </p>
+</section>
+
+<!-- ============================================================== -->
+<!-- ACT 1: THE STRONGEST POSITIVE CASE                             -->
+<!-- ============================================================== -->
+<section class="section-label">
+  <h2><span class="green">Act I</span></h2>
+  <p>The strongest positive case for multi-agent</p>
+</section>
+
+<!-- CAID: method -->
+<section>
+  <h2>CAID: Branch-and-Merge Coordination <span class="dim small">(Geng &amp; Neubig, CMU)</span></h2>
+  <div class="two-col">
+    <div>
+      <ul>
+        <li class="fragment">Manager builds <span class="accent">dependency graph</span> of the repo</li>
+        <li class="fragment">Engineers work in isolated <span class="accent">git worktrees</span> &mdash; physical separation, not prompt-based</li>
+        <li class="fragment">Integration only via <span class="accent">git merge</span>, gated by passing tests</li>
+        <li class="fragment">Structured JSON task specs &mdash; no free-form dialogue between agents</li>
+      </ul>
+      <div class="fragment callout">
+        <p>Key design choice: borrow coordination primitives from <em>human</em> software engineering (branches, merges, test suites) rather than inventing agent-specific protocols.</p>
+      </div>
+    </div>
+    <div>
+      <img src="figures/caid_workflow.png" />
+    </div>
+  </div>
+</section>
+
+<!-- CAID: results -->
+<section>
+  <h2>CAID: The Numbers</h2>
+  <div class="two-col">
+    <div>
+      <p style="font-size: 0.78em;">Consistent gains across models and benchmarks:</p>
+      <ul>
+        <li class="fragment"><span class="stat-box stat-green">+6.1pp</span> PaperBench with Claude 4.5</li>
+        <li class="fragment"><span class="stat-box stat-green">+6.0pp</span> Commit0-Lite with Claude 4.5</li>
+        <li class="fragment"><span class="stat-box stat-green">+14.7pp</span> Commit0-Lite with MiniMax 2.5</li>
+      </ul>
+      <ul>
+        <li class="fragment"><span class="accent">Worktree isolation</span> (63.3%) beats soft isolation (55.5%) on PaperBench</li>
+        <li class="fragment">Doubling single-agent iterations gives <span class="red">marginal</span> gains; CAID's are <span class="green">2&ndash;4&times; larger</span></li>
+        <li class="fragment">But: diminishing returns at N=8 engineers &mdash; optimal is <span class="accent">2&ndash;4</span></li>
+      </ul>
+    </div>
+    <div>
+      <img src="figures/caid_fig2_bars.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">Score gain from CAID vs. doubling single-agent iterations</p>
+    </div>
+  </div>
+</section>
+
+<!-- CAID: why it works — gantt -->
+<section>
+  <h2>Why It Works: Delegation Shapes the Trajectory</h2>
+  <div class="fig-full">
+    <img src="figures/caid_gantt.png" style="max-height: 380px;" />
+  </div>
+  <div class="fragment callout" style="margin-top: 0.2em;">
+    <p>Same repo (minitorch), two CAID runs. Run 2 assigns <span class="accent">autodiff.py</span> &mdash; a critical dependency &mdash; and achieves 34.3% vs 8.7%.
+    The bottleneck is the manager's <span class="accent">delegation intelligence</span>: identifying high-impact files, not just distributing work evenly.</p>
+  </div>
+</section>
+
+<!-- ============================================================== -->
+<!-- ACT 2: THE COUNTER-EVIDENCE                                    -->
+<!-- ============================================================== -->
+<section class="section-label">
+  <h2><span class="red">Act II</span></h2>
+  <p>The counter-evidence: when multi-agent fails or is illusory</p>
+</section>
+
+<!-- CooperBench -->
+<section>
+  <h2>CooperBench: Cooperation Collapses Without Isolation
+    <span class="dim small">(Khatua et al., Stanford/SAP)</span></h2>
+  <div class="two-col">
+    <div>
+      <ul>
+        <li class="fragment">652 tasks: 2 agents implement <span class="accent">potentially conflicting</span> features on the same repo</li>
+        <li class="fragment">GPT-5 / Claude Sonnet 4.5: <span class="stat-box stat-red">~25% success</span></li>
+        <li class="fragment">That's <span class="red">50% below</span> a single agent doing both features sequentially</li>
+      </ul>
+      <h3 class="fragment" style="margin-top: 0.4em;">Root causes</h3>
+      <ul>
+        <li class="fragment"><span class="red">Jammed channels</span> &mdash; vague, ill-timed, repetitive messages</li>
+        <li class="fragment"><span class="red">Commitment deviation</span> &mdash; agents agree on a plan, then do something else</li>
+        <li class="fragment"><span class="red">Broken expectations</span> &mdash; wrong mental models of what the other agent is doing</li>
+      </ul>
+      <div class="fragment callout-red">
+        <p>The bottleneck isn't coding ability &mdash; it's <span class="accent">social intelligence</span>.
+        CAID avoids this entirely by eliminating inter-agent dialogue.</p>
+      </div>
+    </div>
+    <div>
+      <img src="figures/cooperbench_fig1.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">Two agents work on conflicting features with potential merge conflicts</p>
+    </div>
+  </div>
+</section>
+
+<!-- Single agent outperforms -->
+<section>
+  <h2>Are Multi-Agent Gains Just More Tokens?
+    <span class="dim small">(Tran &amp; Kiela)</span></h2>
+  <div class="two-col">
+    <div>
+      <h3>The argument</h3>
+      <ul>
+        <li class="fragment">Multi-agent uses more tokens: role prompts, inter-agent messages, coordination overhead</li>
+        <li class="fragment">A fair comparison must <span class="accent">equalize thinking-token budgets</span></li>
+        <li class="fragment">Their "SAS-L" variant: single agent with longer thinking &mdash; same total tokens as multi-agent</li>
+      </ul>
+      <h3 class="fragment" style="margin-top: 0.4em;">The result</h3>
+      <ul>
+        <li class="fragment">Across Qwen3, DeepSeek-R1, Gemini 2.5: single agent <span class="green">matches or beats</span> multi-agent at every token budget</li>
+        <li class="fragment">SAS is the <span class="accent">strongest architecture</span> in 72% of (model, budget) configurations</li>
+        <li class="fragment">Multi-agent overhead destroys information &mdash; tokens spent on coordination are tokens <em>not</em> spent on reasoning</li>
+      </ul>
+    </div>
+    <div>
+      <img src="figures/singleagent_fig_p7.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">SAS vs. multi-agent under matched thinking-token budgets</p>
+    </div>
+  </div>
+  <aside class="notes">
+    Critical methodological point: most multi-agent papers do NOT equalize compute.
+    This is on multi-hop reasoning tasks specifically, not SWE tasks like CAID targets.
+  </aside>
+</section>
+
+<!-- ============================================================== -->
+<!-- ACT 3: THE SCALING QUESTION                                    -->
+<!-- ============================================================== -->
+<section class="section-label">
+  <h2><span class="orange">Act III</span></h2>
+  <p>When does adding agents help? The scaling laws</p>
+</section>
+
+<!-- Kim et al scaling -->
+<section>
+  <h2>A Science of Scaling Agent Systems
+    <span class="dim small">(Kim et al., UW/Microsoft/MIT)</span></h2>
+  <div class="two-col">
+    <div>
+      <h3>Methodology</h3>
+      <ul>
+        <li class="fragment"><span class="accent">260 configurations</span>: 5 architectures &times; 6 agentic benchmarks &times; 3 LLM families</li>
+        <li class="fragment">Architectures: single, parallel voting, sequential debate, centralized orchestration, hierarchical</li>
+        <li class="fragment">Benchmarks chosen for genuine agentic tasks (SWE-bench, WorkBench, PlanCraft...) &mdash; not GSM8K</li>
+      </ul>
+      <h3 class="fragment" style="margin-top: 0.3em;">The threshold effect</h3>
+      <ul>
+        <li class="fragment">Coordination helps <span class="green">below</span> a single-agent performance threshold</li>
+        <li class="fragment">Above the threshold, coordination adds overhead <span class="red">without benefit</span></li>
+        <li class="fragment">Success depends on <span class="accent">alignment</span> between coordination topology and task structure</li>
+      </ul>
+    </div>
+    <div>
+      <img src="figures/scaling_fig_p9.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">6 agentic benchmarks spanning SWE, planning, and tool-use</p>
+    </div>
+  </div>
+  <div class="fragment callout">
+    <p>This explains CAID's pattern: large gains with weaker MiniMax 2.5 (+14.7pp), smaller with stronger Claude 4.5 (+6.0pp).
+    Multi-agent is most valuable when individual agents aren't good enough alone.</p>
+  </div>
+</section>
+
+<!-- Diversity -->
+<section>
+  <h2>Diversity, Not Scale
+    <span class="dim small">(Yang et al., SJTU/Caltech/CMU)</span></h2>
+  <div class="two-col">
+    <div>
+      <h3>Information-theoretic framework</h3>
+      <ul>
+        <li class="fragment">Performance bounded by <span class="accent">effective info channels K*</span>, not agent count</li>
+        <li class="fragment">Homogeneous agents = correlated outputs = redundant channels</li>
+        <li class="fragment">Residual error decays as <span class="mono">e<sup>-&alpha;K</sup></span> where &alpha; = complementarity rate</li>
+      </ul>
+      <h3 class="fragment" style="margin-top: 0.3em;">The headline result</h3>
+      <ul>
+        <li class="fragment"><span class="stat-box stat-green">2 diverse agents = 16 homogeneous</span></li>
+        <li class="fragment">4-layer isolation: L1 (identical) &rarr; L2 (persona) &rarr; L3 (model) &rarr; L4 (full diversity)</li>
+        <li class="fragment">Only <span class="accent">correct-path diversity</span> helps &mdash; not all disagreement is useful</li>
+      </ul>
+      <div class="fragment callout-red">
+        <p><strong>Caveat:</strong> tested on 7B-8B open models (Qwen, Llama, Mistral) with Vote/Debate on GSM8K/ARC. Unclear if this holds for frontier models or SWE tasks.</p>
+      </div>
+    </div>
+    <div>
+      <img src="figures/diversity_fig4_heatmaps.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">Heatmaps: rows = diversity layers (L1&ndash;L4), columns = N agents. Green &rarr; red = low &rarr; high accuracy.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== -->
+<!-- ACT 4: THE DEEPER PROBLEM                                      -->
+<!-- ============================================================== -->
+<section class="section-label">
+  <h2><span class="red">Act IV</span></h2>
+  <p>The deeper problem: degradation and the epistemic gap</p>
+</section>
+
+<!-- SlopCodeBench -->
+<section>
+  <h2>Code Quality Erodes Over Time
+    <span class="dim small">(SlopCodeBench, Orlanski et al.)</span></h2>
+  <div class="two-col">
+    <div>
+      <h3>Benchmark design</h3>
+      <ul>
+        <li class="fragment">20 iterative problems, 93 checkpoints &mdash; agent extends <em>its own prior code</em></li>
+        <li class="fragment">Black-box specs only: no prescribed internals, no visible test suite</li>
+        <li class="fragment">Tracks <span class="accent">structural erosion</span> (complexity concentration) and <span class="accent">verbosity</span> (redundant code)</li>
+      </ul>
+      <h3 class="fragment" style="margin-top: 0.3em;">Findings across 11 models</h3>
+      <ul>
+        <li class="fragment"><span class="red">No agent</span> solves any problem end-to-end (0/20)</li>
+        <li class="fragment">Erosion rises in <span class="stat-box stat-red">80%</span> of trajectories, verbosity in <span class="stat-box stat-red">89.8%</span></li>
+        <li class="fragment">Agent code is <span class="red">2.2&times; more verbose</span> than human code &mdash; and the gap <em>widens</em> over time</li>
+      </ul>
+    </div>
+    <div>
+      <img src="figures/slop_fig3_erosion.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">Erosion and verbosity climb monotonically across 6 models (3 per provider)</p>
+    </div>
+  </div>
+</section>
+
+<!-- SlopCodeBench: prompts don't fix it -->
+<section>
+  <h2>Prompts Shift the Intercept, Not the Slope</h2>
+  <div class="two-col">
+    <div>
+      <ul>
+        <li class="fragment"><span class="mono">anti_slop</span>: forbids verbose patterns, defensive over-engineering</li>
+        <li class="fragment"><span class="mono">plan_first</span>: requires planning before coding</li>
+        <li class="fragment">Both reduce <span class="accent">initial</span> verbosity and erosion &mdash; a cleaner starting point</li>
+        <li class="fragment">But the <span class="red">degradation slope is identical</span> to the baseline</li>
+        <li class="fragment">Compounding resumes at the same rate regardless of prompt</li>
+      </ul>
+      <div class="fragment callout-red">
+        <p>Degradation is <strong>structural</strong> &mdash; a property of how LLMs modify code under iteration, not a prompting failure.
+        Multi-agent doesn't solve this; it may compound it through coordination overhead.</p>
+      </div>
+    </div>
+    <div>
+      <img src="figures/slop_fig5_prompts.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">anti_slop and plan_first shift starting quality but track baseline slope exactly</p>
+    </div>
+  </div>
+</section>
+
+<!-- DELEGATE-52 -->
+<section>
+  <h2>Documents Degrade Across 52 Domains
+    <span class="dim small">(DELEGATE-52, Laban et al., MSR)</span></h2>
+  <div class="two-col">
+    <div>
+      <h3>Method: backtranslation relay</h3>
+      <ul>
+        <li class="fragment">Each edit task is reversible (forward + backward instruction)</li>
+        <li class="fragment">Chain 10 round-trips = 20 delegated interactions</li>
+        <li class="fragment">Measure semantic similarity to original document after the relay</li>
+        <li class="fragment">52 domains: code, crystallography, music notation, recipes, genealogy...</li>
+      </ul>
+      <h3 class="fragment" style="margin-top: 0.3em;">Results</h3>
+      <ul>
+        <li class="fragment">Average <span class="stat-box stat-red">50% degradation</span> across all models by interaction 20</li>
+        <li class="fragment">Even frontier models (GPT 5.4, Claude Opus): <span class="red">~25% loss</span></li>
+        <li class="fragment">Python is the <span class="green">only</span> domain where most models are lossless</li>
+        <li class="fragment">Tool use makes it <span class="red">worse</span> (6% additional degradation)</li>
+      </ul>
+    </div>
+    <div>
+      <img src="figures/delegate_table1.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">Degradation table: all models accumulate errors, background color = deviation from seed</p>
+    </div>
+  </div>
+</section>
+
+<!-- DELEGATE-52: heatmap -->
+<section>
+  <h2>The Domain Heatmap: Almost Nothing Is Ready</h2>
+  <div class="fig-full">
+    <img src="figures/delegate_heatmap.png" style="max-height: 400px;" />
+  </div>
+  <div class="fragment callout-red" style="margin-top: 0.15em;">
+    <p>&check; = "ready" (RS@20 &ge; 98%). <span class="red">Python is the only domain where a majority of models pass.</span>
+    Sparse critical failures (&ge;10pt drops) explain ~80% of total degradation &mdash; models don't die by a thousand cuts, they have occasional catastrophic errors that compound.</p>
+  </div>
+</section>
+
+<!-- AI Scientists: the epistemic gap -->
+<section>
+  <h2>The Epistemic Gap: Scaffold &asymp; 1.5% of Variance
+    <span class="dim small">(R&iacute;os-Garc&iacute;a et al.)</span></h2>
+  <div class="two-col">
+    <div>
+      <h3>Methodology</h3>
+      <ul>
+        <li class="fragment">25,000+ agent runs, 8 scientific domains, 3 models, 2 scaffolds (ReAct + Tool Calling)</li>
+        <li class="fragment">Factor agent as <span class="accent">&pi;<sub>overall</sub> = f(&pi;<sub>LLM</sub>, &pi;<sub>scaffold</sub>)</span></li>
+        <li class="fragment">IRT to separate knowledge vs. reasoning abilities</li>
+        <li class="fragment">Bayesian latent-factor model predicts task success</li>
+      </ul>
+      <h3 class="fragment" style="margin-top: 0.3em;">Variance decomposition</h3>
+      <ul>
+        <li class="fragment">Reasoning: <span class="stat-box stat-green">41.4%</span></li>
+        <li class="fragment">Env &times; scope: <span class="stat-box">30.1%</span></li>
+        <li class="fragment">Scaffold: <span class="stat-box stat-red">1.5%</span></li>
+        <li class="fragment">Verbosity: <span class="stat-box stat-red">0.1%</span></li>
+      </ul>
+    </div>
+    <div>
+      <img src="figures/aiscientists_fig3_variance.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">Figure 3: Variance decomposition &mdash; reasoning dominates, scaffold is noise</p>
+    </div>
+  </div>
+</section>
+
+<!-- AI Scientists: reasoning breakdowns -->
+<section>
+  <h2>Agents Execute Workflows but Don't Reason</h2>
+  <div class="two-col">
+    <div>
+      <h3>Epistemological trace analysis</h3>
+      <ul>
+        <li class="fragment">Each step classified as: Hypothesis, Test, Evidence, Judgment, Update, Commit</li>
+        <li class="fragment">Graph structure reveals reasoning patterns (or their absence)</li>
+      </ul>
+      <h3 class="fragment" style="margin-top: 0.3em;">The breakdown rates</h3>
+      <ul>
+        <li class="fragment">Evidence <span class="red">ignored</span> in <span class="stat-box stat-red">68%</span> of traces</li>
+        <li class="fragment">Refutation-driven belief revision: only <span class="stat-box stat-red">26%</span></li>
+        <li class="fragment">Convergent multi-test evidence: <span class="stat-box stat-red">7%</span></li>
+        <li class="fragment">Same topology regardless of task type &mdash; no adaptation to epistemic demands</li>
+      </ul>
+      <div class="fragment callout-red">
+        <p>If the base model can't reason epistemically, no amount of multi-agent scaffolding will produce reliable scientific inquiry.</p>
+      </div>
+    </div>
+    <div>
+      <img src="figures/aiscientists_fig4_breakdowns.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">Figure 4: Reasoning breakdowns dominate productive patterns in all domain groups</p>
+    </div>
+  </div>
+</section>
+
+<!-- MAST taxonomy -->
+<section>
+  <h2>14 Ways Multi-Agent Systems Fail
+    <span class="dim small">(Cemri et al., NeurIPS 2025 Spotlight)</span></h2>
+  <div class="two-col">
+    <div>
+      <h3>MAST taxonomy from 1,600+ traces</h3>
+      <ul>
+        <li class="fragment"><span class="accent">System design</span>: wrong tool selection, poor decomposition, missing capabilities</li>
+        <li class="fragment"><span class="accent">Inter-agent misalignment</span>: contradictory outputs, role confusion, communication breakdown</li>
+        <li class="fragment"><span class="accent">Task verification</span>: no self-check, wrong success criteria, silent failures</li>
+      </ul>
+      <ul>
+        <li class="fragment">7 MAS frameworks, 5 LLMs, inter-annotator &kappa; = 0.88</li>
+        <li class="fragment">CEO workflow adjustment (+9.4% success) from MAST-guided interventions &mdash; but the authors note <span class="accent">isolated fixes are insufficient</span></li>
+      </ul>
+      <div class="fragment callout">
+        <p>CAID's design addresses misalignment (structured JSON, no dialogue) and verification (test-gated merging) &mdash; but system design failures (poor decomposition) remain the manager's bottleneck.</p>
+      </div>
+    </div>
+    <div>
+      <img src="figures/mast_fig_p5.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">MAST-Data pipeline: trace collection &rarr; failure annotation &rarr; taxonomy</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== -->
+<!-- ACT 5: ARCHITECTURAL RESPONSES                                 -->
+<!-- ============================================================== -->
+<section class="section-label">
+  <h2><span class="accent">Act V</span></h2>
+  <p>Architectural responses: what works</p>
+</section>
+
+<!-- MaAS -->
+<section>
+  <h2>MaAS: The Right Topology Varies Per Query
+    <span class="dim small">(Zhang et al., ICML 2025 Oral)</span></h2>
+  <div class="two-col">
+    <div>
+      <h3>Treat topology as a NAS problem</h3>
+      <ul>
+        <li class="fragment">Agentic Supernet: continuous distribution over agent configurations</li>
+        <li class="fragment">Controller samples a <span class="accent">query-dependent architecture</span> at inference time</li>
+        <li class="fragment">Easy queries &rarr; fewer agents; hard queries &rarr; more agents, different routing</li>
+      </ul>
+      <h3 class="fragment" style="margin-top: 0.3em;">Results</h3>
+      <ul>
+        <li class="fragment"><span class="stat-box stat-green">6&ndash;45% cost</span> of hand-crafted baselines</li>
+        <li class="fragment"><span class="stat-box stat-green">+0.5&ndash;11.8%</span> accuracy across 6 benchmarks</li>
+        <li class="fragment">Transfers across LLM backbones without re-training</li>
+      </ul>
+      <div class="fragment callout">
+        <p>If scaffold is only 1.5% of variance with <em>fixed</em> topologies, maybe the issue is that fixed topologies average out.
+        Adaptive selection could be the missing piece.</p>
+      </div>
+    </div>
+    <div>
+      <img src="figures/maas_fig2_arch.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">MaAS framework: controller samples from agentic supernet per query</p>
+    </div>
+  </div>
+</section>
+
+<!-- MemMA -->
+<section>
+  <h2>MemMA: Self-Healing Memory
+    <span class="dim small">(Lin et al., Penn State/Amazon/Microsoft)</span></h2>
+  <div class="two-col">
+    <div>
+      <h3>The memory cycle problem</h3>
+      <ul>
+        <li class="fragment">Construction &rarr; Retrieval &rarr; Utilization are <span class="accent">coupled</span>, not isolated</li>
+        <li class="fragment">A bad write during construction propagates to retrieval and answering</li>
+        <li class="fragment">Feedback is sparse and delayed &mdash; you only know a write was bad when a downstream question fails</li>
+      </ul>
+      <h3 class="fragment" style="margin-top: 0.3em;">The "immune system" approach</h3>
+      <ul>
+        <li class="fragment"><span class="accent">Forward path</span>: Meta-Thinker guides what to store/consolidate/resolve</li>
+        <li class="fragment"><span class="accent">Backward path</span>: synthesize probe QA &rarr; verify memory &rarr; repair failures in-situ</li>
+        <li class="fragment">Outperforms all baselines on LoCoMo; improves 3 different storage backends</li>
+      </ul>
+      <div class="fragment callout">
+        <p>The only architecture in our survey designed to <span class="accent">combat horizon degradation</span>. If SlopCodeBench and DELEGATE-52 show degradation is structural, MemMA suggests the mitigation is architectural self-repair, not better prompts.</p>
+      </div>
+    </div>
+    <div>
+      <img src="figures/memma_fig2_overview.png" />
+      <p class="dim small" style="text-align:center; margin-top: 0.2em;">MemMA: forward (construction + retrieval) and backward (probe &rarr; verify &rarr; repair) paths</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== -->
+<!-- SYNTHESIS                                                      -->
+<!-- ============================================================== -->
+<section class="section-label">
+  <h2>Synthesis</h2>
+  <p>A decision framework from 11 papers</p>
+</section>
+
+<!-- Decision framework -->
+<section>
+  <h2>When Multi-Agent <span class="green">Helps</span></h2>
+  <div class="framework-grid" style="margin-top: 0.4em;">
+    <div class="fnum fragment" data-fragment-index="1">1</div>
+    <div class="fragment" data-fragment-index="1">Task has <span class="accent">natural decomposition boundaries</span>
+      <span class="dim small">&mdash; CAID: file-level deps, test-per-module</span></div>
+    <div class="fnum fragment" data-fragment-index="2">2</div>
+    <div class="fragment" data-fragment-index="2">Subtasks are <span class="accent">independently verifiable</span>
+      <span class="dim small">&mdash; CAID: test suites gate each merge</span></div>
+    <div class="fnum fragment" data-fragment-index="3">3</div>
+    <div class="fragment" data-fragment-index="3"><span class="accent">Physical isolation</span> prevents interference
+      <span class="dim small">&mdash; git worktree &gt; soft context separation</span></div>
+    <div class="fnum fragment" data-fragment-index="4">4</div>
+    <div class="fragment" data-fragment-index="4">Agents are <span class="accent">diverse</span>
+      <span class="dim small">&mdash; Yang et al.: model + persona diversity; 2 diverse &asymp; 16 homogeneous</span></div>
+    <div class="fnum fragment" data-fragment-index="5">5</div>
+    <div class="fragment" data-fragment-index="5">Single-agent baseline <span class="accent">hasn't already saturated</span>
+      <span class="dim small">&mdash; Kim et al.: threshold effect; weaker models benefit more</span></div>
+  </div>
+  <div class="fragment callout" style="margin-top: 0.5em;">
+    <p>Software engineering with explicit repo structure, test suites, and git isolation is the <span class="accent">sweet spot</span>. All five conditions are naturally met.</p>
+  </div>
+</section>
+
+<section>
+  <h2>When Multi-Agent <span class="red">Hurts</span></h2>
+  <div class="framework-grid" style="margin-top: 0.4em;">
+    <div class="fnum fragment" data-fragment-index="1">1</div>
+    <div class="fragment" data-fragment-index="1">Tasks require <span class="red">tight real-time coordination</span>
+      <span class="dim small">&mdash; CooperBench: communication overhead dominates</span></div>
+    <div class="fnum fragment" data-fragment-index="2">2</div>
+    <div class="fragment" data-fragment-index="2"><span class="red">Homogeneous</span> agents on reasoning tasks
+      <span class="dim small">&mdash; Yang et al.: K* &asymp; 1, redundant channels</span></div>
+    <div class="fnum fragment" data-fragment-index="3">3</div>
+    <div class="fragment" data-fragment-index="3">Compute <span class="red">isn't controlled for</span>
+      <span class="dim small">&mdash; Tran &amp; Kiela: multi-agent "gains" are often just more tokens</span></div>
+    <div class="fnum fragment" data-fragment-index="4">4</div>
+    <div class="fragment" data-fragment-index="4"><span class="red">Long-horizon</span> without self-repair
+      <span class="dim small">&mdash; SlopCodeBench + DELEGATE-52: degradation is structural</span></div>
+    <div class="fnum fragment" data-fragment-index="5">5</div>
+    <div class="fragment" data-fragment-index="5">The base model is <span class="red">already strong enough</span>
+      <span class="dim small">&mdash; Kim et al.: above threshold, coordination = pure overhead</span></div>
+  </div>
+</section>
+
+<!-- The uncomfortable takeaway -->
+<section>
+  <h2>The Uncomfortable Takeaway</h2>
+  <ul>
+    <li class="fragment">Multi-agent works for <span class="green">decomposable, verifiable, isolated</span> tasks
+      <span class="dim">&mdash; SWE is the sweet spot</span></li>
+    <li class="fragment">For reasoning, coordination, and long-horizon quality: multi-agent is <span class="red">usually not the answer</span></li>
+    <li class="fragment">The bottleneck is the base model (<span class="accent">41.4%</span>), not the scaffold (<span class="red">1.5%</span>)</li>
+    <li class="fragment">Degradation is structural and compounds &mdash; <span class="accent">monitor-and-repair</span> (MemMA) may be the only viable mitigation</li>
+    <li class="fragment">Diversity matters more than scale &mdash; but the evidence is only on small models</li>
+    <li class="fragment">Adaptive topology (MaAS) could reconcile fixed-scaffold's poor showing &mdash; but remains untested on frontier-model agentic tasks</li>
+  </ul>
+</section>
+
+<!-- Open questions -->
+<section>
+  <h2>Open Questions</h2>
+  <div class="framework-grid" style="margin-top: 0.3em;">
+    <div class="fnum fragment" data-fragment-index="1">1</div>
+    <div class="fragment" data-fragment-index="1">
+      If scaffold &asymp; 1.5% of variance, what <em>is</em> the value of multi-agent frameworks?<br/>
+      <span class="dim small">Or is the problem that fixed topologies average out, and adaptive selection (MaAS) would change the picture?</span>
+    </div>
+    <div class="fnum fragment" data-fragment-index="2">2</div>
+    <div class="fragment" data-fragment-index="2">
+      Does diversity-over-scale (Yang et al.) hold for <span class="accent">frontier models</span>?<br/>
+      <span class="dim small">7B models are already weak individually &mdash; frontier models may not need diverse "opinions"</span>
+    </div>
+    <div class="fnum fragment" data-fragment-index="3">3</div>
+    <div class="fragment" data-fragment-index="3">
+      Is <span class="accent">social intelligence</span> trainable, or must we design it away?<br/>
+      <span class="dim small">CooperBench vs. CAID: eliminate dialogue (engineering) vs. make dialogue work (training)?</span>
+    </div>
+    <div class="fnum fragment" data-fragment-index="4">4</div>
+    <div class="fragment" data-fragment-index="4">
+      Can we stop degradation, or only detect and repair it?<br/>
+      <span class="dim small">SlopCodeBench: prompts shift intercept, not slope. MemMA: repair after the fact. Is there a third option?</span>
+    </div>
+    <div class="fnum fragment" data-fragment-index="5">5</div>
+    <div class="fragment" data-fragment-index="5">
+      What's the right evaluation methodology for multi-agent?<br/>
+      <span class="dim small">Must we always equalize token budgets (Tran &amp; Kiela)? Or is wall-clock time the right metric?</span>
+    </div>
+  </div>
+</section>
+
+<!-- Paper index -->
+<section>
+  <h2>Paper Index</h2>
+  <table class="paper-table">
+    <thead>
+      <tr><th>#</th><th>Paper</th><th>Authors</th><th>ID / Venue</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>AI Scientists Don't Reason Scientifically</td><td>R&iacute;os-Garc&iacute;a et al.</td><td>2604.18805</td></tr>
+      <tr><td>2</td><td>CAID: Async SWE Agents</td><td>Geng &amp; Neubig</td><td>2603.21489</td></tr>
+      <tr><td>3</td><td>DELEGATE-52: Document Corruption</td><td>Laban et al.</td><td>2604.15597</td></tr>
+      <tr><td>4</td><td>MemMA: Memory Cycle Coordination</td><td>Lin et al.</td><td>2603.18718</td></tr>
+      <tr><td>5</td><td>SlopCodeBench: Code Quality Degradation</td><td>Orlanski et al.</td><td>2603.24755</td></tr>
+      <tr><td>6</td><td>MAST: Why Multi-Agent Systems Fail</td><td>Cemri et al.</td><td>2503.13657 &middot; NeurIPS '25</td></tr>
+      <tr><td>7</td><td>Science of Scaling Agent Systems</td><td>Kim et al.</td><td>2512.08296</td></tr>
+      <tr><td>8</td><td>CooperBench: Agents Can't Cooperate</td><td>Khatua et al.</td><td>2601.13295</td></tr>
+      <tr><td>9</td><td>MaAS: Architecture Search</td><td>Zhang et al.</td><td>2502.04180 &middot; ICML '25 Oral</td></tr>
+      <tr><td>10</td><td>Single-Agent Outperforms Multi-Agent</td><td>Tran &amp; Kiela</td><td>2604.02460</td></tr>
+      <tr><td>11</td><td>Agent Scaling via Diversity</td><td>Yang et al.</td><td>2602.03794</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: true,
+    transition: 'slide',
+    transitionSpeed: 'default',
+    backgroundTransition: 'fade',
+    center: false,
+    margin: 0.06,
+    width: 1280,
+    height: 720,
+    showNotes: false,
+    pdfSeparateFragments: false,
+  });
+</script>
+</body>
+</html>

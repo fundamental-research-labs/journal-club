@@ -1,0 +1,25 @@
+\input{tables/models}
+
+\section{LLM-as-Agent: Definition and Preliminary} \label{sec:preliminary}
+Here, we formalize the terms for describing the evaluation of LLMs as agents and the necessary preliminary knowledge for using LLMs in the context of agent evaluation.
+
+\vpara{Definition: Interactive Evaluation of LLM-as-Agent.}
+The interactive evaluation of LLM-as-Agent could be regarded as a Partially Observable Markov Decision Process ($\mathcal{S}, \mathcal{A}, \mathcal{T}, \mathcal{R}, \mathcal{U}, \mathcal{O}$), which comprises state space $\mathcal{S}$, action space $\mathcal{A}$, transition function $\mathcal{T}: \mathcal{S}\times\mathcal{A}\to\mathcal{S}$, reward assigning function $\mathcal{R}$, task instruction space $\mathcal{U}$, and observation space $\mathcal{O}$.
+Here, we denote an LLM agent as $\mathcal{M}$.
+
+\vpara{Chain-of-Thought (CoT) and Other Reasoning Strategies.}
+Since LLM-as-Agent requires LLMs' strong reasoning ability, CoT~\citep{wei2022chain}, which has been considered a de facto strategy in related evaluation together with actions~\citep{yao2023react}, is also adopted in \model.
+Despite many improved strategies proposed later, such as introducing ensemble~\citep{wang2023self}, reflection~\citep{shinn2023reflexion}, and search~\citep{yao2023tree}, we evaluate LLMs with the most primitive CoT in \model.
+Without multiple trials, repeated generations, or complicated strategies, CoT is the easiest, cheapest, and most common way for people to deploy LLM agents.
+
+\vpara{Typical Types of Finish Reasons.}
+Despite LLMs' capabilities, we show in \model that even the strongest \texttt{gpt-4} is not qualified as a practically usable agent.
+We identify and categorize finish reasons of LLM agents on \model tasks into five typical types:
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt,parsep=0.2em,topsep=0.0em,partopsep=0.0em]
+\item \textbf{Context Limit Exceeded (CLE)}: the length of interaction history exceeds the LLM's maximum context length (only happened in 2,048-length LLMs \texttt{text-davinci-002} and \texttt{003}).
+\item \textbf{Invalid Format (IF)}: the agent does not follow the format instruction.
+\item \textbf{Invalid Action (IA)}: the agent follows the format instruction, but its selected action is invalid.
+\item \textbf{Task Limit Exceeded (TLE)}: the agent does not solve the problem after reaching the predefined maximum interaction rounds or begins to do repeated generations for many rounds.
+\end{itemize}
+and Complete (task ends normally).
+While IF and IA are mostly caused by LLMs' poor instruction following, TLE often indicates a weak multi-turn ability in certain tasks.

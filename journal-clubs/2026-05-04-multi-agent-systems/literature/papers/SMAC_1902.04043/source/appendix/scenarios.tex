@@ -1,0 +1,28 @@
+\section{SMAC}\label{appendix:SMAC}
+
+\subsection{Scenarios}\label{appendix:SMAC_scenarios}
+
+Perhaps the simplest scenarios are \textbf{symmetric} battle scenarios, where the two armies are composed of the same units.
+Such challenges are particularly interesting when some of the units are extremely effective against others (this is known as \textit{countering}), for example, by dealing bonus damage to a particular armour type.
+In such a setting, allied agents must deduce this property of the game and design an intelligent strategy to protect teammates vulnerable to certain enemy attacks.
+
+SMAC also includes more challenging scenarios, for example, in which the enemy army outnumbers the allied army by one or more units. In such \textbf{asymmetric} scenarios it is essential to consider the health of enemy units in order to effectively target the desired opponent.
+
+Lastly, SMAC offers a set of interesting \textbf{micro-trick} challenges that require a higher-level of cooperation and a specific micro trick to defeat the enemy. 
+An example of such scenario is the \texttt{corridor} scenario (Figure~\ref{fig:SC2maps_2}c). Here, six friendly Zealots face 24 enemy Zerglings, which requires agents to make effective use of the terrain features. Specifically, agents should collectively wall off the choke point (the narrow region of the map) to block enemy attacks from different directions. 
+The \texttt{3s\_vs\_5z} scenario features three allied Stalkers against five enemy Zealots (Figure~\ref{fig:SC2maps_2}b). Since Zealots counter Stalkers, the only winning strategy for the allied units is to kite the enemy around the map and kill them one after another.
+Some of the micro-trick challenges are inspired by \textit{StarCraft Master} challenge missions released by Blizzard \cite{SC2Master}.
+
+\subsection{Environment Setting}\label{appendix:SMAC_evn_setting}
+
+SMAC makes use of the StarCraft II Learning Environment (\textit{SC2LE}) \cite{vinyals_starcraft_2017} to communicate with the StarCraft II engine. SC2LE provides full control of the game by making it possible to send commands and receive observations from the game. However, SMAC is conceptually different from the RL environment of SC2LE. The goal of SC2LE is to learn to play the full game of StarCraft II. This is a competitive task where a centralised RL agent receives RGB pixels as input and performs both macro and micro with the player-level control similar to human players. SMAC, on the other hand, represents a set of cooperative multi-agent micro challenges where each learning agent controls a single military unit.
+
+SMAC uses the \textit{raw API} of SC2LE. Raw API observations do not have any graphical component and include information about the units on the map such as health, location coordinates, etc. The raw API also allows sending action commands to individual units using their unit IDs. This setting differs from how humans play the actual game, but is convenient for designing decentralised multi-agent learning tasks. 
+
+
+Furthermore, to encourage agents to explore interesting micro strategies themselves, we limit the influence of the StarCraft AI on our agents. 
+In the game of StarCraft II, whenever an idle unit is under attack, it automatically starts a reply attack towards the attacking enemy units without being explicitly ordered. We disable such automatic replies towards the enemy attacks or enemy units that are located closely by creating new units that are the exact copies of existing ones with two attributes modified: \textit{Combat: Default Acquire Level} is set to \textit{Passive} (default \textit{Offensive}) and \textit{Behaviour: Response} is set to \textit{No Response} (default \textit{Acquire}). These fields are only modified for allied units; enemy units are unchanged.
+
+The sight and shooting range values might differ from the built-in \textit{sight} or \textit{range} attribute of some StarCraft II units. Our goal is not to master the original full StarCraft II game, but rather to benchmark MARL methods for decentralised control.
+
+The game AI is set to level 7, \textit{very difficult}. Our experiments, however, suggest that this setting does significantly impact the unit micromanagement of the built-in heuristics.

@@ -1,0 +1,77 @@
+\section{Curating Visually Grounded Tasks}
+
+
+\subsection{Web Environments}
+\BenchmarkName{} is designed around three realistic web environments that involve visually rich content. Several tasks require referencing information from a self-hosted Wikipedia knowledge base, and others involve interacting across more than one website.% (Fig.~\ref{fig:tasks_breakdown_sites}).
+
+
+\paragraph{Classifieds}
+% Describe how we scrape Craiglist, set up the site, etc. Emphasize it's a new site compared to WebArena, with new types of tasks
+% The site is powered by OSClass, an open-source CMS (describe this)
+% The site supports making new listings, commenting on other listings, or leaving reviews on other listings.
+% We acquire data from a diverse set of categories in Northeastern States in the US from Craigslist.
+% Each post includes an image
+% We redact PII with the scrubadub python package, such as address, phone numbers, emails
+% We replace posts with generated names (Bill Smith), and emails with fake emails (bill\_smith@example.com), and phone numbers with fictiious phone numbers using the 555 form (expand this)
+We introduce a new Classifieds website in \BenchmarkName{}, inspired by real world marketplaces such as Craigslist and Facebook Marketplace. The Classifieds site contains 65,955 listings and provides a distinct environment compared to existing ones in WebArena, introducing visually grounded tasks centered around user interactions typical in classifieds websites (posting, searching, commenting). The site's infrastructure uses \href{https://osclass-classifieds.com}{OSClass}, a robust open-source Content Management System (CMS) designed for classifieds ads, used in multiple real world sites. OSClass enables functions such as search, posting, commenting, and leaving reviews and ratings. More details about the environment are provided in Appendix.~\ref{sec:appendix_classifieds}. %The environment has 65,955 listings, each with a title, a description, and an image.
+
+
+\paragraph{Shopping}
+
+The Shopping site follows the e-commerce environment from WebArena~\citep{zhou2023webarena}, with product information and content scraped from Amazon and released in WebShop~\citep{yao2022webshop}. Visual understanding of product images is required for successfully navigating and completing tasks on e-commerce platforms, making this a natural choice for \BenchmarkName{}. 
+% Most products on the site include at least one image, and the platform covers a diverse range of products.
+
+\paragraph{Reddit}
+
+The Reddit site also follows the same environment from WebArena, and represents a social forum platform. The site contains 31,464 posts containing a diverse set of images across different subreddits and forums, such as natural images, memes, consumer electronics, and charts. 
+% The inclusion of the Reddit environment allows us to create a comprehensive benchmark that evaluates an agent's ability to understand and operate with different types of visual information.
+% The Reddit site also follows the same environment from WebArena, and represents a social forum platform. The site contains 31,464 posts containing a diverse set of images across different subreddits and forums, such as natural images (\texttt{f/EarthPorn}), memes (\texttt{f/memes}), consumer electronics (\texttt{f/headphones}, \texttt{f/iphone}), and charts (\texttt{f/dataisbeautiful}). The inclusion of the Reddit environment allows us to create a comprehensive benchmark that evaluates an agent's ability to understand and operate with different types of visual information.
+
+\subsection{Tasks} \label{sec:tasks}
+
+% \begin{figure}[t]
+% \centering
+%     \includegraphics[width=0.7\linewidth]{figures/task_distribution_by_site_pie.pdf}
+%     \vspace{-0.3in}
+%     \caption{Tasks proportion by sites.}  
+%     \label{fig:tasks_breakdown_sites}
+%     % \vspace{-0.1in}
+% \end{figure}
+
+% \begin{figure}[t]
+% \centering
+%     \includegraphics[width=0.7\linewidth]{figures/tasks_breakdown_by_difficulty.pdf}
+%     \vspace{-0.1in}
+%     \caption{Tasks proportion by difficulty.}  \label{fig:tasks_breakdown_difficulty}
+%     \vspace{-0.1in}
+% \end{figure}
+
+\paragraph{Task Creation} We introduce a set of 910 new tasks, split across the three sites detailed earlier. % (Fig.~\ref{fig:tasks_breakdown_sites}).
+%These tasks necessitate visual comprehension, and are designed to assess the visual and reasoning skills of autonomous agents in web-based environments.
+We focus on curating realistic visually grounded tasks, following a similar process as task creation in WebArena. We start by having 6 graduate students (co-authors of this paper) write \textit{intent templates} (e.g., ``Find me the \texttt{\{\{attribute\}\}} \texttt{\{\{item\}\}}. It should be between \texttt{\{\{range\}\}}.''), which can be manually expanded by the annotator to form multiple tasks (e.g., ``Find me the cheapest red Toyota. It should be between \$3000 to \$6000.''). %Most intents can be accomplished, though a small number (5.1\%, or 46 tasks) are unachievable, and the model is expected to explain why they are unachievable. 
+We encouraged the annotators to be creative, and make use of the visual layouts of the websites, input images, and cross-site functionalities to develop creative and realistic tasks. When tasks include input images, these were sourced from royalty-free, attribution-free sources and MS-COCO~\citep{lin2014microsoft}. Annotators also wrote the reward functions using the primitives described in Sec.~\ref{sec:environment_evaluation}. We collected a total of 314 unique templates (average of 2.9 tasks per template). 
+While the majority of tasks can be solved, we also included a small subset (46 tasks, or 5.1\%) which are unachievable. This subset tests the ability of agents to terminate early in the event where a task cannot be solved, which is essential in many real world scenarios. For unachievable tasks, we require agents to output a reason why the task is unachievable, which is evaluated using the \texttt{fuzzy\_match} function (Sec.~\ref{sec:environment_evaluation}).
+
+
+\paragraph{Visually Grounded Tasks} A key aspect of \BenchmarkName{} is the inherent visual grounding of all tasks. Each task demands visual understanding, requiring agents to process and interpret visual information rather than relying solely on textual or HTML-based cues. This aligns closely with modern human-computer interfaces, where visual information (e.g., icons, colors) is often critical. For instance, a typical task might involve selecting a visually specific item, such as a ``green polo shirt'' where the color is visually discernible but not explicitly mentioned in text.
+
+\paragraph{Task Complexity}
+
+We classify each task into three difficulty levels: \textbf{easy}, \textbf{medium}, and \textbf{hard}. This classification is particularly useful for assessing performance across a spectrum of agents, ranging from smaller models to state-of-the-art LLMs and VLMs. We find in our analysis (Sec.~\ref{sec:baselines}) that many open-source models (e.g., LLaMA-2-70B, IDEFICS-80B) achieve a success rate of close to 0 on medium or hard tasks, but non-zero performance on easy tasks. This suggests that running open-source models on the easy subset would provide useful signal during development as well as faster iteration cycles (assuming performance between weaker and stronger agents are correlated). We also provide more detailed analysis in Appendix.~\ref{sec:performance_difficulty}.
+% (before starting more expensive training runs of larger models).
+% For example, we might find it useful to benchmark smaller models on the easy subset to reduce iteration time and cost during model development while extracting useful signals. 
+
+We annotate both the \textit{action} and \textit{visual} difficulty of each task. % (detailed breakdown in the appendix). %Fig.~\ref{fig:tasks_breakdown_difficulty}). 
+The action difficulty is determined by the estimated number of actions that a human would need to complete the task. \textbf{Easy} tasks are defined as those that require three or fewer actions, \textbf{medium} tasks involve four to nine actions, and \textbf{hard} tasks demand ten or more. 
+Visual difficulty is similarly segmented: %, with each difficulty level reflecting the complexity of visual processing required:
+\textbf{Easy} tasks involve basic visual identification of colors, shapes, and high-level object detection (e.g., recognizing the presence of a cat). 
+\textbf{Medium} tasks require discerning patterns, semantic understanding, or OCR on large text of shorter lengths. 
+\textbf{Hard} tasks involve multiple images, OCR on small or lengthy text, or fine details. %detection of fine details. 
+Finally, the overall difficulty level is determined by averaging the visual and reasoning complexities. However, human judgment may lead to deviations in this assessment, as certain tasks might inherently skew more towards primarily testing visual or reasoning challenges.
+
+
+\subsection{Human Performance}
+
+% In order to determine how well humans do on \BenchmarkName{}, 
+We measure the success rate of 7 college students on \BenchmarkName{} tasks. Several of these students also assisted with task creation, and to avoid data leakage, we ensured that they were not assigned to the same tasks that they initially created. We sample one task per template, collecting a representative set of 230 tasks. We find that humans do well at these tasks, achieving an overall success rate of 88.7\% (Tab.~\ref{tab:results}). The mistakes made in the remaining tasks are usually minor, such as not reading the task correctly or missing a part of the objective. For example, one task asked to add a particular item to the wishlist, but the human added it to the shopping cart instead. 
+Another common failure mode was for tasks that required exhaustive search (e.g., ``Find and navigate to the comments of this exact image.''). Users were often unable to find the appropriate post after searching for 5--10 minutes and gave up, assuming that the task was unachievable. In many shopping tasks, humans also did not look through all possible candidate pages to identify the cheapest or most highly reviewed product. We found these failure modes interesting, as they represent issues that strong agents would be well poised to handle, potentially achieving above human performance and speed.

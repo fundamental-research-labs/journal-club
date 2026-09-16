@@ -1,0 +1,125 @@
+\section{Web Browsing} \label{app:wb}
+
+\subsection{Dataset Details}
+\vpara{Construction Details.}
+Mind2Web covers domains of Travel, Information, Sevice, Shopping, and Entertainment, assembled using SimilarWeb ranking as a reference. 
+It hires annotators to first propose task goals based on the current website, and then record their traces of interaction as expert demonstrations. 
+Our adoption of it primarily focuses on generalization across environments, i.e., the Cross Domain test set which contains 912 tasks from 73 websites, spread among domains including Housing, Job, Social Media, Education, Health, Government, Home Service, etc. 
+Please refer to~\citep{deng2023mind2web} for more dataset construction details.
+Each task sample encomposses the following contents:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt,parsep=0.2em,topsep=0.0em,partopsep=0.0em]
+ \item \textbf{Task Description.} A high-level (instead of step-by-step) goal that can be achieved on the website, such as``\textit{Get the highest rated SAP S/4 HANA course rated 4, and up with a duration between 3 to 6 hours for an intermediate, and add this to your cart and checkout}''. 
+ 
+ \item \textbf{(Reference) Action Sequence.} In the annotated interaction sequence, a meta-action $a_t$ at step $t$ includes $\{e_t, o_t\}$, where $e_t$ represents the unique backend id of the target element, and $o_t$ refers to the symbolic action operated on $e_t$ (i.e., \textit{Click}, \textit{Type}, and \textit{Select Options}). 
+ For \textit{Type} and \textit{Select Options}, corresponding textual inputs are also included.
+
+
+\item \textbf{Webpage Information.} A detailed observation of the web browsing environment at each step. 
+Throughout the manual annotation process, each observed step captures a snapshot, incorporating the raw HTML codes from the website as well as the previous interaction trajectory.
+
+\end{itemize}
+
+It has been found that LLMs consistently face challenges when handling the cumbersome raw HTML code associated with real-world web pages. 
+Therefore, Mind2Web proposes to rank and filter the HTML elements with a small language model, e.g., DeBERTa, to enhance inference efficiency. 
+
+Given the user's high-level instruction, the agent continuously interacts with the web system by receiving the observation of the current page content and the action histories, then predicting the next action, which consists of the target element and intended operation. 
+
+\vpara{Evaluation Setup.}
+The evaluation involves a dual process to improve the efficiency following~\citep{deng2023mind2web}. 
+A fine-tuned small language model is first employed to rank HTML elements and select top-k potential candidates. 
+Subsequently, we prompt and formulate the element selection as a multi-choice QA problem, providing five candidates for each round. 
+For the \textit{Type} and \textit{Select Options} operations, agents are additionally prompted to specify the argument for the operation, i.e., textual input to type or option to select.
+
+\vpara{Metrics.}
+For evaluation, as suggested in the original paper, we consider the following metrics: 
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt,parsep=0.2em,topsep=0.0em,partopsep=0.0em]
+\item \textbf{Element Accuracy.} Calculates the accuracy of the chosen element $e_t$.
+\item \textbf{Action F1.} Determines the token-level matching score for the operation $o_t$. It brings a distinction for Type and Select Option operations due to the existence of text values.
+\item \textbf{Success Rate.} Evaluates the predicted action correctness compared to reference actions. For \textbf{Step Success Rate}, we grant success if the selected element $e_t$ is correct and the predicted operation $o_t$ matches the ground truth value at the step. Likewise, for the \textbf{Task Success Rate}, a task is considered successful only if all the steps have been successful, making it a rigorous measure. Unfortunately, even the best LLMs now can only achieve single-digit task success percentages.
+\end{itemize}
+
+We report \textbf{Step Success Rate} as the main metric showing the independent accuracy of each action step, due to the current struggles for LLMs to ensure overall task success rates. 
+Regarding the experimental setup, we select topk 10 candidates to construct multichoice questions utilizing CoT few-shot prompting. Consequently, the GPT-3.5 results can diverge from the original paper ~\citep{deng2023mind2web} under topk of 50 setting and different prompting strategies.
+
+\subsection{Prompt Example.}
+We use the following 3-example CoT prompts for Mind2Web evaluation:
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,244},
+    breaklines=true,
+    basicstyle=\ttfamily\small, 
+}
+\begin{lstlisting}
+User:
+```
+<html> <div> <div> <a tock home page /> <button id=0 book a reservation. toggle open> <span> Book a reservation </span> </button> <button book a reservation. toggle open> </button> </div> <div> <select id=1 type> <option reservations true> Dine in </option> ... </html>
+'''
+
+Based on the HTML webpage above, try to complete the following task:
+Task: Check for pickup restaurant available in Boston, NY on March 18, 5pm with just one guest
+Previous actions:
+None
+What should be the next action? Please select from the following choices (If the correct action is not in the page above, please select A. `None of the above'):
+
+A. None of the above
+B. <button id=0 book a reservation. toggle open> <span> Book a
+C. <select id=1 type> <option reservations true> Dine in </option> <option
+D. <div id=2> <p> Celebrating and supporting leading women shaking up
+
+Assistant:
+Thought: I need to select pickup restaurant first.
+Answer: C.
+Action: SELECT
+Value: Pickup
+
+
+User:
+```
+<html> <div> <main main> <section tabpanel> <div> <ul tablist> <li tab heading level 3 search and> </li> <li id=0 tab heading level 3 search and> <span> Hotel </span> </li> <li tab heading level 3 search and> </li> <li tab heading level 3 search and> </li> </ul> <div tabpanel> <div id=1> <div> <span> Dates* </span> <button button clear dates /> </div> ... </html>
+'''
+
+Based on the HTML webpage above, try to complete the following task:
+Task: Compare the fare types to book a 1-adult ticket from Springfiels, IL to Austin, TX for April 29th 2023
+Previous actions:
+[combobox] Enter your departing city, airport name, or airpor... -> TYPE: SPRINGFIELD
+[button] Springfield, IL, US (SPI) -> CLICK
+[combobox] Enter your destination city, airport name, or airp... -> TYPE: AUSTIN
+[button] Austin, TX, US (AUS) -> CLICK
+What should be the next action? Please select from the following choices (If the correct action is not in the page above, please select A. `None of the above'):
+
+A. None of the above
+B. <li id=0 tab heading level 3 search and> <span> Hotel
+C. <div id=1> <div> <span> Dates* </span> <button button clear dates
+D. <ul id=2> <a mobile tools> </a> <a open united's tiktok
+
+Assistant:
+Thought: There are no elements that allow setting the date or viewing the fare, so there is no correct action.
+Answer: A.
+
+
+User:
+```
+<html> <div> <nav main menu> <ul> <li> <div button> Car Sales </div> <div id=0> <div> <div> <div> Buy A Car </div> <div> Plan Your Purchase </div></div> <div> <h4> Its Tax Refund Time. Treat Yourself to an Upgrade. </h4> <p>
+With a variety of options, invest your refund in what you really want - a quality, used vehicle from Enterprise. </p> ... </html>
+'''
+
+Based on the HTML webpage above, try to complete the following task:
+Task: Find a mini van at Brooklyn City from April 5th to April 8th for a 22 year old renter.
+Previous actions:
+[searchbox] Pick-up & Return Location (ZIP, City or Airport) (... -> TYPE: Brooklyn
+[option] Brooklyn, NY, US Select -> CLICK
+What should be the next action? Please select from the following choices (If the correct action is not in the page above, please select A. `None of the above'):
+
+A. None of the above
+B. <div id=0> <div> <div> <div> Buy A Car </div> <div>
+C. <div id=1> Enterprise Fleet Management </div>
+D. <button id=2 selected pick-up date 03/19/2023> <span> <span> 19 </span>
+
+Assistant:
+Thought: The search has already been set to Brooklyn. Next, I should choose pick-up date.
+Answer: D.
+Action: CLICK
+
+
+
+\end{lstlisting}

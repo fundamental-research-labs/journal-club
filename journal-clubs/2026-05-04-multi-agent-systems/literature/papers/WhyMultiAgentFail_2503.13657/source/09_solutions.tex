@@ -1,0 +1,211 @@
+\section{Approaches and strategies to improve MASs}
+\label{sec:better-mas}
+
+%\Melissa{MASFT as practical framework for guiding development of agentic System...}
+%In previous sections, we examined the failure modes that occur in the real-world MASs. 
+In this section, we discuss some approaches to make MASs more robust to failures.
+We categorize these strategies into two main groups:
+(i) \textbf{tactical approaches}, 
+(ii) \textbf{structural strategies}. 
+Tactical approaches involve straightforward modifications tailored for specific failure modes, such as improving the prompts, topology of the network of agents, and conversation management. 
+In Section \ref{sec:case-studies}, we experiment with such approaches in two case studies, and demonstrate that the effectiveness of these methods is not consistent. 
+This leads us to consider a second category of strategies that are more comprehensive methods with system-wide impacts: 
+strong verification, enhanced communication protocols, uncertainty quantification, and memory and state management. 
+These strategies require more in-depth study and meticulous implementation, and remain open research topics for future exploration. See Table \ref{tab:solution_vs_failure_modes} for our proposed mapping between different solution strategies and the failure categories. 
+
+
+% \vspace{-1em}
+\subsection{Tactical Approaches}
+\label{sec:tactical_approaches}
+
+This category includes strategies related to improving prompts and optimizing agent organization and interactions. 
+The prompts of MAS agents should provide clear description of instructions, and the role of each agent should be clearly specified (see \ref{sec:ag2-mathchat-improved-prompt} as an example) \cite{he2024does,talebirad2023multi}. 
+Prompts can also clarify roles and tasks while encouraging proactive dialogue. Agents can re-engage or retry if inconsistencies arise, as shown in Appendix \ref{sec:ag2-mathchat-new-topology-verifier} \cite{chan2023chateval}.
+After completing a complex multi-step task, add a self-verification step to the prompt to retrace the reasoning by restating solutions, checking conditions, and testing for errors \cite{weng2023large}. 
+However, it may miss flaws, rely on vague conditions, or be impractical \cite{stoica2024specifications}. 
+Moreover, clear role specifications can be reinforced by defining conversation patterns and setting termination conditions \cite{wu2024autogen, langgraph}. 
+A modular approach with simple, well-defined agents, rather than complex, multitasked ones, enhances performance and simplifies debugging \cite{anthropic2024}.
+The group dynamics also enable other interesting possibilities of multi-agent systems: different agents can propose various solutions \cite{yao2024tree}, discuss their assumptions, and findings (cross-verifications) \cite{haji2024improving}. 
+For instance, in \cite{xu2023towards}, a multi-agent strategy simulates the academic peer review process to catch deeper inconsistencies.
+%This cross-verification extends self-verification by leveraging diverse perspectives to catch deeper inconsistencies, rather than just preventing simple oversights.
+Another set of tactical approaches for cross verifications consist in multiple LLM calls with majority voting or resampling until verification \cite{stroebl2024inference, chen2024more}. 
+However, these seemingly straightforward solutions often prove inconsistent, echoing our case studies' findings. This underscores the need for more robust, structural strategies, as discussed in the following sections.
+
+
+
+\subsection{Structural Strategies}
+\label{sec:comprehensive_systemic_strategies}
+
+Apart from the tactical approaches we discussed above, there exist a need for more involved solutions that will shape the structure of the MAS at hand. 
+We first observe the critical role of verification processes and verifier agents in multi-agent systems. 
+Our annotations reveal that weak or inadequate verification mechanisms were a significant contributor to system failures.
+While unit test generation aids verification in software engineering \cite{jain2024testgeneval}, creating a universal verification mechanism remains challenging. Even in coding, covering all edge cases is complex, even for experts. Verification varies by domain: coding requires thorough test coverage, QA demands certified data checks \cite{peng2023check}, and reasoning benefits from symbolic validation \cite{kapanipathi2020question}. Adapting verification across domains remains an ongoing research challenge.
+
+A complementary strategy to verification is establishing a standardized communication protocol \cite{li2024survey}. 
+LLM-based agents mainly communicate via unstructured text, leading to ambiguities. Clearly defining intentions and parameters enhances alignment and enables formal coherence checks during and after interactions.
+\cite{niu2021multi} introduce Multi-Agent Graph Attention, leveraging a graph attention mechanism to model agent interactions and enhance coordination. Similarly, \cite{jiang2018learning} propose Attentional Communication, enabling agents to selectively focus on relevant information. Likewise, \cite{singh2018learning} develop a learned selective communication protocol to improve cooperation efficiency.
+
+Another important research direction is fine-tuning MAS agents with reinforcement learning. 
+Agents can be trained with role-specific algorithms, rewarding task-aligned actions and penalizing inefficiencies. 
+MAPPO \cite{yu2022surprising} optimizes agents' adherence to defined roles. 
+Similarly, SHPPO \cite{guo2024heterogeneous} uses a latent network to learn strategies before applying a heterogeneous decision layer. 
+Optima \cite{chen2024optima} further enhances communication efficiency and task effectiveness through iterative reinforcement learning.
+
+On a different note, incorporating probabilistic confidence measures into agent interactions can significantly enhance decision-making and communication reliability. 
+Drawing inspiration from the framework proposed by Horvitz et al. \cite{horvitz1999uncertainty}, agents can be designed to take action only when their confidence exceeds a predefined threshold. 
+Conversely, when confidence is low, agents can pause to gather additional information. 
+Furthermore, the system could benefit from adaptive thresholding, where confidence thresholds are dynamically adjusted.  
+
+Although often seen as a single-agent property, memory and state management are crucial for multi-agent interactions, which can enhance context understanding and reduces ambiguity in communication.
+However, most research focuses on single-agent systems. MemGPT \cite{packer2024memgptllmsoperatingsystems} introduces OS-inspired context management for an extended context window, while TapeAgents \cite{chakraborty2023servicenow} use a structured, replayable log (“tape”) to iteratively document and refine agent actions, facilitating dynamic task decomposition and continuous improvement. 
+
+\begin{table*}[ht]
+\small
+\renewcommand{\arraystretch}{1.3} % Adjust row spacing
+\setlength{\tabcolsep}{4pt} % Adjust column spacing
+\centering
+\caption{Solution Strategies vs. Failure Category in Multi-Agent Systems}
+\label{tab:solution_vs_failure_modes}
+\begin{tabular}{p{2.9cm} p{4.8cm} p{5cm}}
+    \toprule
+    \textbf{Failure Category} & \textbf{Tactical Approaches} & \textbf{Structural Strategies} \\
+    \toprule
+    \fcI & Clear role/task definitions, Engage in further discussions, Self-verification, Conversation pattern design & Comprehensive verification, Confidence quantification \\
+    \hline
+    \fcII & Cross-verification, Conversation pattern design, Mutual disambiguation, Modular agents design & Standardized communication protocols, Probabilistic confidence measures \\
+    \hline
+    \fcIII & Self-verification, Cross-verification, Topology redesign for verification & Comprehensive verification \& unit test generation \\
+    \hline
+\end{tabular}
+\end{table*}
+
+
+\section{Intervention Case Studies}
+\label{sec:case-studies}
+%\melissa{Move to appendix}
+%\melissa{Pending to be remodel as Discussion}
+
+In this section, we present the two case studies where we apply some of the tactical approaches. We also present the usage of \taxonomy as a debugging tool, where we measure the failure modes in the system before applying any of the interventions, and then after applying the interventions we discuss below, and show that \taxonomy can guide the intervention process as well as capture the improvements of augmentations.
+
+\subsection{Case Study 1: AG2 - MathChat} 
+\label{cs:ag2}
+
+In this case study, we use the MathChat scenario implementation in AG2 \cite{wu2023autogen} as our baseline, where a Student agent collaborates with an Assistant agent capable of Python code execution to solve problems.
+For benchmarking, we randomly select 200 exercises from the GSM-Plus dataset \cite{li2024gsm}, an augmented version of GSM8K \cite{cobbe2021training} with various adversarial perturbations. 
+The first strategy is to improve the original prompt with a clear structure and a new section dedicated to the verification. 
+The detailed prompts are provided in Appendices \ref{sec:ag2-mathchat-original-prompt} and \ref{sec:ag2-mathchat-improved-prompt}.
+The second strategy refines the agent configuration into a more specialized system with three distinct roles:
+a Problem Solver who solves the problem using a chain-of-thought approach without tools (see Appendix \ref{sec:ag2-mathchat-new-topology-problem-solver});
+a Coder who writes and executes Python code to derive the final answer (see Appendix \ref{sec:ag2-mathchat-new-topology-coder});
+a Verifier who reviews the discussion and critically evaluate the solutions, either confirming the answer or prompting further debate (see Appendix \ref{sec:ag2-mathchat-new-topology-verifier}). 
+In this setting, only the Verifier can terminate the conversation once a solution is found. 
+See Appendix \ref{sec:ag2-mathchat-new-topology-example} for an example of conversation in this setting. 
+To assess the effectiveness of these strategies, we conduct benchmarking experiments across three configurations (baseline, improved prompt, and new topology) using two different LLMs (GPT-4 and GPT-4o).
+We also perform six repetitions to evaluate the consistency of the results. 
+Table \ref{tab:ag2-chatdev-accuracies} summarizes the results.
+%\begin{table}[h!]
+%    \caption{AG2 - MathChat: MAS solving mathematical problems. For each back-end LLM (GPT-4, GPT-4o), the table presents the percentage of correct answers (out of 200) and standard deviations (over six runs) across three configurations: baseline implementation, baseline with improved prompts, and a redesigned agent topology.}
+%    \label{tab:ag2-mathchat-experiments}
+%    \centering
+%    \begin{tabular}{|c|c|c|}
+%        \hline
+%        LLM & Configuration & Correct answers (\%) $\pm ~ \sigma$ \\
+%        \hline
+%        GPT-4 & baseline  & 84.75 $\pm$ 1.94 \\
+%        GPT-4 & improved prompt & 89.75 $\pm$ 1.44 (\textbf{+5.00}) \\
+%        GPT-4 & new topology & 85.50 $\pm$ 1.18 (+0.75) \\
+%        \hline
+%        GPT-4o & baseline & 84.25 $\pm$ 1.86 \\
+%        GPT-4o & improved prompt & 89.00 $\pm$ 1.38 (\textbf{+4.75}) \\
+%        GPT-4o & new topology & 88.83 $\pm$ 1.51 (\textbf{+4.58}) \\
+%        \hline
+%    \end{tabular}
+%\end{table}
+The second column of Table \ref{tab:ag2-chatdev-accuracies} show that with GPT-4, the improved prompt with verification significantly outperforms the baseline. However, the new topology does not yield the same improvement. A Wilcoxon test returned a p-value of 0.4, indicating the small gain is not statistically significant. With GPT-4o (the third column of Table \ref{tab:ag2-chatdev-accuracies}), the Wilcoxon test yields a p-value of 0.03 when comparing the baseline to both the improved prompt and the new topology, indicating statistically significant improvements.
+These results suggest that refining prompts and defining clear agent roles can reduce failures.
+However, these strategies are not universal, and their effectiveness varies based on factors such as the underlying LLM.
+
+
+\subsection{Case Study 2: ChatDev} 
+
+ChatDev \cite{chatdev} simulates a multiagent software company where different agents have different role specifications, such as a CEO, a CTO, a software engineer and a reviewer, who try to collaboratively solve a software generation task. 
+In an attempt to address the challenges we observed frequently in the traces, we implement two different interventions. 
+%The most frequent failure categories in ChatDev were Specification Ambiguity and Weak Verification, where the verifier agents perform only superficial checks, providing little useful feedback to the software engineer agent. %and agents overstep their intended functions in these two categories, respectively.
+Our first solution is refining role-specific prompts to enforce hierarchy and role adherence. 
+For instance, we observed cases where the CPO prematurely ended discussions with the CEO without fully addressing constraints. 
+To prevent this, we ensured that only superior agents can finalize conversations. 
+Additionally, we enhanced verifier role specifications to focus on task-specific edge cases. 
+Details of these interventions are in Section \ref{appendix:chatdev}.
+The second solution attempt involved a fundamental change to the framework's topology. 
+We modified the framework's topology from a directed acyclic graph (DAG) to a cyclic graph. 
+The process now terminates only when the CTO agent confirms that all reviews are properly satisfied, with a maximum iteration cutoff to prevent infinite loops. 
+This approach enables iterative refinement and more comprehensive quality assurance.
+%This attempt essentially targets the \emph{Weak Verifier} failure mode, the most prevalent of the failure modes in MAS. 
+We test our interventions in two different benchmarks. The first one of them is a custom generated set of 32 different tasks (which we call as ProgramDev-v0, which consists of slightly different questions than the ProgamDev dataset we discussed in Section \ref{sec:mast}) where we ask the framework to generate programs ranging from ``Write me a two-player chess game playable in the terminal" to "Write me a BMI calculator". The other benchmark is the HumanEval task of OpenAI. We report our results in Table~\ref{tab:ag2-chatdev-accuracies}. Notice that even though our interventions are successful in improving the performance of the framework in different tasks, they do not constitute substantial improvements, and more comprehensive solutions as we lay out in Section \ref{sec:comprehensive_systemic_strategies} are required.
+
+%\begin{table}[h!]
+%    \caption{Results of interventions for ChatDev on two different benchmarks, a higher score is better for all cases.}
+%    \label{tab:chatdev-experiments}
+%    \centering
+%    \begin{tabular}{|c|c|c|}
+%        \hline
+%        Task & Configuration & Accuracy \\
+%        \hline        ProgramDev & baseline  & 25.0\% \\
+%        ProgramDev & improved prompt & 34.4\% \\
+%        ProgramDev & new topology & 40.6\% \\
+%        \hline
+%        HumanEval & baseline &  89.6\% \\
+%        HumanEval & improved prompt & 90.3\% \\
+%        HumanEval & new topology & 91.5\% \\
+%        \hline
+%    \end{tabular}
+%\end{table}
+
+
+\begin{table*}[ht!]
+    \small
+    \renewcommand{\arraystretch}{1.3} % Adjust row spacing similar to the above table
+    \setlength{\tabcolsep}{4pt}    % Adjust column spacing
+    \centering
+    \caption{Case Studies Accuracy Comparison. 
+    This table presents the performance accuracies (in percentages) for various scenarios in our case studies. 
+    The header rows group results by strategy: AG2 and ChatDev. 
+    Under AG2, GSM-Plus results are reported using GPT-4 and GPT-4o; 
+    under ChatDev, results for ProgramDev and HumanEval are reported. 
+    Each row represents a particular configuration: baseline implementation, improved prompts, and a redesigned agent topology.}
+    \label{tab:ag2-chatdev-accuracies}
+    \begin{tabular}{p{2.5cm} c c c c}
+        \toprule
+        \textbf{Configuration} & \multicolumn{2}{c}{\textbf{AG2}} & \multicolumn{2}{c}{\textbf{ChatDev}} \\
+        \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+         & \textbf{GSM-Plus (w/ GPT-4)} & \textbf{GSM-Plus (w/ GPT-4o)} & \textbf{ProgramDev-v0} & \textbf{HumanEval} \\
+        \midrule
+        Baseline           & 84.75 $\pm$ 1.94 & 84.25 $\pm$ 1.86 & 25.0 & 89.6 \\
+        \hline
+        Improved prompt    & 89.75 $\pm$ 1.44 & 89.00 $\pm$ 1.38 & 34.4 & 90.3 \\
+        \hline
+        New topology       & 85.50 $\pm$ 1.18 & 88.83 $\pm$ 1.51 & 40.6 & 91.5 \\
+        \hline
+    \end{tabular}
+\end{table*}
+
+% \melissa{DO NOT MENTION PROGRAMDEV HERE AS THIS IS NO LONGER THE PROGRAMDEV.}
+
+\subsection{Effect of the interventions on \taxonomy}
+\label{sec:interventions_effects_on_failure_modes_with_mast}
+
+After carrying out the aforementioned interventions, we initially inspect the task completion rates as in Table \ref{tab:ag2-chatdev-accuracies}. However, \taxonomy offers us the opportunity to look beyond the task completion rates, and we can investigate the effects of these interventions on the failure mode distribution on these MASs (AG2 and ChatDev). As illustrated in Figures \ref{fig:intervention_comparison_threeway_ag2} and \ref{fig:intervention_comparison_threeway_chatdev}, we observe that both of these interventions cause a decrease across the different failure modes observed, and it is possible to conclude that topology-based changes are more effective than prompt-based changes for both systems. Moreover, this displays another usage of \taxonomy, which is as well as an analysis tool after execution, it can serve as a debugging tool for future improvements as it shows which failure modes particular augmentations to the system can solve or miss, guiding future intervention decisions.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/intervention_comparison_threeway_ag2_system_design.pdf}
+    \caption{Effect of prompt and topology interventions on AG2 as captured by \taxonomy using the automated LLM-as-a-Judge}
+    \label{fig:intervention_comparison_threeway_ag2}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/intervention_comparison_threeway_chatdev_system_design.pdf}
+    \caption{Effect of prompt and topology interventions on ChatDev as captured by \taxonomy using the automated LLM-as-a-Judge}
+    \label{fig:intervention_comparison_threeway_chatdev}
+\end{figure}

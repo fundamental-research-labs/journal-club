@@ -1,0 +1,175 @@
+\section{Grounding Agents' Communication in Human Language}
+The results in Section~\ref{sec:exp1} show  communication robustly
+arising in our game, and that we can change the environment to nudge agents 
+to develop symbol meanings which are more closely related to the visual or class-based semantics of the images. %
+%  Symbols come to 
+% denote broad conceptual properties, such as those that might
+% distinguish, say, buildings from vegetables, rather than, say,
+% low-level properties of images. 
+Still, we would like agents to converge on a language fully
+understandable by humans, as our ultimate goal is to develop
+conversational machines. To do this, we will need to ground the
+communication.%
+%  However to ensure the emergence of
+% human-understandable language, it is essential to ensure that agents
+% will not ``drift'' into their own protocol. Agents which begin as
+% tabulae rasae may converge to any ``word'' being used as a reference
+% for any object.
+
+% In section~\ref{sec:exp2} we partially increased the semantic coherence  of the communication protocol, however semantic coherence is not enough for our goals. In our current setup if the agent sender was to be replaced by a human, she would likely not be able to decipher the meaning of the symbols without a training phase, if at all. If we want to eventually train agents which can interact in novel environments and with humans we need to find ways to ground communication in not only high level semantic properties of the images, but also natural language.
+Taking inspiration from AlphaGo \citep{Silver:etal:2016}, an AI that
+reached the Go master level by combining interactive learning in games
+of self-play with passive supervised learning from a large set of
+human games, we combine the usual referential game, in which agents
+interactively develop their communication protocol, with a supervised
+image labeling task, where the sender must learn to assign objects
+their conventional names. This way, the sender will naturally be
+encouraged to use such names with their conventional meaning to
+discriminate target images when playing the game, making communication
+more transparent to humans.
+
+In this experiment, the sender switches,
+equiprobably, between game playing and a supervised image
+classification task using ImageNet classes. %
+% We propose that one way to move forward in grounding communication in natural language is combining dynamic interactive learning with static statistical learning of patterns from association.  In the context of the specific referential game, our agents will let to evolve a communication protocol, which we will ground in natural language via a supervised task. In this way, the symbols will have a direct correspondence to natural language through the human readable labels used in the classification task. 
+Note that the supervised objective does not aim at improving agents'
+coordination performance. Instead, supervision provides them with basic
+grounding in natural language (in the form of image-label
+associations), while concurrent interactive game playing should teach
+them how to effectively use this grounding to communicate.
+
+We use the informed sender, fc image representations and a vocabulary size of 100. Supervised training is
+based on 100 labels that are a subset of the object names in our
+data-set (see Section \ref{sec:experimental-setup} above). When
+predicting object names, the sender  uses the usual game-embedding layer 
+%(second layer from bottom of the network in the middle of Figure
+%\ref{fig:players}) and the softmax layer (top layer). 
+coupled with a softmax layer of dimensionality 100 corresponding to
+the object names. Importantly, the game-embedding layers used in
+object classification and the reference game are shared. Consequently,
+we hope that, when playing, the sender will produce symbols aligned with object names acquired in the
+supervised phase. %
+%The units of the shared softmax layer
+%will correspond to sender symbols during game playing and to object
+%names for image labeling. Consequently, the symbols produced in the
+%game can be interpreted by the corresponding object names acquired in
+%the supervised phase.
+
+%\COMMENT{Mention accuracy in image labeling? \textbf{AL: Do I really have to do this?:-( I measure perplexity and not accuracy... MB: Perplexity is OK: just something to clarify that the agent is learning something also in the image labeling phase.}}
+
+The supervised objective has no negative effect on
+communication success: the agents are still able to reach full
+coordination after 10k training trials (corresponding to 5k trials of reference game playing). The sender uses 
+many more symbols after training than in any previous experiment
+(88) and symbol purity dramatically increases to 70\% (the
+obs-chance purity difference also increases to 37\%). 
+
+Even more importantly, many symbols have now become directly
+interpretable, thanks to their direct correspondence to
+labels. Considering the 632 image pairs where the target gold
+standard label corresponds to one of the labels that were used in the
+supervised phase, in 47\% of these cases the sender produced exactly
+the symbol corresponding to the correct supervised label for the
+target image (chance: 1\%). %\COMMENT{Can you give me access to this
+%  subset of data, including the cases where another image was used? I
+%  think there might be something interesting there\ldots Are these the data you pasted below, commented out? They are a bit obscure, can you explain? AL: No, there are other data...}
+
+%%RESULTS
+  %%%informed	fc	100	88	0.998022	0.695464362850972       0.373091
+%%47.1
+%link with images
+
+For image pairs where the target image belongs to one of the directly
+supervised categories, it is not surprising that the sender adopted
+the ``conventional'' supervised label to signal the target . However,
+a very interesting effect of supervision is that it \emph{improves the
+  interpretability of the code even when agents must communicate about
+  images that do not contain objects in the supervised category
+  set}. This emerged in a follow-up experiment in which, during
+training, the sender was again exposed (with equal probability) to the
+same supervised classification task as above, but now the agents %
+% We now  turn to  a more challenging setup  aiming at testing  whether this method scales beyond concepts for which supervision is provided. For this experiment, the sender again with probability $p=0.5$ is exposed to  the same  supervised object classification  as before. 
+played the referential game on a different dataset of images derived
+from ReferItGame~\citep{Kazemzadeh:etal:2014}.  In its general format,
+the ReferItGame contains annotations of bounding boxes in real images
+with referring expressions produced by humans when playing the
+game. % This makes the more challenging as the number of depicted objects grows a lot, bounding boxes do not always include salient information etc.
+For our purposes, we constructed 10k pairs by randomly sampling two
+bounding boxes, to act as target and distractor.  Again, the agents
+converged to perfect communication after 15k trials, and this time
+used all 100 available symbols in some trial.
+
+We then asked whether this language was human-interpretable. For each
+symbol used by the trained sender, we randomly extracted 3 image pairs
+in which the sender picked that symbol and the receiver pointed at the
+right target (for two symbols, only 2 pairs matched these criteria,
+leading to a set of 298 image pairs).  We annotated each pair with the
+word corresponding to the symbol in the supervised set. Out of the 298
+pairs, only 25 (8\%) included one of the 100 words among the
+corresponding referring expressions in ReferItGame. So, in the large
+majority of cases, the sender had been faced with a pair not
+(saliently) containing the categories used in the supervised phase of
+its training, and it had to produce a word that could, at best, only
+indirectly refer to what is depicted in the target image. %
+%6 12507 17311 bagpipe set(['chair'])
+%7 17193 25296 pheasant set(['chair'])
+%10 2520 43760 chain set(['chair'])
+%21 27623 41370 crocodile set(['chair'])
+%26 41441 17293 pine set(['fence'])
+%47 2714 3410 grape set(['door'])
+%62 40271 42312 melon set(['fence'])
+%95 25227 28021 courgette set(['fence'])
+%101 36865 31277 crow set(['car'])
+%123 31626 5695 cart set(['chair'])
+%135 26423 37803 box set(['car'])
+%182 14044 21946 projector set(['door'])
+%183 16234 9592 projector set(['bike'])
+%185 8220 41414 alligator set(['door'])
+%192 39554 34635 frog set(['sweater'])
+%197 31954 23484 raft set(['fence'])
+%228 30306 3220 rabbit set(['cat'])
+%254 24593 30759 seagull set(['pillow'])
+%265 38925 22486 wand set(['car'])
+%267 33142 6106 dolphin set(['shack'])
+%276 42296 25269 airplane set(['lime'])
+%286 37893 29106 lamb set(['fence'])
+%288 15391 19156 hoe set(['car'])
+%289 38559 37741 hoe set(['rabbit'])
+%296 6514 7256 freezer set(['car', 'train'])
+%0.0838926174497 25 0.0%
+We then tested whether this code would be understandable by humans. In essence, it is as if we replaced the trained agent receiver with a human.
+
+We prepared a crowdsourced survey using the CrowdFlower
+platform. %\footnote{\url{https://www.crowdflower.com/}} 
+For each pair,
+human participants were shown the two images and the sender-emitted word (that is, the ImageNet label associated to the symbol produced by the sender; see
+examples in Figure \ref{fig:dolphin_fence}). The participants were
+asked to pick the picture that they thought was most related to the
+word. We collected 10 ratings for each pair.
+
+\begin{figure}[tb]
+\centering
+\includegraphics[scale=0.4]{figures/dolphin-fence.pdf}
+\caption{Example pairs from the ReferItGame set, with word produced by
+  sender. Target images framed in green.}
+\label{fig:dolphin_fence}
+\end{figure}
+
+We found that in 68\% of the cases the subjects were able to guess the
+right image. A logistic regression predicting subject image choice from
+ground-truth target images, with subjects and words as random effects, confirmed the highly significant correlation between the
+true and guessed images ($z=16.75$, $p<0.0001$). Thus, while far from perfect, we find that supervised learning on a separate data set does provide some grounding for communication with humans, that generalizes beyond the conventional word denotations learned in the supervised phase. 
+
+Looking at the results qualitatively, we found that very often sender-subject
+communication succeeded when the sender established a sort of
+``metonymic'' link between the words in its possession and the
+contents of an image. Figure \ref{fig:dolphin_fence} shows an example where the sender produced \emph{dolphin} to refer to a picture showing a stretch of sea, and \emph{fence} for a patch of land.  Similar semantic shifts are a core
+characteristic of natural language \citep[e.g.,][]{Pustejovsky:1995},
+and thus subjects were, in many cases, able to successfully play the
+referential game with our sender (10/10 subjects guessed the dolphin
+target, and 8/10 the fence). This is very encouraging. Although the language developed in referential games will  be initially very
+limited, if both
+agents and humans possess the sort of flexibility displayed in this
+last experiment, the
+noisy but shared common ground might suffice to establish basic
+communication.

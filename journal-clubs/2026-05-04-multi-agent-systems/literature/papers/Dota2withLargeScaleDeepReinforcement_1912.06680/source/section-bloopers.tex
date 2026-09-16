@@ -1,0 +1,63 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+
+\section{Bloopers}\label{appendix:bloopers}
+\subsection{Manually Tuned Hyperparameters}
+Leading into The International competition in August 2018, we already a very good agent, but we felt it was likely not yet as good as the very best humans (as indeed turned out to be the case; we lost both games at that event).
+In the final few days before the games, we sought to explore high-variance options which had a chance of offering a surprising improvement. 
+In the end, however, we ultimately believe that human intuition, especially under time pressure, is not the best way to set hyperparameters. 
+See \autoref{fig:ti-lr} for the history of our learning rate parameter during those few days.
+
+\begin{figure}
+    \centering
+    % Placeholder screeenshot from https://five-tensorboard.rapid.openai.org/#scalars&_ignoreYOutliers=false&tagFilter=Step&regexInput=five%2F&_smoothingWeight=0
+    \includegraphics[width=0.8\textwidth]{figures/ti-lr.png}
+    \caption{\textbf{Learning Rate during The International: }
+    This is what happens when humans under time pressure choose hyperparameters.
+    We believe that in the future automated systems should optimize these hyperparameters instead.
+    After this event, our team began to internally refer to the act of frantically searching over hyperparameters as ``designing skyscrapers.''
+    }
+    \label{fig:ti-lr}
+\end{figure}
+
+\subsection{Zero Team Spirit Embedding}
+One of our team members stumbled upon a very strange phenomenon while debugging a failed surgery. 
+It turned out that replacing a certain set of 128 learned parameters in the model with zero increased the model's performance significantly (about 55\% winrate after versus before).
+We believe that the optimizers were unable to find this direction for improvement because although the win rate was higher, the shaped reward (see \autoref{table:rewards}) was approximately the same.
+A random perturbation to the parameters should have overwhelming probability of making things worse rather than better. 
+We do not know why zero would be a special value for these parameters.
+
+These parameters were certainly an unusual piece of the model.
+In the early stages of applying team spirit (see \autoref{appendix:rewards}), we attempted to randomize the team spirit parameter in each game. 
+We had a fixed list of four possible team spirit values; each rollout game one was chosen at random.
+The agent was allowed to observe the current team spirit, via an embedding table with four entries.
+We hoped this might encourage exploring games of different styles, some very selfless games and some very selfish games.
+
+After training in this way for only a short period, we decided this randomization was not helping, and turned it off.
+Because our surgery methods do not allow for removing parameters easily, we simply set the team spirit observation to always use a fixed entry in the embedding table.
+In this way we arrived at a situation where the vector of ``global'' observations $g$ consisted of the real observations $g_r$, concatenated with 128 dimensions from this fixed embedding $E$; these extra dimensions were learned parameters which did not depend on the observations state:
+\begin{equation}
+    g = \left[g_r, E\right]
+\end{equation}
+
+Because this vector is consumed by a fully connected layer $Wg+B$, these extra parameters do not affect the space of functions representable by the neural network. They are exactly equivalent to not including $E$ in the global observations and instead using a modified bias vector:
+\begin{equation}
+    B'=W\left[0, E\right] + B
+\end{equation}
+For this reason we were comfortable leaving this vestigial part of the network in place.
+
+Because it was an embedding, there should be nothing special about 0 in the 128-dimensional space of possible values of $E$. 
+However we see clear evidence that zero \emph{is} special, because a generic perturbation to the parameters should have a negative effect.
+Indeed, we tried this explicitly --- perturbing these parameters in other random directions --- and the effect was always negative except for the particular direction of moving towards zero.
+
+\subsection{Learning path dependency}
+
+The initial training of \openaifive was done as a single consecutive experiment over multiple months. During that time new items, observations, heroes, and neural network components were added. The order of introduction of these changes was a priori not critical to learning, however when reproducing this result in \cleanexpname with all the final observations, heroes, and items included, we found that one item --- Divine Rapier --- could cause the agents to enter a negative feedback loop that reduced their skill versus reference opponents. As Rapier began to be used, we noted a decrease in episodic reward and \trueskillname. When repeating this experiment with Rapiers banned from the items available for purchase, \trueskillname continues to improve.
+
+We hypothesize that this effect was not observed during our initial long-lasting training because Rapier was only added after the team spirit hyperparamater was raised to 1 (see \autoref{appendix:rewards}). Rapier is a unique item which does not stay in your inventory when you die, but instead falls to the ground and can be picked up by enemies or allies. Because of this ability to transfer a high-value item, it is possible that the reward collected in a game increases in variance, thereby preventing \openaifive from learning a reliable value function.
+
+% \todo{Surgery bloopers: Shadowfiend and Pooling over abilities
+% All walking to the left.
+% New heroes being really good; chasing into enemy base.}
+
+\end{document}

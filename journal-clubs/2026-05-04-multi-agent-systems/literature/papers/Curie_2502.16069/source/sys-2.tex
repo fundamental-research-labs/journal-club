@@ -1,0 +1,463 @@
+\section{\sys: Rigorous Experimentation}
+\label{sec:curie}
+\subsection{Architectural Overview} 
+
+As shown in Fig.~\ref{fig:workflow}, \sys is composed of two types of LLM-based agents (an \textbf{Architect} Agent and a host of \textbf{Technician} Agents), 
+sandwiched between them is our main innovation, the \textbf{Experimental Rigor Engine} that injects rigor throughout the experimental process. 
+
+\noindent\textbf{High-level workflow.} Given an experimental question, our Architect will \circled{1} designs high-level \textit{experimental plans} (e.g., defining hypotheses, variables), completing its turn. Our Inter-Agent Rigor Module (\textbf{\textit{Inter-\texttt{ARM}}}) will \circled{A} intercept and enforce \textit{methodical procedure}. Since the plan is new, it is broken into smaller partitions for finer-grained execution. 
+\textit{Inter-\texttt{ARM}} applies control flow policies to determine the next step for each partition. 
+In this case, it decides go through the \circled{B} the Intra-Agent Rigor Module (\textbf{\textit{Intra-\texttt{ARM}}}) validation, which enhances \textit{reliability} by verifying partition integrity (e.g., assessing relevance to the experimental question).
+Similarly, \textit{Inter-\texttt{ARM}} repeats this process based on the validation results, eventually \circled{C} forwarding the partition to a Technician to \circled{2} set up the controlled experiment. 
+The remaining steps are omitted for brevity, but at a high level, every agent action follows the same structured workflow: \circled{A} interception by \textit{Inter-\texttt{ARM}}, \circled{B} validation by \textit{Intra-\texttt{ARM}}, and \circled{C} forwarding to the next appropriate agent. 
+Finally, all of the above components will make use of our \textbf{Experiment Knowledge Module} for storing and tracking experimental progress, providing \textit{interpretability}. 
+For example, the Architect stores refined experimental plans in a structured, metadata-enriched format, making them easier to analyze, track, and validate over time.
+% For instance, the architect stores new plans which are internally heavily restructured and laden with metadata useful for interpretability, before storage. 
+
+\if 0
+As illustrated in Figure~\ref{fig:workflow}, \sys is designed to automate rigorous experimentation by employing two basic experimental agents and an advanced Rigor Module:
+
+\begin{itemize}
+    \item The \textbf{Architect} serves as the strategic planner, responsible for processing experimental questions and generating high-level experimental plans for the Technicians.
+    Once the experiment results are obtained from technicians, the Architect evaluates results to refine hypotheses, adjust variables, or initiate new workflows. % under the help of the Rigor Module.
+    
+    \item The \textbf{Technician} executes the experimental plans from the architect by managing low-level tasks such as experiment setup, experiment execution, and data collection. 
+    Technicians report all intermediate results back to the Architect for reflection and decision-making.
+
+    \item The \textbf{Rigor Module} is triggered whenever an agent finishes its action. It consists of three key components:
+    % , and it consists three key components to ensure rigor:
+     The \textit{Intra-Agent Rigor Primitive} is triggered after each basic agent finishes its task to ensure reliability (\S\ref{subsec:intra-agent-primitive}).
+     The \textit{Inter-Agent Rigor Primitive} is triggered during transitions between agents to ensure methodical control (\S\ref{subsec:inter-agent-primitive}). 
+    The \textit{Experiment Knowledge Manager} regulates all interactions with the knowledge bank to ensure interpretability (\S\ref{subsec:interface}).
+    \lee{how the rigor module is related to architect and/or technician? I mentioned in my earlier comments. Perhaps the details come in subsections. But until this point, the interactions between agents and the rigor module are unclear.}
+% \item The \textbf{Intra-Agent Rigor Primitive} ensures reliability by verifying each agent’s internal processes after each agent finishes its task. 
+% It validates that experimental setups adhere to planned workflows, checks the correctness of generated code, and ensures reproducibility.
+% % It comprises a series of internal validators to enforce these checks, guaranteeing correctness and reproducibility within each agent.
+
+% \item The \textbf{Inter-Agent Rigor Primitive} enforces methodical control by coordinating every transition among agents and validators.
+% It decides subsequent actions, schedule experiments and allocates resources after each agent or validator completes its tasks.
+% Therefore, it prevents incomplete workflows or steps, maintaining the integrity of the experimentation process.  
+% \item The \textbf{Experiment Knowledge Manager} promotes interpretability by enforcing comprehensive documentation of experiment processes, intermediate results, and conclusions. 
+% By organizing experimental knowledge in a structured and consistent format, it facilitates collaboration between agents and ensures transparency for human researchers.
+\end{itemize} 
+\fi
+ 
+
+
+% We begin with a high-level overview of \sys, illustrated in Fig.~\ref{fig:curie-workflow}. 
+% \Circled{1} 
+% The workflow starts with the Architect, which serves as the entry point for processing experimental questions posed by the researcher. The architect generates high-level \textit{experimental plans} that includes the hypothesis, question, a high-level workflow for experiment setup, and definitions of independent, dependent, and constant variables along with their values. 
+% \Circled{2} These plans are then handed off to the \textit{Technicians}, who construct and execute detailed experimental workflows to generate real experimental data. 
+% \Circled{3} The results are then returned to the architect, who evaluates them to determine the next steps. The architect may conclude the experiment, refine hypotheses or variables, propose new plans, or request a re-execution of specific tasks.
+% \Circled{4} Upon conclusion, a set of interpretable knowledge encompassing all key aspects of the experimental process, is outputted.
+% \todo{may need new figures to show 1,2,3,4.}
+% % The architect’s decisions ultimately determine the outcome of the experiment, allowing \sys to dynamically address the user’s question.
+
+% Throughout the process, our Experimental Rigor Module (Fig.~\ref{fig:rigor-overview}) operates behind the scenes, integrating structured mechanisms that work in unison to ensure interpretability (\S\ref{subsec:interface}), reliability (\S\ref{subsec:intra-agent-primitive}), and methodical control (\S\ref{subsec:inter-agent-primitive}). We detail each of these primitives in the subsequent sections.
+% \todo{we might need to elaborate these 3 if they have dependencies.}
+
+% \todo{should we introduce different tools that our agent use.}
+
+\subsection{Intra-Agent Rigor Module - Reliability}
+\label{subsec:intra-agent-primitive}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/intra-arm.png}
+    \caption{\textit{Intra-\texttt{ARM}} setup validation high-level workflow.}
+    \label{fig:intra-arm}
+\end{figure}
+
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=1\linewidth]{setup-validator-examples.png}
+%     \caption{Setup validator examples}
+%     \label{fig:align}
+% \end{figure}
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=1\linewidth]{exec-validator-examples.png}
+%     \caption{Exec validator examples}
+%     \label{fig:exec-validator-alignment}
+% \end{figure}
+ 
+
+
+\begin{figure}[t!] %\vspace{-0.4cm}
+\centering
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/setup-validator-examples.png}
+% \vspace{-3mm}
+\caption{Example errors that can be captured by the setup validator. 
+}
+\label{fig:setup-validator-examples}
+\end{subfigure} 
+\hfill
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/exec-validator-examples.png}
+% \vspace{-3mm}
+\caption{Example errors that can be captured by the execution validator.
+}
+\label{fig:exec-validator-examples}
+\end{subfigure}
+\caption{Errors detected by two of \textit{Intra-\texttt{ARM}}'s many validators.
+}
+\vspace{-3mm}
+\label{fig:intra-arm-error-examples}
+\end{figure}
+
+ 
+
+Large-scale and long-running experiments involve complex, interdependent steps where early-stage errors can propagate and compromise final results. This is especially critical to LLM-based experimentation since: (1) LLM-based agents are prone to hallucination, and (2) experimental processes are inherently exploratory, requiring iterative refinements to hypotheses, setups, and designs in response to new or unexpected findings.
+Despite this, existing works~\cite{lu2024ai, schmidgall2025agent} largely overlook the need for continuous validation throughout the experimental process. A naive approach is to perform end-to-end validation only after an experiment concludes. However, this lacks the ability to backtrack to intermediate stages, preventing error isolation and correction, and forcing researchers to either discard progress or rerun the entire experiment—an inefficient and costly approach.
+To address this, we introduce \textit{Intra-\texttt{ARM}}, a validation module that verifies the assigned tasks of our Architect and Technicians step by step, improving reliability and reproducibility to align with the overarching experimental objectives.
+Inspired by process supervision~\cite{lightman2023let}, 
+% we advocate for 
+\textit{Intra-\texttt{ARM}} utilizes
+\textbf{modular validation}, where a suite of validators continuously verifies each stage of the experiment (Fig.\ref{fig:workflow}), so that errors can be proactively detected and addressed early.
+% This proactive approach catches errors early, minimizes propagation, and preserves experimental progress. 
+Moreover, \textit{Intra-\texttt{ARM}}'s validators are extensible, allowing new ones to be incorporated as needed. We focus on two key validators here for brevity:
+
+\if 0
+% \textit{Intra-\texttt{ARM}} is responsible for ensuring the reliability of the experiment process within our Architect and Technicians. 
+% \lee{architect and technicians are the consumer/user of the module. this explanation can come in the earlier part of the paper to ease the understanding.}
+\textit{Intra-\texttt{ARM}} verifies that our Architect and Technicians perform their assigned tasks correctly, producing reliable and reproducible results that align with the overarching goals of the experiment question.
+This module is particularly important for two reasons:
+(1) LLM-based agents are prone to hallucinate, necessitating robust mechanisms to safeguard experimental integrity and prevent cascading errors.
+% Additionally, due to the inherent uncertainty in research processes, [some examples], iterative refinements of experimental setups, hypotheses, and designs are often required. 
+(2) Experimental processes are inherently exploratory, which requires iterative refinements to experimental setups, hypotheses, and designs based on new or unexpected findings.
+% or unexpected outcomes.
+% We now describe its two key components to address these challenges:
+
+\noindent\textbf{Modular Experimental Validation.} 
+Experiments, often large-scale and long-running, consist of complex chains of interdependent steps where early-stage errors can propagate and compromise final results. Despite this, existing works~\cite{lu2024ai, schmidgall2025agent} largely overlook the need for continuous validation throughout the experimental process.
+A naive approach is to perform end-to-end validation only after an experiment concludes. However, this lacks the ability to backtrack to intermediate stages, preventing error isolation and correction, forcing researchers to either discard progress or rerun the entire experiment—an inefficient and costly approach.
+Instead, we advocate for modular validation, drawing inspiration from process supervision~\cite{lightman2023let}. By employing a suite of validators at every step of the experimental process (Fig.~\ref{fig:workflow}), errors can be proactively detected and addressed early.
+% , minimizing propagation while ensuring robustness and preserving progress. 
+Moreover, \textit{Intra-\texttt{ARM}}'s validators are extensible, allowing new ones to be incorporated as needed.
+Although our framework includes a suite of validators, we focus on two key components here for brevity:
+\fi
+
+
+% To address these challenges, this primitive employs a series of verifiers that systematically validate key aspects of the experimental workflow.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\linewidth, trim=40 100 50 70, clip]{figures/inter-arm-v2.png}
+    \caption{Simplified \textit{Inter-\texttt{ARM}} workflow with a partition state snapshot. Partition, control flow, and scheduling policies are customizable.}
+    \label{fig:inter-arm}
+\end{figure*}
+
+\paragraph{Experimental Setup Validator.}
+% \lee{again, is this component used by architect, technician, or both? additional details would help understanding this para.}
+This component (Fig.~\ref{fig:intra-arm}) 
+% is responsible for verifying that the experimental setup constructed by our Technicians is aligned with the experimental plan before execution (e.g., that it is methodologically sound, logically consistent). 
+verifies that the experimental setup by our technicians aligns with the plan before execution, ensuring methodological soundness and logical consistency.
+Each enforced policy checks alignment within a specific part of the experiment setup. 
+This includes (Fig.~\ref{fig:setup-validator-examples}): (1) confirming the setup aligns with the experimental plan, including the research question and all specified variables (independent, dependent, and constant). 
+(2) Analyzing all procedures for correct handling of input/output arguments; and detecting placeholders, hardcoded values, or incomplete variables to ensure meaningful results. 
+(3) Checking that the setup documents all intermediate steps and expected results, including any identified issues for future analysis.
+
+\if 0
+This step prevents downstream errors by identifying flaws early in the workflow. 
+Each policy enforced by this validator corresponds to a specific step in the experiment setup.
+(1) \textit{Alignment with the Experimental Plan:}
+Confirms that the setup reflects the experimental plan, including the research question and all specified variables (independent, dependent, and constant).
+(2) \textit{Inspection of Scripts:}
+Analyzes all scripts to ensure proper handling of input and output arguments as specified by the plan. Detects placeholders, hardcoded values, or incomplete variables to ensure the setup generates genuine, meaningful results.
+(3) \textit{Results Logging and Documentation:}
+Ensures that the setup logs all intermediate steps and expected results, including any identified issues for future analysis.
+\fi
+% \yiming{How is step (1) and (2) achieved? Right now it is unclear}
+
+\paragraph{Execution Validator.}
+% Once the setup passes the experimental setup validator without error, we run this validator to enforce reproducibility, by running the setup in a controlled environment to detect and address potential execution errors.
+Once the setup passes the experimental setup validator, this validator enhances reproducibility by executing it in a controlled and clean environment to detect and resolve potential errors, a sample of which is illustrated in Fig.~\ref{fig:exec-validator-examples}.
+(1) \textit{Error-Free Execution:}
+The setup is executed in a clean environment, verifying that it operates without errors. Any encountered errors are logged in detail, providing actionable feedback for debugging and iterative refinement.
+(2) \textit{Reproducibility Checks:}
+The workflow is also run multiple times to enhance consistency in outputs and detect anomalies or hidden dependencies. Finally, the results are validated to ensure alignment with the experimental plan and compliance with predefined quality standards.
+ 
+% \amber{add description about program-based verifier}
+% \amber{add out-of-distribution error handling}
+
+\subsection{Inter-Agent Rigor Module - Methodical Control}
+\label{subsec:inter-agent-primitive}
+
+% The Inter-Agent Rigor Primitive ensures methodical control over the experimentation lifecycle by coordinating interactions between agents (e.g., architects and technicians) and managing the execution of tasks. It addresses critical challenges such as task transitions, prioritization, and resource constraints, enabling seamless collaboration and efficient experimentation.
+
+Experimental processes must follow a methodical precedure (\S\ref{subsec:rigor}) while balancing resource constraints (e.g., GPU availability), and experiment priorities.
+% and prioritizing more important experiments. 
+Traditional agentic conversational patterns~\cite{autogen-conv-patterns}—such as naive LLM-based coordination, sequential, or round-robin execution—are thus ill-suited for such a workflow. 
+% These approaches lack the necessary control to prioritize tasks, adapt to dynamic constraints, and prevent inefficiencies in large-scale experimentation.
+To \textit{ensure task coordination} and \textit{optimize resource efficiency}, \textit{Inter-\texttt{ARM}} enables seamless collaboration between our Architect, Technicians and \textit{Intra-\texttt{ARM}} 
+through three key functions (illustrated in Fig.~\ref{fig:inter-arm}). We discuss each in turn. 
+\if 0
+% This module is essential for two reasons:
+(1) \textit{Ensuring Task Coordination} – In complex experimentation workflows, logical task transitions between agents are critical to maintaining consistent, error-free progress. Without structured coordination, tasks may be executed out of order or without necessary dependencies, leading to wasted effort and erroneous conclusions.
+(2) \textit{Optimizing Limited Resources}: Experimentation often operates under constrained resources, requiring careful scheduling and prioritization of tasks to improve efficiency.
+\fi
+% We address each of the above through two components:
+
+\if 0
+Our \textit{Inter-\texttt{ARM}} enables seamless collaboration and coordination between agents (e.g., architects and technicians).
+% \lee{now I am confused about the rigor module. Is the module a separate process that interacts with architect and technicians? Then, calling it a module can be misleading. module can be seen as a library or package, which can be used by processes. But the way this part is described seems to suggest the rigor module is an independent entity (e.g., a process). If so, then it may be better to have a bounding box for the rigor process in figures 1-3 for better visualization.}
+This module is essential for two main reasons:
+(1) \textit{Ensuring Task Coordination}: In complex experimentation workflows, logical task transitions between agents are critical for maintaining meaningful progress and avoiding errors.
+(2) \textit{Optimizing Limited Resources}: Experimentation often operates under constrained resources, requiring careful scheduling and prioritization of tasks to improve efficiency.
+% We now describe its two key mechanisms to address these challenges:
+We address each of the above through two key components:
+% To address these challenges, the Inter-Agent Rigor Primitive employs two key mechanisms: Control Flow Enforcement and Experiments Scheduling. [simplify the transition]
+\fi
+
+\paragraph{Fine-grained Plan Partitioning.}
+% To address these challenges,
+% % \lee{what challenges? resource-intensiveness and time-consuming nature?} 
+% our scheduler first breaks down new experiment plans into manageable partitions and then decides the resource scheduling plan for these partitions, in order to improves resource utilization, accelerates progress, and aligns task execution with the overarching goals of the experimental plan.
+% \zy{It would be great if we could add an example here. A visual one showing parallelism would be even better. Too much dense text up to this point, some sort of visual aid (tables/figs) is needed.}
+\textit{Inter-\texttt{ARM}} first breaks down new complex experimental plans generated by the Architect into smaller, independent partitions: defined as a distinct subset of independent variable values within the plan. 
+% , enabling fine-grained scheduling and efficient execution.
+% A partition is defined as a distinct subset of the experimental workflow, defined by a specific configuration of variables, hypotheses, or experimental conditions.
+% Each partitions is executed in isolated environments, producing separate results.
+% For example, in an experiment of testing the effect of multiple setup conditions, each condition forms a separate partition, with its own environment, execution, and results.
+% Each partition will be executed independently, with 
+By creating smaller, self-contained tasks, this facilitates modular execution and enables parallelization, making experimentation more scalable. 
+In addition, this enables our Architect to track intermediate progress and results, making real-time decisions as new insights emerge (e.g., reprioritizing partitions by updating their execution priority).
+% The architect, acting as the central coordinator, continuously tracks the progress of all partitions, dynamically updating their priorities as new progress is made or new insights are gained.  
+% In addition, this simplifies the tracking of intermediate progress and results, enabling our Architect to monitor the state of individual tasks efficiently.
+% (2)\lee{this para is length. split it into two here?} 
+
+\paragraph{Control Flow Enforcement.}
+This component ensures that transitions between our Architect, Technicians, and \textit{Intra-\texttt{ARM}}
+% \texttt{Intra-\textit{ARM}} 
+follow a logical sequence aligned with the experimentation lifecycle. 
+This is critical to maintaining consistent, error-free progress. Without structured coordination, tasks may be executed out of order or without necessary dependencies, leading to wasted effort and erroneous conclusions.
+% For instance, it prevents Technicians from passing experiment results to the Architect before validation by \textit{Intra-\texttt{ARM}}, to reduce the risk of erroneous data propagation.
+For instance, it prevents Technicians from directly executing experiment setups before validation by \textit{Intra-\texttt{ARM}}'s setup validator, to reduce the risk of erroneous data propagation.
+% It governs task progression by first evaluating the current state of a task and then determining the next permissible actions.
+This is done in two steps:
+% operating at the granularity of an experimental plan partition:
+(1) \textit{State Evaluation}: First, it evaluates the current state of each partition (within an experimental plan) that has been modified by any given agent, e.g., a Technician who produced experimental results and recorded its progress via the Experiment Knowledge Module.
+% It applies strict control flow transitions to enforce forward progress and prevent premature or erroneous transitions.
+% For example, it will enforce a task completed by a technician to first pass through the Intra-Agent Rigor Primitive before being forwarded to the architect.
+% In this way, our framework disallows the termination of the experiment until all necessary tasks are completed. 
+(2) \textit{Permissible State Transitions}: Based on the current state of the partition(s), this component produces a set of allowed state transitions for the given partition, e.g., newly produced experimental results for a given partition need to be validated by \textit{Intra-\texttt{ARM}} first. It also gathers relevant context that would be useful if the transition were to be executed. 
+% (e.g., previously validated partitions)
+This state transition information will be consumed by our scheduler (defined below). 
+% (2) Permissible State Transitions: This component determines the allowed state transitions for each partition based on its current state. For example, newly produced experimental results must first be validated by Intra-\texttt{ARM}} before proceeding. These transitions serve as scheduling parameters for the next component. Additionally, it gathers and passes relevant context, including prior experiment progress, to ensure continuity and informed decision-making.
+% Control the flow of tasks between agents to maintain alignment with the common experimentation lifecycle. Meanwhile, it
+% \lee{what is it? task transitions? that doesn't seem suitable as a subject of this sentence since it doesn't look like an active entity that can actively do something (e.g., collect and pass)} 
+% It produces a set of permissible state transitions
+% For example, our architect
+% \lee{can we have more than one architect for one experimentation?} 
+% design the experiment and pass the experimental plan to technicians, who setup the controlled experiment. Once the technician completes the task, it transitions back to architects along with the setups for analysis and next steps.
+% \lee{this para is a bit hard to understand.}
+
+
+\paragraph{Partition Scheduling.} 
+% Experiments are often large-scale and operate under constrained resources, requiring careful scheduling and prioritization of tasks to improve efficiency.
+Executing large-scale experiments can be resource-intensive and time-consuming, requiring careful scheduling and prioritization of tasks to improve efficiency.
+Our scheduler currently utilizes three key parameters for partition scheduling: (1) partition execution priorities set by our Architect, (2) allowed partition state transitions, and (3) the availability of our agents (that may be busy handling other partitions).
+% Technician along with its resource availability. 
+% For instance, hyperparameter tuning often involves exploring a vast search space, requiring thousands of GPUs hours to evaluate various configurations.
+% Such scenarios highlight the importance of an efficient scheduler that minimizes cost, accelerates execution, and ensures systematic progress. 
+% As part of the Inter-Agent Rigor Primitive, this experiment scheduler enforces methodical control over task execution, thereby maintaining rigor and reproducibility across the experimentation lifecycle.
+\if 0
+ \textit{Priority-Based Scheduling.} 
+Once partitions are created, the scheduler determines their execution order based on their relevance to the experimental objectives. 
+The architect, acting as the central coordinator, continuously tracks the progress of all partitions, dynamically updating their priorities as new progress is made or new insights are gained.  
+For example, if early results from a partition indicate the need to explore a new parameter range, the scheduler dynamically adjusts priorities to accommodate these new tasks. \todo{the example is optional, unless we do have this.}
+% The scheduler also considers resource availability and resource affinity when deciding which system resources (e.g., GPUs, CPUs, dataset) are best suited for executing each partition. 
+\fi
+Overall, this adaptive scheduling strategy enables large-scale experimentation by improving resource efficiency while adhering to methodical experimental procedures.
+
+% \todo{miss the fine-grained component assignment.}
+
+% \amber{the discussion of parallelization here? otherwise we need to show something in the eval.}
+% \zy{if possible, for eval, just add all sub-tasks exec time, vs. time with parallelization enabled (this could also be simulated with task-DAG).}
+ 
+
+
+% % Below is random thoughts to give some details:
+
+% \subsection{Inter-Agent Rigor Primitive: Methodical Control}
+% \label{subsec:inter-agent-primitive}
+% This primitive ensures methodical control over the experimentation lifecycle by managing the plethora of dynamic interactions between our agents. It does so through two key mechanisms: (1) strict control flow to enforce forward experimental progress and (2) dynamic priority-based scheduling to optimize efficiency.
+
+
+% \noindent\textbf{Control Flow Enforcement.}
+% Control flow determines the permissible transitions for a partition based on its current state, ensuring tasks progress methodically within the experiment.
+% (1) The system intercepts when an agent completes its assigned task (e.g., a technician finishing an experiment for their partition) and logs this progress through plan updates. (2) It evaluates the current state of the partition by examining what has been completed so far, using recorded deliverables and progress updates. (3) Based on this information, strict control flow transitions are applied to determine the next permissible actions for the partition.
+% For example, a partition just completed by a technician cannot be marked as done or forwarded to the architect directly. Instead, it must first pass through the intra-agent rigor primitive for validation.  
+% As another example, we disallow termination of the experiment until all plans and their associated partitions are completed or explicitly removed by the architect.  
+% By enforcing these transitions, the system maintains rigorous oversight and provides stronger guarantees for the integrity of the experimental process. 
+
+% \noindent\textbf{Dynamic Scheduling.}
+% Dynamic scheduling determines which partitions be executed based on the transitions allowed by the control flow mechanism, and the ranked priorities currently assigned by the architect for each partition. 
+% To achieve this, the system maintains significant knowledge of the current experimental state, including: (1) plans and partitions currently being executed, (2) technicians and their assigned tasks, (3) any partitions that have been inserted, modified, marked for redo, or removed by the supervisor.
+% Once an agent is selected, we provide it with context information relevant to its next task, including metadata about tasks completed by previous agents, ensuring continuity and informed decision-making.
+% Metadata is packaged and sent to individual agents, tailored to their specific tasks. This includes inputs needed for the next step, responses from previous agents, and deliverables transformed into actionable items. For example, results from technician are consolidated into a convenient file format for the architect's review or passed as context to another agent to advance the workflow.
+% While the current implementation does not yet utilize parallel technicians, the mechanism is designed to support such scalability in the future. 
+% By prioritizing tasks, managing transitions, and packaging relevant information, dynamic scheduling ensures efficient resource utilization and seamless progression in experimental workflows.
+
+\subsection{Experiment Knowledge Module - Interpretability}
+% \lee{why did we drop the term, "experiment knowledge manager" and introduce a new term, "agent-experimenter interface"?}
+\label{subsec:interface}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/time-machine.png}
+    \caption{Simplified partial snapshot of an example Time Machine.}
+    \label{fig:time-machine}
+\end{figure}
+
+
+
+\if 0
+Interpretability is fundamental to experimentation—not only for scientific accountability but also for effective experiment management. Without it, \sys may struggle to trace outcomes, refine hypotheses, or diagnose failures. In complex, multi-step workflows, it provides real-time visibility, enabling informed decision-making, efficient troubleshooting, and adaptability as new insights emerge. Without it, experimentation becomes a black box, leading to inefficiencies, untraceable errors, and lost progress.
+A naive approach would be to delegate experimental knowledge management entirely to LLM-based agents. 
+However, LLMs by themselves are ill-suited for this task due to their 
+% lack of structured memory, deterministic recall, and systematic decision rules. 
+hallucinatory nature, and proneness to inconsistent recall and forgetting.
+% Their responses are probabilistic rather than rule-based, meaning they may omit, misinterpret, or hallucinate details when handling experimental data.
+Unlike databases, they do not inherently track provenance, making it difficult to reconstruct how conclusions were reached. 
+Overall, this can lead to error propagation, and inefficiencies in long-term context management, omit, misinterpret, or hallucinate details when handling experimental data.
+especially in long-running experiments.
+
+Scientific rigor requires tracking how experimental data is acquired, processed, and utilized at every stage. Since LLMs do not maintain verifiable audit trails of their reasoning, relying on them alone would compromise transparency, reproducibility, and reliability. Instead, structured mechanisms—such as experiment knowledge managers and modular validation layers—are essential for enforcing interpretability, ensuring that experimental processes remain auditable, accountable, and scientifically rigorous.
+\fi
+
+Interpretability is fundamental to experimentation—not only for scientific accountability but also for effective experiment management. 
+% Without it, \sys may struggle to trace outcomes, refine hypotheses, or diagnose failures. 
+% In complex, long-running experiments,
+Specifically, all other components within \sys require this for real-time visibility, enabling informed decision-making, efficient troubleshooting, and adaptability as new insights emerge. 
+% —especially at scale, where the volume of experimental data can be massive.
+% , making it even harder to track provenance and ensure consistency.
+A naive approach would be to delegate experimental knowledge management entirely to LLM-based agents. 
+However, LLMs alone are ill-suited for this task for two reasons:
+(1) \textit{Inconsistent Reads}: LLMs have inconsistent recall and are prone to forgetting~\cite{xu2024knowledge}. Without a structured and verifiable record of experimental progress, they may retrieve outdated, irrelevant, or hallucinated information, leading to misinterpretations, flawed conclusions, and compounding errors over time. 
+(2) \textit{Inconsistent Writes}: LLMs tend to hallucinate, particularly when managing large-scale experimental data. This lack of structured control risks corrupting experimental records, propagating inaccuracies, and ultimately compromising the integrity of the experimentation process.  
+Unlike databases, LLMs do not inherently track provenance~\cite{hoque2024hallmark}, making it difficult to reconstruct how conclusions were reached.
+\if 0
+However, LLMs alone are ill-suited for this task due to their hallucinatory tendencies, inconsistent recall, and susceptibility to forgetting. 
+Unlike databases, they do not inherently track provenance, making it difficult to reconstruct how conclusions were reached. 
+As the amount of experiment data grows, this can lead to error propagation and lost progress.
+To address these challenges, our Experiment Knowledge Module integrates two mechanisms that we discuss below: 
+\fi
+We address these two challenges in turn: 
+
+\if 0
+The Agent-Experimenter Interface ensures consistent and well-structured experiment logging, which is essential for the interpretability of \sys. This component serves two critical purposes:
+(1) \textit{Facilitating Agent Collaboration:} Shared progress and structured knowledge are vital for ensuring seamless coordination, particularly in long-ranging or large-scale experiments.
+(2) \textit{Ensuring Transparency for Reproducibility:} Providing researchers with transparent access to experimental progress and outcomes is crucial for reproducing results and validating experimental integrity.
+We now describe its two key components to support these:
+\fi
+
+
+% \noindent\textbf{Structured Knowledge .}
+\noindent\textbf{Structured Knowledge Reads.}
+\if 0
+This mechanism manages and organizes experimental progress by transforming the experimental plan and process into a structured and enriched format. 
+The structured approach enhances collaboration among agents and simplifies the interpretation of experimental workflows by researchers.
+The transformation begins with formatting and enriching experimental plans. Experimental plans, typically written in natural language or loosely structured formats, are restructured into an enriched format containing critical metadata. 
+This metadata includes information such as the experimental setups, the execution status, and the produced results as shown in \textcolor{red}{an example json}. 
+This enriched format provides a unified representation of the experimental state and facilitates downstream operations, such as validation by aforementioned rigor primitive.
+This structured management system not only streamlines collaboration between agents but also enhances the interpretability and scalability of \sys.
+\fi
+This mechanism organizes experimental progress in a structured format. 
+The process begins by restructuring new experimental plans that were written by our Architect into an enriched format with critical metadata—such as setups, execution status, and results. 
+Subsequent modifications to any part of the plan are recorded as a time machine (Fig.~\ref{fig:time-machine}) for experimental progression, maintaining a structured, DAG-like history of changes. This historical record captures hypotheses tested, variable changes, and the reasoning behind key decisions. By preserving this evolution, \sys can reconstruct past states, trace decision rationales, and diagnose issues with greater precision. 
+% This structured approach not only enhances interpretability but also mitigates the risk of lost context, allowing experiments to scale without sacrificing reliability.
+
+% By enforcing structure, this system improves traceability, reduces ambiguity, and scales efficiently as experiments grow in complexity.
+
+% \todo{think about 'partition'}
+% \yiming{This seems to be access control, why is this called ``tiered''?} 
+\noindent\textbf{Tiered Write Access.}
+To maintain experimental integrity and minimize the risk of errors, the interface enforces a tiered write access policy that restricts and validates updates made to the experimental plan. This ensures that our other components can only modify the portions of the plan they are responsible for, while all changes undergo rigorous validation.
+Our LLM-based Architect and Technicians are granted fine-grained write permissions tailored to their roles. For example, Technicians are permitted to append experimental results to their assigned partitions but cannot modify unrelated sections of the plan. Similarly, architects have broader write access, including the ability to create or remove entire partitions, but their modifications are still constrained to specific attributes, such as updating variable values or marking partitions for re-execution.
+Every write operation is validated before being committed to the knowledge bank. 
+This process ensures proper structuring of inputs and enforces semantic integrity (e.g., that result file paths are valid). 
+% This validation process includes checks for correct structuring of inputs and various semantic checks (e.g., that a results filepath is valid). 
+If errors are detected, the system returns concise error messages, enabling agents to quickly identify and resolve issues. 
+Through this, \sys enhances robustness and error resistance in collaboration.
+
+
+ \begin{table*}[t]
+\centering
+\caption{Experimentation benchmark overview.  }
+\begin{tabular}{c|ccc|c|c}
+\toprule
+\multirow{2}{*}{\textbf{Domain}} & \multicolumn{3}{c|}{\textbf{Complexity Dist.}} & \multirow{2}{*}{\textbf{Description}}                                                                                                                                              & \multirow{2}{*}{\textbf{Sources}}                                                                                   \\
+                                 & Easy            & Med.            & Hard          &                                                                                                                                                                                    &                                                                                                                     \\ \hline  
+                                \midrule
+LLM Reasoning                    & 4               & 5               & 7               & \begin{tabular}[c]{@{}c@{}}Investigates strategies for scaling test-time \\ computation in LLMs, focusing on \\ balancing accuracy, latency, and cost.\end{tabular}                & \begin{tabular}[c]{@{}c@{}}Research papers: \\ ~\cite{brown2024large}, \\ ~\cite{jin2024impact}.\end{tabular} \\ \hline
+Vector Indexing                  & 6               & 6               & 3               & \begin{tabular}[c]{@{}c@{}}Examines efficient vector indexing methods \\ for similarity search, analyzing its trade-offs \\ in retrieval recall, memory, and latency.\end{tabular} & \begin{tabular}[c]{@{}c@{}}Open-source project: \\ Faiss~\cite{douze2024faiss} \end{tabular}                                               \\ \hline
+Cloud Computing                  & 2               & 4               & 2               & \begin{tabular}[c]{@{}c@{}}Optimize distributed setups, \\ resource allocation, and cost-performance \\ trade-offs in cloud environments.\end{tabular}                             & \begin{tabular}[c]{@{}c@{}}Cloud platforms: \\ Amazon Web Services\end{tabular}                                     \\ \hline
+ML Training                      & 3               & 3               & 1               & \begin{tabular}[c]{@{}c@{}}Optimize ML training pipelines, \\ including hyperparameter tuning \\ and model architecture search.\end{tabular}                      & \begin{tabular}[c]{@{}c@{}}Open-source benchmark: \\ ~\cite{huang2310mlagentbench}, \\ \cite{hong2024metagpt} \end{tabular}   \\ 
+\bottomrule
+ 
+\end{tabular}
+\label{table:benchmark-overview}
+\end{table*}
+
+
+% \subsection{Agent-Experimenter Interface: Interpretability} 
+
+% Our interface allows our agents to reliably store, track, and maintain experimental progress, reducing errors and enhancing scalability, particularly in long-ranging or large-scale experimentation.
+% We now describe its two key mechanisms:
+
+
+
+% \noindent\textbf{Structured Knowledge Management.}
+% \todo{need a top-down fashion to introduce the responsiblity. I will do this, but still concern about the order of these 3 components.}
+% New experimental plans crafted by the architect are restructured into an \textit{enriched} format containing information useful to all agents and rigor primitives (as described later) as the experiment progresses. To enable fine-grained scheduling and efficient execution, new plans are first broken down into smaller partitions, each representing a manageable subset of the overall experiment (our basic experimental unit) defined by distinct independent variables. 
+% Each partition is then enriched with various metadata, including details valuable to the architect, such as whether the partition has completed execution correctly, the location of its experimental setup, and the location of its produced results. 
+% All metadata and results are stored in a centralized experiment knowledge bank, which organizes information into distinct ``message banks'' for categories such as results, logs, and variables.
+% Experimental setups are further organized as sequences of programs, culminating in a main callable program that produces results in a predefined file format, ensuring consistency and reproducibility across workflows.
+% The enriched experimental plans are stored and maintained in the experiment knowledge bank, which serves as a central repository for structured knowledge. 
+% This approach simplifies decision-making for controllers by exposing an intuitive interface while ensuring the underlying knowledge is internally validated and restructured for operational use. 
+% By combining modularity, fine-grained tracking, and centralized storage, the system provides a scalable and interpretable framework for managing complex experiments.
+ 
+
+% \noindent\textbf{Tiered Write Access.} 
+% % basically: (1) accessed controlled writes, and (2) each such write is validated for correctness and otherwise concise errors are returned.
+% All changes made by agents and rigor primitives require updates to some underlying enriched experimental plan, whether it involves technicians producing experimental data for their partitions or architects marking a partition for redo. To enable these updates, agents are granted write access to the plan. However, based on our observation that coarse-grained writes pose significant risks for mistakes, we enforce fine-grained write access to protect experimental integrity and minimize errors during experimentation.
+% Agents are granted write permissions only for the specific partitions they are responsible for. Within these partitions, they can only modify specific attributes of the plan (e.g., a technician appending experimental data) using a set of distinct interface tools, ensuring that changes remain localized and relevant. 
+% Similarly, the architect is granted broader write access, including the ability to remove entire plans/partitions. However, for modifications, the architect is still restricted to fine-grained changes to specific attributes within the plan (e.g., adding new variable values to a partition or marking a partition for redo).
+% Additionally, all write operations undergo strict validation before being committed. This includes checks for valid plan IDs and the proper structuring of outputs. If errors are detected, the system returns concise error messages to help agents quickly identify and resolve issues. 
+% By scoping write permissions and enforcing rigorous validation, this mechanism ensures a robust and error-resistant workflow, particularly for long-running, large-scale experiments.
+
+
+
+
+
+
+
+
+
+
+% for agents: only provide info for partitions they are in charge of, as decide by the controller
+% for verifiers: same
+% for architect: all information for read, but only a little for write
+
+% \subsection{Intra-Agent Rigor Primitive: Enhancing Validity}
+% \label{subsec:intra-agent-primitive}
+
+% This primitive comprises extensible validation policies that enhance the validity of experimental setups and results. Since unexpected outcomes or new insights often require iterative refinements to hypotheses, methods, or designs, it ensures that these refinements are grounded in a valid and reliable experimental setup. Moreover, it provides a pathway for a reproducible experiment. 
+% While we envision incorporating additional validators in the future, here we focus on the two currently implemented in \sys.
+
+% \noindent\textbf{Experimental Setup Validator}
+% This is implemented as an AI agent that inspects the experiment setup's structure, logic, and content—without executing it—to ensure that the setup is methodologically sound, logically consistent, and aligned with the goals of the experimental plan. 
+% Its validation process involves the following steps: (1) retrieving and analyzing the experimental plan to confirm the setup aligns with the experimental question and includes all specified variables (independent, dependent, and constant); (2) inspecting the setup structure by starting with the main script, tracing dependencies (including nested or recursive scripts), and verifying proper handling of inputs, outputs, and integration; (3) ensuring the setup produces genuine outputs, not placeholders or mock data, by checking for hardcoded values, incomplete variables, or placeholder tokens; (4) validating that all variables defined for the current partition are explicitly and effectively utilized, including in nested scripts; (5) inspecting results files to confirm it corresponds to the required variable values and adheres to the experimental plan; and finally (6) recording its findings with detailed explanations for any issues identified.
+ 
+
+% \noindent\textbf{Execution Validator}
+% If the previous step passes without errors, this validator is applied to reinforce reproducibility by verifying that the setup produces consistent outputs across repeated executions, a cornerstone of scientific rigor. This validator attempts to rerun the experimental setup in a clean environment, validating reliability by ensuring scripts are robust, free from hidden dependencies or placeholders, and confirming the legitimacy of results by ensuring they are complete, accurate, aligned with the experimental plan, and free from errors such as missing or corrupted files. Its process involves the following steps: (1) executing the experimental setup and ensuring it runs without errors; (2) validating results by confirming the generation of the specified results file and verifying its accuracy; (3) performing consistency checks by re-executing the workflow multiple times and comparing results to detect any anomalies or deviations that could indicate flaws; and (4) capturing and logging any errors encountered during execution, including script failures or missing outputs, while providing detailed feedback through verifier log messages. By complementing the structural validation performed by the previous validator, the Execution Validator ensures that workflows are not only logically valid but also functional, consistent, and fully reproducible.
+
+
+

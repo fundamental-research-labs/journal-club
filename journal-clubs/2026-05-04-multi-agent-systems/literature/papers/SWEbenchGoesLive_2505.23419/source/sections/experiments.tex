@@ -1,0 +1,163 @@
+\section{Experiments}
+\label{sec:experiments}
+\subsection{Setups}
+
+\paragraph{Agents and Model Selection.} 
+To evaluate the effectiveness of our proposed \benchmark, we conduct experiments using three representative agent frameworks. These include the general-purpose coding agent \textbf{OpenHands}~\cite{openhands} (paired with CodeAct), as well as two agents specifically designed for issue-resolving tasks: \textbf{SWE-Agent}~\cite{sweagent} and \textbf{Agentless}~\cite{xia2024agentless}. For OpenHands, we set a maximum of 60 iterations per instance. For SWE-Agent, we limit the number of LLM calls to 100 per instance to maintain computational efficiency. For Agentless, we largely follow the original pipeline, which consists of two main stages: issue localization and patch generation. However, we omit the reranking stage based on regression testing, as supporting this step on SWE-bench-Live would require substantial infrastructure adaptation and is beyond the scope of this study. Consequently, both the localization and repair stages in our Agentless evaluation produce a single sample without reranking. We test these agents using four recent state-of-the-art LLMs, covering both proprietary and open-source models: GPT-4o~\cite{openai_gpt4o} (gpt-4o-2024-11-20), GPT-4.1~\cite{openai_gpt41} (gpt-4.1-2025-04-14), Claude 3.7 Sonnet~\cite{claude_37} (claude-3-7-sonnet-20250219), and DeepSeek V3~\cite{deepseek_v3} (DeepSeek-V3-0324).
+
+\paragraph{Evaluation Metrics.} 
+Following the evaluation protocol of SWE-bench~\cite{swebench}, we adopt the \textbf{Resolved Rate (\%)} as our primary metric. This measures the proportion of issues successfully resolved by the agent across all task instances. We also report the \textbf{Patch Apply Rate (\%)}, which indicates the percentage of generated patches that are syntactically correct and can be successfully applied to the codebase without errors. Additionally, we measure the \textbf{Localization Success Rate (\%)} at the file level. This reflects whether the set of files modified by the generated patch matches the gold patch.
+
+
+\subsection{Performance on \benchmark}
+We report the performance of all agent–model combinations on the Lite subset of \benchmark{} in Table~\ref{tab:perf_lite}. 
+% Table~\ref{tab:full} presents the results of the top three combinations—selected based on Lite performance—evaluated on the full version of \benchmark{}. 
+Meanwhile, Table~\ref{tab:full} presents the results of the top three combinations selected based on Lite performance, evaluated on the full version of \benchmark{}.
+
+
+
+
+We observe that the same methods achieve substantially higher scores on SWE-bench compared to their performance on SWE-bench-Live, despite both benchmarks targeting the same issue-resolving task with identical settings. For example, recent state-of-the-art agents and models report a resolved rate exceeding 60\% on the SWE-bench Verified subset\footnote{\url{https://www.swebench.com/}}. In contrast, the highest resolved rate on SWE-bench-Live is only 19.25\%. 
+% Considering that the experimental setups on the SWE-bench leaderboard often involve dramatically high rollout numbers or iteration efforts, we specifically re-ran the best-performing combination—OpenHands with Claude 3.7 Sonnet—on the SWE-bench verified subset using the exact same setups as in our experiments. 
+Considering that the experimental setups on the SWE-bench leaderboard often involve dramatically high rollout numbers or iteration efforts, we specifically re-ran the best performing combination, OpenHands with Claude 3.7 Sonnet, on the SWE-bench verified subset using the exact same setups as in our experiments.
+The resulting resolved rate reached 43.20\%, more than twice the score achieved on SWE-bench-Live. This is a particularly interesting phenomenon, as it highlights the challenges of constructing a benchmark that can objectively measure an AI system’s ability to resolve arbitrary and previously unseen issues. It also raises concerns about potential overfitting to SWE-bench. Similar phenomena are also observed in other existing issue-resolving datasets: the best-performing method in Multi-SWE-bench achieves a resolved rate of only 19.32\%, while the highest score reported in OmniGIRL is as low as 8.6\%.
+
+\begin{table}%{l}%{0.7\textwidth}
+\centering
+\caption{Performance on \benchmark (Lite subset).}
+\label{tab:perf_lite}
+\begin{tabular}{l|rrr}
+\toprule
+\textbf{Models} & \textbf{Resolved (\%)} & \textbf{Apply (\%)} & \textbf{Loc. Suc. (\%)} \\
+\midrule
+\rowcolor{gray!20}
+\multicolumn{4}{c}{\textbf{OpenHands}} \\
+GPT-4o & 7.00 & 72.00 & 30.33 \\
+GPT-4.1 & 11.33 & 59.33 & 28.67 \\
+Claude 3.7 Sonnet & 17.67 & 84.00 & 48.00 \\
+DeepSeek V3 & 13.00 & 81.00 & 38.33 \\
+\midrule
+\rowcolor{gray!20}
+\multicolumn{4}{c}{\textbf{SWE-agent}} \\
+GPT-4o & 10.00 & 93.33 & 40.33 \\
+GPT-4.1 & 16.33 & 95.00 & 47.33 \\
+Claude 3.7 Sonnet & 17.67 & 84.67 & 46.33 \\
+DeepSeek V3 & 15.33 & 92.00 & 44.00 \\
+\midrule
+\rowcolor{gray!20}
+\multicolumn{4}{c}{\textbf{Agentless}} \\
+GPT-4o & 11.67 & 91.67 & 37.67 \\
+GPT-4.1 & 12.00 & 84.33 & 39.00 \\
+Claude 3.7 Sonnet & 11.33 & 68.00 & 30.00 \\
+DeepSeek V3 & 13.33 & 83.33 & 40.67 \\
+\bottomrule
+
+% \vspace{-1em}
+\end{tabular}
+\end{table}
+
+
+
+\begin{table}[t]
+    \centering
+    \caption{Performance of top-3 performing Agent + Model combinations on SWE-bench-Live.}
+    \begin{tabular}{l|c|rrr}
+    \toprule
+    \textbf{Agent / Model} & \textbf{Subset} & \textbf{Resolved (\%)} & \textbf{Apply (\%)} & \textbf{Loc. Suc. (\%)} \\
+    \midrule
+    \multirow{2}{*}{OpenHands / Claude 3.7 Sonnet} & Lite 
+    & 17.67 & 84.00 & 48.00 \\ 
+  & Full & 19.25 & 85.89 & 48.29 \\
+\midrule
+\multirow{2}{*}{SWE-agent / GPT-4.1} & Lite
+    & 16.33 & 95.00 & 47.33 \\
+  & Full  & 18.57 & 94.54 & 49.50 \\
+\midrule
+\multirow{2}{*}{SWE-agent / Claude 3.7 Sonnet} & Lite
+    & 17.67 & 84.67 & 46.33 \\
+  & Full & 17.13 & 89.15 & 45.86 \\
+    \bottomrule
+    \end{tabular}
+    
+    \vspace{-1em}
+    \label{tab:full}
+\end{table}
+
+To investigate this, we further categorize the instances in \benchmark{} based on their repository origin. Specifically, 216 instances are derived from 8 repositories that were originally included in SWE-bench, which we refer to as \textit{From SWE-bench Repos}. The remaining 1,103 instances are sourced from repositories not previously used in SWE-bench and are denoted as \textit{From Non-SWE-bench Repos}. As shown in Table~\ref{tab:swe_vs_non_swe}, although the Non-SWE-bench repositories are generally simpler with fewer files and lower code volume, the best-performing agent–model pair achieves a higher resolved rate of 22.96\% on SWE-bench Instances, compared to only 18.89\% on the Non-SWE-bench ones. This reinforces the hypothesis that existing agents may be overfit or implicitly optimized for the SWE-bench repositories, further motivating the need for continuously updated, contamination-resistant benchmarks like SWE-bench-Live.
+
+\begin{table}[h]
+    \centering
+    \vspace{-1em}
+    \caption{SWE-bench vs. Non-SWE-bench.}
+    \begin{tabular}{c|ccc}
+    \toprule
+      Instances & Avg. repo files & Avg. repo loc & 
+      Resolved (\%) \\
+    \midrule
+      From SWE-bench Repos & 744 & 223k & 22.96 \\
+      From Non-SWE-bench Repos & 383 & 68k & 18.89  \\
+    \bottomrule
+    \end{tabular}
+    \vspace{-1em}
+    \label{tab:swe_vs_non_swe}
+\end{table}
+
+% We report the performance of full Agent + Model combinations on the Lite subset of \benchmark in Table~\ref{tab:perf_lite}, and show in Table~\ref{tab:full} presents the results of the top three performing on full \benchmark combinations selected from Table~\ref{tab:perf_lite}. Interestingly,  We observe that the same methods achieve substantially higher scores on SWE-bench reported in the leaderboard, compared to their performance on SWE-bench-Live, despite both benchmarks targeting the same issue-resolving task with identical settings. For example, recent state-of-the-art models and agents achieve a resolved rate exceeding 60\% on the SWE-bench verified subset~\footnote{SWE-bench Leaderboard. \hyperlink{https://www.swebench.com/}{https://www.swebench.com/}}. In contrast, the highest reported score on SWE-bench-Live is only 19.25\%. This highlights the challenges of constructing a benchmark that can objectively measure an AI systems ability to resolve novelty, arbitrary and unseen issues. It also raises concerns about potential over optimization of existing code agents/models to SWE-bench, suggesting a illusion of progress, as also reported in other research of Multi-SWE-bench \cite{zan2025multi} and OmniGIRL \cite{guo2025omnigirl}.
+
+% In addition, we include new 209 instances derived from 8 repositories originally included in SWE-bench 8 repositories into \benchmark (SWE-bench Instance), and compare with the rest of 1,090 Non-SWE-bench Instances in Table XX. Interestingly, although the repositories in Non-SWE-bench Instances tend to be less complex than those in SWE-bench, as evidenced by their smaller number of files and lower lines of code. xx AGENT WITH xx MODEL achieves a resolved rate of 22.96\% on SWE-bench Instance. In comparison, the remaining Non-SWE-bench Instances  from other repositories yield a lower resolved rate of 18.89\%, which further suggest the potential over-optimizaton of existing agents on the SWE-bench repos.
+
+% It is worth noting that SWE-bench-Live includes 8 repositories that are also covered by the original SWE-bench dataset. While SWE-bench originally covered 12 repositories, 4 were excluded in SWE-bench-Live—either because their issue trackers were migrated away from GitHub after 2024, or because \method{} failed to automatically make execution environments for them. In Figure~\ref{fig:perf_with_repo}, the repositories from SWE-bench are highlighted with red-bordered markers. Overall, the repositories in SWE-bench-Live tend to be less complex than those in SWE-bench, as evidenced by their smaller number of files and lower lines of code. In SWE-bench-Live, there are 209 instances derived from repositories originally included in SWE-bench, on which the best-performing method achieves a resolved rate of 22.96\%. In comparison, the remaining 1,090 instances from other repositories yield a lower resolved rate of 18.89\%. \lh{I'm not sure if we can draw some conclusion here.}
+
+
+% Similar phenomena are also observed in other existing issue-resolving datasets: the best-performing method in Multi-SWE-bench achieves a resolved rate of only 19.32\%, while the highest score reported in OmniGIRL is as low as 8.6\%. Considering that the experimental setups on the SWE-bench leaderboard often involve dramatically high rollout numbers or iteration efforts, we specifically re-ran the best-performing combination—OpenHands with Claude 3.7 Sonnet—on the SWE-bench verified subset using the exact same setups as in our experiments. The resulting resolved rate reached 43.20\%, more than twice the score achieved on SWE-bench-Live.
+
+% \paragraph{Performance vs. Date.} 
+% SWE-bench-Live contains instances that are approximately evenly distributed across each month from January 2024 to April 2025. Figure~\ref{fig:perf_vs_time} illustrates the relationship between the resolved rate and the instance date in a quatuer base. Overall, the recency of instances has minimal impact on the resolved rate, which remains relatively stable over time.
+
+\subsection{Performance vs. Creation Date.}
+To investigate whether the recency of an issue affects its difficulty, we analyze the resolved rate across different creation periods. As shown in Figure~\ref{fig:perf_vs_time}, SWE-bench-Live includes a balanced distribution of instances across quarters from 2024Q1 to 2025Q1. The resolved rate, based on OpenHands with Claude 3.7 Sonnet on the full benchmark, remains relatively stable over time, fluctuating only modestly across quarters.
+
+While there is a slight dip in resolved rate during 2024Q4, followed by a recovery in 2025Q1, the trend does not indicate a clear correlation between task recency and success rate. This suggests that newer issues are not inherently harder for current agents to solve, and that SWE-bench-Live maintains a consistent level of challenge across time. These results reinforce the benchmark's ability to deliver a steady and reliable evaluation signal, even as it continuously evolves with newly introduced instances.
+
+
+\begin{figure}[!t]
+    \centering
+    \begin{minipage}[c]{0.58\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/resolved_and_time.pdf}
+        \caption{Resolved rate in relation to the creation date of instances. (OpenHands / Claude 3.7 Sonnet on full set)}
+        \label{fig:perf_vs_time}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[c]{0.4\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/difficulty_heatmaps.pdf}
+        \caption{Resolved rate in relation to the difficulty of instances. (OpenHands / Claude 3.7 Sonnet on full set)}
+        \label{fig:perf_vs_difficulty}
+    \end{minipage}
+\end{figure}
+
+
+\subsection{Performance vs. Difficulty}
+\label{sec:perform_vs_diff}
+We approximate the difficulty of a bug–fixing instance along two complementary axes.  
+\emph{Patch difficulty} is captured by the scope of the gold fix—the number of files it touches and the total lines modified—while \emph{repository difficulty} is approximated by the overall size of the project in files and lines of code (LOC).
+
+\textbf{Patch difficulty.}  
+Figure~\ref{fig:perf_vs_difficulty} visualises resolved rate as a heat-map over patch scope.  Success is high when the fix is local: a single-file patch that changes fewer than five lines is solved almost one time in two (48\%).  Performance degrades quickly as either dimension grows.  Once the patch edits three or more files, or spans more than one hundred lines, the success rate falls below ten per-cent; patches that touch seven or more files are never solved.  The sharp drop beyond the  \emph{one-file / few-lines} corner highlights a key limitation of current agents: they struggle to coordinate coherent edits across multiple files or to reason about large, intra-file changes.
+
+\textbf{Repository difficulty.}  
+Figure~\ref{fig:perf_with_repo} in Appendix~\ref{appendix:perform_vs_repo} plots resolved rate for every repository against its size (Python files on the x-axis, LOC on the y-axis).  Bubble area reflects the number of instances drawn from each project, and red outlines mark the original SWE-bench repositories.  A clear negative trend emerges: repositories with fewer than one hundred files and under twenty-thousand LOC often yield success rates above twenty per-cent, whereas projects exceeding five-hundred files rarely exceed five per-cent.  Nevertheless, notable variance remains—some small-to-mid-size projects are still hard to fix, likely due to atypical build systems or complex domain logic—emphasising that size is an informative but imperfect proxy for difficulty.
+
+Together, the two figures show that difficulty increases along both local (patch) and global (repository) dimensions, and that current code agents falter once fixes spill beyond a handful of lines or involve cross-file reasoning.  Because SWE-bench-Live spans the full spectrum of these difficulty factors—while continuously adding fresh, unseen instances—it provides a stringent and up-to-date testbed for future advances in large-scale program repair.
+
+
+
+% \paragraph{Performance vs. Difficulty of Instance.} We employed three heuristic metrics to estimate the difficulty of each instance: the number of edited files, lines, and hunks in the gold patch. Figure~\ref{fig:perf_vs_difficulty} illustrates the relationship between the resolved rate and the number of files and lines in the gold patch. Instances with only 1 edited file and 1–5 lines are considered the most trivial, achieving a resolved rate as high as 48\%. These heuristic metrics prove to be effective to some extent, as more difficult instances with more complex gold patches are rarely resolved by the evaluated methods.
+
+% \paragraph{Performance across Repositories.} Similarly, we employed heuristic metrics to estimate the difficulty of each repository, including the number of source files and lines of code (Python only). Figure~\ref{fig:perf_with_repo} shows the relationship between the resolved rate and repository difficulty, while also illustrating the overall distribution of repository difficulty within SWE-bench-Live. Each data point represents a single repository, with the size indicating the count of instances from that repository. Simpler repositories—those with fewer files and lower lines of code—tend to have higher resolved rates. A few low-difficulty repositories in the bottom-left corner even achieve resolved rates close to 100\%. The majority of repositories cluster in the lower-left quadrant, suggesting that most repositories in SWE-bench-Live are of moderate size. Even among large repositories with many instances, the resolved rate remains low, reinforcing the observation that increased complexity negatively impacts method effectiveness.
+
+
+
+% \paragraph{SWE-bench Repositories vs. Others.} It is worth noting that SWE-bench-Live includes 8 repositories that are also covered by the original SWE-bench dataset. While SWE-bench originally covered 12 repositories, 4 were excluded in SWE-bench-Live—either because their issue trackers were migrated away from GitHub after 2024, or because \method{} failed to automatically make execution environments for them. In Figure~\ref{fig:perf_with_repo}, the repositories from SWE-bench are highlighted with red-bordered markers. Overall, the repositories in SWE-bench-Live tend to be less complex than those in SWE-bench, as evidenced by their smaller number of files and lower lines of code. In SWE-bench-Live, there are 209 instances derived from repositories originally included in SWE-bench, on which the best-performing method achieves a resolved rate of 22.96\%. In comparison, the remaining 1,090 instances from other repositories yield a lower resolved rate of 18.89\%. \lh{I'm not sure if we can draw some conclusion here.}
+    

@@ -1,0 +1,30 @@
+\section{Intrinsic Motivation Methods}
+\label{appendix:intrinsic_motivation}
+
+We inherit the same policy architecture as well as optimization hyperparameters as used in the hide-and-seek game.
+
+Note that only the \emph{Sequential Lock} task in the transfer suite contains ramps, so for the other 4 tasks we remove ramps in the environment for training intrinsic motivation agents. 
+
+\subsection{Counted-Based Exploration }
+For each real value from the continuous state of interest, we discretize it into 30 bins. Then we randomly project each of these discretized integers into a discrete embedding of dimension 16 with integer value ranging from 0 to 9. Here we use discrete embeddings for the purpose of accurate hashing. For each input entity, we concatenate all its obtained discrete embeddings as this entity's  feature embedding. An max-pooling is performed over the feature embeddings of all the entities belonging to each object type (i.e., agent, lidar, box and ramp) to obtain a entity-invariant  object representation. Finally, concatenating all the derived object representations results in the final state representation to count.
+
+We run a decentralized version of the count-based exploration where each parallel rollout worker shares the same random projection for computing embeddings but maintains its own counts. Let $N(S)$ denote the counts for state $S$ in a particular rollout worker. Then the intrinsic reward is calculated by $\frac{0.1}{\sqrt{N(S)}}$.
+
+\subsection{Random Network Distillation}
+Random Network Distillation (RND)~\citep{burda2018exploration} uses a fixed random network, i.e., a target network, to produce a random projection for each state while learns anther network, i.e., a predictor network, to fit the output from the target network on visited states. The prediction error between two networks is used as the intrinsic motivation.
+
+For the random target network, we use the same architecture as the value network except that we remove the LSTM layer and project the final layer to a 64 dimensional vector instead of a single value.
+The architecture is the same for predictor network. We use the squared difference between predictor and target network output with an coefficient of 1.0 as the intrinsic reward.
+
+\subsection{Fine-tuning From Intrinsic Motivation Variants}
+\label{appendix:intrinsic_variants_transfer}
+
+We compare the performances of different policies pretrained by intrinsic motivation variants on our intelligence test suites in Figure~\ref{fig:count_based_variant_transfer}. The pretraining methods of consideration include RND and 3 different count-based exploration variants with different state representations. For policies trained by count-based variants, as discussed in the Section~\ref{sec:compare_intrinsic_motivation}, we know that more concise state representation for counts leads to better  emergent object manipulation skills, i.e., only using object position is better than using position and velocity information while using all the input as state representation performs the worst. In our transfer task suites, we observe that polices with better pretrained skills perform better in 3 of the 5 tasks except the \emph{Object Counting} task and the \emph{Construction from Blueprint} task. In \emph{Construction from Blueprint}, policies with better skills adapt better in the early phase but may have a higher chance of failure later in this challenging task. In \emph{Object Counting}, the polices with better skills perform worse. Interestingly, this observation is consistent with the transfer result in the main paper (Figure~\ref{fig:transfer}), where the policy pretrained by count-based exploration outperforms the multi-agent pretrained policy. We conjecture that the \emph{Object Counting} task examines some factors of the agents that may not strongly relate to the quality of emergent skills, such as navigation and tool use.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{assets/count_based_variants_transfer.pdf}
+\caption{Fine-tuning From Intrinsic Motivation Variants. We plot the mean performance on the suite of transfer tasks and 90\% confidence interval across 3 seeds and smooth performance and confidence intervals with an exponential moving average. We vary the state representation used for collecting counts: in blue we show the performance for a single agent where the state is defined on box 2-D positions, in green we show the performance of a single agent where the state is box position but also box rotation and velocity, in red we show the performance of 1-3 agents with the full observation space given to a hide-and-seek policy, and finally in purple we show the performance also with 1-3 agents and a full observation space but with RND which should scale better than count-based exploration.}
+\label{fig:count_based_variant_transfer}
+\end{figure}
+

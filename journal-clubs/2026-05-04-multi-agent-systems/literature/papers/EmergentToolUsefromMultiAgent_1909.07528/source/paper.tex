@@ -1,0 +1,152 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2019_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+\input{commenting_commands.tex}
+
+\usepackage{hyperref}
+%\urlstyle{same}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=black,linkcolor=black}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{anyfontsize}
+\usepackage{url}
+\usepackage{amsfonts}
+\usepackage{wrapfig}
+\usepackage[toc,page,header]{appendix}
+\usepackage{minitoc}
+\usepackage{makecell}
+\usepackage[flushleft]{threeparttable}
+% \usepackage[multiple]{footmisc}
+
+\newcommand{\videourl}{openai.com/blog/emergent-tool-use}
+\newcommand{\videourlclick}{https://openai.com/blog/emergent-tool-use}
+% \newcommand{\videourl}{youtube.com/playlist?list=PLOoeQVV6NjmgDR2cVGp8IaPkVEWcHAfJ1}
+% \newcommand{\videourlclick}{https://www.youtube.com/playlist?list=PLOoeQVV6NjmgDR2cVGp8IaPkVEWcHAfJ1}
+\newcommand{\codeurl}{github.com/openai/multi-agent-emergence-environments}
+\newcommand{\codeurlclick}{https://github.com/openai/multi-agent-emergence-environments}
+
+\title{Emergent Tool Use From Multi-Agent\newline Autocurricula}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+\author{
+\fontsize{8}{10}\hspace{-3px}Bowen Baker\thanks{This was a large project and many people made significant contributions. Bowen, Bob, and Igor conceived the project and provided guidance through all stages of the work. Bowen created the initial environment, infrastructure and models, and obtained the first results of sequential skill progression. Ingmar obtained the first results of tool use, contributed to environment variants, created domain-specific statistics, and with Bowen created the final environment. Todor created the manipulation tasks in the transfer suite, helped Yi with the RND baseline, and prepared code for open-sourcing. Yi created the navigation tasks in the transfer suite, intrinsic motivation comparisons, and contributed to environment variants. Glenn contributed to designing the final environment and created final renderings and project video. Igor provided research supervision and team leadership.} \\
+\fontsize{8}{10}OpenAI\\
+\fontsize{8}{10}\texttt{bowen@openai.com} \\
+\fontsize{8}{10}\And
+\fontsize{8}{10}Ingmar Kanitscheider\setcounter{footnote}{0}\footnotemark \\
+\fontsize{8}{10}OpenAI\\
+\fontsize{8}{10}\texttt{ingmar@openai.com} \\
+\fontsize{8}{10}\And
+\fontsize{8}{10}Todor Markov\setcounter{footnote}{0}\footnotemark \\
+\fontsize{8}{10}OpenAI\\
+\fontsize{8}{10}\texttt{todor@openai.com} \\
+\fontsize{8}{10}\And
+\fontsize{8}{10}Yi Wu\setcounter{footnote}{0}\footnotemark \\
+\fontsize{8}{10}OpenAI\\
+\fontsize{8}{10}\texttt{jxwuyi@openai.com} \\
+\fontsize{8}{10}\And
+\fontsize{8}{10}Glenn Powell\setcounter{footnote}{0}\footnotemark \\
+\fontsize{8}{10}OpenAI\\
+\fontsize{8}{10}\texttt{glenn@openai.com} \\
+\fontsize{8}{10}\And
+\fontsize{8}{10}Bob McGrew\setcounter{footnote}{0}\footnotemark \\
+\fontsize{8}{10}OpenAI\\
+\fontsize{8}{10}\texttt{bmcgrew@openai.com} \\
+\fontsize{8}{10}\And
+\fontsize{8}{10}Igor Mordatch\setcounter{footnote}{0}\footnotemark\hspace{4px}\thanks{Work performed while at OpenAI} \\
+\fontsize{8}{10}Google Brain\\
+\fontsize{8}{10}\texttt{imordatch@google.com} \\
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\turnoffcomments % Uncomment this to turn off comments
+% \preiclrcopy
+\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+
+\renewcommand \thepart{}
+\renewcommand \partname{}
+
+\begin{document}
+\doparttoc % Tell to minitoc to generate a toc for the parts
+\faketableofcontents % Run a fake tableofcontents command for the partocs
+
+\part{} % Start the document part
+
+\maketitle
+
+\begin{abstract}
+Through multi-agent competition, the simple objective of \textit{hide-and-seek}, and standard reinforcement learning algorithms at scale, we find that agents create a self-supervised autocurriculum inducing multiple distinct rounds of emergent strategy, many of which require sophisticated tool use and coordination.
+We find clear evidence of six emergent phases in agent strategy in our environment, each of which creates a new pressure for the opposing team to adapt; for instance, agents learn to build multi-object shelters using moveable boxes which in turn leads to agents discovering that they can overcome obstacles using ramps.
+We further provide evidence that multi-agent competition may scale better with increasing environment complexity and leads to behavior that centers around far more human-relevant skills than other self-supervised reinforcement learning methods such as intrinsic motivation.
+Finally, we propose transfer and fine-tuning as a way to quantitatively evaluate targeted capabilities, and we compare hide-and-seek agents to both intrinsic motivation and random initialization baselines in a suite of domain-specific intelligence tests.
+
+\end{abstract}
+
+\section{Introduction}
+\input{0_introduction.tex}
+
+\section{Related Work}
+\input{1_related_work.tex}
+
+\section{Hide and Seek}
+\input{2_environment.tex}
+
+\section{Policy Optimization}
+\input{3_policy_optimization.tex}
+
+\section{Auto-Curricula and Emergent Behavior}
+\input{4_emergence_results.tex}
+
+\section{Evaluation}
+\input{5_skill_evaluation.tex}
+
+\section{Discussion and Future Work}
+\input{7_discussion.tex}
+
+\subsubsection*{Acknowledgments}
+
+We thank Pieter Abbeel, Rewon Child, Jeff Clune, Harri Edwards, Jessica Hamrick, Joel Liebo, John Schulman and Peter Welinder for their insightful comments on this manuscript. We also thank Alex Ray for writing parts of our open sourced code.
+
+\bibliography{paper}
+\bibliographystyle{iclr2019_conference}
+
+\appendix
+\newpage
+\addcontentsline{toc}{section}{Appendix} % Add the appendix text to the document TOC
+\part{Appendix} % Start the appendix part
+\parttoc % Insert the appendix TOC
+\newpage
+
+\renewcommand\thefigure{\thesection.\arabic{figure}}    
+\setcounter{figure}{0}    
+\renewcommand\thetable{\thesection.\arabic{table}}    
+\setcounter{table}{0}
+
+\input{a_further_emergence.tex}
+\setcounter{figure}{0}
+\setcounter{table}{0}
+\input{a_optimization.tex}
+\setcounter{figure}{0}
+\setcounter{table}{0}
+\input{a_transfer_details.tex}
+\setcounter{figure}{0}  
+\setcounter{table}{0}
+\input{a_intrinsic_motivation.tex}
+
+\end{document}

@@ -1,0 +1,1391 @@
+
+\documentclass[10pt]{article} % For LaTeX2e
+%\usepackage{tmlr}
+% If accepted, instead use the following line for the camera-ready submission:
+% \usepackage[accepted]{tmlr}
+% To de-anonymize and remove mentions to TMLR (for example for posting to preprint servers), instead use the following:
+\usepackage[preprint]{tmlr}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+\usepackage{fancyvrb}
+
+\usepackage{hyperref}
+\usepackage{url}
+
+\usepackage{wrapfig}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{siunitx}
+\usepackage{array}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}% Add a new alignment type, "P," which is left-justified for tabular
+% Define a new column type 'M' for monospaced font
+\newcolumntype{M}{>{\ttfamily}l}
+\usepackage{graphicx}
+% https://tex.stackexchange.com/questions/280590/work-around-for-minted-code-highlighting-in-arxiv
+% https://github.com/gpoore/minted/issues/113#issuecomment-888045507
+% \usepackage[finalizecache,cachedir=.]{minted}
+\usepackage[frozencache,cachedir=.]{minted}
+\usemintedstyle{friendly}  % Optional: Set a style for syntax highlighting
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{cleveref}
+\usepackage{subcaption}
+\usepackage{xcolor}   % For text coloring
+\usepackage[skins, breakable]{tcolorbox}
+\usepackage{makecell}
+\usepackage[subtle]{savetrees}
+\usepackage{etoolbox}
+\usepackage{pifont}
+% Better captions
+\usepackage{caption}
+\captionsetup[figure]{labelfont={bf},font=small}
+\captionsetup[table]{labelfont={bf},font=small}
+\usepackage{ulem}
+
+\sisetup{group-separator = {,}, group-minimum-digits = 3}
+
+\newrobustcmd\B{\DeclareFontSeriesDefault[rm]{bf}{b}\bfseries}
+
+\newcommand{\std}[1]{\textcolor{gray}{\tiny{$\pm$#1}}}
+\newcommand{\code}[1]{\mintinline{python}{#1}}
+
+\newcommand{\maxime}[1]{\textbf{\textcolor{blue}{MG: #1}}}
+\newcommand{\oy}[1]{\textbf{\textcolor{orange}{OY: #1}}}
+\newcommand{\qcap}[1]{\textbf{\textcolor{teal}{[QC: #1]}}}
+\newcommand{\tlsdc}[1]{\textbf{\textcolor{pink}{TLSDC: #1}}}
+\newcommand{\change}[1]{\textcolor{blue}{{#1}}}
+
+\hyphenation{Visual-Web-Arena}
+\hyphenation{Video-Web-Arena}
+
+\title{\centering The BrowserGym Ecosystem for Web Agent Research}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the tmlr package is used without the [accepted] or [preprint] options.
+% Non-anonymous submissions will be rejected without review.
+
+
+\author{
+    \noindent
+    {\centering
+    % main
+    \mbox{\bf Thibault Le Sellier De Chezelles\thanks{Equal contribution.}\hspace{1.5mm}$^{123}$}\:
+    \mbox{\bf Maxime Gasse\footnotemark[1]\hspace{1.5mm}$^{123}$}\:
+    \mbox{\bf Alexandre Lacoste\footnotemark[1]\hspace{1.5mm}$^{1}$}\\[5pt]
+    }
+    % core
+    {\centering
+    \textnormal{Core contributors:}\\
+    \mbox{\bf Alexandre Drouin$^{12}$}\:
+    \mbox{\bf Massimo Caccia$^1$}\:
+    \mbox{\bf Léo Boisvert$^{123}$}\:
+    \mbox{\bf Megh Thakkar$^{12}$}\:
+    \mbox{\bf Tom Marty$^{27}$}\:
+    \mbox{\bf Rim Assouel$^{27}$}\:
+    \mbox{\bf Sahar Omidi Shayegan$^{125}$}\\[5pt]
+    }
+    % benchmark
+    {\centering
+    \textnormal{Benchmark contributors:}\\
+    \mbox{\bf Lawrence Keunho Jang$^{4}$}\:
+    \mbox{\bf Xing Han Lù$^{25}$}\:
+    \mbox{\bf Ori Yoran$^{6}$}\:
+    \mbox{\bf Dehan Kong$^{8}$}\:
+    \mbox{\bf Frank F. Xu$^{4}$}\\[5pt]
+    }
+    % advisors
+    {\centering
+    \textnormal{Affiliated advisors:}\\
+    \mbox{\bf Siva Reddy$^{125}$}\:
+    \mbox{\bf Quentin Cappart$^{23}$}\:
+    \mbox{\bf Graham Neubig$^{4}$}\:
+    \mbox{\bf Ruslan Salakhutdinov$^{4}$}\:
+    \mbox{\bf Nicolas Chapados$^{123}$}\\[5pt]
+    }
+    % lead
+    {\centering
+    \textnormal{Lead:}\\
+    \mbox{\bf Maxime Gasse$^{123}$}\:
+    \mbox{\bf Alexandre Lacoste$^{1}$}\\[5pt]
+    }
+    % \hspace{0cm}
+    {\centering
+    \it
+    \mbox{$^1$ServiceNow Research} \mbox{$^2$Mila} \mbox{$^3$Polytechnique Montréal} \mbox{$^4$Carnegie Mellon University} \mbox{$^5$McGill University} \mbox{$^6$Tel Aviv University} \mbox{$^7$Université de Montréal} \mbox{$^8$iMean~AI}\\~
+    }
+}
+
+% The \author macro works with any number of authors. Use \AND 
+% to separate the names and addresses of multiple authors.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\def\month{02}  % Insert correct month for camera-ready version
+\def\year{2025} % Insert correct year for camera-ready version
+\def\openreview{\url{https://openreview.net/forum?id=5298fKGmv3}} % Insert correct link to OpenReview for camera-ready version
+
+
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+The BrowserGym ecosystem addresses the growing need for efficient evaluation and benchmarking of web agents, particularly those leveraging automation and Large Language Models (LLMs) for web interaction tasks. Many existing benchmarks suffer from fragmentation and inconsistent evaluation methodologies, making it challenging to achieve reliable comparisons and reproducible results. In an earlier work, \citet{workarena} introduced BrowserGym which aims to solve this by providing a unified, gym-like environment with well-defined observation and action spaces, facilitating standardized evaluation across diverse benchmarks. We propose an extended BrowserGym-based ecosystem for web agent research, which unifies existing benchmarks from the literature and includes AgentLab, a complementary framework that aids in agent creation, testing, and analysis. Our proposed ecosystem offers flexibility for integrating new benchmarks while ensuring consistent evaluation and comprehensive experiment management. This standardized approach seeks to reduce the time and complexity of developing web agents, supporting more reliable comparisons and facilitating in-depth analysis of agent behaviors, and could result in more adaptable, capable agents, ultimately accelerating innovation in LLM-driven automation. As a supporting evidence, we conduct the first large-scale, multi-benchmark web agent experiment and compare the performance of 6 state-of-the-art LLMs across 6 popular web agent benchmarks made available in BrowserGym. Among other findings, our results highlight a large discrepancy between OpenAI and Anthropic's latests models, with Claude-3.5-Sonnet leading the way on almost all benchmarks, except on vision-related tasks where GPT-4o is superior. Despite these advancements, our results emphasize that building robust and efficient web agents remains a significant challenge, due to the inherent complexity of real-world web environments and the limitations of current models.
+\end{abstract}
+
+
+
+\section{Introduction}
+
+In recent years, the emergence of powerful large language models (LLMs) and vision-language models (VLMs) \citep{gpt-4,claude,llama3} has led to a revolution in the field of conversational assistants, otherwise known as chatbots. Since then, the capabilities of these traditional, chat-only assistants have been expanded to include running search queries on the web, reading user documents, executing sand-boxed code, and generating images. Of particular interest in this work is the capability for conversational assistants to perform actions in a web browser on behalf of the user, by directly manipulating its human-facing graphical user interface (UI).
+
+Many everyday tasks we perform on the web are simple, yet repetitive and time-consuming. Filling out redundant administrative forms, visiting e-commerce websites in search of the best deal, or manually synchronizing different calendars are all tedious tasks that involve multi-step execution. Having autonomous web assistants that can follow instructions and execute such tasks on our behalf would empower users to focus on higher-level, higher-value decisions instead. They also represent a great opportunity to improve digital accessibility, by helping visually or otherwise impaired users who may find certain websites difficult to navigate. Lastly, assistants acting through a UI offer interpretability, since users can visually verify what the agent does on the screen, along with a wide compatibility, bypassing the need to develop specific application programming interfaces (APIs) to adapt existing software for the agentic era. We also note that web agent research is conveniently accessible to LLMs due to the textual modality of the UI, although most research on planning and reasoning with web agents is likely to translate to pixel-based UI agents.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/agentlab-diagram.pdf}
+    \caption{Overview of the ecosystem, including AgentLab, BrowserGym, and the web agent benchmarks.}
+    \label{fig:bgym-agentlab-diagram}
+\end{figure}
+
+The field of web agents has been particularly active in the last few years. Most recent works focus on evaluating the capabilities of state-of-the-art LLMs / VLMs at solving tasks of varying difficulty, which has led to an abundance of new web agent benchmarks \citep{webarena, visual-webarena, weblinx, workarena, web-voyager, workarena-plus-plus, assistant-bench, webcanvas}. Unfortunately, with this multitude of contributions also comes a multitude of diverging codes for evaluating web agents, which yields research silos with inconsistent practices and incompatible implementations. This fragmentation is detrimental to the fair comparison of existing web agent implementations across benchmarks, which compounds the cumbersome process of installing diverse setups, adapting data formats, and manually incorporating agents into each separate benchmark.
+
+In this paper, we introduce the BrowserGym ecosystem, highlighted in \Cref{fig:bgym-agentlab-diagram}, which is meant to provide an open, easy-to-use, and extensible framework to accelerate the field of web agent research.\footnote{It is important to note that this work is meant to provide a research framework, not a consumer product.} It consists of AgentLab, which offers the tooling for building web agents and running large-scale experiments, and a unified collection of web agent benchmarks exposed through BrowserGym \citep{workarena}, which provides the standard interface for web tasks and web agents. In its philosophy, the BrowserGym ecosystem intends to address the three following use cases: a)~the design of new web agents, and their straightforward evaluation on a wide range of existing benchmarks; b)~the design of new benchmarks, and the straightforward evaluation of existing web agents on them; c)~the comparison of different models (LLMs / VLMs) in their ability to solve web agent tasks, by switching the backbone model in a state-of-the-art web agent implementation. 
+
+We summarize our contributions as follows:
+
+\begin{itemize}
+
+    \item We expand the existing \textbf{BrowserGym}\footnote{\url{https://github.com/ServiceNow/BrowserGym}} library from \citet{workarena} (\Cref{sec:browsergym}), and we provide a \textbf{unification of existing benchmarks} (\Cref{sec:benchmarks}) proposed by the scientific community in BrowserGym, ranging from MiniWoB(++) \citep{world-of-bits, Miniwob_plusplus} to more recent benchmarks such as AssistantBench \citep{assistant-bench} and VisualWebArena \citep{visual-webarena}. Despite their differences, all benchmarks are made available through the same, unified BrowserGym interface.
+
+    \item We introduce \textbf{AgentLab}\footnote{\url{https://github.com/ServiceNow/AgentLab}}  (\Cref{sec:agentlab}), a set of tools to simplify parallel large-scale experimentation with agents over BrowserGym in a reproducible manner. It also comes with AgentXRay, a visual tool to introspect the behavior of agents on individual tasks. Finally, it provides reusable building blocks to accelerate the development of new agents.
+    
+    \item We conduct the first, large-scale \textbf{web agent experiment} (\Cref{sec:experiments}) showcasing the BrowserGym ecosystem. We compare the performance of six state-of-the-art LLMs / VLMs from the GPT-4 \citep{gpt-4}, Claude 3.5 \citep{claude} and Llama 3.1 families \citep{llama3} across all web agent benchmarks available in BrowserGym. Among others, these results highlight an impressive performance for the new Claude-3.5-Sonnet model, which reaches an unprecedented success rate of 39.1\% on the WorkArena L2 benchmark, to be compared with 8.5\% for GPT-4o (2nd place). These results serve as first entries to the \textbf{BrowserGym leaderboard}.\footnote{\url{https://huggingface.co/spaces/ServiceNow/browsergym-leaderboard}}
+
+\end{itemize}
+
+\section{Background and Related Works}
+\label{sec:background}
+
+The field of autonomous agents has long been a major research interest both in academia and industry, with a recent surge in LLM-based agents \citep{wang2024survey}, motivated by the emergence of reasoning and planning capabilities in LLMs
+\citep{Huang2024UnderstandingTP,Wang2024ExploringTR}.
+While a large body of work focuses on software control via APIs \citep{autogpt,hao2024toolkengpt,du2024anytool}, another line of research focuses on automating human-like interactions, by directly manipulating UIs on mobile devices \citep{seq2act,aitw23,androidworld}, desktops \citep{osworld,windows-agent-arena}, and websites \citep{furuta2023multimodal,gur2023webagent,rci-agent,workarena,weblinx}. This last category encompasses the field of \emph{web agents}, which can automate software interaction even in environments without APIs, improve human productivity, and provide accessibility for users with disabilities. Next, we provide an overview of the recent literature related to web agents, which we divide into two parts: web agent benchmarks and web agent implementations.
+
+\subsection{Web Agent Benchmarks}
+
+Given the rapid pace of improvement in the field of Artificial Intelligence (AI), web agent benchmarks have been consistently evolving to evaluate more and more complex capabilities.
+Early benchmarks such as MiniWoB and MiniWoB++ \citep{world-of-bits,Miniwob_plusplus} established foundational metrics for evaluating basic web interactions like form filling and button clicking in controlled environments.
+WebShop \citep{webshop} later introduced complex e-commerce scenarios, requiring agents to navigate product catalogs while considering user preferences and constraints. Mind2Web \citep{mind2web} further expanded this scope and released a dataset of over 2,000 human traces collected from open-ended tasks across 137 real-world websites, along with a structured approach to evaluate multi-step interactions to develop and evaluate generalist web agents. WebVoyager \citep{web-voyager} proposed a live, online benchmark for evaluating web agents on real-world tasks from 15 popular websites. WebCanvas \citep{webcanvas} later extended Mind2Web from a static dataset to an online benchmark called Mind2Web-Live, by proposing a key-node evaluation mechanism for web agents.
+
+WebArena \citep{webarena}, along with its counterparts VisualWebArena \citep{visual-webarena} and VideoWebArena \citep{jang2024videowebarenaevaluatinglongcontext}, brought innovation by testing agents on live websites rather than simulated environments. This approach evaluated agents' abilities to handle real-world variability in website design and the dynamic nature of the content. VisualWebArena specifically addressed the role of visual understanding in modern web interfaces by introducing evaluation tasks that require interpreting and manipulating visual content across e-commerce websites, including product image comparison, visual search, and spatial reasoning about interface layouts.
+WebLINX \citep{weblinx} focuses on the instruction-following abilities of agents and provides a dataset of over 100k human interactions across 155 real-world websites. Building in the same direction, AssistantBench \citep{assistant-bench} presents 214 realistic tasks requiring agents to navigate multiple websites to gather and synthesize information. MMInA \citep{mmina} extends this further with 1,050 multimodal tasks that require agents to navigate between multiple websites, specifically evaluating their ability to handle both visual and textual information across naturally compositional tasks. In the same vein, GAIA \citep{mialon2023gaiabenchmarkgeneralai} proposes another question-answering benchmark that requires agents to navigate and combine information from diverse sources of the web to find the correct answer. 
+
+While these benchmarks focus on everyday websites, WorkArena and WorkArena++ \citep{workarena,workarena-plus-plus} introduced the first benchmark for web agents in the enterprise software setting, evaluating on common knowledge work tasks following realistic workflow.
+CRMArena \citep{huang2024crmarenaunderstandingcapacityllm} proposes nine customer service tasks distributed across three personas: service agent, analyst, and manager, designed to evaluate the abilities of AI agents in CRM systems.
+
+Broader evaluation frameworks like AgentBench \citep{agent-bench}, AndroidWorld \citep{androidworld}, OS World \citep{osworld}, and Windows Agent Arena \citep{windows-agent-arena} incorporate web tasks as part of a more general agentic environment, providing insights into more general agent capabilities. These benchmarks explore the intersection of web, desktop, and mobile interfaces, recognizing the increasingly blurred boundaries between user interfaces. Addressing the need for safety evaluation, ST-WebAgentBench \citep{st-webagentbench} introduces the first benchmark specifically focused on assessing web agents' compliance with organizational policies and safety requirements in enterprise settings.
+
+\subsection{Web Agent Implementations}
+
+Due to their immense potential, there has been a substantial effort in developing web agents. These agents differ in how they interact with the web environment, the backbone models, and the goal they aim to achieve, among others.
+Popular approaches either interact directly with HTML elements \citep{webgpt, mind2web, gur-etal-2023-understanding, web-agent-gur} or 
+leverage vision-language models \citep{liu2023visual, gpt-4, claude, llama3}, by grounding screenshots to web elements \citep{web-voyager, furuta2024multimodal, seeact, visual-webarena, dualvcr} or directly at the pixel-level \citep{pix2act, seeclick, seeact-v}. Beyond interaction methods, researchers have also explored ways to enhance agent reasoning capabilities through prompting or tuning. 
+Previous works suggested specialized prompting \citep{hierarchical-prompts, zheng2024synapsetrajectoryasexemplarpromptingmemory, sarch2024vlmagentsgeneratememories, chi2024impactelementorderinglm}, planning and search architectures \citep{lats, assistant-bench, web-pilot, gu2024webdreamer, koh2024treesearch}, and training methods \citep{gur2018learning,webgpt, pmlr-v162-humphreys22a, webvln, agent-q, step-agent} to improve performance.
+Due to the recent success of LLM-based agents and the challenging reasoning required, agents often use prompting techniques such as chain-of-thought \citep{chain-of-thought}, tree-of-thought \citep{tree-of-thoughts}, ReAct \citep{yao2022react}, and RCI \citep{rci-agent}. \citet{wang2024survey} provides a survey of LM-based agents.
+
+Other works focus on introducing frameworks for web agent development, by simplifying access to evaluation datasets \citep{huggingfacedatasets, AISI_inspect, ma2024agentboar}, agent development \citep{open-agents}, and interaction with live websites \citep{webcanvas, zheng-etal-2024-webolympus}.
+It is thus important to focus on standardizing web agents research, aiming to simplify future work, and introducing research best practices---standard evaluation with statistical power across benchmarks, simple ecosystem-growth enabling open-source research, and reproducible experiments at scale. Such a framework is needed not only for the development of the next generation of open-source web agents but also for general tasks that require web access, including the development of autonomous coding agents \citep{wang2024openhandsopenplatformai}. 
+To address those important points, we developed BrowserGym and AgentLab, which we describe in detail in the subsequent sections. 
+
+\section{BrowserGym}
+\label{sec:browsergym}
+
+BrowserGym provides a unified interface for web agents, i.e., conversational assistants that can use a web browser as a tool. As showcased in \Cref{fig:stickman}, both the user and the agent have access to a chat where they can exchange messages, and a browser in which they can perform actions, such as typing text, clicking buttons, or opening tabs. The user typically writes instructions in the chat, and the agent tries to follow them by navigating across pages, performing UI actions, extracting information, and writing back messages in the chat.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/stickman.png}
+    \caption{A rendered BrowserGym environment, with the chat on the left and the web browser on the right.}
+    \label{fig:stickman}
+\end{figure}
+
+\paragraph{Implementation} From the agent's perspective, this interaction loop can be conceptualized as a Partially Observable Markov Decision Process (POMDP), where the environment (chat and browser) provides the current observation and reward, and the agent produces the next action. BrowserGym environments follow the standard OpenAI Gym API \citep{openaigym}\citep{gymnasium} and are made available in Python through the gymnasium\footnote{\url{https://gymnasium.farama.org/}} interface (\Cref{fig:browser-loop}). Internally, BrowserGym relies on the Chromium\footnote{\url{https://www.chromium.org/Home/}} browser and the Playwright\footnote{\url{https://playwright.dev/python/}} library to automate browser interactions.
+
+\begin{figure}[ht]
+    \centering%
+\hspace*{\fill}%
+\begin{minipage}{0.41\textwidth}
+\begin{tikzpicture}[node distance=2cm, auto]
+
+  % Nodes
+  \node[rectangle, draw, thick, rounded corners, minimum width=2.3cm, minimum height=0.7cm, align=center] (agent) {Agent};
+  \node[rectangle, draw, thick, rounded corners, minimum width=2.3cm, minimum height=0.7cm, align=center, right=of agent] (environment) {Environment};
+
+  % Arrows
+  \draw[->, thick] (agent) to[out=35, in=145] node[align=center] {action ($a_t$)} (environment);
+  \draw[->, thick] (environment) to[out=-150, in=-30] node[align=center] {observation ($o_{t}$), reward ($r_{t}$)} (agent);
+
+\end{tikzpicture}
+\end{minipage}%
+\hspace*{\fill}%
+\begin{minipage}{0.54\textwidth}
+\begin{minted}[fontsize=\scriptsize, breaklines]{python}
+import gymnasium as gym
+
+# environment creation
+env = gym.make("browsergym/miniwob.choose-list")
+
+# interaction loop
+obs, info = env.reset()
+while True:
+  action = ... # agent reasoning is performed here
+  obs, reward, terminated, truncated, info = env.step(action)
+  if terminated or truncated: break
+\end{minted}
+\end{minipage}%
+\hspace*{\fill}%
+    \caption{The BrowserGym interaction loop: (left) theoretical model, (right) concrete Python API.}
+    \label{fig:browser-loop}
+\end{figure}
+
+\subsection{Extensive Observation Space}
+
+BrowserGym provides a rich observation space, with its main components being the task's goal (or chat history), the list of open tabs, and the current page's content.
+
+\begin{figure}[ht]
+    \hspace*{\fill}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,trim={3cm 15cm 22cm 4.5cm},clip]{figures/screenshot_step_0.png}
+        \vspace{0cm}
+        \caption{Raw screenshot}
+        \label{fig:obs-example:screenshot}
+    \end{subfigure}%
+    \hspace*{\fill}%
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,trim={3cm 15cm 22cm 4.5cm},clip]{figures/screenshot_som_step_0.png}
+        \vspace{0cm}
+        \caption{Set-of-Marks prompting \citep{yang2023som}}
+        \label{fig:obs-example:som}
+    \end{subfigure}%
+    \hspace*{\fill}
+
+    \vspace{0.5cm} % Space between rows
+
+    \hspace*{\fill}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \begin{minted}[fontsize=\scriptsize, breaklines]{html}
+<form action="/sv/18838" bid="167" class="vote">...
+  <button bid="169" title="Upvote" type="submit" value="1">...</button>
+  <span bid="174" class="vote__net-score" data-vote-target="score">
+    17705
+  </span>...
+  <button bid="179" title="Downvote" type="submit" value="-1">...</button>
+</form>
+        \end{minted}
+        \caption{HTML}
+        \label{fig:obs-example:html}
+    \end{subfigure}%
+    \hspace*{\fill}%
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \begin{minted}[fontsize=\scriptsize, breaklines]{css}
+[167] Section '', visible
+  [169] button 'Upvote', clickable, visible
+  StaticText '17705'
+  [179] button 'Downvote', clickable, visible
+        \end{minted}
+        \caption{AXTree \citep{webarena}}
+        \label{fig:obs-example:axtree}
+    \end{subfigure}%
+    \hspace*{\fill}
+
+    \caption{Different visual and text representations of the current page from BrowserGym.}
+    \label{fig:obs-example}
+\end{figure}
+
+\paragraph{Structured page description} BrowserGym provides the raw DOM (Document Object Model; \citeauthor{whatwg_dom}, \citeyear{whatwg_dom}) and the AXTree (accessibility tree; \citeauthor{core_aam_1.1}, \citeyear{core_aam_1.1}) as structured representations of the current page, which are extracted using the Chrome Developer Protocol (CDP). They are both provided as-is (\texttt{dom\_object}, \texttt{axtree\_object}) with only minimal alterations such as the injection of unique identifier attribute (\texttt{bid}, see next paragraph). It is then left for the web agent implementation to decide how to further process and format these observations, for example by filtering irrelevant elements or attributes and converting the DOM or AXTree to a suitable text format for LLM-based text agents (see \Cref{fig:obs-example:html,fig:obs-example:axtree}). Utility functions that convert these objects to basic text representation are also provided, for implementing simple agents quickly.
+
+\paragraph{Extra element properties} BrowserGym enriches each HTML element in the current webpage with extra information to facilitate web agent interactions. One key property is the BrowserGym ID (\texttt{bid}), a uniquely-generated, element-wise identifier injected into the page's DOM and AXTree, allowing for unambiguous interaction with the elements of the page. To add information about the visual rendering of the page, BrowserGym also provides for each element its bounding box coordinates (\texttt{bbox}) in the form of a $(\text{left, top, width, height})$ 4-tuple, as well as its visibility ratio\footnote{\url{https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API}} (\texttt{visibility}) in the form of a scalar between 0 and 1. Finally, BrowserGym also provides a Set-of-Marks boolean indicator (\texttt{set\_of\_marks}) reproduced from \citet{web-voyager}, which indicates if an element's bounding box should be overlayed on the screenshot to enable Set-of-Marks prompting \citep{yang2023som,web-voyager}. (see \Cref{fig:obs-example:screenshot,fig:obs-example:som}).
+
+\paragraph{Screenshot} While the DOM, AXTree, and extra element properties provide a rich description of the page's content, they do not give the full picture of how the page is being rendered in the browser, i.e., overlapping elements, background colors, image contents, fonts, etc. Therefore, BrowserGym also provides the raw \texttt{screenshot} of the current page as part of the observation, in the form of an RGB image. Again, it is up to the agent implementation to decide how to process and use this visual information. Note that the \texttt{bbox} coordinates in the extra element properties map exactly to pixel coordinates in the screenshot, which makes it extremely easy for agents to overlay the bounding boxes and identifiers of relevant elements on the screenshot as in Set-of-Mark prompting \citep{yang2023som,web-voyager}.
+
+\paragraph{Open tabs} In BrowserGym, tasks can use multiple tabs if needed. While the main focus is on the current page (screenshot and page description), agents are also made aware of all the open browser pages, which include tabs and pop-up windows. BrowserGym's observations therefore include a list of all the pages' URLs and titles (\texttt{open\_pages\_urls}, \texttt{open\_pages\_titles}), as well as an index to distinguish the currently active page (\texttt{active\_page\_index}).
+
+\paragraph{Goal and chat messages} In BrowserGym web agents can extract the user instructions in two ways, either explicitly from the task goal (\texttt{goal\_object}) or implicitly from the chat (\texttt{chat\_messages}). Both consist of a list of text and/or image messages. This duality is offered to facilitate compatibility with legacy web agent and web task implementations, which do not account for an interactive chat in their design. Note however that BrowserGym will always inject the goal of a non-interactive task in the chat to mimic user interaction, but will not inject further chat messages received during a task execution back into the goal. While, to this date, all web agent benchmarks in the literature are non-interactive, it is preferable to implement web agents using \texttt{chat\_messages}, at the very least to be able to record live, interactive demos.
+
+\paragraph{Error feedback} Finally, BrowserGym observations always include the error message of the last executed action, if any (\texttt{last\_action\_error}). Typical errors include trying to interact with an element that is hidden or deactivated, which results in a Playwright exception with an error message. Such exceptions do not break the interaction loop but are instead captured, and are sent back to the agent as part of the next observation. This immediate negative feedback gives web agents a chance to quickly self-correct in the next step (See \Cref{fig:action_error}).
+
+\begin{figure}[ht]
+    \centering
+
+    \hspace*{\fill}%
+    \begin{subfigure}[c]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/action_error.png}
+    \end{subfigure}%
+    \hspace*{\fill}%
+    \begin{subfigure}[c]{0.52\textwidth}
+        \centering
+        \begin{minted}[fontsize=\scriptsize, breaklines]{text}
+TimeoutError: Locator.click: Timeout 500ms exceeded.
+Call log:
+waiting for get_by_test_id("241")
+  -   locator resolved to <input bid="241" name="btnK" tabindex="0" role="button" type="submit" class="gNO89b" value="Google Search" ... />
+  - attempting click action
+  -   waiting for element to be visible, enabled and stable
+  -   ...
+  -   <div class="mus_il">... intercepts pointer events
+        \end{minted}
+    \end{subfigure}%
+    \hspace*{\fill}%
+    
+    \caption{Example of an agent trying to click on the "Google Search" button, hidden behind the auto-complete menu. This action results in a Playwright error that is returned in the next observation's \texttt{last\_action\_error} field.}
+    \label{fig:action_error}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+
+    \hspace*{\fill}%
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \begin{minted}[fontsize=\scriptsize, breaklines]{python}
+# locate and click the upvote button with Playwright
+button = page.locator("form").filter(has_text="17705") .get_by_role("button").first
+button.click()
+
+# or, do it in Javascript
+page.evaluate("document.querySelectorAll('form')\
+  .find(form => form.textContent.includes("17705"))\
+  .querySelector('button').click();")
+
+# send a chat message
+send_message_to_user("The \"Upvote\" button has been clicked")
+        \end{minted}
+        \caption{Raw Python code}
+        \label{fig:action-example:python}
+    \end{subfigure}%
+    \hspace*{\fill}%
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \begin{minted}[fontsize=\scriptsize, breaklines]{python}
+# click using bid
+click("169")
+
+# or, focus and press enter
+press("169", "Enter")
+
+# or, click using coordinates
+mouse_click(x=121, y=197)
+
+# send a chat message
+send_msg_to_user("The \"Upvote\" button has been clicked")
+        \end{minted}
+        \caption{High-level primitives}
+        \label{fig:action-example:highlevel}
+    \end{subfigure}%
+    \hspace*{\fill}
+
+    \caption{Different BrowserGym actions for clicking the ``Upvote'' button of the first post in \Cref{fig:obs-example}. While raw Python code (\subref{fig:action-example:python}) enables expressive actions using Playwright or Javascript, it often relies on some knowledge of the page's HTML structure. Using BrowserGym's high-level action primitives (\subref{fig:action-example:highlevel}) is more restrictive but offers more control over what the agent can do and how it should interact with the browser.}
+    \label{fig:action-example}
+\end{figure}
+
+\subsection{Expandable Action Space}
+
+The fundamental action space of BrowserGym is raw executable Python code (\Cref{fig:action-example:python}). Agents have access to a Playwright \texttt{page} object along with two functions \texttt{send\_message\_to\_user(text)} and \texttt{report\_infeasible(reason)}. These respectively allow agents to interact with the browser, and the chat, and terminate the task. This design choice offers a powerful, unrestricted action space for researchers to play with, but also exposes web agent users to vulnerabilities and safety risks due to the possibility of executing arbitrary, untrusted code. To mitigate this, BrowserGym offers a control mechanism to further restrict the action space available to web agents, through the use of an \texttt{action\_mapping} function.
+
+\paragraph{Action mapping} In BrowserGym, users can instantiate environments with an optional \texttt{action\_mapping} function, which the environment uses to convert input actions into executable Python code. It is then easy to define and experiment with new, custom action spaces in BrowserGym, for example by allowing a pre-defined list of actions in JSON or in command-line format, which are parsed and converted to safe, trusted Python code. In case of a conversion error (e.g., parsing errors), any Exception message raised by \texttt{action\_mapping()} is caught and fed back to the agent as an error feedback.
+
+\paragraph{High-level action set} By default, BrowserGym environments use a pre-defined action mapping (\Cref{fig:action-example:highlevel}), which converts a set of high-level action primitives in the form of function calls into actual Playwright code to be executed. An exhaustive list of these primitives can be found in \Cref{app:browsergym-action-set}, \Cref{tab:highlevel_action_set}. The resulting action set is encapsulated in the \texttt{HighLevelActionSet} class, which provides a \texttt{to\_python\_code()} method for the environment (the action mapping), and a \texttt{describe()} method for the agent, which builds a textual description of the available high-level primitives and how to use them (\Cref{app:browsergym-action-set}, \Cref{fig:actionset-description}).
+
+\subsection{Extensibility: create your own task}
+
+\begin{figure}[ht]
+    \centering
+
+    \hspace*{\fill}%
+    \begin{subfigure}[c]{0.44\textwidth}
+        \centering
+        \begin{minted}[fontsize=\scriptsize, breaklines]{python}
+class MyNewTask(AbstractBrowserTask):
+
+    def setup(self, page):
+        page.goto("http://google.com")
+        return "Which year was einstein born?"
+
+    def validate(self, page, chat_messages):
+        # stop after first answer
+        done = chat_messages[-1]["role"] == "assistant"
+        reward = "1879" in chat_messages[-1]["message"]
+        message = "That's correct" if reward else ""
+        return reward, done, message
+
+register_task("mynewtask", MyNewTask)
+
+# available as a gym environment
+env = gym.make("browsergym/mynewtask")
+        \end{minted}
+    \end{subfigure}%
+    \hspace*{\fill}%
+    \begin{subfigure}[c]{0.53\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/my_new_task.png}
+    \end{subfigure}%
+    \hspace*{\fill}
+
+    \caption{Pseudo-code for creating a simple web task in BrowserGym, and the corresponding rendering.}
+    \label{fig:new_task_example}
+\end{figure}
+
+BrowserGym minimizes the effort needed for practitioners to implement new web tasks. Doing so only requires writing the logic of the task, which takes the form of a \texttt{setup()} and a \texttt{validate()} method.
+\begin{itemize}
+    \item \textbf{Setup} Starting from a blank \texttt{page} object, this method must bring the browser to the starting point of the task, and return the goal the web agent must achieve. This will typically involve logging into a system, creating data entries if needed, and navigating to a task-specific starting URL. Then, the method must return a goal which can either be a raw string as in \Cref{fig:new_task_example} or a list of OpenAI-style messages\footnote{\url{https://platform.openai.com/docs/api-reference/messages}} that can include text and images, to allow for vision-conditioned goals (e.g., ``Find a pair of shoes that look like this image'').
+
+    \item \textbf{Validate} Called after each agent action is executed, this method must check whether the agent has completed the task. It has access to the current state of the browser through the active \texttt{page}, as well as the history of \texttt{chat\_messages} which contains all previous user and assistant messages. Typical validation steps involve looking at the content of the current page, searching for database entries and updates, or reading assistant messages in the chat in search of a correct answer. At the end, this method must produce a scalar \texttt{reward} for the agent, a boolean \texttt{done} flag that indicates task termination, and an optional \texttt{message} to be added to the chat, to simulate user interaction.
+\end{itemize}
+
+
+\section{Unification of Web Agent Benchmarks}
+\label{sec:benchmarks}
+
+We bring 3 new web agent benchmarks to BrowserGym, namely WebLINX \citep{weblinx}, VisualWebArena \citep{visual-webarena} and AssistantBench \citep{assistant-bench}. With these, BrowserGym currently supports six popular web agent benchmarks, listed in \Cref{tab:benchmark_summary}. Each benchmark consists of a set of BrowserGym tasks, accessible as a BrowserGym environment through the gymnasium interface (\Cref{fig:unified-benchmarks}).
+Any task from any of these benchmarks can then be executed using the same code base, through the same observation/action API, and any web agent implemented for one benchmark can readily be evaluated on another.\footnote{BrowserGym also suggests a unified API for agent creation which streamlines implementation efforts (\Cref{sec:make-your-agent}).} The advantages are the following:
+\begin{itemize}
+    \item \textbf{Breaking silos}. Unifying benchmarks encourages the development of general-purpose web agents. While benchmark-specific solutions have their own merit \citep{rci-agent,step-agent} and correspond to real use cases (e.g., a company developing a web agent for an internal website), we believe that the pursuit of generic solutions is more likely to bring long-term, impactful innovation.
+    
+    \item \textbf{Accelerating research}. Proposing a unified interface for web agents will also encourage the development of new, compatible benchmarks, stimulate progress in the field, and accelerate research. For example, a new BrowserGym-compatible security benchmark could easily evaluate all existing web agent implementations, without the need to spend time and effort adapting agent codes.
+    
+    \item \textbf{Reducing noise}. By evaluating across benchmarks, practitioners can collect stronger statistical signals for testing design choices and scientific hypotheses. Does using screenshots improve the performance of web agents? Is LLM-A a better web agent than LLM-B? Evaluating on a single benchmark with its own biases and specificities only provides a partial answer, while cross-benchmark evaluation gives a wider picture.
+
+\end{itemize}
+
+\begin{figure}[ht]
+    \centering
+    \small%
+    \hspace*{\fill}%
+    \begin{subfigure}[c]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/miniwob.png}
+
+        \mintinline[fontsize=\scriptsize]{python}{gym.make("browsergym/miniwob.number-checkboxes")}
+        \label{fig:unified-benchmarks:miniwob}
+    \end{subfigure}%
+    \hspace*{\fill}%
+    \begin{subfigure}[c]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/webarena_399.png}
+
+        \mintinline[fontsize=\scriptsize]{python}{gym.make("browsergym/webarena.399")}
+        \label{fig:unified-benchmarks:webarena}
+    \end{subfigure}%
+    \hspace*{\fill}%
+
+    \caption{Two tasks from the MiniWoB and WebArena benchmarks, accessible through the same API.}
+    \label{fig:unified-benchmarks}
+\end{figure}
+
+\begin{table}[t]
+    \centering
+    \small
+    \caption{Overview of the Web Agent benchmarks currently available in BrowserGym. To quantify the task diversity, we report the number of task templates and their seed diversity, e.g. in WorkArena, some task templates can have thousands of different configurations. On the other hand tasks in, e.g., WebArena are deterministic.}
+    \label{tab:benchmark_summary}
+    \begin{tabular}{@{}ccccccc@{}}
+        \toprule
+        \thead{Benchmark} & \thead{\# Task\\Templates} & \thead{Seed\\Diversity} & \thead{Max Steps} & \thead{Multi-Tab} & \thead{Web Backend} & \thead{Reference} \\
+        \midrule
+        MiniWoB(++) & 125 & medium & 10 & no & self-hosted pages & \makecell{\citet{world-of-bits}\\\citet{Miniwob_plusplus}} \\
+        WebArena & 812 & none & 30 & yes & self-hosted docker & \citet{webarena} \\
+        VisualWebArena & 910 & none & 30 & yes & self-hosted docker & \citet{visual-webarena} \\
+        WorkArena L1 & 33 & high & 30 & no & ServiceNow demo instance & \citet{workarena} \\
+        WorkArena L2 & 341 & high & 50 & yes & ServiceNow demo instance & \citet{workarena-plus-plus}\\
+        WorkArena L3 & 341 & high & 50 & yes & ServiceNow demo instance & \citet{workarena-plus-plus}\\
+        WebLINX & 31586 & none & 1 & no & none (static dataset) & \citet{weblinx} \\
+        Assistant Bench & 214 & none & 30 & yes & world wide web & \citet{assistant-bench} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\paragraph{Task coverage} Benchmarks currently available in BrowserGym cover a broad range of tasks that involve manipulating synthetic UIs (MiniWoB), performing everyday tasks on replicas of real-world shopping, social media, and software development platforms (WebArena, VisualWebArena), executing realistic workflows on an enterprise platform (WorkArena), running time-consuming searches on the open web (AssistantBench), and replicating human interaction traces (WebLINX). For a detailed presentation of each of these benchmarks, we refer the reader to \Cref{app:benchmarks}. Additional benchmarks currently considered for integration include GAIA \citep{mialon2023gaiabenchmarkgeneralai}, WebVoyager \citep{web-voyager}, WebShop \citep{webshop} and Mind2Web-live \citep{webcanvas}.
+
+\paragraph{Metadata} Each BrowserGym benchmark comes with its own metadata, which lists all the available tasks along with their benchmark-specific attributes. For example, the metadata of WorkArena \citep{workarena,workarena-plus-plus} contains the level and the category of each task, which is useful for analyzing the performance of web agents on specific subsets of tasks. The metadata also proposes a default train/test split for each benchmark, and an optional dependency graph between tasks, which indicates a (partial) order in which tasks should be executed to avoid inconsistencies when evaluating agents (e.g., for the WebArena \citep{webarena} and VisualWebArena \citep{visual-webarena} benchmarks).
+
+\paragraph{Suggested evaluation parameters} On top of the metadata, each BrowserGym benchmark has its own suggested action set, suggested number of seeds per task, and suggested maximum number of steps to be used for evaluation. These suggested parameters are not mandatory but provide a preferred way to evaluate web agents on each benchmark, following the recommendations of the benchmark authors. For example, the MiniWoB(++) benchmark \citep{world-of-bits,Miniwob_plusplus} is not intended to be used in a multiple tab setting, hence does not need the \texttt{new\_tab()} or \texttt{close\_tab()} action primitives. The AssistantBench benchmark \citep{assistant-bench} on the other hand does not implement task randomization, hence does not need to be evaluated with more than one seed per task.
+
+\paragraph{Backend preparation} Some benchmarks require resetting the backend web server to a specific state before the next agent can be evaluated on it. It is the case for WebArena and VisualWebArena, which require restoring docker containers to their initial state so that any alteration performed by a previous agent (e.g., changing the user's bio description) is wiped off for the next agent to start in a clean, fresh server state. BrowserGym automates this step with a convenience \texttt{prepare\_backend()} routine, which checks the backend configuration (server URL, credentials, etc.) and runs any required reset or setup automatically.
+
+
+\section{AgentLab}
+\label{sec:agentlab}
+
+\definecolor{bg}{rgb}{0.95,0.95,0.95}
+
+As depicted in \Cref{fig:bgym-agentlab-diagram}, AgentLab is a set of tools to simplify experimenting with 
+agents over BrowserGym. In the high-level API, we define the \code{Study} object to organize the experiments across multiple agents on a benchmark. The study is materialized on disk and can be launched to run in parallel across multiple processes (\Cref{sec:parallel-experiments}). Once a study is completed it can be examined using AgentXRay (\Cref{sec:xray}), a custom UI made to introspect the behavior of agents on individual steps of each task in the study. Due to the challenges of reproducing experiments in dynamic environments, we also implement capabilities to help reproducibility (\Cref{sec:reproducibility}). Finally, we also provide building blocks to simplify creating new agents (\Cref{sec:make-your-agent}).
+
+\subsection{Launching experiments}\label{sec:launch-experiments}
+Once an agent is implemented (See \cref{sec:make-your-agent}), it can be evaluated by creating a \code{Study} object and running it: 
+\vspace{-0.5em}
+\begin{minted}[bgcolor=bg]{python}
+study = make_study(
+    benchmark="miniwob",  # or "webarena", "workarena_l1" ...
+    agent_args=[AGENT_4o_MINI],
+)
+study.run(n_jobs=5)
+\end{minted}
+\code{Study} objects are in charge of setting up the experiment and running and saving the reproducibility checks. They also manage the relaunching of failed experiments. In such a broad range of environments, it is frequent to experience system failures such as a server not responding,  edge-case bugs in third party libraries, or rate limits from LLM servers. Thus, it is crucial to be able to relaunch failed experiments. 
+The method \code{Study.run} is designed to relaunch up to 3 times the failed tasks, but a manual relaunch can also be done as follows:
+\vspace{-0.5em}
+\begin{minted}[bgcolor=bg]{python}
+study = Study.load("/path/to/your/study/dir")
+study.find_incomplete(include_errors=True)
+study.run()
+\end{minted}
+
+\subsection{Parallel experiments}\label{sec:parallel-experiments}
+
+Evaluating a single agent on a benchmark with a reasonable number of seeds per task yields several hundred episodes. When exploring multiple agent configurations this can lead to several thousand episodes in a single study. Hence, it is crucial to parallelize efficiently the execution of these episodes. 
+
+We use a multiprocess approach with the possibility to use \verb|ray| \citep{ray} or \verb|joblib|\footnote{\url{https://github.com/joblib/joblib}} as a backend. Since most of the compute requirements are outsourced to servers (LLM API, TGI server, or web server), the actual compute requirement of the job is relatively small and we can launch up to 20 tasks in parallel on a single laptop or even 50--100 tasks on a server machine with many CPU cores and large memory. With such parallelization, the rate limits of API-based LLMs are usually the bottleneck. If more parallelism is required, \verb|ray| can connect multiple machines into a single pool of workers. We refer the reader to \Cref{app:runtime} for further details regarding hardware and runtime.
+
+\paragraph{Task dependencies} Benchmarks like (Visual)WebArena have task dependencies to ensure that the execution of a task will not corrupt the instance and prevent it from properly solving other tasks. The \verb|ray| backend is capable of handling such dependencies,\footnote{\code{joblib} cannot handle dependency graphs.} but unfortunately this also greatly limits the potential parallelism to 2--4 tasks in parallel for the (Visual)WebArena benchmarks. Also, if the study is created through \code{make_study}, AgentLab ensures the sequential execution of all agents in the study with a proper instance reset between each evaluation.
+
+
+\subsection{AgentXRay}\label{sec:xray}
+
+To facilitate deeper analysis of agent behavior, AgentLab includes AgentXRay (not  be confused with the \verb|ray| parallel backend), a Gradio-based\footnote{\url{https://www.gradio.app}} interface for diving deep into the logged traces. A visual example of this interface is shown in Figure~\ref{fig:gradio_main}. After selecting the trace of interest AgentXRay displays the profiling, the goal, the different parts of the observation, the action taken, and the prompts, providing a comprehensive view of the agent's decisions and interactions. This interface allows users to visualize the step-by-step decision-making process of an agent, helping them gain valuable insights and refine their agent for better performance. This is particularly useful for identifying areas where the agent may be struggling, as it allows researchers to pinpoint the exact moment when an incorrect or suboptimal decision is made.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\linewidth]{figures/draft7.png}
+    \caption{Visual rendering of AgentLab's XRay interface. AgentXRay serves as a powerful analysis tool to inspect and work on BrowserGym agents.
+    }
+    \label{fig:gradio_main}
+\end{figure}
+
+\subsection{Reproducibility}\label{sec:reproducibility}
+
+Several factors can influence the reproducibility of results in the context of evaluating agents on dynamic benchmarks. Having a framework robust to the noisy nature of web tasks is necessary. We first discuss core factors that can lead to discrepancies in web agent evaluations and then present the corresponding crucial features that AgentLab implements to mitigate these discrepancies.
+
+\subsubsection{Factors affecting reproducibility}\label{sec:reprod-factors}
+
+\newcommand{\mypar}[1]{\textbf{#1}\;\;}
+
+\mypar{Software version} Different versions of Playwright or any package in the software stack could influence the behavior of the benchmark or the agent. Fixing package versions can help, but it would prevent bug fixes, security updates, and new features.
+
+\mypar{API-based LLMs silently changing} Even for a fixed version, a commercial LLM may be updated, for example, to incorporate the latest web knowledge. 
+
+\mypar{Live websites}
+Agents that interact with live web content are subject to frequent changes in website design, content availability, and default language settings, which can vary across countries or regions. Websites may update layouts, navigation, or features without notice, disrupting an agent’s performance. Additionally, reliance on dynamic or frequently updated sites introduces unpredictability, as content and structure can shift over time, making consistent evaluation more challenging.
+
+\mypar{Stochastic Agents} LLMs are non-deterministic, but this is less concerning since it is independent and identically distributed (IID) noise, and setting the temperature of the LLM to 0 can reduce most stochasticity.
+
+\mypar{Non-deterministic tasks} 
+Similarly, many tasks contain some level of stochasticity. However, changes should be minimal for a fixed seed.
+
+\subsubsection{Reproducibility Features}
+
+\mypar{Standard observation and action space} One core feature of BrowserGym is to provide a standardized observation and action space. While it allows for customization, each benchmark is defined with its own default action space. Similarly, the observation space of agents in AgentLab comes with a default way to represent the DOM, the AXTree, and other components.
+
+\mypar{Package versions} The \code{Study} class contains a dictionary of information about reproducibility, including benchmark version, package version, commit hash, os version, and time stamp. By keeping track of these variables, one can isolate package versions, interactions, or system effects that can impact the performance.
+
+\mypar{Reproducibility Journal} A call to \code{study.append_to_journal()} automatically uploads your results to \href{https://github.com/ServiceNow/AgentLab/blob/main/reproducibility_journal.csv}{\code{reproducibility_journal.csv}}%
+. The goal of this journal is to keep a detailed track of previous results. As mentioned in \Cref{sec:reprod-factors}, because of API changes or instance changes, results can vary overtime.
+This makes it easier to populate a large number of reference points. The journal aims to track changes and log enough information to allow anyone to reproduce as closely as possible an experiment. It stores information such as agent name, BrowserGym and AgentLab version, benchmark name and metadata, experiment performances, etc.
+
+\mypar{Reproduced results in the leaderboard} For experiments that are reproducible, we encourage users to try to reproduce the results and upload them to the leaderboard. There is a special column containing information about all reproduced results of an agent on a benchmark. It is displayed as a range of scores alongside the original score on the leaderboard. The leaderboard, together with the Reproducibility Journal, helps monitor changes in benchmarks over time and serves as a source of motivation for the community.
+
+\mypar{ReproducibilityAgent} The base agent \code{GenericAgent} (detailed in \cref{sec:experiments}) comes along with an agent called \code{ReproducibilityAgent}. Running the latter on an existing study generated from \code{GenericAgent} will re-execute the same action sequence on the same task seeds. A visual diff of the two prompts is then displayed in the AgentInfo HTML tab of AgentXray. The user can inspect what changes occurred between the two executions. While the two executions may diverge rapidly if there are some differences at the start of the episode, the diffs between the first few steps are typically insightful on what has changed since the last execution. This allows one to monitor the modifications in live benchmarks that may be subject to changes over time.
+
+
+\subsection{Extensibility: create your own agent}\label{sec:make-your-agent}
+
+At the core, BrowserGym and AgentLab are designed to have a minimalist API for implementing new agents.
+Only a few key components need to be implemented in the \code{Agent} class:
+\vspace{-0.5em}
+\begin{minted}[fontsize=\scriptsize, breaklines, bgcolor=bg]{python}
+class MyAgent(bgym.Agent):
+    def __init__(self):
+        # define an action_set to decode actions
+        self.action_set = bgym.HighLevelActionSet()
+    
+    def get_action(self, obs):
+        # the core of the agent reasoning goes here
+        return action, agent_info
+\end{minted}
+
+The main part is the \code{get_action} method, where one implements the agent's logic. It returns an action as a string to be interpreted by BrowserGym, based on the chosen \code{action_set}. The \code{get_action} method can also return \code{agent_info}, an object of type \code{AgentInfo} containing various informations for later inspection of the agent's behavior. 
+
+\paragraph{AgentArgs} On top of coding an agent, the user is also responsible for coding \code{AgentArgs}. This is essentially a data structure which the \code{make_agent} function uses for instantiating an agent. Doing so makes it easy and reliable to pickle experiment information to disk or send it across processes. AgentLab also provides a few other methods for better integration with the framework. For example:
+\vspace{-0.5em}
+\begin{minted}[fontsize=\scriptsize, breaklines, bgcolor=bg]{python}
+@dataclass
+class MyAgentArgs(agentlab.AgentArgs):
+    use_chain_of_thought: bool = True
+    use_html: bool = False
+    
+    def make_agent(self): -> bgym.Agent
+        return MyAgent(self.use_chain_of_thought, self.use_html)
+    
+    def set_benchmark(self, benchmark):
+        # Optional method to set benchmark-specific flags
+        if "miniwob" in benchmark.name:
+            self.use_html = True
+\end{minted}
+Once this is implemented, the user can evaluate their agent as presented in \Cref{sec:launch-experiments}. \emph{Note:} the class definition of e.g., \code{MyAgentArgs} needs to be saved in a module that can be imported from the \texttt{\$PYTHONPATH} for proper unpickling.
+
+\paragraph{Dynamic Prompting}
+While most modern LLMs can digest more than \num{100000} tokens, AXTree can still be larger than \num{100000} tokens, with the raw HTML/DOM counting more than \num{1 000 000} tokens. Additionally, research projects fine-tuning open-source LLMs are often limited to very small context lengths, e.g., \num{8000}. To manage this, our prompting tools are designed to fit the prompt to the desired length without having to naively truncate the prompt from the end, which would almost always cut crucial information such as examples. This is done using the \code{DynamicPrompting} class, where the user can easily configure which part of the BrowserGym observation space should be included in the prompt. Next, the length of the prompt is dynamically shrunk to fit a desired size. The \code{fit_token} method iteratively calls the shrink method recursively on each component of the prompt. Default shrinking strategies are implemented, such as reducing the number of previous steps included in the history, or truncating the page from the bottom. Users can also implement their own shrinking strategies. See \Cref{fig:example-agent} for a simple example agent using dynamic prompting. 
+
+\subsection{Extensibility: Plug your own LLM / VLM}
+
+AgentLab also offers a base class for LLMs. This allows users to plug their models into any existing agent by just sub-classing our objects. More precisely, we provide a \code{BaseModelArgs} class, to configure and log LLM information, as well as instantiating the model, and a \code{AbstractChatModel} class, which just needs a \code{__call__} method defined to query the LLM.
+%
+AgentLab comes with different model objects readily available, such as a class for OpenAI models, Azure OpenAI models, or OpenRouter\footnote{\url{https://openrouter.ai/}} models. Using our chat model classes allows us to add some useful tools such as a cost and token tracker that can automatically be added to the \code{AgentInfo}.
+
+
+
+\section{Experiments}
+\label{sec:experiments}
+
+This section showcases large-scale experimentation that leverages the BrowserGym ecosystem and evaluates the capabilities of several modern LLMs and VLMs in performing web tasks. We focus on two objectives:
+
+\begin{itemize}
+    \item First, showcasing how AgentLab, integrated with BrowserGym, facilitates the creation and management of experiments with web agents.
+    \item Second, assessing the current performance levels of various state-of-the-art models in tackling these benchmarks.
+\end{itemize}
+
+The results of this experiment provide an interesting overview of the strengths and limitations of the evaluated models, offering insights into axes where they require improvements.
+%
+The results are consolidated into an online leaderboard, allowing for comparisons and updates as new models and benchmarks emerge.
+ 
+
+\subsection{Setup}
+
+We evaluate AgentLab's default agent, \code{GenericAgent}, on all available benchmarks in the BrowserGym ecosystem. \code{GenericAgent} employs a modular prompting mechanism that allows it to utilize various tools, such as Chain-of-Thought (CoT) reasoning, screenshots with Set-of-Marks (SoM), a memory mechanism, self-criticism, and in-context examples to enhance its responses. The configuration determines both the agent's behavior and the observation format, including options like using HTML or AXTree representations, retaining a history of observations and past actions, incorporating screenshots or Set-of-Marks images, or displaying additional HTML information from the page.
+The \code{ExampleAgent} shown in \Cref{fig:example-agent} in the Appendix gives a simplified overview of our \code{GenericAgent}. % \qcap{say that it is in an appendix}
+
+Along with this dynamic prompting feature, \code{GenericAgent} implements a retry functionality to overcome LLM side issues or parsing errors. In the case of a parsing error, the LLM is re-prompted and gets 4 attempts to produce a parsable answer. After 4 consecutive parsing errors, the task is considered a failure.
+
+Our experiments use the same agent configuration as the WorkArena++ benchmark \citep{workarena-plus-plus}, with the addition of the \code{use_think_history} setting which gives the agent access to its entire chain-of-thought history throughout its execution, similarly to \citet{agent-q}. Intuitively, this allows the agent to remember previous interactions and outcomes, and make more informed and consistent decisions. An example of a resulting prompt is showcased in \Cref{sec:prompt-example}.
+
+We evaluate AgentLab's \code{GenericAgent} using a representative subset of state-of-the-art large language models, which includes:
+\begin{itemize}
+    \item \textbf{GPT-4o} and \textbf{GPT-4o Mini} \citep{gpt-4} using the Azure OpenAI API, as some of the best models available on the market. We use respectively checkpoints \code{2024-08-06} and \code{2024-07-18}.
+    \item \textbf{o1 Mini} \citep{o1-mini} using the OpenRouter API, to test out the performances of test-time reasoning-focused models. We use the \code{2024-09-12} checkpoint for this model.
+    \item \textbf{Claude 3.5 Sonnet} \citep{claude} using the OpenRouter API, as the best-performing model on our benchmarks. We use the \code{2024-10-22} checkpoint, most recent to this day.
+    \item \textbf{Llama-3.1} 70B and 405B \citep{llama3} using the OpenRouter API, as representatives of the open-weights LLM community, to assess their performance relative to their proprietary counterparts and identify improvement axes.
+\end{itemize}
+
+As our evaluation metric, we use the task success rate, i.e. the percentage of tasks that were successfully completed by the agent, and compute the standard error ($\sigma / \sqrt{N}$). We evaluate our agent with all the previously mentioned LLMs, on all benchmarks, with some exceptions. On WorkArena L3, except for Claude, we report results obtained in \citet{workarena-plus-plus} as they are similar agents and we have strong expectations that the score would not change, leading to significant resource savings. On VisualWebArena, we only run the LLMs that support multi-modal inputs. Out of fairness between models, we do not use visual inputs for the other benchmarks, as they do not require it.
+
+\Cref{tab:exp-setting} in the Appendix shows the settings used for each benchmark and the number of evaluation tasks for each. Indeed the number of tasks (or episodes) depends on the number of seeds (MiniWob, WorkArena L1), or the split used. We use the test splits for WebLINX and AssistantBench. Finally, WorkArena L2 and L3 offer their own curricula, amounting to 235 tasks each.
+
+\subsection{Results}
+
+\newcommand{\grayed}[1]{\textcolor{gray}{#1}}
+\begin{table}[b]
+\sisetup{detect-weight, mode=text, table-format=2.1}
+\caption{Results of a full round of experimentation on the unified benchmark ecosystem. The \# Ep. column indicates the number of evaluation episodes per benchmark, which depends on the number of tasks and seeds used (See \Cref{app:benchmark-setting} for details). For budget reasons, grayed-out values (\grayed{0.0}) indicate skipped evaluations for the least-performing models on the hardest benchmark (WorkArena L3). The table also shows the total cost (USD) and average step per episode for the overall best-performing model, Claude 3.5 Sonnet. Costs for each LLM are given in \Cref{app:cost} along with API cost details.}
+\label{tab:benchmark_results}
+\centering
+\footnotesize
+\begin{tabular}{@{}l|S[table-format=4]|S@{}lS@{}lS@{}lS@{}lS@{}lS@{}l|S[table-format=3.2]S@{}}
+\toprule
+\multicolumn{1}{c|}{\multirow{2}{*}{\thead{Benchmark}}}
+& \multicolumn{1}{c|}{\multirow{2}{*}{\thead{\# Ep.}}}
+& \multicolumn{2}{c}{\thead{Claude-3.5}}
+& \multicolumn{2}{c}{\multirow{2}{*}{\thead{GPT-4o}}}
+& \multicolumn{2}{c}{\thead{GPT-4o}}
+& \multicolumn{2}{c}{\thead{Lama-3.1}}
+& \multicolumn{2}{c}{\thead{Lama-3.1}}
+& \multicolumn{2}{c|}{\multirow{2}{*}{\thead{o1 Mini}}}
+& \multicolumn{2}{c}{\thead{\textit{Claude-3.5-Sonnet}}} \\ [-2mm]
+&& \multicolumn{2}{c}{\thead{-Sonnet}}
+&&& \multicolumn{2}{c}{\thead{Mini}}
+& \multicolumn{2}{c}{\thead{70B}}
+& \multicolumn{2}{c}{\thead{405B}}
+&&& \multicolumn{1}{c}{\thead{Cost~(\$)}}
+& \multicolumn{1}{c}{\thead{Steps}} \\
+\midrule
+MiniWoB        & 625  & \B 69.8 & \std{1.8}  & 63.8 & \std{1.9} & 56.6 & \std{2.0} & 57.6 & \std{2.0} & 64.6 & \std{1.9} & 67.8         & \std{1.9} & 23.11  & 3.7  \\
+WorkArena L1   & 330  &    56.4 & \std{2.7}  & 45.5 & \std{2.7} & 27.0 & \std{2.4} & 27.9 & \std{2.5} & 43.3 & \std{2.7} & \B 56.7      & \std{2.7} & 100.03 & 9.0  \\
+WorkArena L2   & 235  & \B 39.1 & \std{3.2}  & 8.5  & \std{1.8} & 1.3  & \std{0.7} & 2.1  & \std{0.9} & 7.2  & \std{1.7} & 14.9         & \std{2.3} & 299.44 & 33.8 \\
+WorkArena L3   & 235  & \B 0.4  & \std{0.4}  & \grayed{0.0}  & \std{0.0} & \grayed{0.0}  & \std{0.0} & \grayed{0.0}  & \std{0.0} & \grayed{0.0}  & \std{0.0} & \grayed{0.0}         & \std{0.0} & 191.50 & 25.0 \\
+WebLINX        & 2650 & \B 13.7 & \std{0.6}  & 12.5 & \std{0.6} & 11.6 & \std{0.6} & 8.9  & \std{0.5} & 7.9  & \std{0.5} & 12.5         & \std{0.6} & 104.62 & 1.0  \\
+WebArena       & 812  & \B 36.2 & \std{1.7}  & 31.4 & \std{1.6} & 17.4 & \std{1.3} & 18.4 & \std{1.4} & 24.0 & \std{1.5} & 28.6         & \std{1.6} & 138.76 & 6.8  \\
+VisualWebArena & 910  & 21.0 & \std{1.3} & \B 26.7 & \std{1.5} & 16.9 & \std{1.2} &  & - &  & - &  & - & 134.69 & 4.7 \\
+AssistantBench & 181  & 5.2     & \std{1.5}  & 4.8  & \std{2.4} & 2.1  & \std{1.0} & 2.8  & \std{1.1} & 3.9  & \std{1.0} & \textbf{6.9} & \std{2.2} & 37.33  & 7.5  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We present the results obtained using various open-source and closed-source LLMs as \code{GenericAgent}s across standard web agent benchmarks in \Cref{tab:benchmark_results}. We observe that Claude obtains the best performance across the majority of the benchmarks, with o1-Mini falling second. Claude surprisingly improves substantially over the previously unsolved WorkArena-L2 benchmark and obtains an average task success rate of 39.1\%. One explanation for this impressive result could be Claude's specific training for computer use \citep{claude-computer-use}, which bears a close resemblance to using a web browser. We also observe that Llama-3.1 70B obtains very close performance to GPT-4o Mini, and Llama-3.1-405B surpasses GPT-4o-Mini significantly on numerous benchmarks. While beaten on most complex reasoning benchmarks, 405B still obtains more than decent performances overall, which comes as a promising omen for the open-source community.
+
+We also observe an improvement in performance for GPT-4o compared to the performance measured by \citet{workarena-plus-plus}, which goes from $23.5\%$ to $31.4\%$ on WebArena, and from $3.8\%$ to $8.5\%$ on WorkArena L2. Since they were using a very similar web agent implementation but an older model checkpoint, this suggests that the reasoning capabilities of GPT-4o have greatly increased thanks to the additional training performed for this new checkpoint. Another option to explain this improvement might be the public availability of those benchmarks and their support, meaning parts of their content might now be integrated into some form in the LLM pre-training / fine-tuning datasets.
+
+One interesting point is that our agent seems to underperform on AssistantBench, a web-based question-answering benchmark. Our best agent attains a score of $6.9\%$, which is a very low score compared to the current high score of $27\%$ on the AssistantBench leaderboard.
+Our agent is not specifically optimized for information retrieval tasks, which are the primary focus of the AssistantBench benchmark. Instead, our API and agent are designed to be broadly applicable across a wide range of web-based tasks, prioritizing generality over specialization.
+
+\subsection{Errors}
+When evaluating AI agents, errors can generally be classified into a few broad categories. \textbf{Navigation Errors} occur when the agent struggles to locate the correct page or information, often due to poor search queries or navigation mistakes. \textbf{Form Handling Errors} involve incorrect data entry, such as formatting issues or failure to recognize submission failures. \textbf{Task Understanding Errors} arise when an agent misinterprets unclear instructions, leading to irrelevant or incorrect actions. \textbf{Stuck Behavior} happens when an agent repeats the same failing action without adapting to the situation. \textbf{Information Extraction Failures} occur when the agent successfully navigates to the right location but fails to correctly extract, interpret, or return the necessary data. Finally, \textbf{External Errors} stem from technical issues such as API failures, network errors, or system crashes that hinder the agent’s performance. While these categories are not definitive, they offer a useful framework for diagnosing weaknesses and improving AI agent reliability.
+
+Given the scale of our experiments, we only provide a qualitative overview of the errors encountered by the agent. However, we release the full traces of our experiments and let to the reader the possibility to skim through the data using AgentXRay. \Cref{app:trace_analysis} showcases a detailed description of the trace from two models on the same task. This succinct analysis suggests that Claude exhibits a degree of robustness, as it is able to recover from past errors. Future work will focus on conducting a deeper analysis of Web Agent errors and developing automated methods for such evaluations.
+
+\section{Discussion}
+
+In this work, we introduced the BrowserGym ecosystem, which contributes to the standardization of web agent research by providing a unified environment for evaluating web agents. We make our contribution available as two easy-to-use Python packages, BrowserGym and AgentLab. The first provides a unified platform exposing all existing web agent benchmarks under the same interface, and is designed to facilitate the addition of new benchmarks. AgentLab, on the other hand, provides a complementary interface and set of tools for the implementation and evaluation of web agents, with a set of flexible web agent implementations, an expandable LLM / VLM API, reproducibility features, trace analysis tools, as well as an online leaderboard.
+
+To showcase our main contribution, we conducted the first large-scale empirical evaluation of a representative set of state-of-the-art LLM / VLM models on six popular web agent benchmarks, using AgentLab and BrowserGym. While running such an experiment using the original, fragmented benchmark codes would be extremely cumbersome, BrowserGym makes all of them accessible through the same interface and allows for large-scale, unified experiments in a single code base with AgentLab. By fostering reproducibility and facilitating consistent benchmarks, the BrowserGym ecosystem lays the groundwork for more dependable and insightful evaluations of web agent capabilities, thus accelerating the advancement of LLM-driven automation.
+
+\subsection{Limitations}
+\label{sec:limitations}
+
+\paragraph{Reproducibility} 
+Despite our efforts to improve reproducibility, stochasticity, and external factors remain significant challenges. Localization differences, such as time zones, default languages, and geographic settings, can lead to inconsistent agent behaviors when interacting with live websites. Additionally, variations in operating systems and browsers can affect how web pages are rendered, impacting the uniformity of results. The presence of dynamic elements, such as advertisements, adds to non-determinism, leading agents to face different environments during repeated tasks, which affects their consistency. Addressing these challenges is essential for reliable and repeatable benchmarks in web agent research.
+
+\paragraph{Risks} Letting an autonomous agent act on the world-wide-web on a human's behalf can have consequences, and prove to be problematic on benchmarks that require an open-web access (AssistantBench, soon GAIA). This is currently mitigated in BrowserGym via URL protection (MiniWoB, WorkArena, WebArena / VisualWebArena), plus a warning notice on BrowserGym and AgentLab's landing pages.
+
+\paragraph{Robot detection} 
+Robot detection mechanisms significantly limit web agents, especially for open-web tasks. Websites use techniques like CAPTCHA, IP rate limiting, and behavior analysis to block automated agents, preventing them from completing tasks effectively. This limits the ability of agents to interact freely with web environments and reduces the scope of tasks that can be automated. AssistantBench is the only benchmark impacted by those issues so far in BrowserGym, as it uses the open web as its information retrieval tool.
+
+\paragraph{Agent collisions} 
+The widespread use of databases on the web means that many tasks involve updating records and modifying entries. When multiple agents operate simultaneously, they can interfere with each other, especially when executing tasks that alter the same database entries. For example, if two agents add an item to their cart concurrently, they may unintentionally update each other's cart, leading to inconsistent outcomes. This issue is particularly problematic in environments like WebArena and VisualWebArena, where a single virtual machine is used for each agent. As a result, only one agent can be run at a time on these benchmarks, significantly slowing down the evaluation process. 
+
+\paragraph{Synchronous interactions} Another limitation is the sync loop mechanism used to manage interactions within the browser environment. For example, when agents need to perform multiple actions in quick succession, the sync loop may not keep up, leading to delays and reduced efficiency. This can result in performance bottlenecks, especially for complex tasks requiring rapid, sequential actions.
+
+\subsection{Avenue for Future Work}
+
+To further develop the field, several areas require attention. One promising direction is improving \textbf{safety} mechanisms for web agents. Currently, safety evaluation in web agent benchmarks, including ensuring agents' compliance with data privacy and safety policies, as well as their resilience to malicious interactions, is underexplored. The development of secure environments is crucial for adopting web agents in enterprise or sensitive applications.
+
+Another avenue for future work involves the creation of real-time web agents capable of interacting with live environments at speeds comparable to human users. This necessitates improvements in both latency reduction and real-time decision-making, which would enhance the applicability of web agents in dynamic settings, such as customer service or rapid data retrieval.
+
+The potential for smaller, yet efficient LLMs is also an important focus. Developing smaller models that retain the ability to understand and reason through complex web interactions would lower computational demands, making web automation more accessible and sustainable. This aligns with efforts to increase the efficiency of LLM-based agents, particularly for real-world deployment where computational resources may be constrained.
+
+In addition, enhancing reactivity through the use of computer-level vision-language models (VLMs) can provide agents with a more nuanced understanding of the visual context on web pages. Current models often lack the capability to fully interpret complex visual layouts or graphical information, limiting their interaction fidelity with certain websites. Integrated models like Anthropic's computer use model could make web agents more versatile and capable of handling tasks that require both visual reasoning and textual inputs.
+
+Another direction is to leverage inference time scaling, optimizing it specifically for web tasks and web agents. This could involve making better use of the model's self-reflection capabilities to further improve task performance, adapting dynamically to various complexities encountered during web navigation, and efficiently managing resources to reduce latency. By tailoring these improvements, web agents can become more effective at real-time, adaptive decision-making, ultimately enhancing user experiences and broadening their applicability.
+
+As BrowserGym saves and logs every piece of information seen in its experiments, it could serve as a valuable collection tool for finetuning models. This collected data could be utilized to further refine agent behaviors, improve model performance on specific web tasks, and create efficient agents capable of handling complex scenarios more efficiently.
+
+
+\section{Broader Impact}
+
+The development of more general UI-based agents holds the potential to significantly transform how work is performed on computers. These agents promise to automate tasks at an unprecedented pace, with reduced costs, and with a broader and deeper scope of expertise. While current benchmarks demonstrate that this level of sophistication has not yet been achieved, the rapid pace of advancements in the field suggests that such a future may not be far off. This progress could unlock immense economic value but is also likely to result in substantial and rapid job displacement, presenting a critical societal challenge.
+
+AI safety must be central to this emerging agentic revolution. Presently, jailbreaking a large language model (LLM) might only expose knowledge already available on the web. However, as agents become more sophisticated, vulnerabilities such as prompt-injection attacks could be exploited to leak sensitive company information, authorize unwanted transactions, or cause other unintended harm. The widespread deployment of agents at scale will create enormous financial incentives for malicious actors to develop targeted attacks that uncover and exploit weaknesses in these systems.
+
+The rise of UI-based agents also introduces new challenges and considerations regarding digital advertising. As these agents navigate the web autonomously, their interactions with dynamic ad content could disrupt existing advertising models, impacting both advertisers and publishers. Unlike human users, agents are unlikely to engage with ads in traditional ways, which may lead to shifts in how ad impressions, clicks, and conversions are measured and monetized. Additionally, the ability of agents to filter, block, or bypass advertisements could create conflicts with current web monetization strategies. To maintain a fair and functional digital ecosystem, actors from both sides should explore standardized approaches for handling ad-related content in a way that balances automation efficiency with the sustainability of online advertisement business models.
+
+As these technologies evolve, society must proactively address the accompanying challenges by establishing robust policies and frameworks. Rapid action will be essential to ensure that the benefits of these advancements are maximized while minimizing potential risks and harm.
+
+
+\bibliography{references}
+\bibliographystyle{tmlr}
+
+\clearpage
+\appendix
+
+\section{BrowserGym's High-Level Action Set}
+\label{app:browsergym-action-set}
+
+\begin{table}[ht]
+    \centering
+    \footnotesize
+    \caption{Complete list of high-level action set primitives available when using BrowserGym's \texttt{HighLevelActionSet} feature.}
+    \label{tab:highlevel_action_set}
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}MMp{2.75in}@{}}
+        \toprule
+        {\bf Category} & {\bf Primitive} & {\bf Description} \\
+        \midrule
+        \multicolumn{1}{M}{\multirow{8}{*}{bid}} & fill(bid, text) & Fill an input field with text.\\
+        & click(bid, button) & Click an element. \\
+        & dblclick(bid, button) & Double-click an element. \\
+        & hover(bid) & Hover the mouse over an element. \\
+        & press(bid, key\_comb) & Focus an element and press a combination of keys. \\
+        & focus(bid) & Focus an element. \\
+        & clear(bid) & Clear an input field. \\
+        & select\_option(bid, options) & Select one or multiple options in a drop-down element. \\
+        & drag\_and\_drop(from\_bid, to\_bid) & Drag and drop one element to another. \\
+        & upload\_file(bid, file) & Click a 'filechooser' element, then select one or multiple input files for upload. \\
+        \midrule
+        \multicolumn{1}{M}{\multirow{11}{*}{coord}} & mouse\_move(x, y) & Move the mouse to a location. \\
+        & mouse\_down(x, y, button) & Move the mouse then press and hold a button. \\
+        & mouse\_up(x, y, button) & Move the mouse then release a button. \\
+        & mouse\_click(x, y, button) & Move the mouse and click a button. \\
+        & mouse\_dblclick(x, y, button) & Move the mouse and double-click a button. \\
+        & mouse\_drag\_and\_drop(from\_x, from\_y, to\_x, to\_y) & Drag and drop from a location to a location. \\
+        & mouse\_upload\_file(x, y, file) & Click a 'filechooser' location, then select one or multiple input files for upload. \\
+        & keyboard\_down(key) & Press and holds a keyboard key. \\
+        & keyboard\_up(key) & Release a keyboard key. \\
+        & keyboard\_press(key\_comb) & Press a combination of keys. \\
+        & keyboard\_type(text) & Types a string of text through the keyboard. \\
+        & keyboard\_insert\_text(text) & Insert a string of text in the currently focused element. \\
+        \midrule
+        \multicolumn{1}{M}{\multirow{3}{*}{tab}} & new\_tab() & Open a new tab. \\
+        & tab\_close() & Close the current tab. \\
+        & tab\_focus(index) & Bring a tab to front (activate tab). \\
+        \midrule
+        \multicolumn{1}{M}{\multirow{3}{*}{nav}} & go\_back() & Navigate to the previous page in history. \\
+        & go\_forward() & Navigate to the next page in history. \\
+        & goto(url) & Navigate to a url. \\
+        \midrule
+        \multicolumn{1}{M}{\multirow{4}{*}{misc}} & send\_msg\_to\_user(message) & Send a message to the user in the chat. \\
+        & report\_infeasible(reason) & Send a special message in the chat and terminate. \\
+        & scroll(dx, dy) & Scroll pixels in X and/or Y direction. \\
+        & noop(seconds) & Wait and do nothing. \\
+        \bottomrule
+    \end{tabular*}
+\end{table}
+
+
+\begin{figure}[ht]
+    \centering
+    \begin{minted}[fontsize=\scriptsize, frame=lines, frame=lines, breaklines]{python}
+20 different types of actions are available.
+
+click(bid: str, button: Literal['left', 'middle', 'right'] = 'left', modifiers: list = [])
+    Description: Click an element.
+    Examples:
+        click('a51')
+        click('b22', button='right')
+        click('48', button='middle', modifiers=['Shift'])
+
+fill(bid: str, value: str)
+    Description: Fill out a form field. It focuses the element and triggers an input event with the entered text. It works for <input>, <textarea> and [contenteditable] elements.
+    Examples:
+        fill('237', 'example value')
+        fill('45', 'multi-line\nexample')
+        fill('a12', 'example with "quotes"')
+
+scroll(delta_x: float, delta_y: float)
+    Description: Scroll horizontally and vertically. Amounts in pixels, positive for right or down scrolling, negative for left or up scrolling. Dispatches a wheel event.
+    Examples:
+        scroll(0, 200)
+        scroll(-50.2, -100.5)
+
+send_msg_to_user(text: str)
+    Description: Sends a message to the user.
+    Examples:
+        send_msg_to_user('Based on the results of my search, the city was built in 1751.')
+
+report_infeasible(reason: str)
+    Description: Notifies the user that their instructions are infeasible.
+    Examples:
+        report_infeasible('I cannot follow these instructions because there is no email field in this form.')
+
+...
+
+Only a single action can be provided at once. Example:
+fill('a12', 'example with "quotes"')
+    \end{minted}
+
+    \caption{Example description of a high-level action set in BrowserGym (\texttt{HighLevelActionSet.describe()}).}
+    \label{fig:actionset-description}
+\end{figure}
+
+\clearpage
+\section{Detailed Benchmark Descriptions}
+\label{app:benchmarks}
+
+\paragraph{MiniWoB}\footnote{\url{https://miniwob.farama.org/}} \citep{world-of-bits, Miniwob_plusplus} Each task only requires accessing a single HTML page, the entire logic of the task and its validation is done in JavaScript. As such, MiniWoB natively supports parallelization since there are no collisions by design.
+
+\paragraph{WebArena}\footnote{\url{https://webarena.dev/}} \citep{webarena} Contains 6 domains mimicking real-world websites, self-hosted via Docker containers. Docker containers must be reset to their initial state before each new agent evaluation. Task validation is performed via logic rules (HTML content, URL match, message content), using either exact matching or semantic matching using a GPT-3.5 model as a judge (hence implies some costs).
+
+\paragraph{VisualWebArena}\footnote{\url{https://github.com/web-arena-x/visualwebarena}} \citep{visual-webarena} Based on the WebArena implementation, VisualWebArena retains 2 of the original domains, plus includes a new one. Task goals include images for vision-based tasks, such as ``Find a pair of shoes that looks like this image''. Docker containers must be reset to their initial state before each new agent evaluation, and some tasks require an explicit reset of a specific Docker. Task validation is similar to WebArena, and also relies on visual matching using an open-source VLM (\texttt{blip2-flan-t5-xl}). 
+
+\paragraph{WorkArena}\footnote{\url{https://servicenow.github.io/WorkArena/}} \citep{workarena, workarena-plus-plus} The backend platform requires a Personal Developer Instance (PDI), available on demand with a free ServiceNow user account. Validation is done via logic rules, using database queries to check for specific content in the backend, and JavaScript code injected on the platform's pages to check for specific actions in the frontend. WorkArena natively supports large-scale parallel agent evaluation, as it prevents trajectory collisions by design.
+
+\paragraph{AssistantBench}\footnote{\url{https://assistantbench.github.io/}} \citep{assistant-bench} Contains 214 realistic and time-consuming open-domain tasks. Tasks require browsing more than 525 web pages from 258 different websites to answer correctly. The dataset covers a diverse range of topics and is composed of a sub-set of general assistant tasks and a sub-set of domain-specific tasks created by domain experts.
+%
+The benchmark features a small development set, consisting of 33 tasks and a larger test set of 181 tasks. The gold answers are hidden for the test, but released for the development set in addition to the URLs from which the answers can be inferred and and answering strategies.
+Additional task-level metadata includes difficulty and time-dependency, indicating whether the answer is static or includes stable information that could change in the future, e.g., a business's opening hours.
+Since the test set is hidden, predictions need to be submitted for evaluation. This is supported via an API to enable easy evaluations at scale.
+
+\paragraph{WebLINX}\footnote{\url{https://mcgill-nlp.github.io/weblinx/}} \citep{weblinx} Static, supervised benchmark. Interaction traces in the original dataset are converted to the BrowserGym observation/action format, and each task consists of predicting an action that must match a recorded action taken by a human during a demonstration. As a result, it differs from environment-based benchmarks by ending after one step, while formulating each recorded action as a different task. Consequently, validation produces scalar rewards via partial matching, using the original metrics selected by \citet{weblinx}.
+
+\clearpage
+\section{Example Prompt}\label{sec:prompt-example}
+
+In \Cref{fig:example-agent}, we show the basic usage of AgentLab's dynamic prompting tools.
+
+
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}[t]{0.65\textwidth}
+
+    \begin{minted}[fontsize=\scriptsize,  frame=lines, breaklines]{python}
+from agentlab.agents import dynamic_prompting as dp
+
+class ExampleAgent(Agent):
+    def __init__(self, flags, chat_model_args):
+        self.flags = flags
+        self.action_set = HighLevelActionSet(["bid"])
+        
+        # unified LLM/VLM API for using different provider
+        # e.g.: OpenAI, OpenRouter, Azure, or self hosted using TGI.  
+        self.chat_llm = chat_model_args.make_model()
+
+    def get_action(self, obs):
+        instructions = dp.GoalInstructions(obs["goal_object"])
+        observation = dp.Observation(obs, self.flags.obs)
+        action = dp.ActionPrompt(self.action_set, action_flags=self.flags.action)
+
+        prompt = "\n".join([
+            instructions.prompt, # the goal of the task
+            observation.prompt, # html and/or ax_tree depending on flags.obs
+            action.prompt, # the action space described based on flags.action
+            action.concrete_ex, # concrete example of the expected answer
+        ])
+
+        # Progressively shrink some part of the prompt until it fits the limit
+        # Each component has its own shrinking strategy
+        prompt = dp.fit_tokens(prompt, max_prompt_tokens=40000)
+        
+        action_str = action.parse_answer(self.chat_llm(prompt))
+        return action_str, bgym.AgentInfo(chat_messages=[prompt])
+
+
+    def obs_preprocessor(self, obs):
+        obs["processed_html"] = process_html(obs["dom_object"]
+        return obs
+
+    \end{minted}
+
+    \end{minipage}
+    \hspace*{\fill}
+    \begin{minipage}[t]{0.30\textwidth}
+        \begin{minted}[fontsize=\scriptsize,  frame=lines, breaklines]{python}
+class ObsFlags:
+    use_html: bool
+    use_ax_tree: bool
+    use_tabs: bool
+    use_focused_element: bool
+    use_error_logs: bool
+    use_history: bool
+    use_past_error_logs: bool
+    use_action_history: bool
+    use_screenshot: bool
+    use_som: bool
+    extract_visible_tag: bool
+    extract_clickable_tag: bool
+    extract_coords: bool
+    filter_visible_elements_only: bool
+    filter_with_bid_only: bool
+    filter_som_only: bool
+
+class ActionFlags(Flags):
+    action_set: bgym.HighLevelActionSetArgs
+    long_description: bool 
+    individual_examples: bool 
+
+        \end{minted}
+
+    \end{minipage}
+    \caption{Example of how to implement an agent using dynamic prompting and the unified LLM API. For simplicity, only a subset of the prompt components and flags are depicted. Each prompt component has its own shrinking mechanism which allows for reducing the size of the prompt \emph{dynamically} when it exceeds the maximum number of allowed tokens.}
+    \label{fig:example-agent}
+\end{figure}
+
+Concretely, here is an example prompt from \code{GenericAgent} on WorkArena L2, at step 2:
+
+\newtcolorbox[auto counter, number within=section]{AgentPrompt}[2][]{%
+    enhanced,
+    breakable,
+    colframe=gray,
+    colback=white,
+    boxrule=0.5mm,
+    width=\textwidth,
+    attach boxed title to top left={yshift=-2mm,xshift=2mm},
+    boxed title style={colframe=gray, colback=white, rounded corners},
+    title=#2,
+    fonttitle=\bfseries\color{black},
+    #1
+}
+
+\begin{AgentPrompt}{\code{GenericAgent} example prompt}
+
+\begin{tiny}
+\begin{verbatim}
+# Instructions
+Review the current state of the page and all other information to find the best
+possible next action to accomplish your goal. Your answer will be interpreted
+and executed by a program, make sure to follow the formatting instructions.
+
+## Goal:
+
+Managing Your Existing Expenses
+ 
+ Concretely, you need to complete the following steps:
+1. Navigate to the "Expense Lines" module of the "Cost" application.
+2. Create a filter for the list to extract all entries where:
+    - "Short description" contains "#SERIES-d1e0dc99-5"
+3. Delete expense lines with duplicated short descriptions, keeping only the most expensive duplicate.
+
+# Observation of current step:
+
+## Currently open tabs:
+Tab 0 (active tab):
+    Title: Home | ServiceNow
+    URL: https://dev255323.service-now.com/now/nav/ui/home
+
+## AXTree:
+Note: [bid] is the unique alpha-numeric identifier at the beginning of lines for each element in the AXTree. Always use bid to refer to elements in your actions.
+
+Note: You can only interact with visible elements. If the "visible" tag is not
+present, the element is not visible on the page.
+
+RootWebArea 'Classic | Unified Navigation App | ServiceNow'
+        [47] generic, live='assertive', atomic, relevant='additions text'
+        [48] generic, live='polite', atomic, relevant='additions text'
+
+...
+
+# History of interaction with the task:
+
+## step 0
+
+<think>
+Looking at the current page, I need to navigate to the "Expense Lines" module in the "Cost" application. First, I need to access the "All" menu since it's likely where
+I'll find the Cost application. The "All" menu button is visible with bid "79".
+</think>
+
+<action>
+click('79')
+</action>
+
+## step 1
+
+<think>
+I see that the "All" menu is already expanded. I need to find the "Cost" application in the list of applications. Looking through the AXTree, I can see various
+applications listed, but I need to search for "Cost" since it's not immediately visible. I can use the search box at the top of the All menu which has bid "242" and
+is currently focused.
+</think>
+
+<action>
+fill('242', 'Cost')
+</action>
+
+## step 2
+
+<think>
+I can see that the search box is already filled with "Cost" and the menu is showing filtered results. I can see the "Expense Lines" link with bid "1145" which is exactly
+what I need to navigate to. I'll click on this link to access the Expense Lines module.
+</think>
+
+<action>
+click('1145')
+</action>
+
+
+# Action space:
+Note: This action set allows you to interact with your environment. Most of them
+are python function executing playwright code. The primary way of referring to
+elements in the page is through bid which are specified in your observations.
+
+
+20 different types of actions are available.
+
+noop(wait_ms: float = 1000)
+send_msg_to_user(text: str)
+report_infeasible(reason: str)
+scroll(delta_x: float, delta_y: float)
+fill(bid: str, value: str)
+select_option(bid: str, options: str | list[str])
+click(bid: str, button: Literal['left', 'middle', 'right'] = 'left', modifiers: list[typing.Literal['Alt', 'Control', 'ControlOrMeta', 'Meta', 'Shift']] = [])
+dblclick(bid: str, button: Literal['left', 'middle', 'right'] = 'left', modifiers: list[typing.Literal['Alt', 'Control', 'ControlOrMeta', 'Meta', 'Shift']] = [])
+hover(bid: str)
+press(bid: str, key_comb: str)
+focus(bid: str)
+clear(bid: str)
+drag_and_drop(from_bid: str, to_bid: str)
+upload_file(bid: str, file: str | list[str])
+tab_close()
+tab_focus(index: int)
+new_tab()
+go_back()
+go_forward()
+goto(url: str)
+Only a single action can be provided at once. Example:
+fill('a12', 'example with "quotes"')
+
+Note:
+* Some tasks may be game like and may require to interact with the mouse position
+in x, y coordinates.
+* Some text field might have auto completion. To see it, you have to type a few
+characters and wait until next step.
+* If you have to cut and paste, don't forget to select the text first.
+* Coordinate inside an SVG are relative to it's top left corner.
+* Make sure to use bid to identify elements when using commands.
+* Interacting with combobox, dropdowns and auto-complete fields can be tricky,
+sometimes you need to use select_option, while other times you need to use fill
+or click and wait for the reaction of the page.
+
+
+# Abstract Example
+
+Here is an abstract version of the answer with description of the content of
+each tag. Make sure you follow this structure, but replace the content with your
+answer:
+
+<think>
+Think step by step. If you need to make calculations such as coordinates, write them here. Describe the effect
+that your previous action had on the current content of the page.
+</think>
+
+<action>
+One single action to be executed. You can only use one action at a time.
+</action>
+
+
+# Concrete Example
+
+Here is a concrete example of how to format your answer.
+Make sure to follow the template with proper tags:
+
+<think>
+From previous action I tried to set the value of year to "2022",
+using select_option, but it doesn't appear to be in the form. It may be a
+dynamic dropdown, I will try using click with the bid "a324" and look at the
+response from the page.
+</think>
+
+<action>
+click('a324')
+</action>
+\end{verbatim}
+\end{tiny}
+\end{AgentPrompt}
+
+\section{GenericAgent in depth}
+
+\newcommand{\yes}{{\color{green}\ding{51}}}
+\newcommand{\no}{{\color{red}\ding{55}}}
+
+\begin{table}[ht]
+    \centering
+    \footnotesize
+    \caption{List of \code{GenericAgent}'s prompting options. The setting column gives the flags used for our experimentations, with the exception of the agents ran on VisualWebArena that have \code{use_screenshot=True}}
+    \label{tab:genericagent_prompting_options}
+    % \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}MMcp{4in}@{}}
+    \begin{tabular}{MMcp{3.2in}@{}}
+    \toprule
+        {\bf Category} & {\bf Flag} & {\bf Setting} & {\bf Description} \\
+        \midrule
+        \multicolumn{1}{M}{\multirow{16}{*}{observation}} & use\_html & \no & Adds the HTML content to the prompt. \\
+        & use\_axtree & \yes & Adds the AXTree content to the prompt. \\
+        & use\_focused\_element & \yes & Specifies which element is focused at the moment. \\
+        & use\_error\_logs & \yes & Show the previous action error (e.g. action not possible, timed out...). \\
+        & use\_past\_error\_logs & \no & Show all previous errors. \\
+        & use\_action\_history & \yes & Display a list of all previous actions. \\
+        & use\_think\_history & \yes & Display a list of all previous Chain-of-thought reasonings. \\
+        & use\_screenshot & \no & Switch to vision mode. \\
+        & use\_som & \no & Agent uses Set-of-Marks instead of screenshots. \\
+        & extract\_visible\_tag & \yes & For each HTML/AXTree element, add a tag that if it is visible. \\
+        & extract\_clickable\_tag & \yes & For each HTML/AXTree element, add a tag that if it is clickable. \\
+        & extract\_coords & \no & For each HTML/AXTree element, add its coordinates. \\
+        & filter\_visible\_elements\_only & \no & Only show int the HTML/AXTree elements that are visible. \\
+        \midrule
+        \multicolumn{1}{M}{\multirow{3}{*}{action}} & long\_description & \no & Adds the full docstring of each action. \\
+        & individual\_examples & \no & Adds a usage example for each action function. \\
+        & multi\_actions & \no & Allows performing multiple actions in one step. \\
+        \midrule
+        \multicolumn{1}{M}{\multirow{8}{*}{reasoning}} & use\_thinking & \yes & Use Chain-of-thoughts reasoning. \\
+        & use\_plan & \no & The agents provides and refines a plan at each step. \\
+        & use\_criticize & \no & The LLM must draft, then criticize an action before outputing the real action. \\
+        & use\_concrete\_example & \yes & Whether or not to use a real example for in-context learning. \\
+        & use\_abstract\_example & \yes & Whether or not to use an abstract example with descriptive instructions. \\
+        & extra\_instructions & N/A & A string to be passed to the prompt as an extra goal. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Benchmark setting} \label{app:benchmark-setting}
+In Table~\ref{tab:exp-setting} we give some more information about the benchmark settings during our experiments. For Miniwob and WorkArena L1, we use respectively 5 and 10 seeds per task. WebArena and its visual counterpart are meant to be used as a whole, as they do not provide task seeding. WorkArena L2 and L3 are shipped with preset curricula to balance out the types of tasks in an experiment. Finally, AssistantBench and WebLINX provide test sets, which are used to evaluate the models.
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Summary of experiment settings for each benchmark.}
+    \label{tab:exp-setting}
+    \begin{tabular}{@{}cccccc@{}}
+        \toprule
+        \multicolumn{1}{c}{\textbf{Benchmark}} & \multicolumn{1}{c}{\textbf{\# Tasks}} & \multicolumn{1}{c}{\textbf{\# Seeds}} & \multicolumn{1}{c}{\textbf{Max Steps}} & \multicolumn{1}{c}{\textbf{Resulting \# runs}}\\
+        \midrule
+        MiniWoB & 125 & 5 & 10 & 625 \\
+        WebArena & 812 & / & 30 & 812 \\
+        VisualWebArena & 910 & / & 30 & 910 \\
+        WorkArena L1 & 33 & 10 & 30 & 330 \\
+        WorkArena L2 & 341 & curriculum & 50 & 235 \\
+        WorkArena L3 & 341 & curriculum & 50 & 235 \\
+        WebLINX & 31586 & test split & 1 & 2650 \\
+        Assistant Bench & 214 & / & 30 & 181 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+\section{Costs and API Usage} \label{app:cost}
+
+In \Cref{tab:api_costs} we provide more detailed data on the cost of our experiments. We also show token counts. We highlight that the Llama models were ran using the OpenRouter API, which relies on different providers to give users access to those models. Prices for those two models may have changed since running our experiments. 
+
+\begin{table}[h]
+    \centering
+    \footnotesize
+    \begin{tabular}{|c|c|c|c|c|c|}
+        \hline
+        \textbf{Agent} & \makecell{\textbf{Total} \\ \textbf{Cost (\$)}} & \makecell{\textbf{Input Tokens} \\ \textbf{ (M tokens)}} & \makecell{\textbf{Output Tokens} \\ \textbf{ (M tokens)}} & \makecell{\textbf{API Input Cost} \\ \textbf{(\$/M tokens)}} & \makecell{\textbf{API Output Cost} \\ \textbf{(\$/M tokens)}} \\        \hline
+        Claude  & 894.80  & 276.20  & 4.41  & 3.00  & 15.00 \\
+        GPT-4o                             & 720.72  & 277.25  & 2.76  & 2.50  & 10.00 \\
+        GPT-4o-mini                         & 75.73   & 479.72  & 6.29  & 0.15  & 0.60  \\
+        Llama-3.1 405B & 849.63  & 359.89  & 8.13  & 2.30  & 2.30 \\
+        Llama-3.1 70B  & 78.79   & 221.23  & 5.02  & 0.35  & 0.35  \\
+        o1 Mini          & 971.12  & 171.25  & 38.11 & 3.00  & 12.00 \\
+        \hline
+    \end{tabular}
+    \caption{Comparison of experiment costs between models. Values are summed over all benchmarks, except VisualWebArena.}
+    \label{tab:api_costs}
+\end{table}
+
+\section{Experiment runtime and hardware}\label{app:runtime}
+We provide detailed information on total runtimes and benchmark durations (\Cref{tab:benchmark_durations}). These metrics are presented for our best-performing model, Claude 3.5 Sonnet. For each benchmark, we report the following key metrics:
+
+\begin{itemize}
+    \item \textbf{Cumulative Experiment Duration}: The overall time taken for the benchmark experiment to complete. This value does not account for parallelization.
+    \item \textbf{Average Step Duration}: The mean time taken per step in the experiment.
+    \item \textbf{Cumulative Environment Runtime}: The total time spent running the environment, excluding agent processing time.
+    \item \textbf{Average Environment Runtime per Step}: The average time spent by the environment per step.
+    \item \textbf{Cumulative Number of Environment Steps}: The total count of steps executed within the environment during the experiment.
+\end{itemize}
+
+Discrepancies between the total runtime and environment runtime can be observed, primarily due to the API used. Slower or overcrowded APIs may introduce significant variations.
+
+It is important to note that the reported durations do not account for parallelization. In practice, experiments were conducted using up to 20 parallel jobs depending on the benchmark. This means that while the reported total experiment duration reflects the absolute runtime of the benchmark, the actual time required to complete an experiment may be significantly lower due to parallel execution. The level of parallelization was adjusted based on the computational requirements of each benchmark. Lighter benchmarks, such as MiniWoB, could support up to 20 parallel runs without issue, whereas more resource-intensive benchmarks, like WebArena or WorkArena, required limiting parallel jobs to prevent server overload and ensure stable execution.
+
+Our experiments were conducted on large-scale compute clusters equipped with Intel(R) Xeon(R) Gold 6126 CPUs @ 2.60GHz and effectively unlimited RAM. Given the relatively low computational demands of our benchmarks, experiments could also be run locally on standard laptops without significant performance degradation. However, the primary constraints arise from the benchmark environments themselves. For example, WebArena experiments were executed on Azure VMs with 8 CPUs and 32GB RAM, which imposed limitations on execution speed and parallelization capabilities.
+
+\begin{table}[h]
+\centering
+\footnotesize
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Benchmark} & \makecell{\textbf{Cumulative} \\ \textbf{Experiment Duration} \\ \textbf{(hours)}} & \makecell{\textbf{Avg. Step} \\ \textbf{Duration} \\ \textbf{(seconds)}} & \makecell{\textbf{Cumulative} \\ \textbf{Environment Duration} \\ \textbf{(hours)}} & \makecell{\textbf{Avg. Environment} \\ \textbf{Step Duration} \\ \textbf{(seconds)}} & \makecell{\textbf{Cumulative} \\ \textbf{Steps}} \\
+\hline
+AssistantBench  & 4.0  & 9.1  & 2.0  & 4.5  & 1590 \\
+MiniWoB         & 3.1  & 5.0  & 0.7  & 1.1  & 2282 \\
+WebArena        & 18.6 & 12.2 & 11.6 & 7.6  & 5493 \\
+WebLINX         & 4.5  & 6.1  & 0.1  & 0.2  & 2649 \\
+WorkArena       & 8.2  & 9.9  & 4.4  & 5.3  & 2985 \\
+WorkArena L2   & 23.6 & 10.7 & 10.9 & 4.9  & 7947 \\
+WorkArena L3   & 16.1 & 9.8  & 7.4  & 4.5  & 5884 \\
+VisualWebArena  & 16.9 & 14.1 & 10.5 & 8.8  & 4319 \\
+\hline
+\end{tabular}
+\caption{Summary of runtime metrics for Claude 3.5 Sonnet across various benchmarks. Cumulative durations indicate total execution time without accounting for parallelization. Environment-related durations reflect only the time spent in the environment, excluding agent processing overhead.}
+\label{tab:benchmark_durations}
+\end{table}
+
+
+
+\section{Results analysis}\label{app:trace_analysis}
+
+In this section, we compare the execution of a task by our \code{GenericAgent}, backed by two different LLMs, Claude 3.5 Sonnet which executed the task correctly, and GPT-4o which failed the task.
+We will be looking at a task from the very challenging WorkArena L2, on which Claude achieves groundbreaking performances.
+
+We focus on the task \code{workarena.servicenow.navigate-and-order-standard-laptop-l2}, which has the following goal:
+
+\begin{minted}[fontsize=\scriptsize, breaklines, bgcolor=bg]{text}
+Order a standard laptop from the service catalog
+ 
+ Concretely, you need to complete the following steps:
+1. Navigate to the "Service Catalog" module of the "Self-Service" application.
+2. Go to the hardware store and order 6 "Standard Laptop" with configuration {'Additional software requirements': 'Salesforce, Microsoft Office 365, Asana, HubSpot', 'Adobe Acrobat': True, 'Adobe Photoshop': True}
+\end{minted}
+
+
+\begin{figure}[htbp]
+    \centering
+    \subfloat[Step 1: Clicks on the "All" menu]{%
+        \includegraphics[width=0.49\linewidth]{figures/traces/success/0.png}%
+    }
+    \hfill
+    \subfloat[Step 2: Opens the catalog]{%
+        \includegraphics[width=0.49\linewidth]{figures/traces/success/1.png}%
+    }
+    
+    \subfloat[Step 3: Go in the hardware section]{%
+        \includegraphics[width=0.49\linewidth]{figures/traces/success/2.png}%
+    }
+    \hfill
+    \subfloat[Step 4: Clicks on "Standard Laptop" product]{%
+        \includegraphics[width=0.49\linewidth]{figures/traces/success/3.png}%
+    }
+    
+    \subfloat[Step 5: Fill in the required fields (multiple steps)]{%
+        \includegraphics[width=0.49\linewidth]{figures/traces/success/4.png}%
+        \label{fig:failed_checkbox}
+    }
+    \hfill
+    \subfloat[Step 6: Complete order]{%
+        \includegraphics[width=0.49\linewidth]{figures/traces/success/5.png}%
+    }
+
+    \caption{Successful execution of the task \code{workarena.servicenow.navigate-and-order-standard-laptop-l2}, seed 99, by Claude 3.5 Sonnet. The Steps given in the caption are not the same as the actual task steps, for the sake of conciseness.}
+    \label{fig:trace_success}
+\end{figure}
+
+
+\Cref{fig:trace_success} displays the trajectory taken by Claude for this task. Interestingly, in step~\ref{fig:failed_checkbox} the agent manages to overcome an environment limitation. Clicking on one of the element of the checkbox does not trigger the checkbox, and the agent gives the following reasoning before correctly checking the checkbox:
+\begin{minted}[fontsize=\scriptsize, breaklines, bgcolor=bg]{text}
+I see that clicking directly on the checkbox didn't work because the label intercepts pointer events. Looking at the AXTree, I can see that the label for Adobe Acrobat has bid "a184". I'll try clicking on the label instead, which should toggle the checkbox.
+\end{minted}
+
+The agent then proceeds to complete the task.
+
+On the other hand, \Cref{fig:task_failure} displays the last two steps from the same task, executed by GPT-4o. The agent does not notice it is only ordering one laptop instead of the required 6, failing the task.
+
+More precisely, the agent attempts to click on element \code{a243} instead of using the \code{select_option} action in the following AXTree:
+\begin{minted}[fontsize=\scriptsize, breaklines, bgcolor=bg]{text}
+[a237] combobox 'Quantity' value='1', visible, hasPopup='menu', expanded=False, controls='quantity_label_span'
+    [a238] menuitem '1', selected=True
+    [a239] menuitem '2', selected=False
+    [a240] menuitem '3', selected=False
+    [a241] menuitem '4', selected=False
+    [a242] menuitem '5', selected=False
+    [a243] menuitem '6', selected=False
+    [a244] menuitem '7', selected=False
+    [a245] menuitem '8', selected=False
+    [a246] menuitem '9', selected=False
+    [a247] menuitem '10', selected=False
+\end{minted}
+
+This causes the action to fail. However, seeing the previous Chain-of-thought reasoning in its prompt, GPT-4o continues with the following:
+
+\begin{minted}[fontsize=\scriptsize, breaklines, bgcolor=bg]{text}
+I need to proceed with configuring the "Standard Laptop" order. The quantity has been set to 6. Now, I should check the boxes for "Adobe Acrobat" and "Adobe Photoshop" to include them in the order.
+\end{minted}
+
+The agent fools itself and does not understand that the previous action was in fact a failure. It then goes on to complete the task without correcting this mistake.
+
+
+
+\begin{figure}[htbp]
+    \centering
+    \subfloat[The agent unsuccessfully attempts to set the amount to 6]{%
+        \includegraphics[width=0.49\linewidth]{figures/traces/failure/f0.png}%
+    }
+    \hfill
+    \subfloat[Considering the order correct, the agent completes a wrong order.]{%
+        \includegraphics[width=0.49\linewidth]{figures/traces/failure/f1.png}%
+    }
+
+    \caption{Failed steps during the execution of the task \code{workarena.servicenow.navigate-and-order-standard-laptop-l2}, seed 99, by GPT-4o}
+    \label{fig:task_failure}
+\end{figure}
+
+
+
+\end{document}

@@ -1,0 +1,554 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Agent Benchmark Comparison}
+\label{app:benchmarkcomparison}
+We compare \tac with other available agent benchmarks in~\autoref{tab:comparison}.
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\caption{\small
+Comparison of different AI agent benchmarks. {\bf Interface}: the interface agent has access to; \browse~is web browser, \desktop~is desktop, \api~is API usage, \py~is Python runtime, \social~is chat platform, \terminal~is bash terminal. {\bf Task Categories}: tasks in the benchmark, $*$ indicate tasks with no association with real-world occupations; \textsc{SE} refers to software engineering, \textsc{HR} is human resources, \textsc{PM} is project management. {\bf Long-Horizon with Checkpoints}: if tasks are evaluated at intermediate checkpoints and assigned partial scores. {\bf Requires Interaction}: If the agent can interact with other NPC agents during task-solving. 
+}
+\label{tab:comparison}
+\begin{threeparttable}
+\begin{adjustbox}{width=1\textwidth}
+\begin{tabular}{l|cccc|cc}
+\toprule
+\multicolumn{1}{c|}{\bf Framework}
+& \textbf{\makecell{Diverse\\ Real-world Work}}
+& \textbf{Task Categories}
+& \textbf{\makecell{Requires\\ Interaction}}
+& \textbf{\makecell{Long-Horizon\\ w/ Checkpoints}}
+& \textbf{Interface}
+& \textbf{\makecell{Self-Hosted\\ Environment}} \\
+\midrule
+MiniWob++~\citep{liu2018reinforcement} & \no & Browsing$^*$ & \no & \no & {\browse} & \yes \\
+Mind2Web~\citep{deng2023mindweb} & \no & Browsing$^*$ & \no & \no & {\browse} & \no \\
+WebLINX~\citep{lù2024weblinxrealworldwebsitenavigation} & \no & Browsing$^*$ & \no & \no & {\browse} & \no \\
+AssistantBench~\citep{yoran2024assistantbenchwebagentssolve} & \no & Browsing$^*$ & \no & \no & {\browse} & \no \\
+WebArena~\citep{zhou2023webarena} & \no & Browsing$^*$ & \no & \no & {\browse} & \yes \\
+VisualWebArena~\citep{koh2024visualwebarena} & \no & Browsing$^*$ & \no & \no & {\browse} & \yes \\
+VideoWebArena~\citep{jang2024videowebarenaevaluatinglongcontext} & \no & Browsing$^*$ & \no & \no & {\browse} & \yes \\
+WorkArena~\citep{workarena2024} & \yes & Enterprise Software & \no & \no & {\browse} & \no \\
+OSWorld~\citep{xie2024osworld} & \yes & Office, Coding & \no & \no & {\browse ~\desktop} & \yes \\
+Windows Agent Arena~\citep{bonatti2024windows} & \yes & Browsing$^*$, Office, Coding & \no & \no & {\browse ~\desktop} & \yes \\
+CRMArena~\cite{huang2024crmarena} & \yes & 
+Service agent, Analyst, Manager & \no & \no & {\api} & \no \\
+\midrule
+AppWorld~\citep{trivedi2024appworld} & \no & Daily & \no & \no & {\api} & \yes \\
+Gorilla APIBench~\citep{patil2023gorilla} & \no & Coding & \no & \no & {\api} & \yes \\
+$\tau$-bench~\citep{yao2024tau} & \yes & Retail, Airline & \yes & \no & {\py} & \no \\
+\midrule
+SWE-bench~\citep{jimenez2024swebench} & \no & SWE & \no & \no & {\py} & \yes \\
+DevBench~\citep{li2024devbench} & \no & SWE & \no & \no & {\py} & \no \\
+\midrule
+Smallville~\citep{park2023generative} & \no & Social$^*$ & \yes & \no & {\social} & \yes \\
+Sotopia~\citep{zhou2024sotopia} & \no & Social$^*$ & \yes & \no & {\social} & \yes \\
+\midrule
+\textbf{\tac} & \yes & \makecell{SWE, HR, Admin,\\PM, Research, Finance} & \yes & \yes & {\browse ~\terminal ~\py ~\social} & \yes \\
+\bottomrule     
+\end{tabular}
+\end{adjustbox}
+\end{threeparttable}
+\end{table*}
+
+\section{Benchmark Construction}
+\label{app:benchmarkconstruction}
+Our goal was to construct a high-quality, hand-curated benchmark rather than relying on large-scale scraping of publicly available tasks. Every task in our benchmark was created by domain experts and designed to reflect complex and realistic workflows. 
+
+All tasks in our benchmark are carefully curated by referencing the ONET database with detailed job responsibilities. ONET database was created by the US Department of Labor with extensive data curation, analysis, and summarization by domain experts.
+
+Domain experts are heavily involved in creating the respective tasks to ensure the complexity and realism of the tasks. Specifically: Among the task creators, ten are experienced software engineers currently employed at companies, representing a diverse cross-section of the industry. They range from junior developers to senior engineers and engineering managers, working in various sectors, including small startups, established tech giants, and financial institutions. They contributed extensively to the brainstorming, drafting, and iterative refinement of the 69 software engineering tasks.
+
+For the 28 project management and 14 data science tasks, two of the task creators are industry professionals with domain expertise in project management and data science, respectively. They were directly involved in the collection and validation of this set of tasks.
+
+For the 15 administrative, 29 human resources and 12 finance tasks, we collaborated with two senior HR/admin staff professionals. Both have extensive professional experience in HR, finance, and administrative operations. We show more example tasks in \autoref{tab:tasks}. 
+
+\tac is significantly closer to a real-world work setting than any existing work in this area. In particular, we have made deliberate efforts to approximate realistic work environments. To highlight, our benchmark introduces LLM-based NPCs to simulate real-world human interactions with unpredictability. For example, in some admin/HR tasks, we deliberately included realistic traps and pitfalls that could cause both LLMs and human testers to make mistakes. Such human factors are not considered in existing benchmarks such as WebArena ~\citep{zhou2023webarena} and SWE-bench ~\citep{jimenez2024swebench}. In addition, our environment simulates concern cases such as exceptions in real-world task executions. For example, in some coding tasks, we simulate issues related to environment setup and configuration, while existing SWE benchmarks (e.g., SWE-bench ~\citep{jimenez2024swebench}) only consider perfect scenarios with flawless environment setup and configurations. Finally, our environment carefully selects the comprehensive set of four well-related services to reflect typical workplace scenarios, along with non-work-related distractions such as pop-ups on websites, while existing benchmarks include isolated application where cross-app tasks are rare.
+
+\section{Example Tasks}
+\label{app:exampletask}
+
+We consider a task designed to evaluate an agent’s ability to perform realistic project management workflows using multiple tools and services hosted on the benchmark. The task involves managing a sprint for the \textit{RisingWave} project, requiring the agent to execute interdependent steps such as sprint issue management, team communication, repository operations, and report generation while incorporating feedback from a simulated project manager.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.99\textwidth]{./figs/example.pdf}
+    \caption{ Example \tac workflow illustrating an agent managing a sprint for the \textit{RisingWave} project. The task involves identifying and moving unfinished issues to next sprint cycle, notifying assignees of those issues, running a code coverage script, uploading summarized report to OwnCloud, and incorporating feedback on report from a simulated project manager.}
+    \label{fig:example}
+
+\end{figure*}
+
+
+The workflow as illustrated in \autoref{fig:example} begins with the agent identifying unfinished issues in the current sprint on Plane and updating their sprint assignments. This step is worth 2 points and is fully completed, earning the agent the maximum score of 2/2. Next, the agent successfully notifies the relevant assignees using Rocket.Chat regarding their pending tasks and earns 1/1 point.
+
+The agent then proceeds to clone the \textit{RisingWave} repository from GitLab and execute a Python script in the terminal to calculate updated code coverage. This step, worth 2 points, is only partially completed, as the agent successfully clones the repository but fails to run code coverage. As a result, the agent earns 1/2 points for this checkpoint. The subsequent steps—generating and sharing the sprint summary report on OwnCloud and incorporating feedback from a simulated project manager—are not completed, resulting in 0/2 and 0/1 scores, respectively. Notably, the checkpoints can also fail if the report does not meet quality standards as assessed by the LLM-based evaluator, which evaluates the report for clarity, completeness, and successful incorporation of feedback. This ensures that the assessment reflects both the generation of outputs and their qualitative relevance to the task.
+
+Finally, the overall score is calculated using the partial completion formula defined in \autoref{sec:evalmetrics}, where the total possible points are \( 8 \), and the awarded points sum to \( 4 \). Substituting these values, the agent achieves a final score of \( 0.25 \) (25\%).  Our scoring mechanism thus rewards incremental progress while strongly incentivizing full completion. 
+
+This example represents a typical task in the \tac benchmark, where agents are required to handle complex workflows involving multiple tools and interdependent steps. By evaluating both partial progress and overall results, our benchmark provides a rigorous and realistic measure of agent performance, allowing us to identify their strengths and pinpoint areas for improvement in task execution.
+
+
+
+
+\begin{table*}[t]
+\centering
+\caption{Example task intents and checkpoints for three domains.}
+\label{tab:tasks}
+\small
+\vspace{-1mm}
+\begin{adjustbox}{width=1\textwidth}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lp{8.5cm}p{5.cm}}
+\toprule
+\textbf{Domain} & \multicolumn{1}{c}{\bf Task Intent} & \multicolumn{1}{c}{\bf Checkpoints} \\
+\midrule
+\textbf{SWE} & 
+\raggedright
+Set up JanusGraph and run it locally with an HTTP endpoint:
+\begin{itemize}[left=1pt, itemsep=1pt]
+    \item Clone JanusGraph directory under \texttt{/workspace} folder (\url{http://the-agent-company.com:8929/root/janusgraph}).
+    \item Build the binary file.
+    \item Launch JanusGraph server locally on port 8182 with an HTTP endpoint.
+\end{itemize} & 
+    \textbf{Checkpoint 1 (1pt):} Check if JanusGraph repo is cloned.
+    
+    \textbf{Checkpoint 2 (3pts):} Check if the binary file is built (requires skipping Docker in \texttt{pom.xml}, hence higher points).
+    
+    \textbf{Checkpoint 3 (2pts):} Check the JanusGraph Server as an HTTP endpoint.
+\\
+\midrule
+\textbf{Finance} & 
+\raggedright
+Navigate to ownCloud at \url{http://the-agent-company.com:8092} and complete Section B—Alternative Simplified Credit of IRS Form 6765:
+\begin{itemize}[left=1pt, itemsep=1pt]
+    \item Gather necessary information from \texttt{/Documents/Financials/TAC\_financials.csv} and \texttt{/workspace/research\_wages.csv}.
+    \item Consult \texttt{/Documents/Financials/f6765\_instructions.pdf} for instructions.
+    \item Contact the finance director (David Wong) on Rocket.Chat (\url{http://the-agent-company.com:3000/home}) for ambiguous questions.
+    \item Save the filled form as \texttt{/workspace/filled\_f6765.pdf}.
+\end{itemize} & 
+\textbf{Checkpoint 1 (5pts):} Check if all 16 questions in Section B of the form have been answered correctly.
+
+\textbf{Checkpoint 2 (3pts):} Check if the correct finance director (David Wong) was contacted to answer two ambiguous questions.
+\\
+\midrule
+\textbf{PM} & 
+\raggedright
+Analyze The Agent Company’s performance and create a summary in Plane:
+\begin{itemize}[left=1pt, itemsep=1pt]
+    \item Access Plane (\url{http://the-agent-company.com:8091/tac/}) and navigate to "Analytics."
+    \item Collect metrics: Open Tasks, Backlog Tasks, Unstarted Tasks, Started Tasks, Unassigned Issues, Pending Issues.
+    \item Create a summary and share it on Rocket.Chat (\url{http://the-agent-company.com:3000/home}) in the \texttt{\#kudos} channel.
+\end{itemize} & 
+\textbf{Checkpoint 1 (1pt):} Check if Plane was accessed and the agent navigated to "Analytics" section. 
+
+\textbf{Checkpoint 2 (3pts):} Check if all required project metrics were collected.
+
+\textbf{Checkpoint 3 (1pt):} Check if the summary was shared in the \texttt{\#kudos} channel on Rocket.Chat.
+\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table*}
+
+
+
+\section{Baseline Agent Details}
+\label{app:baselineagent}
+
+To test the current state-of-the-art performance on the \tac benchmark, we need agents that can at least perform tasks using a browser, operate a local workspace using a terminal, and write and execute programs to perform most of the tasks.
+Throughout this paper, we experiment with OpenHands' main agent~\citep{wang2024openhandsopenplatformai,wang2024executable,song2024beyond}, CodeAct Agent with Browsing.\footnote{More specifically, version 0.14.2 and 0.28.1 (to accommodate newer models). Full details can be found in \url{https://github.com/All-Hands-AI/OpenHands/releases}}
+We also experiment with OWL-RolePlay~\citep{owl2025}, a multi-agent framework designed for real-world task automation.\footnote{For OWL RolePlay, we tested only with the recommended model configuration using branch \url{https://github.com/camel-ai/owl/tree/gaia58.18}}. Hereby we illustrate OpenHands only. An overview of OpenHands agent architecture is illustrated in~\autoref{fig:agent_overview}. 
+\paragraph{Interfaces}
+The agent can interact with the environment through 3 interfaces. 
+(1) A bash shell that connects with the local workspace operating system environment for command execution.
+(2) A Jupyter IPython server to handle interactive \emph{python} \citep{ipython} code execution requests and return the execution results back.
+(3) A Chromium browser based on \cite{playwright}. The provider provides a set of action primitives defined by BrowserGym \citep{browsergym, workarena2024}, such as navigation, clicking, typing, and scrolling. 
+After executing these actions, the browser runtime provides a rich set of observations about the current state of the browser, including HTML, DOM, accessibility tree~\citep{accessibilitytree}, screenshot, opened tabs, \etc.
+These observations can be also augmented with configurable attributes that could allow agents to better understand web page observations, such as using a set-of-marks on screenshot~\citep{yang2023setofmark,he2024webvoyager}, visible element marking, focused element, interactable element marking, in-viewport element filtering~\citep{zhou2023webarena}, \etc.
+
+\paragraph{Actions}
+The agent connects with the environment through a core set of general actions.
+Actions \texttt{IPythonRunCellAction} and \texttt{CmdRunAction} enable the agent to execute \textit{arbitrary} Python code and bash commands inside the sandbox environment (\eg, a secure isolated Linux operating system used as our local workspace).
+% 
+\texttt{BrowserInteractiveAction} enables interaction with a web browser with a domain-specific language for browsing introduced by BrowserGym \citep{chezelles2024browsergym,workarena2024}.
+% 
+These actions provide a comprehensive, yet flexible set of primitives that cover most of the tasks performed by human employees of \tac, including navigation, click, hovering, and typing, etc.
+
+\paragraph{Observations}
+Observations describe the environmental changes that the agent observes. The main types of observations used in the CodeAct agent include the execution result of bash terminal commands, Python programs, and browser actions. 
+Specifically, the execution result of browser actions is usually browser snapshots and textual representation in the form of accessibility tree of the current browser viewport.
+
+\paragraph{Workflow}
+At each step, the underlying backbone LLM will take in prompts consisting of previous agent history and the current observation of the environment, and generate a response consisting of the action to execute next.
+On a higher level, the agent can perform the task by executing code, including executing bash commands, Python code, or browser-specific programming language (defined in BrowserGym).\footnote{\url{https://github.com/ServiceNow/BrowserGym/blob/main/browsergym/core/src/browsergym/core/action/functions.py}} 
+This general action space allows the agent to perform various tasks, including editing files, browsing the Web, running programs, etc.
+
+
+\begin{figure*}[th]
+    \centering
+    \includegraphics[width=0.99\textwidth]{figs/agent_overview.pdf}
+    \caption{ Overview of OpenHands' default CodeAct + Browsing agent architecture, the baseline agent used throughout the experiments.}
+    \label{fig:agent_overview}
+\end{figure*}
+
+
+\section{LLM-as-a-Judge}
+\label{app:llm-as-a-judge}
+In \tac, there are 51 tasks (29\%) involving LLM evaluation. LLM-based evaluators are mainly used in well-defined tasks that require simple information extraction and classification, which has been shown to have high precision ~\cite{zheng2023judging}.  Furthermore, we first use deterministic keyword matches and then use LLM as a fallback. Our use of LLM evaluation is a supplement to the deterministic evaluator, rather than a replacement. In addition, the assessors were reviewed and tested by 3 to 5 contributors and continuous integration was carried out to ensure robustness. \tac scoring framework includes both step-by-step and final-result evaluations. In cases where a correct and sound deliverable receives no credit due to an evaluator misjudging an intermediate step, the scoring framework would override the score and grant full credit. Above all, the main concerns about the introduction of LLMs as judges should be dismissed.
+
+\section{LLM-as-Colleagues}
+\label{app:npcanalysis}
+
+Although we acknowledge that LLMs can make mistakes when acting in different roles, we empirically found such errors to be rare. A careful examination of the early version of all 41 tasks that simulated colleagues involved revealed only one trajectory with an issue that stemmed from role-play prompt ambiguity, which was already fixed in the latest \tac version. The prompt to define each role (i.e. the NPC) is simple and straightforward without prompt engineering. As more powerful models are released to act as simulated colleagues, the likelihood of errors decreases.
+
+For NPCs, most context interactions occur within a few hundred tokens. If we assume 3000 input tokens and 1000 output tokens, which is a reasonable upper bound, then according to Claude 3.5 Sonnet's pricing (Input token price: \$3.00, Output token price: \$15.00 per 1M tokens, assuming no prompt caching), the cost per NPC interaction would not exceed \$0.024, and in most cases, it is much lower.
+
+
+\section{More \tac Environment Details}
+\label{app:envdetail}
+\subsection{\tac Overview}
+\begin{lstlisting}
+## Company Introduction
+The Agent Company is an innovative software firm specializing in distributed systems, database technologies, and artificial intelligence. Our core business includes developing and maintaining high-performance distributed graph databases, streaming databases, and providing advanced AI solutions.
+
+## Main Products and Services
+1. Distributed Graph Database (based on JanusGraph)
+2. Streaming Database (based on RisingWave)
+3. AI Model Development and Inference Platform (based on OpenHands and llama.cpp)
+4. Web Crawler Framework (based on Colly)
+5. Distributed Search Engine (based on OpenSearch)
+6. Low-Code Event-Driven Application Platform (based on Node-RED)
+
+## Technology Stack
+- Programming Languages: Rust, Python, C++, Go, Java
+- Databases: Graph databases, Streaming databases, Search engines
+- AI/ML: Large Language Models (LLM)
+- Others: Distributed systems, API development, Documentation management
+
+## Company Vision
+To become a global leader in distributed systems and artificial intelligence, solving complex data processing and analysis challenges through innovative technologies.
+
+## Company Mission
+To provide businesses and developers with the most advanced, efficient, and user-friendly data processing and AI tools, driving technological innovation and maximizing the value of data.
+\end{lstlisting}
+
+\subsection{\tac Employee Roster with Project Assignments and Slack Channels}
+\begin{lstlisting}
+1. AI Agent (Agent employee being tested in TheAgentCompany)
+   - Role: All
+   - Responsibilities: All
+   - Project: All
+   - Slack Channels: All
+
+
+2. Sarah Johnson (Female, 42 years old)
+   - Role: CTO
+   - Responsibilities: Technical strategy planning, R&D team leadership, new technology assessment
+   - Project: Oversees all technical projects
+   - Slack Channels: All technical channels, #general, #tech-talk
+
+
+3. Li Ming (Male, 35 years old)
+   - Role: Database Team Project Manager
+   - Responsibilities: Managing database projects, resource coordination, ensuring timely delivery
+   - Skills: Java, distributed systems
+   - Project: JanusGraph (Graph Database)
+   - Slack Channels: #project-graphdb, #engineering, #tech-talk
+
+4. Zhang Wei (Male, 31 years old)
+   - Role: Senior Software Engineer (Streaming Database Team)
+   - Responsibilities: Developing and optimizing core streaming database functionalities
+   - Skills: Rust, database systems
+   - Project: RisingWave (Streaming Database)
+   - Slack Channels: #project-streamdb, #engineering, #tech-talk
+
+5. Wang Fang (Female, 28 years old)
+   - Role: AI Researcher (AI Team)
+   - Responsibilities: Designing and implementing machine learning models, optimizing model performance
+   - Skills: Python, machine learning, LLM
+   - Project: OpenHands (LLM project)
+   - Slack Channels: #project-ai, #engineering, #tech-talk
+
+6. Mike Chen (Male, 33 years old)
+   - Role: Senior Software Engineer (AI Team)
+   - Responsibilities: Developing and optimizing LLM inference engines
+   - Skills: C++, CUDA, performance optimization
+   - Project: llama.cpp (LLM inference project)
+   - Slack Channels: #project-ai, #engineering, #tech-talk
+
+7. Emily Zhou (Female, 29 years old)
+   - Role: Software Engineer (Web Crawler Team)
+   - Responsibilities: Designing and implementing web crawler functionalities
+   - Skills: Go, distributed systems
+   - Project: Colly (Web Crawler Framework)
+   - Slack Channels: #project-webcrawler, #engineering, #tech-talk
+
+8. Liu Qiang (Male, 36 years old)
+   - Role: Quality Assurance Engineer
+   - Responsibilities: Developing test strategies, executing tests, ensuring product quality
+   - Project: All projects (focusing on testing and quality)
+   - Slack Channels: All project channels, #engineering, #tech-talk
+
+9. Priya Sharma (Female, 27 years old)
+   - Role: Documentation Engineer
+   - Responsibilities: Writing technical documentation, maintaining wiki, improving documentation processes
+   - Project: Documentation (Wiki)
+   - Slack Channels: All project channels, #engineering, #tech-talk
+
+10. Mark Johnson (Male, 40 years old)
+    - Role: Sales Director
+    - Responsibilities: Developing sales strategies, managing sales team, expanding client relationships
+    - Project: N/A (Sales)
+    - Slack Channels: #sales-marketing, #general
+
+11. Jessica Lee (Female, 32 years old)
+    - Role: Marketing Manager
+    - Responsibilities: Developing marketing strategies, managing brand image, organizing marketing events
+    - Project: N/A (Marketing)
+    - Slack Channels: #sales-marketing, #general
+
+12. Chen Xinyi (Female, 30 years old)
+    - Role: Human Resources Manager
+    - Responsibilities: Recruitment, employee training, compensation management
+    - Project: N/A (HR)
+    - Slack Channels: #hr-announcements, #general
+
+13. David Wong (Male, 45 years old)
+    - Role: Finance Director
+    - Responsibilities: Financial planning, budget management, financial reporting
+    - Project: N/A (Finance)
+    - Slack Channels: #general
+
+14. Huang Jie (Male, 34 years old)
+    - Role: Product Manager (Search Engine Team)
+    - Responsibilities: Defining product requirements, planning product roadmap, communicating with clients
+    - Project: OpenSearch (Search Engine)
+    - Slack Channels: #project-search, #product, #tech-talk
+
+15. Sophia Rodriguez (Female, 37 years old)
+    - Role: UX Designer
+    - Responsibilities: Designing user interfaces, improving user experience, conducting user research
+    - Project: All projects (focusing on user experience)
+    - Slack Channels: All project channels, #product, #tech-talk
+
+16. Alex Turner (Male, 30 years old)
+    - Role: Software Engineer (Low-Code Platform Team)
+    - Project: Node-RED (Low-Code Platform)
+    - Slack Channels: #project-lowcode, #engineering, #tech-talk
+
+17. Emma Lewis (Female, 33 years old)
+    - Role: Software Engineer (API Team)
+    - Project: API-server (Python project)
+    - Slack Channels: #engineering, #tech-talk
+
+18. Jessica Chen (Female, 28 years old)
+    - Role: Frontend Software Engineer
+    - Responsibilities: Developing user interfaces, implementing responsive designs, optimizing web performance
+    - Project: E-commerce Website Redesign
+    - Slack Channels: #project-ecommerce, #frontend, #tech-talk
+\end{lstlisting}
+
+\subsection{\tac Q3 2024 Quarterly Sprint Goals}
+\begin{lstlisting}
+## Engineering Teams
+1. Graph Database Team (JanusGraph)
+   - Optimize large-scale graph query performance
+   - Implement new graph analysis algorithms
+   - Improve stability of distributed deployments
+
+2. Streaming Database Team (RisingWave)
+   - Implement new stream processing operators
+   - Optimize memory usage
+   - Improve fault recovery mechanisms
+
+3. AI Team (OpenHands & llama.cpp)
+   - Integrate latest LLM models
+   - Optimize model inference speed
+   - Develop model fine-tuning functionality
+
+4. Web Crawler Team (Colly)
+   - Implement distributed crawling functionality
+   - Improve anti-crawling detection and bypass mechanisms
+   - Develop data cleaning and preprocessing modules
+
+5. Search Engine Team (OpenSearch)
+   - Optimize full-text search performance
+   - Implement new relevance ranking algorithms
+   - Develop custom analyzer functionality
+
+6. Low-Code Platform Team (Node-RED)
+   - Design new visual components
+   - Improve workflow execution engine
+   - Develop more third-party service integrations
+
+## Product Team
+- Conduct user research, collect product feedback
+- Develop Q4 product roadmap
+- Optimize product documentation and user guides
+
+## Quality Assurance Team
+- Develop automated test suites
+- Conduct performance and load testing
+- Improve bug tracking and reporting processes
+
+## Sales and Marketing Team
+- Organize industry trade show participation
+- Launch new content marketing campaigns
+- Develop sales team training programs
+
+## Human Resources Team
+- Implement new employee development plans
+- Optimize recruitment processes
+- Organize team-building activities
+
+## Finance Team
+- Prepare Q2 financial reports
+- Develop Q4 budget plans
+- Optimize financial analysis tools
+\end{lstlisting}
+
+\subsection{\tac Internal Documents}
+\begin{lstlisting}
+Employee Handbook
+Company Policies and Procedures Document
+Payroll and Compensation Structure Document
+Performance Evaluation Forms and Guidelines
+Project Management Templates (including Gantt charts, risk assessment forms, etc.)
+Technical Architecture Documentation
+Coding Standards and Best Practices Guide
+Product Roadmap
+Marketing Strategy Document
+Sales Process and CRM Usage Guide
+Financial Reporting Templates
+Budget Planning Document
+Human Resources Policies (including recruitment, training, promotion, etc.)
+IT Security Policies and Guidelines
+Customer Support Process Documentation
+\end{lstlisting}
+
+
+
+
+\section{Agent-Simulated Colleagues Conversation Examples}
+\label{app:npcexamples}
+We present some examples (see~\autoref{fig:sim_example_1}, \autoref{fig:sim_example_2} and \autoref{fig:sim_example_3}) of the agent's interaction with the simulated colleagues within our environment.
+
+\begin{figure*}
+    \centering
+\includegraphics[width=0.6\textwidth]{figs/npc1.pdf}
+    \caption{Simulated Colleague Communication Example 1 – The agent is tasked with collecting required equipment while adhering to the department's budget. After calculating that the requested items exceed the budget, the agent negotiates with the simulated colleague to reduce the request, showcasing its ability of effective communication.}
+    \label{fig:sim_example_1}
+\end{figure*}
+
+
+\begin{figure*}
+    \centering
+\includegraphics[width=0.6\textwidth]{figs/npc2.pdf}
+    \caption{Simulated Colleague Communication Example 2 – The agent is tasked with writing a job description for a new graduate software engineering position. To fulfill the task, the agent communicates with simulated Project Manager to gather requirements. The agent requests the job description template, minimum and preferred qualifications, and the ideal salary range. This interaction evaluates the agent's ability to gather information systematically and clarify task-related requirements through effective communication.}
+        \label{fig:sim_example_2}
+\end{figure*}
+
+\begin{figure*}
+    \centering
+\includegraphics[width=1\textwidth]{figs/npc3.pdf}
+    \caption{Simulated Colleague Communication Example 3 - The agent is tasked with scheduling a meeting between NPCs Emily Zhou and Liu Qiang based on their availability. Emily is available on Wednesday and Thursday, while Liu is only available on Thursday. The agent identifies Thursday as the common free day and successfully proposes a mid-morning slot at 10:30 AM, which both participants confirm. This example highlights the agent's ability to manage multi-turn conversations, effectively going back and forth between participants to align schedules and finalize a meeting time.}
+    \label{fig:sim_example_3}
+\end{figure*}
+
+
+
+
+
+
+
+
+
+\section{Detailed Experimental Results}
+\label{app:detailedresults}
+
+\autoref{tab:split_result} presents performance breakdown on tasks that involve different platforms in \tac.
+A task is categorized under a platform if it is one of the platforms for which the task requires it.
+\autoref{tab:split_result_cate} presents the performance breakdown for different types of tasks in \tac.
+Depending on the nature of the task, \ie what kind of professionals are usually assigned to the task, the tasks in \tac can be categorized into various departments of jobs. Software Development Engineering (SDE), Project Management (PM), Data Science (DS), Administrative (Admin), Human Resources (HR), Financial (Finance) and all the remaining (Other).
+
+\begin{table}[t]
+\centering
+\caption{Performance of the models in tasks that require different platforms in \tac. All numbers are percentages (\%).}
+\label{tab:split_result}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|l|rrrrrrrr}
+\toprule
+
+&&\multicolumn{2}{c}{\textit{GitLab} (71 tasks)} &\multicolumn{2}{c}{\textit{Plane} (17 tasks)}
+&\multicolumn{2}{c}{\textit{RocketChat} (79 tasks)} &\multicolumn{2}{c}{\textit{ownCloud} (70 tasks)}\\
+
+\multicolumn{1}{c|}{\bf Agent} & \multicolumn{1}{c|}{\bf Model} & \textbf{Success (\%)} & \textbf{Score (\%)} & \textbf{Success (\%)} & \textbf{Score (\%)} & \textbf{Success (\%)} & \textbf{Score (\%)} & \textbf{Success (\%)} & \textbf{Score (\%)} \\
+\midrule
+\multicolumn{10}{c}{\textit{API-based Models}} \\
+\midrule
+OpenHands 0.28.1 & Gemini-2.5-Pro & 33.80 & 43.36 & 41.18 & 51.67 & 29.11 & 40.39 & 12.86 & 22.44\\
+OpenHands 0.28.1 & Claude-3.7-Sonnet & 23.94 & 32.60 & 41.18 & 52.63 & 29.11 & 41.81 & 11.43 & 23.97\\
+OpenHands 0.14.2 & Claude-3.5-Sonnet & 30.99 & 40.25 & 41.18 & 50.37 & 21.52 & 34.68 & 10.00 & 21.81\\
+OpenHands 0.14.2 & Gemini-2.0-Flash & 11.27 & 18.21 & 17.65 & 29.84 & 13.92 & 23.34 & 2.86 & 8.52 \\
+OpenHands 0.14.2 & GPT-4o & 11.27 & 19.46 & 23.53 & 33.68 & 5.06 & 16.08  & 1.43 & 7.76  \\
+OWL Roleplay & GPT-4o \& o3-mini & 5.63 & 12.51 & 5.88 & 15.39 & 3.80 & 11.07 & 0.00 & 5.85 \\
+OpenHands 0.14.2 & Gemini-1.5-Pro & 2.82 & 3.88 & 5.88 & 14.05 & 3.80 & 10.97 & 0.00 & 4.22 \\
+OpenHands 0.14.2 & Amazon-Nova-Pro-v1 & 2.82 & 7.22 & 5.88 & 16.67 & 1.27 & 5.36 & 0.00 & 2.43\\
+\midrule
+\multicolumn{10}{c}{\textit{Open-weights Models}} \\
+\midrule
+OpenHands 0.14.2 & Llama-3.1-405b & 5.63 & 11.84 & 29.41 & 39.12 & 8.86 & 16.46 & 0.00 & 4.45 \\
+OpenHands 0.14.2 & Llama-3.3-70b & 8.45 & 14.26 & 11.76 & 21.65 & 5.06 & 12.06 & 0.00 & 3.76 \\
+OpenHands 0.14.2 & Qwen-2.5-72b & 5.63 & 11.33 & 11.76 & 23.56 & 5.06 & 12.60 & 0.00 & 4.14\\
+OpenHands 0.14.2 & Llama-3.1-70b & 1.41 & 6.09 & 5.88 & 15.35 & 2.53 & 8.23 & 0.00 & 3.32 \\
+OpenHands 0.14.2 & Qwen-2-72b & 1.41 & 1.94 & 5.88 & 12.45 & 0.00 & 4.88 & 0.00 & 2.60 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\caption{Performance of various models in tasks with different nature in \tac. All numbers are percentages (\%).} 
+\label{tab:split_result_cate}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|l|rrrrrrrrrrrrrr}
+\toprule
+&&\multicolumn{2}{c}{\textit{SDE} (69 tasks)} &\multicolumn{2}{c}{\textit{PM} (28 tasks)} &\multicolumn{2}{c}{\textit{DS} (14 tasks)}
+&\multicolumn{2}{c}{\textit{Admin} (15 tasks)} &\multicolumn{2}{c}{\textit{HR} (29 tasks)}
+&\multicolumn{2}{c}{\textit{Finance} (12 tasks)} &\multicolumn{2}{c}{\textit{Other} (8 tasks)}\\
+
+\multicolumn{1}{c|}{\bf Agent} & \multicolumn{1}{c|}{\bf Model} & \textbf{Success} & \textbf{Score} & 
+ \textbf{Success} & \textbf{Score} & \textbf{Success} & \textbf{Score} & \textbf{Success} & \textbf{Score} & \textbf{Success} & \textbf{Score} & \textbf{Success} & \textbf{Score} & \textbf{Success} & \textbf{Score} \\
+\midrule
+\multicolumn{16}{c}{\textit{API-based Models}} \\
+\midrule
+OpenHands 0.28.1 & Gemini-2.5-Pro & 37.68 & 45.05 & 39.29 & 52.61 & 14.29 & 20.06 & 13.33 & 19.17 & 34.48 & 44.98 & 8.33 & 21.56 & 12.50 & 20.16\\
+OpenHands 0.28.1 & Claude-3.7-Sonnet & 30.43 & 36.78 & 42.86 & 56.32 & 14.29 & 22.80 & 13.33 & 23.89 & 27.59 & 40.02 & 0.00 & 18.89 & 12.50 & 24.06\\
+OpenHands 0.14.2 & Claude-3.5-Sonnet & 30.43 & 38.02 & 35.71 & 51.31 & 14.29 & 21.70 & 0.00 & 11.59 & 24.14 & 34.49  & 8.33 & 25.17 & 12.50 & 22.40\\
+OpenHands 0.14.2 & Gemini-2.0-Flash & 13.04 & 18.99 & 17.86 & 31.71 & 0.00 & 6.49 & 6.67 & 15.20 & 17.24 & 23.08 & 0.00 & 4.31 & 0.00 & 10.05 \\
+OpenHands 0.14.2 & GPT-4o & 13.04 & 19.18 & 17.86 & 32.27 & 0.00 & 4.70 & 6.67 & 13.89 & 0.00 & 8.28 & 0.00 & 7.36 & 0.00 & 10.78\\
+OWL RolePlay & GPT-4o \& o3-mini & 5.80 & 11.67 & 3.57 & 16.19 & 0.00 & 4.82 & 0.00 & 3.53 & 6.90 & 14.30 & 0.00 & 9.58 & 0.00 & 2.86\\
+OpenHands 0.14.2 & Gemini-1.5-Pro & 4.35 & 5.64 & 3.57 & 13.19 & 0.00 & 4.82 & 6.67 & 9.92 & 3.45 & 11.42 & 0.00 & 2.78 & 0.00 & 8.07\\
+OpenHands 0.14.2 & Amazon-Nova-Pro-v1 & 2.90 & 6.07 & 3.57 & 12.54 & 0.00 & 3.27 & 0.00 & 0.00 & 0.00 & 4.27 & 0.00 & 2.78 & 0.00 & 2.86 \\
+\midrule
+\multicolumn{16}{c}{\textit{Open-weights Models}} \\
+\midrule
+OpenHands 0.14.2 & Llama-3.1-405b & 5.80 & 11.33 & 21.43 & 35.62 & 0.00 & 5.42 & 0.00 & 3.33 & 6.90 & 12.56 & 0.00 & 5.00 & 12.50 & 17.45\\
+OpenHands 0.14.2 & Llama-3.3-70b & 11.59 & 16.49 & 7.14 & 19.83 & 0.00 & 4.70 & 0.00 & 1.67 & 6.90 & 11.38 & 0.00 & 5.69 & 0.00 & 7.03\\
+OpenHands 0.14.2 & Qwen-2.5-72b & 7.25 & 11.99 & 10.71 & 22.90 & 0.00 & 5.42 & 0.00 & 2.14 & 6.90 & 12.36 & 0.00 & 7.15 & 0.00 & 5.99\\
+OpenHands 0.14.2 & Llama-3.1-70b & 1.45 & 4.77 & 3.57 & 15.16 & 0.00 & 5.42 & 0.00 & 2.42 & 3.45 & 7.19 & 0.00 & 3.82 & 0.00 & 2.86 \\
+OpenHands 0.14.2 & Qwen-2-72b & 2.90 & 3.68 & 0.00 & 7.44 & 0.00 & 4.70 & 0.00 & 0.56 & 0.00 & 4.14 & 0.00 & 3.61 & 0.00 & 4.95\\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\section{Limitation}
+\label{app:limitation}
+
+During the construction of this benchmark, we had people test and complete all tasks to ensure the feasibility of the tasks and the evaluator. However, we did not collect human performance data. The main reason is cost, as completing a single task can take anywhere from 10 minutes to several hours, and currently we do not have the means to recruit a large number of people with the relevant background to complete the tasks on a scale. However, this does not affect the evaluation of the current models in the benchmark.
+
+

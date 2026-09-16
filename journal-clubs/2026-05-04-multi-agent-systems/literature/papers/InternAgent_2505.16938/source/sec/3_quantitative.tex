@@ -1,0 +1,334 @@
+\section{Experiments}
+\label{sec:exp}
+
+In this section, we evaluate the effectiveness of InternAgent in conducting autonomous research and accelerating scientific discovery. We begin by providing a brief overview of the selected multi-domain tasks and detailing the experimental implementation in Sec.~\ref{sec:experimental_setup}. Subsequently, we present the quantitative results across various tasks in Sec.~\ref{sec:experimental_results} and conduct an analysis of the different modules within InternAgent in Sec.~\ref{sec:insightful_analyses}.
+
+\subsection{Experimental Setup}
+\label{sec:experimental_setup}
+
+\subsubsection{Task Description}
+
+We select 12 distinct tasks to demonstrate InternAgent's capability in conduct Autonomous Scientific Research (ASR). These tasks span multiple modalities, including science (\textit{e.g.}, reaction yield prediction, molecular dynamics), time series (\textit{e.g.}, time series forecasting), natural language (\textit{e.g.}, sentiment classification), image (\textit{e.g.}, semantic segmentation), and point cloud (\textit{e.g.}, 3D object detection), which cover both discriminative and generative tasks. We believe that experiments ranging from fundamental tasks to complex multi-modal tasks can comprehensively illustrate the effectiveness of InternAgent. Below, we detail the datasets, the base code repositories, and the experimental settings for each task.
+
+\begin{itemize}
+    \item \textbf{Reaction Yield Prediction (AutoRYP).} We conduct experiments on the widely-used Suzuki-Miyaura reaction dataset~\citep{perera2018platform}, which contains 5,760 reaction data. Each data point includes structured chemical reaction information, such as reactants, products, reaction types, reaction conditions (solvent, catalyst, ligand, and base), functional group, and yield values. We use the LoRA-finetuned LLaMA3-8B as our baseline, an embedding model that converts chemical reaction texts into high-dimensional vector representations, which are subsequently fed into a fully connected prediction network predictor to perform chemical yield prediction.
+    \item  \textbf{Molecular Dynamics (AutoMD).} We conduct experiments on the widely-used MD17 dataset~\citep{chmiela2017machine}, which contains energy and force calculation results for seven small organic molecules: aspirin, ethanol, malonaldehyde, naphthalene, salicylic acid, toluene, and uracil. We use VisNet~\citep{wang2024enhancing} as our baseline, an equivariant geometry-enhanced graph neural network that achieves excellent chemical property prediction.
+    \item  \textbf{Power Flow Estimation (AutoPower).} We conduct experiments on the IEEE 39-Bus dataset~\citep{zimmerman2010matpower}, which is a medium-scale benchmark based on the New England power system, comprising 39 buses, 10 synchronous generators, 19 load buses and 46 transmission lines, and providing AC power flow snapshots under a variety of load conditions. We use SenseFlow~\citep{zhao2024senseflow} as our baseline, a novel physics-informed, self-ensembling power flow estimation model that has demonstrated state-of-the-art accuracy on standard IEEE test systems  consistently outperforming both traditional state-estimation techniques and recent data-driven approaches in voltage and power‐flow recovery tasks.
+    \item  \textbf{Time Series Forecasting (AutoTSF).} We conduct experiments on the ETTh1 dataset, which is a 1-hour-level subset of the Electricity Transformer Temperature (ETT) benchmark~\citep{haoyietal-informer-2021}. This dataset comprises two years of hourly multivariate time series, including the target oil temperature and six power-load covariates, collected from transformer stations in two Chinese counties. We use DLinear~\citep{zeng2023transformers} as our baseline, an MLP-based forecasting model that decomposes each series into trend and seasonality and employs simple linear layers, outperforming Transformer-based methods on multiple time series benchmarks.  We report the average results of 96, 192, 336, and 720 prediction length.
+    \item  \textbf{Transcription Prediction for Perturbation Response (AutoTPPR).} We conduct experiments on the Perturb-seq dataset~\citep{norman2019exploring}, which contains single-cell gene expression data measuring the transcriptional responses of cells to various perturbations.  We use GEARS (Generative Energy-based Autoencoder for scRNA-seq)~\citep{roohani2024predicting} as our baseline, a framework based on Graph Neural Networks (GNNs) and Multi-Layer Perceptrons (MLPs), designed to learn joint representations of single-cell multi-omics data.
+    \item \textbf{Enhancer Activity Prediction (AutoEAP).} We conduct experiments on the UMI-STARR-seq dataset~\citep{arnold2013genome}, which contains genome-wide, high-resolution quantitative activity maps of developmental and housekeeping enhancers in Drosophila S2 cells. We use DeepSTARR~\citep{de2022deepstarr} as our baseline, a deep learning model that excels at quantitatively predicting enhancer activity from DNA sequences.
+    \item \textbf{Sentiment Analysis (AutoSenCls).} We conduct experiments on the Stanford Sentiment Treebank (SST-2) dataset~\citep{socher2013recursive}, a binary sentiment classification dataset consisting of movie reviews with approximately 67,000 training samples. We use BERT-base~\citep{devlin2019bert} as our baseline, a Transformer-based pre-trained language model that has shown excellent performance on various NLP tasks.  
+
+    \item \textbf{2D Image Classification (Auto2DCls).} We conduct experiments on the widely-used CIFAR-100 dataset~\citep{krizhevsky2009cifar}, which contains 60,000 32×32 color images in 100 classes, with 500 training images and 100 testing images per class. We use Wide Residual Networks (WRN)~\citep{zagoruyko2016wrn} as our baseline, which improves performance by increasing the width rather than the depth of convolutional networks.
+    \item \textbf{3D Point Cloud Classification (Auto3DCls).} We conduct experiments on the ModelNet40 dataset~\citep{wu2015modelnet}, which contains 12,311 CAD models across 40 common object categories and is widely used for 3D shape classification tasks. We use PointNet~\citep{qi2017pointnet} as our baseline, a pioneering deep learning architecture that directly processes point cloud data.
+    \item \textbf{2D Semantic Segmentation (Auto2DSeg).} We conduct experiments on the widely-used Pascal VOC 2012 dataset~\citep{pascal-voc-2012}, which includes 20 object classes and a background class for semantic segmentation tasks. The dataset contains 1,464 images for training and 1,449 for validation. We use DeepLabV3Plus~\citep{chen2018encoder} as our baseline method, which enhances segmentation performance by employing atrous convolution and a more refined encoder-decoder structure to capture multiscale contextual information effectively.
+    \item \textbf{3D Point Cloud Autonomous Driving (AutoPCDet).} We conduct experiments on the widely-used dataset ONCE~\citep{mao2021once} and use CenterPoint~\citep{yin2021center} as our baseline. Our code is based on OpenPCDet~\citep{openpcdet2020} and we filter out all code irrelevant to the baseline model to avoid knowledge leakage.
+\item \textbf{Large Vision-Language Model Fine-tuning (AutoVLM).}We conduct experiments on filtered geometry subset of the URSA dataset~\citep{luo2025ursa}, comprising manually curated multimodal QA pairs and CoT process. Natural images were excluded, and data were downsampled to control experimental budgets, enabling training completion within 20 hours on 8 A800 GPUs.We use LLaVA-Onevision~\citep{li2024llava} as our baseline, a robust multimodal alignment framework using a simple MLP to align visual encoders with LLMs, forming an effective LMM with strong scalability on vision-language tasks. We take SigLIP~\citep{zhai2023sigmoid} and Qwen2.5-Math-7B-Instruct\citep{yang2409qwen2} as the visual and language modules, respectively.
+\end{itemize}
+
+
+\subsubsection{Evaluation Metric}
+Since our InternAgent has been validated across a wide range of scientific research fields, the evaluation metrics used for tasks in each field are not consistent. Therefore, in this part, we provide a detailed introduction to the evaluation metrics used for each scientific research task.
+
+\begin{itemize}
+    \item \textbf{AutoRYP.} For Reaction Yield Prediction, we evaluate model performance using the coefficient of determination (R²), which quantifies the proportion of variance in the actual reaction yields that is predictable from the model's predictions.
+    \item \textbf{AutoMD.} Our method is evaluated on the MD17 dataset, a molecular chemical property prediction task. The performance is measured using Force-MAE, representing the mean absolute error between the true and predicted forces of molecules.
+    \item  \textbf{AutoPower.} For Power Flow Estimation, we use Root Mean Square Error (RMSE) on PQ node to evaluate the estimation performance on IEEE 39-Bus datasets, representing the root mean square error between the true and predicted voltage magnitudes and phase angles.
+
+    \item  \textbf{AutoTSF.}  For Time Series Forecasting, we use Mean Absolute Error (MAE) to evaluate the prediction performance on ETTh1 dataset. The performance is calculated by taking the average of the four prediction steps of \{96, 192, 336, 720\}.
+    
+    \item  \textbf{AutoTPPR.} For Transcription Prediction for Perturbation Response, we employ the Top 20 DE MSE as the evaluation metric, calculating the mean squared error between the predicted and actual expression levels of the top 20 most differentially expressed genes under each perturbation condition.
+    
+    \item \textbf{AutoEAP.} For Enhancer Activity Prediction, we use Housekeeper Pearson Correlation Coefficient (HK-PCC) as the metric, which quantifies the correlation between the true enhancer activities and the predicted values.
+    \item \textbf{AutoSenCls.} We evaluate our method on the SST-2 dataset, which is a binary sentiment classification task. The performance is measured using accuracy (Acc), which represents the percentage of correctly classified samples.
+    \item \textbf{Auto2DCls.} For 2D image classification, we conduct experiments on CIFAR-100 dataset, which contains 100 classes. The performance is measured using classification accuracy (Acc), representing the percentage of correctly classified images.
+    \item \textbf{Auto3DCls.} For the task of 3D point cloud classification, we use the widely adopted ModelNet40 benchmark, which comprises 40 distinct object categories. We report the Overall Accuracy (OA) as our primary evaluation metric, which calculates the proportion of correctly classified instances in the entire test set.
+    \item \textbf{Auto2DSeg.} For 2D semantic segmentation, we conduct experiments on the Pascal VOC 2012 dataset, which includes 20 object classes and a background class. The performance is measured using the mean Intersection over Union (MIoU), which quantifies the average overlap between the predicted segmentation and the ground truth across all classes, providing a comprehensive assessment of the model's segmentation accuracy.
+    \item \textbf{AutoPCD.}  Following ONCE official evaluation metric, we merge the car, bus and truck class into a super-class (\textit{i.e.}, vehicle). $\text{AP}_{3D}$ is used to evaluate the performance of the ONCE dataset, we report Mean average precision (mAP) which is the average of the scores of the three categories.
+    \item \textbf{AutoVLM.} We evaluated our model on the geometry subset of MathVista~\citep{lu2023mathvista}, a widely adopted multimodal mathematical benchmark. Model's answers to questions were extracted using GPT-4o and compared against the ground truth to calculate accuracy.
+\end{itemize}
+
+\subsubsection{Implementation Details}
+\label{sec:implementation_detail}
+
+In the self-evolving idea generation process, the survey agent, code review agent, generation agent, self-evolving agent, and orchestration agent are based on GPT-4o~\citep{hurst2024gpt4o}. The survey agent searches and reviews 50 papers to provide domain knowledge for the subsequent idea generation agent, and then the idea generation agent generates 15 ideas. The self-evolving agent evolves each idea into 3 ideas and then selects the top 5 ideas for the next evolving process until the maximum number of evolutions (\textit{i.e.}, 4) is reached. In the idea-to-methodology process, each idea is initialized and refined once by the method development agent. In the evolutionary experimental planning and execution process. We use Claude-3.7-Sonnet to generate codes and debug. We set the max debug attempt to 4. The max run number is set to 5 for Aider~\citep{aider} and 3 for OpenHands~\citep{wang2024openhands}.
+
+
+
+\subsection{Experimental Results}
+\label{sec:experimental_results}
+
+
+\begin{table}[tbp]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\caption{Performance comparison across six types of scientific research tasks. We conduct experiments using 10 InternAgent-generated ideas for each task.}
+\vspace{-6pt}
+\label{tab:performance_comparison_sci}
+\resizebox{0.97\textwidth}{!}{
+\begin{tabular}{l@{\hspace{0.5em}}cccccc}
+\toprule
+& \multicolumn{6}{c}{\textbf{Tasks}} \\
+\cmidrule(lr){2-7}
+\textbf{Method} & \textbf{AutoRYP} & \textbf{AutoMD} & \textbf{AutoPower} & \textbf{AutoTSF} & \textbf{AutoTPPR} & \textbf{AutoEAP} \\
+\cmidrule(lr){2-7}
+& \textbf{$R^2$} & \textbf{Forces-MAE} & \textbf{RMSE} & \textbf{MAE} & \textbf{MSE} & \textbf{HK-PCC}  \\
+\midrule
+\multicolumn{7}{c}{\textbf{Max Performance}} \\
+\midrule
+Baseline & 27.6 & 0.158 & 0.00473 & 0.4382 & 0.197 & 0.65 \\
+Dolphin & 31.8 (+4.2) & 0.152 & 0.00455 & 0.4627 & 0.173 & 0.76  \\
+InternAgent & \textbf{35.4 (+7.8)} &  \textbf{0.148} &  \textbf{0.00426} &  \textbf{0.4331} & \textbf{0.146} & \textbf{0.79} \\
+\midrule
+\multicolumn{7}{c}{\textbf{Average Performance}} \\
+\midrule
+Baseline & 27.6 & 0.158 & 0.00473 & 0.4382 & 0.197 & 0.65 \\
+Dolphin & 31.3 (+3.7) & 0.155 & 0.00459 & - & 0.179 & 0.73  \\
+InternAgent & \textbf{33.5 (+5.9)} & \textbf{0.152} & \textbf{0.00447} & \textbf{0.4346} & \textbf{0.170} & \textbf{0.77}  \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\caption{Performance comparison for six types of scientific research tasks. We conduct experiments using 10 InternAgent-generated ideas for each task, where baseline codes for Auto2DSeg, AutoPCDet, and AutoVLM are project-level, consisting of multiple code files with complex call relation between functions. Therefore, the coder in Dolphin~\citep{yuan2025dolphin} does not support modifying this type of baseline codes.}
+\vspace{-6pt}
+\label{tab:performance_comparison_ai}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l@{\hspace{0.5em}}ccccccc}
+\toprule
+& \multicolumn{6}{c}{\textbf{Tasks}} \\
+\cmidrule(lr){2-7}
+\textbf{Method} &  \textbf{AutoSenCls}  & \textbf{Auto2DCls} &  \textbf{Auto3DCls} &  \textbf{Auto2DSeg} & \textbf{AutoPCDet} & \textbf{AutoVLM} \\
+\cmidrule(lr){2-7}
+&   \textbf{Acc} & \textbf{Top-1 Acc} & \textbf{OA} & \textbf{mIoU} & \textbf{mAP} & \textbf{QA} \\
+\midrule
+\multicolumn{7}{c}{\textbf{Max Performance}} \\
+\midrule
+Baseline & 91.0  & 81.2 & 91.0  & 78.8 & 65.0 & 67.1\\
+\textsc{Dolphin} & 92.5 (+1.5) & 82.0 (+0.8) & 93.9 (+2.9)  & - & -  & -\\
+InternAgent & \textbf{93.5 (+2.5)} & \textbf{83.3 (+2.1)} & \textbf{95.5 (+4.5)} & \textbf{81.0 (+2.2)} & \textbf{65.9 (+0.9)} & \textbf{67.6 (+0.5)} \\
+\midrule
+\multicolumn{7}{c}{\textbf{Average Performance}} \\
+\midrule
+Baseline & 91.0  & 81.2 & 91.0 & 78.8 & 65.0 & 67.1\\
+\textsc{Dolphin} &  91.8 (+0.8) & 81.8 (+0.6) & 92.0 (+1.0)  &  - & -  & -\\
+InternAgent & \textbf{92.5 (+1.5)}  & \textbf{82.2 (+1.0)} & \textbf{93.4 (+2.4)} & \textbf{80.1 (+1.3)} & \textbf{65.7 (+0.7)} & \textbf{67.6 (+0.5)} \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\begin{table}[tbp]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\caption{Experiments statistics across different tasks. Each cell shows the number of ideas that improved performance, the number of ideas that successfully ran, and the total number of ideas tested (format: improved / successful / tested). For all the tasks, we conduct experiments with 10 ideas.}
+\vspace{-6pt}
+\label{tab:idea_statistics_sci}
+\resizebox{0.90\textwidth}{!}{
+\begin{tabular}{l|cccccc}
+\toprule
+& \multicolumn{6}{c}{\textbf{Research Task}} \\
+\cmidrule(lr){2-7}
+\textbf{Method} & \textbf{AutoRYP} & \textbf{AutoMD} & \textbf{AutoPower} & \textbf{AutoTSF}  & \textbf{AutoTPPR} & \textbf{AutoEAP} \\
+\midrule
+Dolphin & 2/3/10 & 2/4/10 & 2/4/10 & 0/3/10& 2/3/10 & 2/4/10 \\
+InternAgent & 4/6/10 & 4/8/10 & 5/6/10 & 3/7/10 & 5/5/10 & 8/8/10 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\caption{Experiments statistics across different tasks. Each cell shows the number of ideas that improved performance, the number of ideas that successfully ran, and the total number of ideas tested (format: improved / successful / tested). For all the tasks, we conduct experiments with 10 ideas.}
+\vspace{-6pt}
+\label{tab:idea_statistics_ai}
+\resizebox{0.90\textwidth}{!}{
+\begin{tabular}{l|cccccc}
+\toprule
+& \multicolumn{6}{c}{\textbf{Research Task}} \\
+\cmidrule(lr){2-7}
+\textbf{Method}  & \textbf{Auto2DCls} & \textbf{Auto3DCls} & \textbf{AutoSenCls}  & \textbf{Auto2DSeg} & \textbf{AutoPCDet} & \textbf{AutoVLM} \\
+\midrule
+Dolphin & 2/4/10 & 2/5/10 & 4/7/10 & - & - & - \\
+InternAgent & 5/7/10 & 3/6/10 & 9/9/10 & 6/9/10 & 2/5/10 & 1/5/10 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+To comprehensively evaluate the effectiveness of InternAgent in accelerating scientific discovery, we first provide quantitative experimental results as shown in Tab.~\ref{tab:performance_comparison_sci}, Tab.~\ref{tab:performance_comparison_ai}, Tab.~\ref{tab:idea_statistics_sci}, and Tab.~\ref{tab:idea_statistics_ai}. Extensive results demonstrate that InternAgent excels in the following aspects: 
+
+\begin{table}[t]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\caption{Computational and financial cost analysis for all tasks. Training time is measured using A100 GPU hours, while idea generation and code debugging costs are measured in USD using gpt-4o and claude-3.7-sonnet models respectively.}
+\vspace{-6pt}
+\label{tab:cost_analysis_sci}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|cccccc}
+\toprule
+\textbf{Cost Metric} & \textbf{AutoRYP} & \textbf{AutoMD} & \textbf{AutoPower} & \textbf{AutoTSF} & \textbf{AutoTPPR}  & \textbf{AutoEAP} \\
+\midrule
+Training time (A100 hours) & 6.0 & 10.0 & 5.0 & 0.1 & 1.0 & 1.0\\
+Idea-Gen cost (gpt-4o) (\$) & 0.6 & 0.6 & 0.6 & 0.6 &  0.6 &  0.6\\
+Coder-Debug cost (claude-3.7-sonnet) (\$) & 0.7 & 0.5 & 1.0& 0.4 & 0.9 & 0.6\\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{itemize}
+    \item \textbf{Outperforming existing auto-research systems on multiple tasks.} We first compare InternAgent with existing auto-research system (\textit{i.e.}, \textsc{Dolphin}~\citep{yuan2025dolphin}) on single-file tasks. Tab.~\ref{tab:performance_comparison_sci} and Tab.~\ref{tab:performance_comparison_ai} show the max performance and average performance (\textit{i.e.}, the average performance across experiments with performance gains) achieved by InternAgent and \textsc{Dolphin}.  It can be observed that InternAgent consistently improves the performance compared to the baseline and outperforms \textsc{Dolphin} across all tasks including both generative and discriminative tasks. This suggests that  InternAgent can generate better ideas on each specific domain benefiting from the self-evolving idea generation process and automatically implement them. For example, in AutoRYP, methods proposed by InternAgent can largely outperform those proposed by \textsc{Dolphin} (\textit{i.e.}, +3.6 on max performance). We highlight that InternAgent can achieve SoTA performance on some tasks such as 3D point cloud classification (\textit{i.e.}, 95.5\% overall accuracy without pre-training achieved by InternAgent compared to 95.3\% overall accuracy with pre-training achieved by human experts).
+
+    Besides, Tab.~\ref{tab:idea_statistics_sci} and Tab.~\ref{tab:idea_statistics_ai} report the percentage of experiments with performance gains and executable experiments out of the total number of experiments. First, results show that even on complex tasks such as AutoPCDet (\textit{i.e.}, 50\%) and Auto2DSeg (\textit{i.e.}, 90\%), InternAgent can still ensure a reasonable execution success rate which is due to the carefully designed idea-to-methodology process, enabling the coder to auto-implement based on detailed methodologies. Second, InternAgent demonstrates a higher performance improvement rate compared to \textsc{Dolphin}. This improvement is mainly attributed to the idea-to-methodology feature of InternAgent, which enables the concretization of high-level ideas. Additionally, through the process of multi-round experimental planning and execution, the submodules of the AI-generated methodology are progressively integrated into the baseline code.
+    
+    \item \textbf{Covering a wide range of tasks including the scientific research tasks and AI tasks.} Further, InternAgent exhibits strong generalization capability across a wide range of tasks, enabling it to handle tasks from the AI domain (\textit{e.g.}, Auto2DSeg) to the scientific domain (\textit{e.g.}, AutoMD). As shown in Tab.~\ref{tab:performance_comparison_sci} and Tab.~\ref{tab:performance_comparison_ai}, InternAgent can support 12 different tasks ranging from simple classification tasks to complex multimodal and cross-disciplinary tasks. This is because the survey agent in InternAgent can auto-search task-related literature on academic websites such as arXiv and review the literature to understand each task. Besides, InternAgent is highly extensible, as it can support new tasks with just a task description and reference codes. This capability not only assists AI researchers in automatically updating algorithms, but also empowers researchers in scientific domains to utilize AI tools at a lower cost, thereby accelerating the pace of scientific discovery.
+    
+    \item \textbf{Support repo-level experiments.} Most of existing auto-research systems such as \textsc{Dolphin}~\citep{yuan2025dolphin} only support single-file experiments. On more complex tasks, researchers are required to manually consolidate complex task codes into a single file, which is highly time-consuming and limits their ability to conduct experiments on complex tasks. In contrast, InternAgent can support repo-level tasks such as AutoPCDet, AutoVLM, AutoTPPR, and so on, and achieve better performance on these repo-level tasks compared to their baselines. For example, on Auto2DSeg, InternAgent pipeline can improve the DeepLabV3Plus baseline~\citep{chen2018encoder}  from the original 78.80\% to 81.0\%. This is attributed to the detailed methodology, code comprehension achieved by the code review agent, and the auto-exploration ability of the coder agent.
+
+\end{itemize}
+
+% cost
+
+\textbf{Runtime Statistics.} We further provide the runtime statistics of InternAgent on all 12 tasks including the training costs (\textit{i.e.}, GPU hours) and monetary costs in the idea generation stage (including self-evolving idea generation and idea-to-methodology) and code execution and debug stage. As shown in Tab.~\ref{tab:cost_analysis_sci} and Tab.~\ref{tab:cost_analysis_ai}. As mentioned in Sec.~\ref{sec:implementation_detail}, we select top 5 ideas in each idea generation process and then generate detailed methodology for the selected ideas. Therefore, we report the average cost of 5 ideas as the idea generation cost. It can be seen that the idea generation cost of each idea is about \$0.6 using GPT-4o which is cost-efficient. The coder-debug cost denote the cost of each run, for example, if running for 5 times for a single idea as mentioned in Sec.~\ref{sec:exp_excu}, we calculate the average cost of 5 runs. It can be seen from the table that the coder-debug cost varies between the file-level codes and repo-level codes and repo-level codes generally need more cost for high complexity of codes. For example, for single-file code such as Auto2DCls, the cost is below \$1 for each run and for more complex AutoPCDet, the cost is about \$1.2 using claude-3.7-sonnet. Generally, InternAgent is a cost-efficient auto-research framework that can generate ideas and execute codes at a reasonable cost.
+
+
+
+\begin{table}[t]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\caption{Computational and financial cost analysis for all tasks. Training time is measured using A100 GPU hours, while idea generation and code debugging costs are measured in USD using gpt-4o and claude-3.7-sonnet models respectively.}
+\vspace{-6pt}
+\label{tab:cost_analysis_ai}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|cccccc}
+\toprule
+\textbf{Cost Metric} & \textbf{Auto2DCls} & \textbf{Auto3DCls} & \textbf{AutoSenCls} & \textbf{Auto2DSeg} & \textbf{AutoPCDet} & \textbf{AutoVLM} \\
+\midrule
+Training time (A100 hours) & 2.0 & 0.8 & 0.3 & 30.0 & 9.0 & 192.0 \\
+Idea-Gen cost (gpt-4o) (\$) & 0.6 & 0.6 & 0.6 & 0.6 & 0.6 & 0.6 \\
+Coder-Debug cost (claude-3.7-sonnet) (\$) & 0.7 & 0.6 & 0.7 & 1.1 & 1.2 & 1.0\\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\caption{To compare the performance of the baseline and InternAgent-generated code, we adopted a few-shot training setup for the yield prediction task. Due to the large variance in experimental results under this setting, we report the outcomes of 5 independent repeated experiments.}
+\vspace{-6pt}
+\label{tab:multi_dimension}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|cccccc}
+\toprule
+\textbf{Epoch=300} & \textbf{Repeat=1} & \textbf{Repeat=2} & \textbf{Repeat=3} & \textbf{Repeat=4} & \textbf{Repeat=5} & \textbf{AVG/VAR} \\
+\midrule
+Baseline (train-set=60) & 20.0 & 26.2 & 27.6 & 26.6 & 20.1 & 24.2$\pm$4.2 \\
+GAT (ours, train-set=60) & 34.7 & 34.8 & 33.9 & 32.7 & 34.2 & 34.1$\pm$1.4 \\
+ADAGT (ours, train-set=60) & 35.4 & 35.2 & 34.5 & 35.2 & 33.7 & \textbf{34.8$\pm$1.1} \\ \midrule
+Baseline (train-set=100) & 38.8 & 30.6 & 34.8 & 39.0 & 34.5 & 35.5$\pm$4.9 \\
+GAT (ours, train-set=100) & 36.9 & 39.1 & 34.4 & 41.4 & 35.0 & 37.4$\pm$4.0 \\
+ADAGT (ours, train-set=100) & 38.5 & 38.0 & 38.6  & 37.9 & 40.4 & \textbf{38.7$\pm$1.7} \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\caption{Ablation Study on Adaptive Evolution (AE). Ideas (i/s/t) shows the number of ideas that improved performance, the number of ideas that successfully ran, and the total number of ideas tested (format: improved / successful / tested).}
+\vspace{-8pt}
+\label{tab:ablation_study_combined}
+\renewcommand{\arraystretch}{1.1}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|cc|c|cc|c|cc|c}
+\toprule
+\multirow{2}{*}{\textbf{Method}} &  \multicolumn{3}{c|}{\textbf{AutoRYP}} & \multicolumn{3}{c|}{\textbf{Auto2DCls}} & \multicolumn{3}{c}{\textbf{AutoSenCls}} \\
+\cmidrule{2-10}
+ & \textbf{Max $R^2$} & \textbf{Avg $R^2$} & \textbf{Ideas (i/s/t)} & \textbf{Max Acc} & \textbf{Avg Acc} & \textbf{Ideas (i/s/t)}  & \textbf{Max Acc} & \textbf{Avg Acc} & \textbf{Ideas (i/s/t)} \\
+\midrule
+Baseline & 27.6 & 27.6 & - & 81.2 & 81.2 & - & 91.0 & 91.0 & -\\
+InternAgent (w/o AE) & 34.7 & 33.0 & 2/5/10 & 81.6 & 81.5 & 2/5/10  & 92.4 & 91.9 & 6/8/10 \\
+InternAgent & \textbf{35.4} & \textbf{33.5} & \textbf{4/6/10} & \textbf{83.3} & \textbf{82.2} & \textbf{5/7/10}  &  \textbf{93.5}  & 
+ \textbf{92.5}  &   \textbf{9/9/10}  \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+
+\subsection{Insightful Analyses}
+\label{sec:insightful_analyses}
+
+
+\begin{figure}[t]
+    \centering
+    % \fbox{\rule[-.5cm]{0cm}{3.5cm} \rule[-.5cm]{13cm}{0cm}}
+    \includegraphics[width=0.95\linewidth]{Figures/survey_agent.pdf}
+    \vspace{-6pt}
+    \caption{Analysis of two modes on survey agent.}
+    \label{fig:analysis_survey_agent}
+\end{figure}
+
+
+\begin{table}[t]
+\centering
+\caption{Comparison with AI-Scientist-V2 and AI-Researcher on AutoRYP and Auto2DCls task. Total cost means the cost of the whole session. For each task, we conduct 10 experiments. AI-Scientist-V2 and AI-Researcher demonstrate relatively weak baseline improvement capabilities, with AI-Scientist-V2 in particular struggling to write code that runs correctly. The primary reason lies in the fact that AI-Scientist-V2's pipeline utilizes limited task-related information (\textit{e.g.} task formulation and type, relevant papers, and commonly used code) when generating new ideas or coding. As a result, their generated ideas tend to be more divergent and difficult to implement.}
+\vspace{-8pt}
+\label{tab:comparison_ai_researcher}
+\renewcommand{\arraystretch}{1.0}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|cc|c|cc|c}
+\toprule
+\multirow{2}{*}{\textbf{Method}} &  \multicolumn{3}{c|}{\textbf{AutoRYP}} & \multicolumn{3}{c}{\textbf{Auto2DCls}}\\
+\cmidrule{2-7}
+ & \textbf{Max $R^2$} & \textbf{Avg $R^2$} & \textbf{Total Cost} & \textbf{Max Acc} & \textbf{Avg Acc} & \textbf{Total cost}\\
+\midrule
+Baseline & 27.6 & 27.6 & -   & 81.2 & 81.2   & - \\
+AI-Scientist-V2~\citep{yamada2025ai} & - & - & 15\$   & - & -   & 10\$ \\
+AI-Researcher~\citep{AiResearcher} & 12.3 & - & 25\$ & 80.3 & - & 32\$  \\
+InternAgent & \textbf{35.4} & \textbf{33.5} & \textbf{3\$} & \textbf{83.3} & \textbf{82.2} & \textbf{3\$}  \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+
+\textbf{Analysis on Survey Agent.} As mentioned in Sec.~\ref{sec:survey_agent}, survey agent mainly have two modes (\textit{i.e.}, the literature review mode and the deep research mode). As shown in Fig.~\ref{fig:analysis_survey_agent} (a), under the literature review mode, the survey agent can search for domain-related papers and automatically select the most relevant literature to read and extract task-related information. For example, the agent can identify works such as "Multimodal Transformer-based Model for Buchwald-
+Hartwig and Suzuki-Miyaura Reaction Yield Prediction" or "ReacLLaMA: Merging chemical and textual
+information in chemical reactivity AI models" to quickly gather foundational studies in the field. Such a process is essential for idea generation process since the used agent may not have relevant domain knowledge, especially in emerging fields. Besides, under deep research mode, the survey agent needs to search for literature related to specific technical terms used in generated ideas. As shown in Fig.~\ref{fig:analysis_survey_agent} (b), the agent updates its queries based on generated technical terms and retrieves papers like "Large Language Models to Accelerate Organic Chemistry Synthesis" which are closely aligned with these refined research directions. This process is highly similar to human researchers, they initially perform a comprehensive review of the relevant field to build foundational knowledge, and then search for articles focused on specific techniques to further refine the research direction.
+
+% \textbf{Analysis on Code Review Agent.} Understanding code often can help human researchers to understand the task, as code typically contains the task-specific information such as input and output formats, evaluation criteria and other details. As mentioned in Sec.~\ref{sec:code_review_agent}, the primary goal of the code review agent is to comprehend code, especially repo-level code. The generated code information will further enable InternAgent to gain more information during the idea generation phase, and map the proposed methods to their corresponding code implementations during the idea-to-methodology phase. As shown in Fig.~\ref{fig:analysis_code_review_agent}, \textcolor{red}{need to add}. 
+
+% \begin{figure}[t]
+%     \centering
+%     \fbox{\rule[-.5cm]{0cm}{3cm} \rule[-.5cm]{13cm}{0cm}}
+%     % accessor agent
+%     \caption{Analysis on code review agent.}
+%     \label{fig:analysis_accessor_agent}
+% \end{figure}
+
+\textbf{Analysis on Idea Innovation Agent.} Idea innovation agent can first generate ideas and then evolve the generated ideas in an iterative manner. We take the idea evolution tree as an example to show the iterative process of polishing ideas. As shown in Fig.~\ref{fig:idea_evol}, the root node (\textit{i.e.}, Init Idea 0) denotes an initially generated idea and the child nodes are evolved from the parent node. As ideas continue to evolve, more external knowledge sourced from the survey agent is incorporated into ideas, which enriches the content and enhances the practicality of the ideas. For example, starting with a basic idea such as "adding a graph-derived reaction descriptor as a precondition for attention scores in the transformer architecture", the agent refines and evolves the ideas in an iterative manner. At each step, the evolved idea shows improvements over its predecessor in terms of technical sophistication, novelty, or practical applicability. As illustrated in Fig.~\ref{fig:idea_evol}, the process can involve incorporating more specific chemical descriptors, introducing cross-modality attention mechanisms, or leveraging hierarchical architectures, with each evolution step guided by additional insights from literature or domain knowledge, thus ensuring continuous advancement of the ideas.
+
+\textbf{Analysis on Idea-to-Methodology Phase.} The correspondence between an idea and its final code implementation plays a crucial role in assessing the effectiveness of the idea since the idea can be verified once the experiments have been conducted. The goal of the idea-to-methodology process is to generate detailed methodologies so that code can be written based on these comprehensive method descriptions (\textit{e.g.}, method-level descriptions in research papers). As illustrated in Fig.~\ref{fig:showcase_AutoRYP}, our idea-to-method approach enables the generation of fine-grained methodologies, which facilitates accurate and faithful code implementation.
+
+\textbf{Analysis on Evolutionary Experimental Planning and Execution.} To verify the effectiveness of the adaptive evolution (AE), we conduct ablation studies on three tasks, ranging from AI tasks to scientific tasks including AutoRYP, Auto2DCls, and AutoSenCls. As shown in Tab.~\ref{tab:ablation_study_combined}, the performance can be further improved on multiple tasks with adaptive evolution. For example, on the image classification task, both the max accuracy and the mean accuracy can be improved by 1.7\% and 0.7\%, compared to the setting without AE. This is because our coder agent can automatically analyze the previous results and baseline results and further re-plan the following experiments. Besides, the successful execution rate and the percentage of performance gains will also improve (\textit{e.g.}, on AutoRYP, the percentage of performance gains is 40\% compared to 20\% without AE). This is due to with AE, the coder will implement the idea step by step and analyze the experimental phenomena after each stage of the experiments.
+
+\textbf{Improving Baseline in Multi-Dimension.} InternAgent not only can improve the performance on different tasks, but it also enhance the quality of ideas in other dimensions. For example, as shown in Tab.~\ref{tab:multi_dimension}, on few-shot yield prediction task. We find that the results of baseline methods are unstable, for the results of multiple repeated experiments tend to exhibit large variance (\textit{e.g.}, 24.2$\pm$4.2 when train-set=60). In contrast, the methods proposed by InternAgent can improve both the performance and the stability of the results. For example, when the train-set=60, ADAGT proposed by InternAgent achieves 34.8 average $R^2$ across 5 repeated experiments compared to 24.2 achieved by the baseline method. Besides, the variance of the results achieved by ADAGT (\textit{i.e.}, $\pm1.1$) is much lower than baseline methods (\textit{i.e.}, $\pm4.2$). This phenomenon further shows the quality of ideas and code implementation of InternAgent.
+
+\textbf{Comparison with AI-Researcher.} We evaluate the performance and cost of InternAgent and AI-Researcher ~\citep{AiResearcher} on AutoRYP and Auto2DCls research tasks. To ensure a fair comparison, we supplied AI-Researcher with the same code templates that InternAgent uses. Both systems employ GPT-4o-2024-08-06 for idea generation and Claude-3-7-Sonnet-20250219 for code generation.  As shown in Tab.~\ref{tab:comparison_ai_researcher}, InternAgent outperforms both the baseline methods and AI-Researcher across both tasks, whereas AI-Researcher is unable to improve the provided baselines. One important reason for InternAgent's outstanding performance is its ability to generate novel ideas through extensive search and reflection.
+%Then it integrates these ideas into existing code templates, which yields substantial gains.  
+Moreover, InternAgent has a complete experimental planning and adaptive evolution mechanism, thereby enabling it to achieve better performance.
+In contrast, the idea generated by AI-Researcher is more dependent on user-provided reference papers, limiting its novelty.  Moreover, AI-Researcher often ignore the prior information of the existing codebases, which further hinders its performance. In terms of cost, InternAgent is significantly more economical than AI-Researcher. For an instance, the economic cost required for InternAgent is approximately one-sixth that of AI-Researcher on the AutoRYP task. This lower cost  allows InternAgent to conduct broader scientific experiments, thereby accelerating the exploration and validation of innovative research ideas.

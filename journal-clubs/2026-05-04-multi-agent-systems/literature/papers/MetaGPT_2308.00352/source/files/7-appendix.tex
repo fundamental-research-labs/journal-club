@@ -1,0 +1,285 @@
+\newpage
+\newpage
+  
+\appendix
+
+\section{Outlook}\label{appendix: outlook}
+
+\subsection{Self-Improvement Mechanisms}
+
+One limitation of the MetaGPT version in the main text of this paper is that each software project is executed independently. However, through active teamwork, a software development team should learn from the experience gained by developing each project, thus becoming more compatible and successful over time.  
+
+This is somewhat related to the idea of recursive self-improvement, first informally proposed in 1965 \citep{DBLP:journals/ac/Good65}, with first concrete implementations since 1987 \citep{schmidhuber1987evolutionary, schmidhuber1993self, schmidhuber1998reinforcement}, culminating in the concept of mathematically optimal self-referential self-improvers  \citep{Schmidhuber:03gm3,Schmidhuber:09gm}. Generally speaking, a system should learn from experience in the real world, and meta-learn better learning algorithms from experiences of learning, and meta-meta-learn better meta-learning algorithms from experiences of meta-learning, etc., without any limitations except those of computability and physics. 
+
+
+More recent, somewhat related work leverages the reasoning ability of Large Language Models (LLMs) and recursively improves prompts of LLMs, to improve performance on certain downstream tasks \citep{fernando2023promptbreeder, zelikman2023self}, analogous to the adaptive prompt engineer of 2015 \citep{schmidhuber2015learning} where one neural network learns to generate sequence of queries or prompts for another pre-trained neural network whose answers may help the first network to learn new tasks more quickly.
+
+In our present work, we also explore a self-referential mechanism that recursively modifies the constraint prompts of agents based on information they observe during software development.
+Our initial implementation works as follows. Prior to each project, every agent in the software company reviews previous feedback and makes necessary adjustments to their constraint prompts. This enables them to continuously learn from past project experiences and enhance the overall multi-agent system by improving each individual in the company. We first establish a \textit{handover feedback} action for each agent. This action is responsible for critically summarizing the information received during the development of previous projects and integrating this information in an updated constraint prompt. The summarized information is stored in \textit{long-term memory} such that it can be inherited by future constraint prompt updates. 
+When initiating a new project, each agent starts with a \textit{react} action. Each agent evaluates the received feedback and summarizes how they can improve in a constraint prompt.
+
+
+One current limitation is that these summary-based optimizations only modify constraints in the specialization of roles  (\Cref{sec:agents_in_sop}) rather than structured communication interfaces in communication protocols (\Cref{sec:subscription}). Future advancements are yet to be explored.
+
+\subsection{Multi-Agent Economies}
+In real-world teamwork, the interaction processes are often not hardcoded. 
+For example, in a software company, the collaboration SOP may change dynamically.
+
+One implementation of such self-organization is discussed in the paper on a ``Natural Language-Based Society of Mind'' (NLSOM)~\citep{zhuge2023mindstorms}, which introduced the idea of an ``Economy of Minds'' (EOM), a Reinforcement Learning (RL) framework for societies of LLMs and other agents. Instead of using standard RL techniques to optimize the total reward of the system through modifications of neural network parameters, EOMs use the principles of supply and demand in free markets to assign credit (money) to those agents that contribute to economic success (reward). 
+
+%
+The recent agent-based platform of DeepWisdom (AgentStore\footnote{\href{http://beta.deepwisdom.ai}{http://beta.deepwisdom.ai}}) is compatible with the credit assignment concept of EOMs. Each agent in AgentStore provides a list of services with corresponding costs. A convenient API is provided so that human users or agents in the platform can easily purchase services from other agents to accomplish their services. Figure \ref{fig:agentstore} displays the User Interface (UI) of AgentStore, where various agents with different skills are showcased. 
+Besides, individual developers can participate in building new agents and enable collaborative development within the community. Specifically, AgentStore allows users to subscribe to agents according to their demands and pay according to their usage. Moreover, users can purchase additional capabilities to expand the plug-and-play functions of their existing agents. This allows users to gradually upgrade their agents. Within the MetaGPT framework, AgentStore can support the collaboration of various agents. Users can collect several agents together to carry out more complex tasks or projects, and all the agents share and comply with development and communication protocols defined in MetaGPT.  
+
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=1\textwidth]{imgs/12-agentstore.jpeg}
+    \caption{AgentStore is a platform dedicated to serving users in the creation and development of agents within the MetaGPT framework. This platform provides users with an operational interface, allowing users to easily manage a variety of agents with different emotions, personalities, and capabilities for specific tasks.}
+    \label{fig:agentstore}
+\end{figure}
+
+
+\newpage
+\section{A Demo of the Execution}
+\label{appendix:example}
+In this section, we outline the complete process of software development using MetaGPT. 
+%
+It begins with a user's input command (as shown in~\Cref{listing:user_input}) and ends with software designed according to the user's specifications. 
+
+\subsection{User Input}
+Upon receiving an instruction from the user, MetaGPT collaborates with a professional development team to fulfill the task. Here is a demo of user input:
+\input{example/1-user_input}
+\label{listing:user_input}
+
+\subsection{MetaGPT development process}
+Now we provide a step-by-step explanation of the standardized output process for each agent.
+
+% \newpage
+\paragraph{Product Manager}
+The Product Manager generates a Product Requirement Document (PRD), as detailed in the specified documentation. This document encompasses goals, user stories, competitive analysis, requirement analysis and requirement
+pool. Additionally, a competitive quadrant chart is produced (see~\Cref{fig:quadrantChart}). Subsequently, these documents and charts are handed over to the architect for system design.
+\input{example/2-product_manager}
+\label{supp:listing:product_manager}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/6-quadrant_chart.png}
+    \caption{The quadrant chart for the “Drawing App” generated by the \emph{product manager} agent.}
+    \label{fig:quadrantChart}
+\end{figure}
+
+\newpage
+
+\paragraph{Architect}
+Based on the requirements in PRD, the Architect agent devises technical specifications including system architecture diagrams and interface definitions. Initially, the Architect defines the overarching technical trajectory. Subsequently, the project's architecture, including files, classes (\Cref{fig:data_structures}) and the sequence flow chart (\Cref{fig:program_call_flow}), is designed. The Architect's documentation is then given to the project manager for task allocation and execution.
+\input{example/3-system_design}
+
+\vspace{30pt}
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.47\textwidth]{imgs/7-data_structures_and_interface_definitions.png}
+    \caption{Data structures and interface definitions for the “Drawing App” generated by the \emph{architect} agent.}
+    \vspace{30pt}
+    \label{fig:data_structures}
+\end{figure}
+
+
+\paragraph{Project Manager}
+The Project Manager breaks down the project into a task list. Furthermore, each code file is analyzed based on its intended functionality and then treated as a separate task assigned to Engineers.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.83\textwidth]{imgs/8-program_call_flow.png}
+    \caption{The program call flow for the “Drawing App” generated by the \emph{architect} agent.}
+    \label{fig:program_call_flow}
+    %\vspace{50pt}
+\end{figure}
+
+\newpage
+\input{example/4-project_manager}
+
+\newpage
+\paragraph{Engineer}
+Given the provided file structure and function definitions, an Engineer agent requires only fundamental development skills to complete the development tasks. Due to the large number of files, we present only one auto-generated code file here.% as an illustration.
+
+\input{example/5-code}
+\paragraph{QA Engineer}
+Upon receiving the code output from the Engineer, the QA Engineer generates unit test code and reviews it to identify and fix any bugs, ensuring high-quality software.
+\input{example/6-qa_engineer}
+
+\paragraph{Output}
+Ultimately, as shown in~\Cref{fig:demo}, MetaGPT generates a functional application named ``Drawing App".
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\textwidth]{imgs/9-drawing_app_demo.png}
+    \caption{The ``Drawing App" generated by MetaGPT.}
+    \label{fig:demo}
+\end{figure}
+
+\newpage
+\section{Experiments}\label{appendix: exp}
+
+\subsection{Details of the SoftwareDev Dataset}
+The SoftwareDev dataset includes 70 diverse software development tasks. \Cref{tab:task_details} displays the names and detailed prompts of 11 tasks within the dataset. Note that the first seven tasks listed are used in the main experiments of this paper. 
+
+\subsection{Additional results}
+\paragraph{Quantitative results of MetaGPT}
+% 
+As shown in~\Cref{tab:task_executability}, MetaGPT achieves an average score of 3.9, surpassing ChatDev's score of 2.1 \cite{zhao2023chat}, which is based on the Chat chain. Compare the scores of general intelligent algorithms, including AutoGPT~\cite{autogpt_github}, which all score 1.0, failing to generate executable code. 
+We observe that the generated code is often short, lacks comprehensive logic, and tends to fail to handle cross-file dependencies correctly.
+
+While models such as AutoGPT~\citep{autogpt_github}, Langchain~\citep{Chase_LangChain_2022}, and AgentVerse~\citep{agentverse_github} display robust general problem-solving capabilities, they lack an essential element for developing complex systems: systematically deconstructing requirements.
+% 
+Conversely, MetaGPT simplifies the process of transforming abstract requirements into detailed class and function designs through a specialized division of labor and SOPs workflow.
+%
+When compared to ChatDev~\citep{zhao2023chat}, MetaGPT's structured messaging and feedback mechanisms not only reduce loss of communication information but also improve the execution of code.
+% 
+\input{tables/4-executability_comparison}
+\paragraph{Quantitative results of MetaGPT w/o executable feedback}
+\Cref{tab:result_details} presents the performance of MetaGPT with GPT-4 32K on 11 tasks within the SoftwareDev dataset. It also shows the average performance across all 70 tasks (in the last line). Note that the version of MetaGPT used here is the basic version without the executable feedback mechanism.
+
+\paragraph{Quantitative results of MetaGPT with different LLMs}
+To verify the performance of MetaGPT on different LLMs, we randomly selected 5 SoftwareDev tasks and conducted experiments using GPT-3.5 and Deepseek Coder 33B\footnote{\href{https://deepseekcoder.github.io}{https://deepseekcoder.github.io}} as backends. As shown in \Cref{tab:MetaGPT_with_LLMs}, the results indicate that although MetaGPT can complete tasks with these LLMs, using GPT-4 as the backend yields superior performance.
+
+\begin{table}[htb]
+  \centering
+      \caption{\textbf{Performance of MetaGPT on SoftwareDev using different LLMs as agent backends.} }
+      \label{tab:MetaGPT_with_LLMs}
+\renewcommand\tabcolsep{2.5pt}
+\renewcommand\arraystretch{1.2}
+% \resizebox{\textwidth}{!}{%
+  \begin{tabular}{c|ccccc} %
+\Xhline{1.5pt}
+\rowcolor{paleaqua} 
+\textbf{Model} & \textbf{Open source} & \textbf{Time(/s)} & \textbf{\# Lines}& \textbf{Executability} & \textbf{Revisions} \\
+\Xhline{1.2pt}
+MetaGPT (w/ GPT-3.5)& \XSolidBrush &75.18&161.6&2.8&\ 2.4 \\
+\rowcolor{gray!20} MetaGPT (w/ GPT-4)& \XSolidBrush &552.94&178.2&3.8&\ 1.2 \\
+MetaGPT (w/ Deepseek Coder 33B)& \CheckmarkBold &1186.20&120.2&1.4&\ 2.6 \\
+\Xhline{1.2pt}
+\end{tabular}
+% }
+\end{table}
+
+
+\paragraph{Impact of Instruction Levels (High-level \textit{v.s.} Detailed Instructions)}
+Does the variation in the level of initial input from humans significantly influence performance outcomes?  For examples:
+\begin{enumerate}
+    \item \textbf{High-level prompt}: Create a brick breaker game.
+    \item \textbf{Detailed prompt}: Creating a brick breaker game. In a brick breaker game, the player typically controls a paddle at the bottom of the screen to bounce a ball towards a wall of bricks. The goal is to break all the bricks by hitting them with the ball.
+\end{enumerate}
+
+Additional experiments were conducted to investigate this aspect: we selected 5 tasks from SoftwareDev, and constructed detailed prompts for them. Here are the experimental results:
+\begin{table}[htb]
+  \centering
+      \caption{\textbf{Impact of Instruction Levels.} The executability is scored on a grading system ranging from `1' to `4'. A score of `1' signifies complete failure, `2' denotes runnable code, `3' represents largely expected workflow, and `4' indicates a perfect match to expectations.}
+      \label{tab:impact_of_instruction_levels}
+\renewcommand\tabcolsep{3pt}
+\renewcommand\arraystretch{1.2}
+% \resizebox{\columnwidth}{!}{%
+\begin{tabular}{l|ccccccc} %
+\Xhline{1.5pt}
+\rowcolor{paleaqua} 
+\textbf{Model} & \textbf{\# Word} & \textbf{Time(/s)} & \textbf{Token usage}& \textbf{\# Lines} & \textbf{Executability} & \textbf{Productivity} & \textbf{Reversions} \\
+\Xhline{1.5pt}
+High-level&13.2&552.9&28384.2&178.2&3.8 & 163.8 & 1.2 \\
+\rowcolor{gray!20} Detailed&42.2&567.8&29657.0&257.0&4.0&118.0 & 1.6 \\
+\Xhline{1.5pt}
+\end{tabular}
+% }
+\end{table}
+
+We observe that: detailed prompts lead to better software projects with lower productivity ratios because of clearer requirements and functions, while simple inputs can still generate good enough software using MetaGPT with an executability rating of 3.8, which is comparable to the detailed prompt scenario. (Note that, Productivity = Token usage / Total Code Lines. The lower this ratio, the better.)
+
+\paragraph{The performance of GPT variants in HumanEval benchmark}
+We use the GPT-4's 67\% HumanEval score~\citep{openai2023gpt4} as our baseline, acknowledging its acceptance in the HumanEval benchmark. We further extend to experiments(five times) with GPT-4 (gpt-4-0613) and GPT-3.5-Turbo (gpt-3.5-turbo-0613) under various conditions to assess performance. \textbf{(A)}~We directly called the OpenAI API with the prompt in HumanEval. \textbf{(B)}~We called the OpenAI API and parsed the code with regex in the response. \textbf{(C)}~We added an additional system prompt, then called the OpenAI API. The prompt is "You are an AI that only responds with Python code, NOT ENGLISH. You will be given a function signature and its docstring by the user. Write your full implementation (restate the function signature)." As 
+shown in ~\Cref{tab:performance_on_gpt}, GPT-4 is more sensitive to prompt, code parser, and post-processing results on the HumanEval data set. It is difficult for GPT-3.5-Turbo to return the correct completion code without prompt words.
+
+
+\begin{table}[htb]
+  \centering
+      \caption{\textbf{Performance of GPT models on HumanEval.}{
+      Experiments were conducted five times using gpt-4-0613 and gpt-3.5-turbo-0613 with different settings.
+      % Comparative Analysis of GPT-4 and GPT-3.5-Turbo Performance on HumanEval Benchmark Across Different Experimental Conditions.
+      }}
+      \label{tab:performance_on_gpt}
+\renewcommand\tabcolsep{7.2pt}
+\renewcommand\arraystretch{1.2}
+% \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{l|cccccccc} %
+\Xhline{1.5pt}
+\rowcolor{paleaqua} 
+\textbf{Settings} & \textbf{Model} & \textbf{1} & \textbf{2}& \textbf{3} & \textbf{4} & \textbf{5} & \textbf{Avg.} & \textbf{Std.} \\
+\Xhline{1.5pt}
+A&gpt-4-0613&0.732&0.707&0.732 &0.713 & 0.738 & 0.724 & 0.013\\
+\rowcolor{gray!20} A &gpt-3.5-turbo-0613&0.360&0.366&0.360& 0.348 & 0.354 & 0.357 & 0.007\\
+B&gpt-4-0613&0.787&0.811&0.817&0.829& 0.817 & 0.812 & 0.016 \\
+\rowcolor{gray!20} B &gpt-3.5-turbo-0613&0.348&0.354&0.348&0.335 & 0.348& 0.346& 0.007\\
+C&gpt-4-0613&0.805&0.805&0.817&0.793&0.780 &0.800 & 0.014 \\
+\rowcolor{gray!20} C &gpt-3.5-turbo-0613&0.585&0.567&0.573&0.579&0.579 & 0.577& 0.007 \\
+\Xhline{1.5pt}
+\end{tabular}
+% }
+
+\end{table}
+
+
+\paragraph{Qualitative results}
+\Cref{fig:system_interface_design_of_recommendation_engine} and \Cref{fig:program_call_flow} illustrate the outcomes of the Architect agent's efforts to design a complex recommender system.
+%
+These figures showcase the comprehensive system interface design and program call flow. 
+%
+The latter is essential for creating a sophisticated automated system. It is crucial to emphasize the importance of this division of labor in developing an automated software framework.
+
+\section{Limitation and Ethics Concerns}
+
+\subsection{Limitation}
+\paragraph{System side} At present, our system cannot fully cater to specific scenarios, such as UI and front-end, as we have yet to incorporate such agents and multimodal tools. Furthermore, despite generating the most amount of code among comparable frameworks, it remains challenging to fulfill real-world applications' diverse and complex requirements.
+
+\paragraph{Human user side} A key challenge for users is to interrupt the running process of each agent, or set the starting running point (checkpoint) for each agent.
+
+\subsection{Ethics Concerns}
+\paragraph{Unemployment and Skill Obsolescence} MetaGPT enables more people to program in natural languages, thereby making it easier for engineers to get started. Over the years, programming languages have evolved from punched cards to assembly, C, Java, Python, and now natural language. As a result, humans have become more proficient at programming, increasing the demand for programming-related positions. Furthermore, programming with natural language may offer a significantly easier learning curve, making programming more accessible to a broader audience.
+
+\paragraph{Transparency and Accountability} MetaGPT is an open-source framework that facilitates interactive communication between multiple agents through natural language. Humans can initiate, observe, and stop running with the highest level of control. It provides real-time interpretation and operation of the natural language, displayed on the screen and logs, ensuring transparency. MetaGPT enhances ``natural language programming" capabilities, and human engineers are the users and responsible for the outcomes.
+
+\paragraph{Privacy and Data Security} MetaGPT operates locally, ensuring user data privacy and security. It does not collect user data. For interactions with third-party LLMs, such as those by OpenAI, users are encouraged to refer to the respective privacy policies (e.g., OpenAI Privacy Policy). However, we provide the option of open-source LLMs as backends.
+
+\begin{figure}[t]
+    \centering
+     \includegraphics[width=\textwidth]{imgs/10-system_interface_design_of_recommendation_engine.png}
+     \vspace{-15pt}
+    \caption{
+    The system interface design for ``recommendation engine development'' is generated by the \emph{architect} agent (\textbf{zoom in for a better view}).
+    }
+    \label{fig:system_interface_design_of_recommendation_engine}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+     \includegraphics[width=\textwidth]{imgs/11-program_call_flow_for_recommendation_engine_development.png}
+     \vspace{-15pt}
+    \caption{
+    The program call flow for ``recommendation engine development'' generated by the \emph{architect} agent (\textbf{zoom in for a better view}).
+    }
+    \label{fig:program_call_flow}
+\end{figure}
+
+\input{tables/5-prompt_details}
+
+
+\section{More Discussions}
+\subsection{Deep-seated challenges}
+MetaGPT also alleviates or solves these challenges with its unique designs:
+\paragraph{Use Context Efficiently} Two sub-challenges are present. First, unfolding short natural language descriptions accurately to eliminate ambiguity. Second, maintaining information validity in lengthy contexts, enables LLMs to concentrate on relevant data without distraction.
+\paragraph{Reduce Hallucinations} Using LLMs to generate entire software programs faces code hallucination problems—-including incomplete implementation of functions, missing dependencies, and potential undiscovered bugs, which may be more serious. %Deep-seated challenges in task decomposition and translating from natural language to code language persist.
+LLMs often struggle with software generation due to vague task definitions. Focusing on granular tasks like requirement analysis and package selection offers guided thinking, which LLMs lack in broad task solving.
+
+
+\subsection{Information Overload}
+In MetaGPT, we use a global message pool and a subscription mechanism to address ``information overload," which refers to the problem of receiving excessive or irrelevant information. This issue is dependent on specific applications. MetaGPT employs a message pool to streamline communication, ensuring efficiency. Additionally, a subscription mechanism filters out irrelevant contexts, enhancing the relevance and utility of the information. This design is particularly crucial in software design scenarios and standard operating procedures (SOPs) where effective communication is essential.
+
+\clearpage
+
+\input{tables/6-softwarre_result_details}

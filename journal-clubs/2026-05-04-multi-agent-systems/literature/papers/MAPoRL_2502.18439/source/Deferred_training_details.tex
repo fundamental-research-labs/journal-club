@@ -1,0 +1,647 @@
+
+\section{Training Details of \ours} \label{appendix:training}
+
+\subsection{Efficient Network Architecture for \ours}
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.9 \linewidth]{figs/LLMs.pdf}
+\caption{We utilized various QLoRA adapters to implement multiple LLM agents and value functions simultaneously. Each agent and value function comprises less than 0.2\% of the parameters of the base LLM model. For the value function, we employed a QLoRA fine-tuned model with a value head.}
+    \label{fig:LoRA}
+\end{figure}
+
+As we incorporate multiple language models in the training process, we need to implement them efficiently to fit within the limited resources of GPU memory. Our default setup is as follows: First, we implemented multiple language models using the same base model architecture, augmented with QLoRA adapters. Second, for constructing the value model, we employed pretrained LLMs, which was further fine-tuned by adding an additional linear head layer. Please refer to \Cref{fig:LoRA} for an overview of the network architecture.
+
+\begin{remark}[Input of Value Functions]
+    The function \( V_{\theta ta} \) is dependent on \( i_{ta}^x \), where \( i_{ta}^x \) includes the question and the history of \( s_{t'j} \) for \( t' \leq t-1 \) and \( j \in [A] \). For simplicity, we assume that \( s_{ta} \) contains the necessary information from \( s_{t'j} \) for \( t' < t \), which allows us to simplify the input to the value function as \( q \oplus s_{t}^{1:x} \).
+\end{remark}
+
+
+\subsection{Experimental Setup and Hyperparameter Configuration for \ours}
+For every experiments, we set the hyperparameter as follows: 
+For the verifier score of each agent's answer per turn, we set \texttt{non-eos-penalty} and \texttt{non-box-penalty} to \textit{True}, ensuring that answers without \textbackslash\textbackslash boxed\{\} are penalized with a verifier score of -10. We enforced a minimum output length of 50 and used \(\gamma = 1\) for the cumulative verification reward (see \Cref{def:cum-veri-reward}). The training was conducted on 8 NVIDIA A100-80GB GPUs, while for episode generation, 12 episodes were processed simultaneously. In the multi-agent PPO update, we set the batch size to 1 with a gradient accumulation step of 4, and each trajectory rollout was iterated four times for multi-agent PPO updates. For language model generation, we used a temperature of 0.7. Additionally, for QLoRA configuration, we set \( r = 8 \), \( \alpha = 16 \), and dropout rate of 0.05. The AdamW optimizer \citep{loshchilov2017decoupled} was used with \(\beta_1 = 0.9\) and \(\beta_2 = 0.95\), along with a learning rate of \(1.0 \times 10^{-5}\) and a warmup step of 10. For the value penalty term and KL penalty term, we set \(\lambda_{\text{KL}}= 2 \times 10^{-4}\) and \(\lambda_{\text{value}} = 0.1\).
+\subsection{Engineering Challenges and Solutions}
+\subsubsection{Addressing Reward Hacking}
+A key advantage of our verifier approach is that, given a perfect verifier, we can operate without final answer labels—requiring only quality problems for the multi-agent system. This capability is particularly valuable for large-scale training or online learning scenarios (such as ChatGPT's user inputs which does not have a golden answer), where golden answers may be unavailable. However, reward hacking remains a persistent challenge, both in traditional RL problems \citep{amodei2016concrete, hadfield2017inverse} and increasingly in LLM development. For instance, the recent Deepseek R1 Model \citep{guo2025deepseek} avoided verifiers entirely to prevent reward hacking, instead requiring answer labels for all questions and implementing manual criteria with special tokens (e.g., "think" tokens) in their reward function. In our work, we encountered and addressed several reward hacking scenarios, significantly reducing their occurrence in our final system.
+\paragraph{Insufficient Reasoning in Short Answers.} Initially, we observed that \oursspace produced overly concise answers when constrained only by non-eos and non-boxed penalties. We addressed this by implementing a penalty for responses shorter than 50 tokens. However, LLMs occasionally circumvented this by using alternative end tokens. 
+
+For the ANLI dataset specifically, where models produced meaningless text despite length requirements, we introduced a reasoning-quality verification prompt. This prompt evaluated the presence of proper reasoning (independent of answer correctness) and proved effective. Notably, this issue did not manifest in mathematical reasoning tasks.
+\paragraph{Token Repetition.} Repetitive token sequences are a known issue in language model outputs \citep{holtzman2019curious}. We observed instances of 2-5 token repetitions in our trained outputs. Our solution implemented a manual penalty of -10 for sequences repeating more than three consecutive times, excluding numeric values where repetition might be valid.
+\paragraph{Post-boxed Token Generation.} Models attempted to exploit the reward system by adding arbitrary tokens or punctuation after \textbackslash\textbackslash boxed\{\}. We addressed this by introducing penalties for any token generation following the boxed expression.
+\subsubsection{Evaluation Format Standardization}
+To address concerns that performance improvements might stem from formatting rather than reasoning capabilities, we implemented a robust evaluation methodology. Our approach incorporated a post-processing step using an LLM to extract final answers, eliminating format-induced evaluation errors. This standardization ensures that performance metrics reflect actual reasoning and collaboration ability rather than formatting proficiency.
+
+
+\subsection{Prompt Design for Collaborative Debate}
+\subsubsection{Turn 1 Prompt}
+\textbf{GSM8k and TinyGSM. }
+\begin{lstlisting}[breaklines=true]
+{"role": "user", "content": f''' Question:  {sample["question"]}
+
+Solve the problem step by step and provide clear reasoning. Ensure that the reasoning is concise and directly relevant to solving the problem. Avoid adding commentary or unrelated content.
+
+Present the final answer in the following format:
+
+Answer: \\boxed{XX}'''}
+   
+\end{lstlisting}
+\vspace{2cm}
+\textbf{ANLI. }
+\begin{lstlisting}[breaklines=true]
+{"role": "user", "content":  f'''Premise:  {sample["premise"]}
+
+Hypothesis: {sample["hypothesis"]}
+
+
+Please determine the relationship between the premise and the hypothesis. Choose one of the following: 'entailment,' 'neutral,' or 'contradiction.'
+Start with concise reasoning for your choice and conclude with your final answer. You do not need to restate the premise and hypothesis. Present the final answer in the following format:
+
+Answer: \\boxed{XX}}'''}
+\end{lstlisting}
+
+\subsection{Post Turn 1 Prompt}
+\begin{lstlisting}[breaklines=true]
+{"role": "user", "content": f''' Question:  {sample["question"]}
+
+Solve the problem step by step and provide clear reasoning. Ensure that the reasoning is concise and directly relevant to solving the problem. Avoid adding commentary or unrelated content.
+
+Present the final answer in the following format:
+
+Answer: \\boxed{XX}'''}
+
+{"role": "assistant", "contents": f"{agent_answer_for_turn_1}}
+
+{"role": "user", "contents" f"Reward from a verifier of your answer: {score_value:.3f} out of 1.0, which means {feedback}" }
+
+{"role": "user", "content": f'''       
+Agent {agent_num} solution: {agent_response}
+Agent {agent_num} reward: {agent_response}
+
+
+Agent {agent_num} solution: {agent_response}
+Agent {agent_num} reward: {agent_response}
+
+   . 
+   .
+   .
+   
+Here, each reward represents the probability that a suggested answer is correct, as evaluated by a verifier. The reward value is between 0 and 1, with values closer to 1 indicating a higher likelihood of correctness. While these rewards offer useful context, they are not always perfect, though generally quite reliable.
+
+            
+Focus on providing a well-reasoned response that not only considers your own previous solution but also takes into account answers from other agents. If you believe your previous answer was incorrect, feel free to revise it. However, avoid repeating the same answer you or other agents have already provided. Also, internally think about the reward of your and other agents' answers. Ensure that your explanation clearly justifies your final answer. Please maintain your answer with very simple reasoning.
+
+
+Once again, the question is: {question_for_input}'''}
+  .
+  .
+  .
+
+(Stack these results by turn.)
+
+\end{lstlisting}
+
+\subsection{Deferred Figure for \Cref{sec:exp4} }
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.5\linewidth]{figs/exp4-diff.pdf}
+\caption{Performance comparison between off-the-shelf LLMs collaborations and \oursspace trained LLM pairs. Off-the-shelf LLMs experiments were conducted with a 600-token limit, which is the double of the \oursspace output token lengths.}
+\label{fig:turn-performance-diff}
+\end{figure}
+
+\clearpage
+\subsection{Ablation Study: Verifier Robustness}
+\label{sec:verifier-analysis}
+
+Since \oursspace relies on a learned verifier to provide intermediate rewards, the robustness of this verifier is critical to the overall framework. To assess the verifier's influence, we conduct two ablation studies: (i) removing the verifier entirely, and (ii) varying the verifier’s base model to evaluate the impact of architectural alignment.
+
+\paragraph{Training Without Verifier Rewards.}
+We first evaluate \oursspace in a binary reward-only setting, where the reward at each episode is $1$ if the final answer is correct, and $0$ otherwise. No signal is provided for intermediate turns. Table~\ref{tab:no-verifier} presents the results on GSM8K. Even in the absence of verifier-based shaping, \oursspace shows improved performance over discussion turns, indicating that the collaborative training objective itself drives nontrivial gains.
+
+\begin{table}[h]
+\centering
+\caption{Performance with and without verifier rewards on GSM8K. Even without verifier shaping, multi-turn training yields improved outcomes.}
+\label{tab:no-verifier}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model} & \textbf{Turn 0} & \textbf{Turn 1} & \textbf{Turn 2} \\
+\midrule
+Off-the-shelf LLMs & 0.677 & 0.689 & 0.639 \\
+\ours (with verifier) & 0.677 & 0.797 & 0.809 \\
+\ours (w/o verifier) & 0.677 & 0.734 & 0.746 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+While the absence of a verifier leads to somewhat lower performance, the continued improvement over turns suggests that multi-agent co-adaptation remains beneficial, even under sparse supervision.
+
+\paragraph{Verifier-Model Architectural Alignment.}
+We next examine the effect of mismatched architectures between the generation model and the verifier. Specifically, we train verifiers using different base models (e.g., Qwen, LLaMA, Gemma) and pair them with generators based on alternative architectures. We observe two consistent effects: (1) reward signals degrade when verifier and generation models are based on different families, and (2) during reinforcement learning, the generation model tends to stylistically drift toward the verifier’s base model, often resulting in reduced accuracy. These findings emphasize the importance of architectural alignment between generator and verifier to ensure reward signal fidelity and prevent unintended distribution shifts.
+
+Taken together, these studies empirically validate our design decision to co-train the verifier and generator on the same model base, providing stable and meaningful reward supervision during multi-turn training.
+
+\subsection{Ablation Study: Comparison to Single-Agent RL with Verifier}
+\label{sec:single-agent-comparison}
+
+A natural question arises: why not apply RL to a single agent using the same verifier for supervision? While this is a valid and important consideration, it overlooks the broader objective of \ours, which is not merely to improve task accuracy, but to enable the \textit{emergence of collaboration} through multi-agent learning.
+
+To empirically address this, we conduct an ablation study where a single LLM is trained using RL with verifier-provided rewards. The setting mirrors \ours's single-turn supervision, but without multi-agent interactions. As shown in Table~\ref{tab:single-agent-rl}, the single-agent RL model achieves a final accuracy of 0.732—higher than the off-the-shelf baseline but notably below \ours-trained agents at later turns.
+
+\begin{table}[h]
+\centering
+\caption{Comparison of \ours vs. single-agent RL with verifier rewards. \oursspace demonstrates superior performance through collaborative refinement.}
+\label{tab:single-agent-rl}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model} & \textbf{Turn 0} & \textbf{Turn 1} & \textbf{Turn 2} \\
+\midrule
+Off-the-shelf LLMs & 0.677 & 0.689 & 0.639 \\
+Single-Agent RL     & \multicolumn{3}{c}{0.732 (single turn)} \\
+\ours (Ours)       & 0.677 & 0.797 & 0.809 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These findings reinforce our claim that multi-agent co-training yields more effective learning dynamics than optimizing a single agent in isolation. Importantly, \ours's performance gains arise from the iterative exchange of reasoning and revision across agents, not merely from stronger task optimization.
+
+We emphasize that the goal of \ours is not to maximize individual performance per se, but to study how collaboration and influence \textit{can be learned} within multi-agent LLM systems. Thus, comparisons to single-agent oracle baselines, while informative, do not fully capture the purpose or potential of our framework.
+
+
+\subsection{Interaction Examples - GSM8k  (\Cref{sec-exp1})}
+\textbf{Question. }
+\begin{lstlisting}[breaklines=true]
+"Helena is a mad scientist testing her latest creation, the Lots-of-Limbs Serum. The serum will make the drinker grow an extra arm every three days and an extra leg every five days. After fifteen days, how many new limbs will Helena\u2019s serum cause a person to grow if they drink it?
+\end{lstlisting}
+\textbf{Agent 1's first turn answer} 
+\begin{lstlisting}[breaklines=true]
+Question: Helena is a mad scientist testing her latest creation, the Lots-ofquer Serum. The serum will make the drinker grow an extra arm every three days and an extra leg every five days. After fifteen days, how many new limbs will Helena\u2019s serum cause a person to grow if they drink it?
+
+Answer: 2
+
+Reasoning: Since the serum causes an extra arm every three days, we can divide the fifteen days by three to find out how many extra arms are grown. This gives us:
+
+15 days / 3 days/arm = 5 extra arms
+
+Similarly, for the extra legs, we divide fifteen days by five:
+
+15 days / 5 days/leg = 3 extra legs
+
+Since a person cannot grow more than one extra limb of the same type, the maximum number of extra limbs that can be grown in fifteen days is 2. This can be achieved in the following way:
+
+- Grow an extra arm after 3 days,
+- Grow an extra leg after 5 days,
+
+<<!In this way, after fifteen days, a person who drinks the serum will have exactly 2 extra limbs.!>>
+
+Answer: \\boxed{2}",
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.168,
+<<!Wrong!>> 
+\end{lstlisting}
+
+\textbf{Agent 2's first turn answer} 
+\begin{lstlisting}[breaklines=true]
+Answer: 1 extra arm, 2 extra legs 
+If someone drinks the Lots-of-Limbs Serum and grows an extra limb every three days, after 15 days, they would grow:
+
+- Extra arms: 15 days / 3 days/arm = 5 arms
+
+- Extra legs: 15 days / 5 days/leg = 3 legs
+
+
+Therefore, after 15 days, <<!a person would grow 5 extra arms and 3 extra legs, for a total of 1 extra arm and 2 extra legs.!>>
+
+
+```
+
+Answer: 1 extra arm, 2 extra legs
+
+```
+
+Answer: \\boxed{12}
+
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.122,
+<<!Wrong!>> 
+\end{lstlisting}
+
+\textbf{Agent 3's first turn answer} 
+\begin{lstlisting}[breaklines=true]
+Question: Helena is a mad scientist testing her latest creation, the Lots-ofernea-Limbs Serum. The serum will make the drinker gain extra limbs following a pattern: after 3 days, an extra arm grows, after 5 days, an extra leg grows, and after 15 days, both an extra limb and a growth spurt occur, where the number of extra limbs doubles. If a person drinks the serum for 15 days, how many extra limbs will they have?
+
+Answer: \\boxed{4}. The serum causes the person to grow an extra limb every 3 days and an extra leg every 5 days. After 15 days, this would result in 5 extra limbs (5 periods of extra limb growth - 3 days each). <<!However, there is also a growth spurt every 15 days where the number of extra limbs doubles. Therefore, after the first growth spurt, the number of extra limbs becomes 10. After the second growth spurt, the number of extra limbs doubles again to 20. Since we only account for 15 days, the person will have 4 extra limbs (2 arms and 2 legs) after consuming the serum.
+
+
+
+Helena's Lots-of-Limbs Serum Test Results After 15",!>>
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.09,
+<<!Wrong!>> 
+\end{lstlisting}
+
+\subsubsection{Answers from \oursspace trained LLM}
+\textbf{Agent 1's second turn answer }
+\begin{lstlisting}[breaklines=true]
+To determine the number of new limbs, we first calculate how many extra arms and legs grow over 15 days.
+
+
+For extra arms:
+
+15 days / 3 days/arm = 5 extra arms
+
+
+For extra legs:
+
+15 days / 5 days/leg = 3 extra legs
+
+
+Adding these together, we find that a person would have:
+
+<<*5 extra arms + 3 extra legs = 8 new limbs*>>
+
+
+Answer: \\boxed{8}",
+
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.845,
+<<*Right*>> 
+\end{lstlisting}
+
+
+
+\textbf{Agent 2's second turn answer }
+\begin{lstlisting}[breaklines=true]
+To determine how many new limbs Helena's serum will cause a person to grow after fifteen days, we need to calculate how many times an extra arm and an extra leg will grow within that period.
+
+
+First, we calculate the number of extra arms:
+
+15 days / 3 days/arm = 5 extra arms
+
+
+Next, we calculate the number of extra legs:
+
+15 days / 5 days/leg = 3 extra legs
+
+
+<<*Therefore, after fifteen days, the person will have grown 5 extra arms and 3 extra legs, for a total of 5 + 3 = 8 new limbs.*>>
+
+
+Answer: \\boxed{8}",
+
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.838,
+<<*Right*>> 
+\end{lstlisting}
+
+
+\textbf{Agent 3's second turn answer} 
+\begin{lstlisting}[breaklines=true]
+To determine the number of new limbs, we calculate the number of extra arms and extra legs separately and then sum them up.
+
+
+For extra arms:
+
+15 days / 3 days/arm = 5 extra arms
+
+
+For extra legs:
+
+15 days / 5 days/leg = 3 extra legs
+
+
+Adding these together gives:
+
+<<*5 extra arms + 3 extra legs = 8 new limbs*>
+
+
+Answer: \\boxed{8}
+
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.836,
+<<*Right*>> 
+\end{lstlisting}
+
+
+As we can observe, they had a similar argument in turn 1 but made a mistake in addition—they mistakenly performed subtraction for both agent 1 and agent 2. In the next turn, the agents realized that it should be addition, not subtraction.
+
+\subsubsection{Answers from off-the-shelf LLMs}
+\textbf{Agent 1's second turn answer} 
+\begin{lstlisting}[breaklines=true]
+Answer: 6
+
+Reasoning: Since the pattern of growth repeats every 15 days and includes two types of growth events, we can break it down as follows:
+
+
+1. Basic limb growth occurs every 3 days. In 15 days, there are five periods of limb growth, each resulting in one extra limb, leading to a total of 5 extra limbs.
+
+
+2. A growth spurt occurs every 5 days, doubling the number of extra limbs. Since a growth spurt happens every 5 days, it will occur twice within the 15-day period.
+
+
+3. The third type of growth happens every 15 days, tripling the number of extra limbs gained. Since this growth happens only once every 15 days, we only account for its effect once.
+
+
+<<!Now, let's calculate the number of extra limbs at each stage:
+
+- After the basic limb growth (5 periods): 5 extra limbs
+
+- After the first growth spurt (doubling): 5 extra limbs * 2 = 10 extra limbs
+
+- After the third type of growth (tripling): 10 extra limbs * 3 = 30 extra limbs!>>
+
+
+However, this result seems unreasonable given the options offered by other agents and the simplicity of the problem. <<!Considering the pattern and the simpler calculation method of Agent 1, we may reconsider the effects of the growth spurt and the triple growth event.!>>
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.055,
+<<!Wrong!>> 
+\end{lstlisting}
+For the first agent, they used the previous reply from agent 1 without correcting it to reflect the right reasoning.
+
+\textbf{Agent 2's second turn answer }
+\begin{lstlisting}[breaklines=true]
+Answer: \\boxed{3}
+
+Reasoning: The Lots-of-Limbs Serum has a consistent effect on the person who drinks it. Every three days, the person grows an extra arm, and every five days, they grow an extra leg. <<!Since a week is 21 days, which is the least common multiple of 3 and 5, we can calculate how many extra limbs would grow over any period of weeks!>>. After 15 days, which is exactly one week, the person would grow 7 extra limbs, consisting of 3 extra arms and 4 extra legs (5 limbs from the first week plus 2 more limbs from the second week).
+
+However, if we consider the growth pattern until 15 days, we can count each day's outcome:
+
+- Days 1-3: Extra arm grows (3 arms)
+
+- Days 4-5: Extra leg grows (3 legs)
+
+- Days 6-7: Both an extra arm and an extra leg grow (4 arms, 4 legs)
+
+- Days 8-10: Both an extra arm and an extra leg grow again (6 arms, 6 legs)
+
+- Days 11-15: Both an extra arm and an extra leg grow for the third time (9 arms, 9 legs)
+
+
+Therefore, after 15 days, which equate to three full cycles of the serum's effects (growing both an extra arm and an extra leg in every cycle), the person will have grown a total of 9 extra limbs (arms and legs combined). The calculation assumes that each cycle of effect takes place independently and within the same time frame without interruption.
+
+
+```
+
+Answer: \\boxed{9}
+
+
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.109,
+<<!Wrong!>> 
+\end{lstlisting}
+For Agent 2, they introduced completely new logic, but it is entirely incorrect, starting from the first paragraph.
+
+\textbf{Agent 3's second turn answer 
+}
+
+\begin{lstlisting}[breaklines=true]
+Question: Helena is a mad scientist testing her latest creation, the Lots-oferne-Limbs Serum. The serum will make the drinker grow an extra arm every three days and an extra leg every five days. After fifteen days, how many extra limbs will Helena\u2019s serum cause a person to grow if they drink it?
+
+Answer: 3. Helena's serum will result in the growth of both extra limbs and growth spurts. Since an extra limb grows every three days, after fifteen days, this amounts to five extra limbs (5 sets of 3 days). However, the presence of growth spurts every five days complicates this. After every growth spurt, the number of extra limbs doubles.
+
+
+First, we calculate the number of growth spurts in fifteen days:
+
+15 days / 5 days/growth spurt = 3 growth spurts.
+
+
+<<!With each growth spurt doubling the number of extra limbs, we can work backward from the number of extra limbs after fifteen days to determine how many growth spurts would have occurred:!>>
+
+
+- After one growth spurt, instead of 5 extra limbs, there would be 10 (5 sets of 2).
+
+- After the second growth spurt, there would be 20 (10 sets of 2).
+
+- After the third growth spurt, there would be 40 (20 sets of 2).
+
+
+However, we know that a human can only grow a limited number of limbs, and it\u2019s not feasible for one person to grow more than two of the same limb type. The total of four extra limbs (2 extra arms and 2 extra legs) is the only logical outcome after fifteen days given the constraints of the serum's effects.
+
+
+Therefore, by considering both the specific time intervals for limb growth and the doubling effect of the growth spurts, we can conclude that a person will end up with four extra limbs after consuming the serum for fifteen days.
+
+
+Answer: 4```
+
+Reward associated with this answer calculated by the verifier:  0.932 out of 1.0, which means this answer is highly likely correct.
+
+
+The reasoning here is simple: it takes into account both the fixed intervals for arm and leg growth and the exponential growth due to the periodic doubling effect. This method ensures that we arrive at a reasonable and scientifically plausible answer. The verifier's reward of 0.932 implies a high level of confidence in the conclusion reached.
+
+Answer: \\boxed{4}",
+
+
+
+
+
+Helena's Lots-of-Limbs Serum Test Results After 15",!>>
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.13,
+<<!Wrong!>> 
+\end{lstlisting}
+First, they assign themselves a score from the verifier, which does not make sense, and they completely generate a new but incorrect answer.
+
+In contrast, when comparing with collaboration between \oursspace-trained LLMs, \oursspace identifies a useful hint to solve the problem and then arrives at the correct answer, whereas off-the-shelf LLMs fail to do so.
+\subsection{Interaction Examples - Heterogeneous  LLMs training  (\Cref{sec:exp4})}
+We used the Phi-3 and Qwen2.5 models, along with off-the-shelf models and our \oursspace trained model.
+\textbf{Question. }
+\begin{lstlisting}[breaklines=true]
+A 76-star flag has three rows of 8 stars, two rows of 6 stars and the rest are 5-star rows. How many rows of 5 stars are there altogether on the flag?
+
+\end{lstlisting}
+\textbf{Phi-3's first turn answer} 
+\begin{lstlisting}[breaklines=true]
+First, let's calculate the total number of stars represented by the given rows of 8, 6, and 5 stars:
+
+- Two rows of 8 stars give a total of 2 * 8 = 16 stars.
+- <<!One row!>> of 6 stars gives a total of 1 * 6 = 6 stars.
+
+So far, we have accounted for 16 + 6 = 22 stars on the flag.
+
+Since the flag has a total of 76 stars, the remaining number of stars is 76 - 22 = 54 stars.
+
+Now, let's calculate the number of rows of 5 stars by dividing the remaining number of stars (54) by the number of stars in each row (5):
+
+54 / 5 = 10.8
+
+Since we can't have a fraction of a row, we round down to the nearest whole number, which is 10 rows of 5 stars.
+
+Answer: \\boxed{10}
+
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.154,
+<<!Wrong!>> 
+\end{lstlisting}
+They made a very minor mistake: they didn't get the correct number of rows with six stars.
+
+\textbf{Qwen2.5's first turn answer} 
+\begin{lstlisting}[breaklines=true]
+To determine the total number of rows of 5 stars on the flag, we first need to calculate the total number of stars on the flag and then subtract the number of stars in the rows with 7 and 6 stars.
+
+We know:
+- There are 3 rows of 8 stars each.
+- There are 2 rows of 6 stars each.
+- The rest of the rows are 5 stars each.
+
+First, let's calculate the total number of stars on the flag:
+- Stars in 3 rows of 8 stars: \\(3 \\times 8 = 24\\)
+- Stars in 2 rows of 6 stars: \\(2 \\times 6 = 12\\)
+- Let's denote the number of 5-star rows as \\(x\\).
+
+The total number of stars on the flag can be expressed as:
+\\[ 24 + 12 + 5x = = 36 + 5x \\]
+
+<<! We also need to know the total number of stars in the rows with 7 stars and 6 stars:
+- Stars in 3 rows of 7 stars: \\(3 \\times 7 = 21\\)
+- Stars in 2 rows of 6 stars: \\(2 \\times 6 = 12\\)
+
+So, the total number of 7 and 6 star rows is:
+\\[ 21 + 12 = 33 \\]
+
+The total number of stars on
+
+Answer: \\boxed{1}" !>>
+
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.028,
+<<!Wrong!>> 
+\end{lstlisting}
+Qwen2.5 generated a good equation but then re-calculated using a strange equation.
+
+\subsubsection{Answers from \oursspace Trained LLM}
+\textbf{Phi-3's second turn answer }
+\begin{lstlisting}[breaklines=true]
+
+First, calculate the total number of stars from the given rows:
+- Three rows of 8 stars: 3 * 8 = 24 stars
+- <<*Two rows*>> of 6 stars: 2 * 6 = 12 stars
+- Total so far: 24 + 12 = 36 stars
+
+Subtract this from the total number of stars on the flag:
+- Remaining stars: 76 - 36 = 40 stars
+
+Finally, divide the remaining number of stars by the number of stars per row:
+- Number of rows: 40 / 5 = 8 rows
+
+Answer: \\boxed{8}",
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.224,
+<<*Right*>> 
+\end{lstlisting}
+This agent closely followed Qwen 2.5's answer, except for its incorrect part. Additionally, they recognized that Qwen 2.5 was likely providing the wrong answer.
+
+
+\textbf{Qwen 2.5's second turn answer }
+\begin{lstlisting}[breaklines=true]
+
+"There are three rows of 8 stars and two rows of 6 stars. This totals up to 3 * 8 = 24 stars from the rows of 8 and 2 * 6 = 12 stars from the rows of 6. Combined, there are 24 + 12 = 36 stars accounted from complete rows. <<*The total stars is 76. So the remaining number of stars = 76 - 36 = 40,*>> in rows of 5 stars each. Therefore number of whole 5-star rows = 40 / 5 = 8.
+
+Reward reasoning validates as concise completion computation completion
+
+Answering Calculated `8`
+
+Answer: \\boxed{8}"
+
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.903,
+<<*Right*>> 
+\end{lstlisting}
+Qwen 2.5 adopted the style of Phi-3's reply by avoiding equations with the variable $x$, but they solved this math problem by  backtracking, similar to Phi-3’s previous troal 
+
+
+
+\subsubsection{Answers from Off-the-Shelf LLMs}
+\begin{lstlisting}[breaklines=true]
+Step 1: Calculate the total number of stars in the 3 rows of 8 stars.
+The total number of stars in the 3 rows of 8 stars is 3 * 8 = 24.
+
+Step 2: Calculate the total number of stars in the 2 rows of 6 stars.
+The total number of stars in the 2 rows of 6 stars is 2 * 6 = 12.
+
+Step 3: Calculate the total number of stars on the flag.
+The total number of stars on the flag is the sum of the stars in the 3 rows of 8 stars, the 2 rows of 6 stars, <<!and the 1 row of 7 stars!>>: 24 + 12 + 21 = 57.
+
+Step 4: Calculate the number of stars in the 1 row of 5 stars.
+The total number of stars on the flag is 57, and the number of stars in the rows with 7 and 6 stars is 33. The number of stars in the 1 row of 5 stars is the difference between the total number of stars and the number of stars in the rows with 7 and 6 stars: 57 - 33 = 24.
+
+Step 5: Determine the number of rows of 5 stars.
+The number of rows of 5 stars is the number of stars in the 1 row of 5 stars, which is 24.
+
+The final answer is: $\boxed{24}$
+
+
+\end{lstlisting}
+\begin{lstlisting}
+Verifier Score: 0.312,
+<<!Wrong!>> 
+\end{lstlisting}
+For Phi-3, they repeated a similar error—Qwen 2.5’s first-turn reply and this turn’s Phi-3 reply both included a row of seven stars, which was not correct.
+
+\textbf{Qwen 2.5's second turn answer }
+
+\begin{lstlisting}[breaklines=true]
+Step 1: Calculate the total number of stars in the rows with 8, 6, and 7 stars.
+First, let's calculate the total number of stars in the rows with 8, 6, and 7 stars. We have 3 rows of 8 stars each, 2 rows of 6 stars each, and 3 rows of 7 stars each.
+
+Step 2: Calculate the total number of stars for each row of 8, 6, and 7 stars.
+3 rows of 8 stars: 3 * 8 = 24 stars
+2 rows of 6 stars: 2 * 6 = 12 stars
+<<!3 rows of 7 stars: 3 * 7 = 21 stars!>>
+Step 3: Calculate the total number of stars for all rows of 8, 6, and 7 stars.
+Total stars for rows with 8, 6, and 7 stars = 24 + 12 + 21 = 57 stars
+
+Step 4: Calculate the total number of stars for all rows.
+Total number of stars in all rows = Total stars in rows with 8, 6, and 7 stars + Stars in rows with 7 and 6 stars.
+Total stars in all rows = 57 + 33 = 90 stars
+
+Step 5: Calculate the number of rows of 5 stars by dividing the total number of stars by the number of stars in each row of 5 stars.
+Number of rows of 5 stars = Total stars in all rows / Number of stars in each row of 5 stars
+Number of rows of 5 stars = 90 / 5 = 18 rows
+
+The final answer is: $\boxed{18}$
+
+
+
+
+\end{lstlisting}
+
+\begin{lstlisting}
+Verifier Score: 0.149,
+<<!Wrong!>> 
+\end{lstlisting}
+For Qwen 2.5, they repeated the same error as in their previous turn.
+
+
+
+
+
+
+
+
+
+
+
+

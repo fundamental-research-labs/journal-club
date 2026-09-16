@@ -1,0 +1,694 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_data_2022
+
+% ready for submission
+\usepackage[final]{neurips_data_2022}
+
+% to compile a preprint version, add the [preprint] option, e.g.:
+    % \usepackage[preprint]{neurips_data_2022}
+% This will indicate that the work is currently under review.
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_data_2022}
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_data_2022}
+
+% Submissions to the datasets and benchmarks are typically non anonymous,
+% but anonymous submissions are allowed. If you feel that you must submit 
+% anonymously, you can compile an anonymous version by adding the [anonymous] 
+% option, e.g.:
+%     \usepackage[anonymous]{neurips_data_2022}
+% This will hide all author names.
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage[numbers]{natbib}
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage[pdftex]{graphicx}
+\usepackage{subfigure}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage[bb=boondox]{mathalfa}
+\usepackage{wrapfig}
+\usepackage[figuresright]{rotating}
+\usepackage{chngpage}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\title{The Surprising Effectiveness of PPO in Cooperative Multi-Agent Games}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+% \author{%
+%   Chao Yu*$^1$ \\
+%   \And
+%   Akash Velu*$^2$ \\
+%   \And
+%   Eugene Vinitsky$^{\dagger 2}$ \\
+%   \And
+%   Yu Wang$^1$ \\
+%   \And
+%   Alexandre Bayen$^2$ \\ 
+%   \And 
+%   Yi Wu$^{\dagger 1, 3}$ \\
+%   $^1$ Tsinghua University 
+%   $^2$ University of California, Berkeley 
+%   $^3$ Shanghai Qi Zhi Institute
+% }
+% \vspace{-4mm}
+
+\author{Chao Yu$^{1\sharp}$\thanks{Equal Contribution. $^{\flat}$ Equal Advising. }, 
+Akash Velu$^{2\natural*}$, 
+Eugene Vinitsky$^{2\flat}$, 
+Jiaxuan Gao$^{1}$, \\
+\textbf{
+Yu Wang$^{1\flat}$, 
+Alexandre Bayen$^{2}$,  
+Yi Wu$^{13\flat}$}
+\\
+$^1$ Tsinghua University $^2$ University of California, Berkeley $^3$ Shanghai Qi Zhi Institute\\
+$^{\sharp}$\texttt{zoeyuchao@gmail.com}, $^{\natural}$\texttt{akashvelu@berkeley.edu} \\
+}
+
+
+% \author{%
+%   David S.~Hippocampus\thanks{Use footnote for providing further information
+%     about author (webpage, alternative address)---\emph{not} for acknowledging
+%     funding agencies.} \\
+%   Department of Computer Science\\
+%   Cranberry-Lemon University\\
+%   Pittsburgh, PA 15213 \\
+%   \texttt{hippo@cs.cranberry-lemon.edu} \\
+%   % examples of more authors
+%   % \And
+%   % Coauthor \\
+%   % Affiliation \\
+%   % Address \\
+%   % \texttt{email} \\
+%   % \AND
+%   % Coauthor \\
+%   % Affiliation \\
+%   % Address \\
+%   % \texttt{email} \\
+%   % \And
+%   % Coauthor \\
+%   % Affiliation \\
+%   % Address \\
+%   % \texttt{email} \\
+%   % \And
+%   % Coauthor \\
+%   % Affiliation \\
+%   % Address \\
+%   % \texttt{email} \\
+% }
+
+\begin{document}
+
+\maketitle
+
+\vspace{-4mm}
+\begin{abstract}
+% \vspace{-4mm}
+Proximal Policy Optimization (PPO) is a ubiquitous on-policy reinforcement learning algorithm but is significantly less utilized than off-policy learning algorithms in multi-agent settings. This is often due to the belief that PPO is significantly less sample efficient than off-policy methods in multi-agent systems. In this work, we carefully study the performance of PPO in cooperative multi-agent settings. We show that PPO-based multi-agent algorithms achieve surprisingly strong performance in four popular multi-agent testbeds: the particle-world environments, the StarCraft multi-agent challenge, Google Research Football, and the Hanabi challenge, with minimal hyperparameter tuning and without any domain-specific algorithmic modifications or architectures. Importantly, compared to competitive off-policy methods, PPO often achieves competitive or superior results in both final returns and sample efficiency. Finally, through ablation studies, we analyze implementation and hyperparameter factors that are critical to PPO's empirical performance, and give concrete practical suggestions regarding these factors. Our results show that when using these practices, simple PPO-based methods can be a strong baseline in cooperative multi-agent reinforcement learning. Source code is released at \url{https://github.com/marlbenchmark/on-policy}.
+\end{abstract}
+
+\vspace{-4mm}
+\section{Introduction}
+\vspace{-3mm}
+
+Recent advances in reinforcement learning (RL) and multi-agent reinforcement learning (MARL) have led to a great deal of progress in creating artificial agents which can cooperate to solve tasks: DeepMind's AlphaStar surpassed professional-level performance in the StarCraft II~\cite{vinyals2019grandmaster}, OpenAI Five defeated the world-champion in Dota II~\cite{DBLP:journals/corr/abs-1912-06680}, and OpenAI demonstrated the emergence of human-like tool-use agent behaviors via multi-agent learning~\cite{baker2020emergent}. These notable successes were driven largely by on-policy RL algorithms such as IMPALA~\cite{espeholt2018impala} and PPO~\cite{PPO,DBLP:journals/corr/abs-1912-06680} which were often coupled with distributed training systems to utilize massive amounts of parallelism and compute. In the aforementioned works, tens of thousands of CPU cores and hundreds of GPUs were utilized to collect and train on an extraordinary volume of training samples. This is in contrast to recent academic progress and literature in MARL which has largely focused developing off-policy learning frameworks such as MADDPG~\cite{lowe2017multi} and value-decomposed Q-learning~\cite{sunehag2018value, pmlr-v80-rashid18a}; methods in these frameworks have yielded state-of-the-art results on a wide range of multi-agent benchmarks~\cite{wang2021qplex, wang2021rode}. 
+
+% The focus on the development and use of off-policy methods is perhaps a consequence of the belief that on-policy methods are less sample-efficient than their off-policy counterparts (CITE) and correspondingly are more useful in resource-constrained settings.  \yw{**isn't the sample-efficient factor repeatedly stated in the following text? we should probably merge.**}
+
+In this work, we revisit the use of \emph{Proximal Policy Optimization} (PPO) -- an on-policy algorithm\footnote{Technically, PPO adopts off-policy corrections for sample-reuse. However, unlike off-policy methods, PPO does not utilize a replay buffer to train on samples collected throughout training.} popular in single-agent RL but under-utilized in recent MARL literature -- in multi-agent settings. We hypothesize that the relative lack of PPO in multi-agent settings can be attributed to two related factors: first, the belief that PPO is less sample-efficient than off-policy methods and is correspondingly less useful in resource-constrained settings, and second, the fact that common implementation and hyperparameter tuning practices when using PPO in single-agent settings often do not yield strong performance when transferred to multi-agent settings.
+
+
+We conduct a comprehensive empirical study to examine the performance of PPO on four popular cooperative multi-agent benchmarks: the multi-agent particle world environments (MPE)~\citep{lowe2017multi}, the StarCraft multi-agent challenge (SMAC) ~\citep{starcraft}, Google Research Football (GRF)~\cite{kurach2020google} and the Hanabi challenge~\citep{bard2020hanabi}. We first show that when compared to off-policy baselines, PPO achieves strong task performance and competitive sample-efficiency. We then identify five implementation factors and hyperparameters which are particularly important for PPO's performance, offer concrete suggestions about these configuring factors, and provide intuition as to why these suggestions hold. 
+
+Our aim in this work is \emph{not} to propose a novel MARL algorithm, but instead to empirically demonstrate that with simple modifications, PPO can achieve strong performance in a wide variety of cooperative multi-agent settings. We additionally believe that our suggestions will assist practitioners in achieving competitive results with PPO.
+
+
+Our contributions are summarized as follows: 
+% \vspace{-3mm}
+\vspace{-\topsep}
+\begin{itemize}
+    \setlength{\parskip}{0pt} \setlength{\itemsep}{0pt plus 1pt}
+    \item We demonstrate that PPO, without any domain-specific algorithmic changes or architectures and with minimal tuning, achieves final performances competitive to off-policy methods on four multi-agent cooperative benchmarks. 
+    \item We demonstrate that PPO obtains these strong results while using a comparable number of samples to many off-policy methods. 
+    \item We identify and analyze five implementation and hyperparameter factors that govern the practical performance of PPO in these settings, and offer concrete suggestions as to best practices regarding these factors. 
+\end{itemize} 
+\vspace{-\topsep}
+% \vspace{-4mm}
+
+
+\section{Related Works} \label{Sec: related} 
+\vspace{-3mm}
+MARL algorithms generally fall between two frameworks: centralized and decentralized learning. Centralized methods~\cite{claus1998dynamics} directly learn a single policy to produce the joint actions of all agents. In decentralized learning~\cite{littman1994markov}, each agent optimizes its reward independently; these methods can tackle general-sum games but may suffer from instability even in simple matrix games~\cite{foerster2017learning}. \emph{Centralized training and decentralized execution (CTDE)} algorithms fall in between these two frameworks. Several past CTDE methods~\cite{lowe2017multi, foerster2017counterfactual} adopt actor-critic structures and learn a centralized critic which takes global information as input. Value-decomposition (VD) methods are another class of CTDE algorithms which represent the joint Q-function as a function of agents' local Q-functions~\cite{sunehag2018value, pmlr-v80-rashid18a, son2019qtran}
+and have established state of the art results in popular MARL benchmarks \cite{wang2021rode, wang2021qplex}. 
+
+
+In single-agent continuous control tasks~\cite{duan2016benchmarking}, advances in off-policy methods such as SAC~\cite{haarnoja2018soft} led to a consensus that despite their early success, policy gradient (PG) algorithms such as PPO are less sample efficient than off-policy methods.
+Similar conclusions have been drawn in multi-agent domains: \cite{papoudakis2021benchmarking} report that multi-agent PG methods such as COMA are outperformed by MADDPG and QMix~\cite{pmlr-v80-rashid18a} by a clear margin in the particle-world environment~\cite{mordatch2017emergence} and the StarCraft multi-agent challenge~\cite{starcraft}.
+
+
+The use of PPO in multi-agent domains is studied by several concurrent works. \cite{dewitt2020independent} empirically show that decentralized, independent PPO (IPPO) can achieve high success rates in several hard SMAC maps -- however, the reported IPPO results remain overall worse than QMix, and the study is limited to SMAC. \cite{papoudakis2021benchmarking} perform a broad benchmark of various MARL algorithms and note that PPO-based methods often perform competitively to other methods. Our work, on the other hand, focuses on PPO and analyzes its performance on a more comprehensive set of cooperative multi-agent benchmarks. We show PPO achieves strong results in the vast majority of tasks and also identify and analyze different implementation and hyperparameter factors of PPO which are influential to its performance multi-agent domains; to the best of our knowledge, these factors have not been studied to this extent in past work, particularly in multi-agent contexts.
+
+
+Our empirical analysis of PPO's implementation and hyperparameter factors in multi-agent settings is similar to the studies of policy-gradient methods in single-agent RL~\cite{tucker2018mirage, Ilyas2020A, Engstrom2020Implementation, andrychowicz2021what}. We find several of these suggestions to be useful and include them in our implementation. In our analysis, we focus on factors that are either largely understudied in the existing literature or are completely unique to the multi-agent setting. 
+
+% \vspace{-4mm}
+
+ \section{PPO in Multi-Agent Settings} 
+ \vspace{-2mm}
+\subsection{Preliminaries}
+We study decentralized partially observable Markov decision processes (DEC-POMDP)~\cite{oliehoek2016concise} with shared rewards. A DEC-POMDP is defined by $\langle \mathcal{S}, \mathcal{A}, O, R, P, n, \gamma \rangle$. $\mathcal{S}$ is the state space. $\mathcal{A}$ is the shared action space for  each agent $i$. $o_i=O(s;i)$ is the local observation for agent $i$ at global state $s$. $P(s'|s,A)$ denotes the transition probability from $s$ to $s'$ given the joint action $A=(a_1,\ldots,a_n)$ for all $n$ agents. $R(s,A)$ denotes the shared reward function. $\gamma$ is the discount factor.
+Agents use a policy $\pi_{\theta}(a_i|o_i)$ parameterized by $\theta$ to produce an action $a_i$ from the local observation $o_i$, and 
+% optimize the discounted accumulated reward $J(\theta)=\mathbb{E}_{a^t,s^t}\left[\sum_t \gamma^t R(s^t,a^t)\right]$ 
+jointly optimize the discounted accumulated reward $J(\theta)=\mathbb{E}_{A^t,s^t}\left[\sum_t \gamma^t R(s^t,A^t)\right]$ where $A^t=(a^t_1,\dots,a_n^t)$ is the joint action at time step $t$.
+
+\subsection{MAPPO and IPPO} 
+
+Our implementation of PPO in multi-agent settings closely resembles the structure of PPO in single-agent settings by learning a policy $\pi_{\theta}$ and a value function $V_{\phi}(s)$; these functions are represented as two separate neural networks. $V_{\phi}(s)$ is used for variance reduction and is only utilized during training; hence, it can take as input extra global information not present in the agent's local observation, allowing PPO in multi-agent domains to follow the CTDE structure. For clarity, we refer to PPO with centralized value function inputs as MAPPO (Multi-Agent PPO), and PPO with local inputs for both the policy and value function as IPPO (Independent PPO). We note that both MAPPO and IPPO operate in settings where agents share a common reward, as we focus only on cooperative settings. 
+
+\subsection{Implementation Details}
+\begin{enumerate}[nolistsep,leftmargin=*]
+    \item[$\bullet$] \textbf{Parameter-Sharing}: In benchmark environments with homogeneous agents (i.e. agents have identical observation and action spaces), we utilize parameter sharing; past works have shown that this improves the efficiency of learning~\citep{christianos2021scaling,terry2021revisiting}, which is also consistent with our empirical findings. In these settings, agents share both the policy and value function parameters. A comparison of using parameter-sharing setting and learning separate parameters per agent can be found in Appendix \ref{app:sharing}. We remark that agents are homogeneous in all benchmarks except for the \emph{Comm} setting in the MPEs.
+    \item[$\bullet$] \textbf{Common Implementation Practices:} We also adopt common practices in implementing PPO, including \emph{Generalized Advantage Estimation (GAE)} \cite{Schulmanetal_ICLR2016} with advantage normalization and value-clipping. A full description of hyperparameter search settings, training details, and implementation details are in Appendix \ref{app:training}. The source code for our implementation can be found in \url{https://github.com/marlbenchmark/on-policy}.
+
+\end{enumerate}
+
+
+\section{Main Results} \label{sec:results} 
+
+\vspace{-1mm}
+\subsection{Testbeds, Baselines, and Common Experimental Setup} \vspace{-1mm}
+\textbf{Testbed Environments:} We evaluate the performance of MAPPO and IPPO on four cooperative benchmark -- the multi-agent particle-world environment (MPE), the StarCraft  multi-agent challenge (SMAC), the Hanabi challenge, and Google Research Football (GRF) -- and compare these methods' performance to popular off-policy algorithms which achieve state of the art results in each benchmark. Detailed descriptions of each testbed can be found in Appendix \ref{app:env}.
+
+\textbf{Baselines:}
+In each testbed, compare MAPPO and IPPO to a set of off-policy baselines, specifically:
+\begin{enumerate}[nolistsep,leftmargin=*]
+    \item[$\bullet$] \textbf{MPEs}: QMix~\cite{pmlr-v80-rashid18a} and MADDPG~\cite{lowe2017multi}.
+    \item[$\bullet$] \textbf{SMAC}: QMix~\cite{pmlr-v80-rashid18a} and SOTA methods including QPlex~\cite{wang2021qplex}, CWQMix~\cite{DBLP:conf/nips/RashidFPW20}, AIQMix~\cite{DBLP:journals/corr/abs-2006-04222} and RODE~\cite{wang2021rode}.
+    \item[$\bullet$] \textbf{GRF}: QMix~\cite{pmlr-v80-rashid18a} and SOTA methods including CDS~\citep{li2021celebrating} and TiKick~\citep{huang2021tikick}.
+    \item[$\bullet$] \textbf{Hanabi}: SAD~\cite{hu2019simplified} and VDN~\cite{sunehag2018value}.
+\end{enumerate}
+
+\textbf{Common Experimental setup: } Here we give a brief description of the experimental setup common to all testbeds. Specific settings for each testbed are described later in Sec. 4.2-4.5.
+\begin{enumerate}[nolistsep,leftmargin=*]
+\item[$\bullet$] \textbf{Hyper-parameters Search}: For a fair comparison, we re-implement MADDPG and QMix
+and tune each method using a grid-search over a set of hyper-parameters such as learning rate, target network update rate, and network architecture. We ensure that the size of this grid-search is equivalent to the size used to tune MAPPO and IPPO. We also test various relevant implementation tricks including value/reward normalization, hard and soft target network updates for Q-learning, and the input representation to the critic/mixer network.
+% \item[$\bullet$] \textbf{Parameter-sharing Setting}: Nearly all baseline methods utilize \emph{parameter sharing} in settings with homogeneous agents, both in our implementations of these baselines, and in their original implementations. We emphasize that our reported numbers for MADDPG and QMix \emph{all match or exceed the results reported in the papers that originally proposed the algorithms}.
+\item[$\bullet$] \textbf{Training Compute:} Experiments are performed on a desktop machine with 256 GB RAM, one 64-core CPU, and one GeForce RTX 3090 GPU used for forward action computation and training updates.
+\end{enumerate}
+% We compare MAPPO and IPPO to off-policy baselines including MADDPG~\cite{lowe2017multi} in the MPEs; QMix~\cite{pmlr-v80-rashid18a} and SOTA methods including RODE~\cite{wang2021rode}, QPlex~\cite{wang2021qplex} in SMAC;
+% SAD~\cite{hu2019simplified} in Hanabi; and QMix and SOTA methods including CDS~\citep{li2021celebrating} and TiKick~\citep{huang2021tikick} in GRF. 
+
+
+
+\textbf{Empirical Findings:} In the majority of environments, PPO achieves results better or comparable to the off-policy methods with \textbf{\emph{comparable sample efficiency}}. 
+
+% \vspace{-3mm}
+
+
+
+% \vspace{-5mm}
+\subsection{MPE Testbed}
+% \vspace{-1mm}
+% \vspace{-5pt}
+\textbf{Experimental Setting:} We consider the three cooperative tasks proposed in \cite{lowe2017multi}: the physical deception task (\emph{Spread}), the simple reference task (\emph{Reference}), and the cooperative communication task (\emph{Comm}). As the MPE environment does not provide a global input, we follow \cite{lowe2017multi} and concatenate all agents' local observations to form a global state which is utilized by MAPPO and the off-policy methods. Furthermore, \emph{Comm} is the only task without homogenous agents; hence, we do not utilize parameter sharing for this task. All results are averaged over ten seeds.
+
+\textbf{Experimental Results:} The performance of each algorithm at convergence is shown in Fig.~\ref{fig:MPE-all}. MAPPO achieves performance comparable and even superior to the off-policy baselines; we particularly see that MAPPO performs very similarly to QMix on all tasks and exceeds the performance of MADDPG in the \emph{Comm} task, all while using a comparable number of environment steps. Despite not utilizing global information, IPPO also achieves similar or superior performance to centralized off-policy methods. Compared to MAPPO, IPPO converges to \emph{slightly} lower final returns in several environments (\emph{Comm} and \emph{Reference}). 
+
+% \vspace{-2mm}
+% \vspace{-4mm} 
+
+\begin{table*}[t!]
+% \begin{adjustwidth}{-.5in}{-.5in}  
+\centering
+% \vspace{-15mm}
+% \captionsetup{justification=centering}
+\addtolength{\tabcolsep}{-4pt}    
+\begin{tabular}{ccccc|ccc}
+\toprule 
+Map              & MAPPO\scriptsize{(FP)}  & MAPPO\scriptsize{(AS)}  & IPPO       & QMix       & RODE*        & MAPPO*\scriptsize{(FP)}  & MAPPO*\scriptsize{(AS)}  \\
+\midrule
+\scriptsize{2m vs\_1z}        & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0\scriptsize{(0.0)}} & \textbf{100.0}\scriptsize{(0.0)} & \textbf{95.3}\scriptsize{(5.2)}  & /           & \emph{\underline{100.0}}\scriptsize{(0.0)} & \emph{\underline{100.0}}\scriptsize{(0.0)} \\
+\scriptsize{3m}               & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0}\scriptsize{(1.5)} & \textbf{100.0}\scriptsize{(0.0)} & 96.9\scriptsize{(1.3)}  & /           & \emph{\underline{100.0}}\scriptsize{(0.0)} & \emph{\underline{100.0}}\scriptsize{(1.5)} \\
+\scriptsize{2svs1sc}          & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0}\scriptsize{(1.5)}   & 96.9\scriptsize{(2.9)}  & \emph{\underline{100.0}}\scriptsize{(0.0)}  & \emph{\underline{100.0}}\scriptsize{(0.0)} & \emph{\underline{100.0}}\scriptsize{(0.0)} \\
+\scriptsize{2s3z}             & \textbf{100.0}\scriptsize{(0.7)} & \textbf{100.0}\scriptsize{(1.5)} & \textbf{100.0}\scriptsize{(0.0)} & 95.3\scriptsize{(2.5)}  & \emph{\underline{100.0}}\scriptsize{(0.0)}  & 96.9\scriptsize{(1.5)}  & 96.9\scriptsize{(1.5)}  \\
+\scriptsize{3svs3z}           & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0}\scriptsize{(0.0)}   & \textbf{96.9}\scriptsize{(12.5)} & /           & \emph{\underline{100.0}}\scriptsize{(0.0)} & \emph{\underline{100.0}}\scriptsize{(0.0)} \\
+\scriptsize{3svs4z}          & \textbf{100.0}\scriptsize{(1.3)} & \textbf{98.4}\scriptsize{(1.6)}  & \textbf{99.2}\scriptsize{(1.5)}  & \textbf{97.7}\scriptsize{(1.7)}  & /           & \emph{\underline{100.0}}\scriptsize{(2.1)} & \emph{\underline{100.0}}\scriptsize{(1.5)} \\
+\scriptsize{so many baneling} & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0}\scriptsize{(0.7)} & \textbf{100.0}\scriptsize{(1.5)} & 96.9\scriptsize{(2.3)}  & /           & \emph{\underline{100.0}}\scriptsize{(1.5)} & 96.9\scriptsize{(1.5)}  \\
+\scriptsize{8m}               & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0}\scriptsize{(0.7)} & 97.7\scriptsize{(1.9)}  & /           & \emph{\underline{100.0}}\scriptsize{(0.0)} & \emph{\underline{100.0}}\scriptsize{(0.0)} \\
+\scriptsize{MMM}              & \textbf{96.9}\scriptsize{(0.6)}  & 93.8\scriptsize{(1.5)}  & \textbf{96.9}\scriptsize{(0.0)}  & \textbf{95.3}\scriptsize{(2.5)}  & /           & \emph{\underline{93.8}}\scriptsize{(2.6)}  & \emph{\underline{96.9}}\scriptsize{(1.5)}  \\
+\scriptsize{1c3s5z}           & \textbf{100.0}\scriptsize{(0.0)} & 96.9\scriptsize{(2.6)}  & \textbf{100.0}\scriptsize{(0.0)} & 96.1\scriptsize{(1.7)}  & 
+\emph{\underline{100.0}}\scriptsize{(0.0)}  & \emph{\underline{100.0}}\scriptsize{(0.0)} & 96.9\scriptsize{(2.6)}  \\
+\scriptsize{bane vs bane}     & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0}\scriptsize{(0.0)} & \emph{\underline{100.0}}\scriptsize{(46.4)} & \emph{\underline{100.0}}\scriptsize{(0.0)} & \emph{\underline{100.0}}\scriptsize{(0.0)} \\
+\scriptsize{3svs5z}           & \textbf{100.0}\scriptsize{(0.6)} & \textbf{99.2}\scriptsize{(1.4)}  & \textbf{100.0}\scriptsize{(0.0)} & \textbf{98.4}\scriptsize{(2.4)}  & 78.9\scriptsize{(4.2)}   & \emph{\underline{98.4}}\scriptsize{(5.5)}  & \emph{\underline{100.0}}\scriptsize{(1.2)} \\
+\scriptsize{2cvs64zg}         & \textbf{100.0}\scriptsize{(0.0)} & \textbf{100.0}\scriptsize{(0.0)} & 98.4\scriptsize{(1.3)}  & 92.2\scriptsize{(4.0)}  & \emph{\underline{100.0}}\scriptsize{(0.0)}  & \emph{\underline{96.9}}\scriptsize{(3.1)}  & 95.3\scriptsize{(3.5)}  \\
+\scriptsize{8mvs9m}           & \textbf{96.9}\scriptsize{(0.6)} & \textbf{96.9}\scriptsize{(0.6)}  & \textbf{96.9}\scriptsize{(0.7)}  & 92.2\scriptsize{(2.0)}  & /           & \emph{\underline{84.4}}\scriptsize{(5.1)}  & \emph{\underline{87.5}}\scriptsize{(2.1)}  \\
+\scriptsize{25m}              & \textbf{100.0}\scriptsize{(1.5)} & \textbf{100.0}\scriptsize{(4.0)} & \textbf{100.0}\scriptsize{(0.0)} & 85.9\scriptsize{(7.1)}  & /           & \emph{\underline{96.9}}\scriptsize{(3.1)}  & \emph{\underline{93.8}}\scriptsize{(2.9)}  \\
+\scriptsize{5mvs6m}           & \textbf{89.1}\scriptsize{(2.5)}  & \textbf{88.3}\scriptsize{(1.2)}  & \textbf{87.5}\scriptsize{(2.3)}  & 75.8\scriptsize{(3.7)}  & \emph{\underline{71.1}}\scriptsize{(9.2)}   & \emph{\underline{65.6}}\scriptsize{(14.1)} & \emph{\underline{68.8}}\scriptsize{(8.2)}  \\
+\scriptsize{3s5z}             & \textbf{96.9}\scriptsize{(0.7)}  & \textbf{96.9}\scriptsize{(1.9)}  & \textbf{96.9}\scriptsize{(1.5)}  & 88.3\scriptsize{(2.9)}  & \emph{\underline{93.8}}\scriptsize{(2.0)}   & 71.9\scriptsize{(11.8)} & 53.1\scriptsize{(15.4)} \\
+\scriptsize{10mvs11m}         & \textbf{96.9}\scriptsize{(4.8)}  & \textbf{96.9}\scriptsize{(1.2)}  & \textbf{93.0}\scriptsize{(7.4)}  & \textbf{95.3}\scriptsize{(1.0)}  & \emph{\underline{95.3}}\scriptsize{(2.2)}   & 81.2\scriptsize{(8.3)}  & \emph{\underline{89.1}}\scriptsize{(5.5)}  \\
+\scriptsize{MMM2}             & \textbf{90.6}\scriptsize{(2.8)}  & \textbf{87.5}\scriptsize{(5.1)}  & \textbf{86.7}\scriptsize{(7.3)}  & \textbf{87.5}\scriptsize{(2.6)}  & \emph{\underline{89.8}}\scriptsize{(6.7)}   & 51.6\scriptsize{(21.9)} & 28.1\scriptsize{(29.6)} \\
+\scriptsize{3s5zvs3s6z}       & \textbf{84.4}\scriptsize{(34.0)} & 63.3\scriptsize{(19.2)} & \textbf{82.8}\scriptsize{(19.1)} & \textbf{82.8}\scriptsize{(5.3)}  & \emph{\underline{96.8}}\scriptsize{(25.11)} & \emph{\underline{75.0}}\scriptsize{(36.3)} & 18.8\scriptsize{(37.4)} \\
+\scriptsize{27mvs30m}         & \textbf{93.8}\scriptsize{(2.4)}  & 85.9\scriptsize{(3.8)}  & 69.5\scriptsize{(11.8)} & 39.1\scriptsize{(9.8)}  & \emph{\underline{96.8}}\scriptsize{(1.5)}   & \emph{\underline{93.8}}\scriptsize{(3.8)}  & \emph{\underline{89.1}}\scriptsize{(6.5)}  \\
+\scriptsize{6hvs8z}           & \textbf{88.3}\scriptsize{(3.7)}  & \textbf{85.9}\textbf{}\scriptsize{(30.9)} & \textbf{84.4}\scriptsize{(33.3)} & 9.4\scriptsize{(2.0)}   & \emph{\underline{78.1}}\scriptsize{(37.0)}  & \emph{\underline{78.1}}\scriptsize{(5.6)}  & \emph{\underline{81.2}}\scriptsize{(31.8)} \\
+\scriptsize{corridor}         & \textbf{100.0}\scriptsize{(1.2)} & \textbf{98.4}\scriptsize{(0.8)}  & \textbf{98.4}\scriptsize{(3.1)}  & 84.4\scriptsize{(2.5)}  & \emph{\underline{65.6}}\scriptsize{(32.1)}  & \emph{\underline{93.8}}\scriptsize{(3.5)}  & \emph{\underline{93.8}}\scriptsize{(2.8)}  \\
+\bottomrule
+\end{tabular}
+% \end{adjustwidth}
+\centering
+\caption{Median evaluation win rate and standard deviation on all the SMAC maps for different methods, Columns with ``*'' display results using the same number of timesteps as RODE. We bold all values within 1 standard deviation of the maximum and among the ``*'' columns, we denote all values within 1 standard deviation of the maximum with underlined italics. AS next to MAPPO indicates an agent-specific centralized input to the value function; FP indicates a similar agent-specific centralized input, but with redundant information removed.  %, computed using the final 5 evaluations.
+} 
+\label{tab:SMAC-results}
+% \vspace{-2mm}
+%\yc{will bold best performance later. just in case we might change the metric.} \yc{use "vs." instead of \_ at the last end.}
+%\yc{mark here, just in case i forget how we deal with 27m, to calculate 27m at 7M.}
+
+\end{table*}
+
+% \begin{figure*}[t!]
+% 	\centering
+% 	\vspace{3pt}
+%     \includegraphics[width=0.9\linewidth]{figures/baselines_subplot.png}
+%     \vspace{-3mm}
+% 	\centering \caption{Training curves of different algorithms in SMAC.}
+% \label{fig:SMAC-results}
+% \vspace{-4mm}
+% \end{figure*}
+
+\begin{figure}[t!]
+\vspace{-2mm}
+	{\centering
+        {
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/spread_episode_rewards.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/reference_episode_rewards.png}
+        \includegraphics[width=0.25\textwidth]{figures/mappo_ippo_other/speaker_listener_episode_rewards.png}
+        }
+    }
+    \vspace{-1mm}
+	\centering \caption{Performance of different algorithms in the MPEs.}
+	\vspace{-4mm}
+\label{fig:MPE-all}
+\end{figure}
+
+\subsection{SMAC Testbed} 
+
+\textbf{Experimental Setting:} We evaluate MAPPO with two different centralized value function inputs -- labeled \emph{AS} and \emph{FP} -- that combines agent-agnostic global information with agent-specific local information. These inputs are described fully in Section \ref{Sec: Factors}. All off-policy baselines utilize both the agent-agnostic global state and agent-specific local observations as input. Specifically, for agent $i$, the local Q-network (which computes actions at execution) takes in only the local agent-specific observation $o_i$ as input while the global mixer network takes in the agent-agnostic global state $s$ as input. For each random seed, we follow the evaluation metric proposed in \cite{wang2021rode}: we compute the win rate over 32 evaluation games after each training iteration and take the median of the final ten evaluation win-rates as the performance for each seed. 
+
+\textbf{Experimental Results:} We report the median win rates over six seeds in Table \ref{tab:SMAC-results}, which compares the PPO-based methods to QMix and RODE. Full results are deferred to Table 2 and Table 3 in Appendix. MAPPO, IPPO, and QMix are trained until convergence or reaching 10M environment steps. Results for RODE are obtained using the statistics from \cite{wang2021rode}. We observe that IPPO and MAPPO with both the \emph{AS} and \emph{FP} inputs achieve strong performance in the vast majority of SMAC maps. In particular, MAPPO and IPPO perform at least as well as QMix in most maps despite using the same number of samples. Comparing different value functions inputs, we observe that the performance of IPPO and MAPPO is highly similar, with the methods performing strongly in all but one map each. We also observe that MAPPO achieves performance comparable or superior to RODE's in 10 of 14 maps while using the same number of training samples. With more samples, the performance of MAPPO and IPPO continue to improve and ultimately match or exceed RODE's performance in nearly every map. As shown in Appendix \ref{app:SMAC-allresults}, 
+MAPPO and IPPO perform comparably or superior to other other off-policy methods such as QPlex, CWQMix, and AIQMix in terms of both final performance and sample-efficiency.
+
+Overall, MAPPO's effectiveness in nearly every SMAC map suggests that simple PPO-based algorithms can be strong baselines in challenging MARL problems. 
+% \vspace{-2mm} 
+
+
+\subsection{Google Football Testbed}
+% \vspace{-1mm}
+\textbf{Experimental Setting:} We evaluate MAPPO in several GRF academy scenarios, namely 3v.1, counterattack (CA) easy and hard, corner, pass-shoot (PS), and run-pass-shoot (RPS). In these scenarios, a team of agents attempts to score a goal against scripted opponent player(s). As the agents' local observations contain a full description of the environment state, there is no distinction between MAPPO and IPPO; for consistency, we label the results with PPO in Table \ref{tab:football} as ``MAPPO''.  We utilize GRF's dense-reward setting in which all agents share a single reward which is the sum of individual agents' dense rewards. We compute the success rate over 100 rollouts of the game and report the average success rate over the last 10 evaluations, averaged over 6 seeds.
+
+
+\textbf{Experimental Results:} We compare MAPPO with QMix and several SOTA methods, including CDS, a method that augments the environment reward with an intrinsic reward, and TiKick, an algorithm which combines online RL fine-tuning and large-scale offline pre-training. All methods except TiKick are trained for 25M environment steps in all scenarios with the exception of CA (hard) and Corner, in which methods are trained for 50M environment steps. 
+
+We generally observe in Table \ref{tab:football} that MAPPO achieves comparable or superior performance to other off-policy methods in \emph{all} settings, despite not utilizing an intrinsic reward as is done in CDS. Comparing MAPPO to QMix, we observe that MAPPO clearly outperforms QMix in each scenario, again while using the \emph{same number of training samples}. MAPPO additionally outperforms TiKick on 4/5 scenarios, despite the fact that TiKick performs pre-training on a set of human expert data. 
+
+
+\begin{table}[!t]
+\centering
+% \vspace{-15mm}
+\begin{tabular}{cccc|c}
+\toprule
+Scen. &       MAPPO &        QMix &         CDS &      TiKick \\
+\midrule
+          3v.1 & \textbf{88.03}\scriptsize{(1.06)} &  8.12\scriptsize{(2.83)} & 76.60\scriptsize{(3.27)} & 76.88\scriptsize{(3.15)} \\
+     CA\scriptsize{(easy)} & \textbf{87.76}\scriptsize{(1.34)} & 15.98\scriptsize{(2.85)} & 63.28\scriptsize{(4.89)} &           / \\
+     CA\scriptsize{(hard)} & \textbf{77.38}\scriptsize{(4.81)} &  3.22\scriptsize{(1.60)} & 58.35\scriptsize{(5.56)} & 73.09\scriptsize{(2.08)} \\
+      Corner & \textbf{65.53}\scriptsize{(2.19)} & 16.10\scriptsize{(3.00)} & 3.80\scriptsize{(0.54)} & 33.00\scriptsize{(3.01)} \\
+          PS & \textbf{94.92}\scriptsize{(0.68)} &  8.05\scriptsize{(3.66)} & \textbf{94.15}\scriptsize{(2.54)} &           / \\
+          RPS & \textbf{76.83}\scriptsize{(1.81)} &  8.08\scriptsize{(4.71)} & 62.38\scriptsize{(4.56)} & 79.12\scriptsize{(2.06)} \\
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+\caption{Average evaluation success rate and standard deviation (over six seeds) on GRF scenarios for different methods. All values within 1 standard deviation of the maximum success rate are marked in bold. We separate TiKick from the other methods as it uses pretrained models and thus does not constitute a direct comparison.}
+\vspace{-3mm}
+\label{tab:football}
+\end{table}
+
+% \vspace{-3mm}
+
+
+
+\subsection{Hanabi Testbed} 
+% \vspace{-2mm}
+\textbf{Experimental Setting:} We evaluate MAPPO and IPPO in the full-scale Hanabi game with varying numbers of players (2-5 players). We compare MAPPO and IPPO to strong off-policy methods, namely Value Decomposition Networks (VDN) and Simplified Action Decoder (SAD), a Q-learning variant that has been successful in Hanabi. All methods do not utilize auxiliary tasks. Because each agent's local observation does not contain information about the agent's own cards\footnote{The local observations in Hanabi contain information about the other agent's cards and game state.}, MAPPO utilizes a global-state that adds the agent's own cards to the local observation as input to its value function. VDN agents take only the local observations as input. SAD agents take as input not only the local observation provided by the environment, but also the greedy actions of other players in the past time steps (which is not used by MAPPO and IPPO). Due to algorithmic restrictions, no additional global information is utilized by SAD and VDN during centralized training. We follow \citep{hu2019simplified} and report the average returns across at-least 3 random seeds as well as the best score achieved by any seed. The returns are averaged over 10k games.
+
+\begin{table}[!t]
+\centering
+% \vspace{-12mm}
+\begin{tabular}{cccccc} 
+\toprule
+\# Players         &  Metric    & MAPPO   & IPPO    & SAD         & VDN          \\
+\midrule
+\multirow{2}{*}{2} & Avg. & 23.89\scriptsize{(0.02)} & \textbf{24.00}\scriptsize{(0.02)} & 23.87\scriptsize{(0.03)} & 23.83\scriptsize{(0.03)}  \\
+                   & Best & \textbf{24.23}\scriptsize{(0.01)} & 24.19\scriptsize{(0.02)} & 24.01\scriptsize{(0.01)} & 23.96\scriptsize{(0.01)}  \\
+                    \hline
+\multirow{2}{*}{3} & Avg. &   \textbf{23.77}\scriptsize{(0.20)}         & 23.25\scriptsize{(0.33)} & 23.69\scriptsize{(0.05)} & 23.71\scriptsize{(0.06)}  \\
+                   & Best &   \textbf{24.01}\scriptsize{(0.01)}          & 23.87\scriptsize{(0.03)} & 23.93\scriptsize{(0.01)} & 23.99\scriptsize{(0.01)}  \\
+                   \hline
+\multirow{2}{*}{4} & Avg. &  \textbf{23.57}\scriptsize{(0.13)}           & 22.52\scriptsize{(0.37)} & 23.27\scriptsize{(0.26)} & 23.03\scriptsize{(0.15)}  \\
+                   & Best &   23.71\scriptsize{(0.01)}          & 23.06\scriptsize{(0.03)} & \textbf{23.81}\scriptsize{(0.01)}  & 23.79\scriptsize{(0.00)}  \\
+                   \hline
+\multirow{2}{*}{5} & Avg. &   \textbf{23.04}\scriptsize{(0.10)}          & 20.75\scriptsize{(0.56)} & 22.06\scriptsize{(0.23)} & 21.28\scriptsize{(0.12)}  \\
+                   & Best & \textbf{23.16}\scriptsize{(0.01)}            & 22.54\scriptsize{(0.02)} & 23.01\scriptsize{(0.01)} & 21.80\scriptsize{(0.01)}  \\
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+\caption{Best and Average evaluation scores of MAPPO, IPPO, SAD, and VDN on Hanabi-Full. Results are reported over at-least 3 seeds.}
+\label{tab:Hanabi-results}
+\vspace{-6mm}
+\end{table}
+
+
+\textbf{Experimental Results:} The reported results for SAD and VDN are obtained from ~\cite{hu2019simplified}. All methods are trained for at-most 10B environment steps. As demonstrated in Table~\ref{tab:Hanabi-results}, MAPPO is able to produce results comparable or superior to the best and average returns achieved by SAD and VDN in nearly every setting, while utilizing the same number of environment steps. This demonstrates that even in environments such as Hanabi which require reasoning over other players' intents based on their actions, MAPPO can achieve strong performance, despite not explicitly modeling this intent.
+
+IPPO's performance is comparable with MAPPO's in the 2-agent setting. However, as the agent number grows, MAPPO shows a clear margin of improvement over both IPPO and off-policy methods, which suggests that a centralized critic input can be crucial.
+
+% \vspace{-3mm}
+
+\section{Factors Influential to PPO's Performance} \label{Sec: Factors} 
+\vspace{-2mm}
+In this section, we analyze five factors that we find are especially influential to MAPPO's performance: value normalization,  value function inputs, training data usage, policy/value clipping, and batch size. We find that these factors exhibit clear trends in terms of performance; using these trends, we give best-practice suggestions for each factor. We study each factor in a set of appropriate representative environments.
+All experiments are performed using MAPPO (i.e., PPO with centralized value functions) for consistency. Additional results can be found in Appendix \ref{app:ablation-studies}.
+% \vspace{-1mm}
+
+\subsection{Value Normalization}
+% \vspace{-2mm}
+\begin{figure*}[ht]
+	\centering
+% 	\vspace{-2mm}
+    \includegraphics[width=1.0\linewidth]{figures/popart_subplot.png}
+    \vspace{-4mm}
+	\centering \caption{Impact of value normalization on MAPPO's performance in SMAC and MPE.}
+	\vspace{-3mm}
+\label{fig:Abaltion-popart}
+\end{figure*}
+
+Through the training process of MAPPO, value targets can drastically change due to differences in the realized returns, leading to instability in value learning. To mitigate this issue, we standardize the targets of the value function by using running estimates of the average and standard deviation of the value targets. Concretely, during value learning, the value network regresses to normalized target values. When computing the GAE, we use the running average to denormalize the output of the value network so that the value outputs are properly scaled. We find that using value normalization never hurts training and often  improves the final performance of MAPPO significantly.
+
+\textbf{Empirical Analysis: } We study the impact of value-normalization in the MPE \emph{spread} environment and several SMAC environments - results are shown in Fig. \ref{fig:Abaltion-popart}. In \emph{Spread}, where the episode returns range from below -200 to 0, value normalization is critical to strong performance. Value normalization also has positive impacts on several SMAC maps, either by improving final performance or by reducing the training variance.
+
+\textbf{Suggestion 1:} Utilize value normalization to stabilize value learning. 
+% \vspace{-3mm} 
+
+\subsection{Input Representation to Value Function}\label{sec:value_inputs} 
+% \vspace{-2mm}
+\begin{figure*}[ht]
+	\centering
+% 	\vspace{2mm}
+    \includegraphics[width=1.0\linewidth]{figures/global_state_subplot.png}
+    \vspace{-4mm}
+	\centering \caption{Effect of different value function input representations (described in Fig. \ref{fig:Global-States}).} 
+	\vspace{-2mm}
+\label{fig:Abaltion-state}
+\end{figure*}
+
+The fundamental difference between many multi-agent CTDE PG algorithms and fully decentralized PG methods is the input to the value network. Therefore, the representation of the value input becomes an important aspect of the overall algorithm.  The assumption behind using centralized value functions is that observing the full global state can make value learning easier. An accurate value function further improves policy learning through variance reduction.
+
+Past works have typically used two forms of global states. \cite{lowe2017multi} use a \textbf{concatenation of local observations (CL)} global state which is formed by concatenating all local agent observations. While it can be used in most environments, the \emph{CL} state dimensionality grows with the number of agents and can omit important global information which is unobserved by all agents; these factors can make value learning difficult. Other works, particularly those studying SMAC, utilize an \textbf{Environment-Provided global state (EP)} which contains general global information about the environment state \cite{foerster2017counterfactual}. However, the \emph{EP} state typically contains information common to all agents and can omit important local agent-specific information. This is true in SMAC, as shown in Fig. \ref{fig:Global-States}. 
+
+
+% As shown in Fig. \ref{fig:Global-States}, this is the case in SMAC; we hypothesize that this loss of important local information in the global state is an important factor in yielding the results in \cite{dewitt2020independent} showing that IPPO, learning purely on local observations, can yield superior results than MAPPO using the \emph{EP} global state.
+% \vspace{-1mm}
+To address the weaknesses of the \emph{CL} and \emph{EP} states, we allow the value function to leverage both global and local information by forming an \textbf{Agent-Specific Global State (AS)} which creates a global state for agent $i$ by concatenating the \emph{EP} state and $o_i$, the local observation for agent $i$. This provides the value function with a more comprehensive description of the environment state. However, if there is overlap in information between $o_i$ and the $\emph{EP}$ global state, then the \emph{AS} state will have redundant information which unnecessarily increases the input dimensionality to the value function. As shown in Fig. \ref{fig:Global-States}, this is the case in SMAC. To examine the impact of this increased dimensionality, we  create a \textbf{Featured-Pruned Agent-Specific Global State (FP)} by removing repeated features in the \emph{AS} state.
+
+% There are two common choices for centralized value function inputs: concatenation of all local observations, and an environment-provided global state. In addition to these practices, we study several \emph{agent-specific} global state representations. These choices are shown in Fig. \ref{fig:Global-States}.
+
+
+
+
+% \textbf{Concatenation of Local Observations (CL):} \cite{lowe2017multi} concatenate all local observations, i.e., $(o_1,\ldots,o_n)$, to form the value function input. While this is can be used in most environments, the value input dimension grows linearly with $n$ and the dimension of $o_i$, which can make value-learning inefficient or challenging in settings with many agents. CL also may not contain important global information which is unobserved by every agent; this subverts the primary advantage of a centralized value input.
+
+% \begin{figure*}[h]
+% 	\centering
+% % 	\vspace{-2mm}
+%     \includegraphics[width=0.9\linewidth]{figures/clip_subplot.png}
+%     \vspace{-2mm}
+% 	\centering \caption{Impact of PPO clipping ratio on MAPPO's performance in SMAC.}
+% \label{fig:Abaltion-clip}
+% \vspace{-4mm}
+% \end{figure*}
+
+% \textbf{Environment-Provided Global State (EP): }
+% Another popular approach is to directly use an environment provided global state. 
+% For example, the SMAC environment provides a vector containing information about all agents and enemies, which has been widely adopted as the value function input in most works studying SMAC \cite{foerster2017counterfactual}.
+% However, the environment-provided global state typically only contains information common to all agents, and can omit important local, agent-specific information -- this is the case in SMAC, as shown in Fig.~\ref{fig:Global-States}. 
+% We hypothesize that the loss of essential local information in the global state is an important factor in yielding the results reported in \cite{dewitt2020independent} that decentralized, independent PPO (IPPO), learning purely on local observations, can yield superior results than centralized PPO using the \emph{EP} global state.
+
+% \textbf{Agent-Specific Global State (AS): } To allow the value function to leverage global and local information, we propose an \emph{agent-specific} global state: for agent $i$, we concatenate the environment global state $s$ and the local observation $o_i$. The primary advantage of AS is that combining both global and local information provides the value-function with more comprehensive information. However, this might unnecessarily increase the input dimensionality to the value function when $s$ and $o_i$ have overlapping information. This is true in SMAC, as seen in Fig. \ref{fig:Global-States}.
+
+
+% % However, the dimensionality of AS can increase the dimensionality of the input to the value network -- this is true in SMAC due to overlapping information (see Fig. \ref{fig:Global-States}).
+
+
+% \textbf{Feature-Pruned Agent-Specific Global State (FP)}: 
+% To address the overlap between local and global state present in the AS input, we also evaluate a feature-pruned state representation by removing duplicated features in AS. This maintains the same information as AS while reducing the dimensionality. 
+
+\textbf{Emperical Analysis:} We study the impact of these different value function inputs in SMAC, which is the only considered benchmark that provides different options for centralized value function inputs. The results in  Fig.~\ref{fig:Abaltion-state} demonstrate that using the \emph{CL} state, which is much higher dimensional than the other global states, is ineffective, particularly in maps with many agents. In comparison, using the \emph{EP} global state achieves stronger performance but notably achieves subpar performance in more difficult maps, likely due to the lack of important local information. The \emph{AS} and \emph{FP} global states both achieve strong performance, with the \emph{FP} state outperforming \emph{AS} states on only several maps. This demonstrates that state dimensionality, agent-specific features, and global information are all important in forming an effective global state. We note that using the \emph{FP} state requires knowledge of which features overlap between
+the \emph{EP} state and the agents' local observations, and evaluate MAPPO with this state to demonstrate that limiting the value function input dimensionality can further improve performance. 
+
+\textbf{Suggestion 2:} When available, include both local, agent-specific features and global features in the value function input. Also check that these features do not unnecessarily increase the input dimension. 
+% \vspace{-4mm}
+
+\begin{figure}[!t]
+	\centering
+    \vspace{-7mm}
+    \includegraphics[width=0.70\linewidth]{figures/global_state_sim.png}
+    % \vspace{-3mm}
+	\centering \caption{Different value function inputs with example features contained in each state (SMAC-specific). $\emph{IND}$ refers to using decentralized inputs (agents' local observations), \emph{EP} refers to the environment provided global state, \emph{AS} is an agent-specific global state which concatenates \emph{EP} and \emph{IND}, and \emph{FP} is an agent-specific global state which prunes overlapping features from \emph{AS}. \emph{EP} omits important local data such as agent ID and available actions.}
+	\vspace{-3mm}
+\label{fig:Global-States}
+\end{figure}
+
+
+%\yw{I have a feeling that the previous two paragraphs can be still shorten a bit. ignore this if we have enough space. }
+
+
+
+% \vspace{-2mm}
+\subsection{Training Data Usage} \label{subsec: data}
+
+\begin{figure*}[h!]
+	\centering
+    \vspace{-3mm}
+	\begin{minipage}{1.0\linewidth}
+    	\centering
+    	\subfigure[effect of different training epochs.\label{fig:ablation-ppo-data-epoch}]{
+    	    \label{fig:Ablation-ppo-SMAC}
+            \includegraphics[width=1.0\linewidth]{figures/ppo_epoch_subplot_rightlegend.png}
+         }
+    \end{minipage}
+    % \hspace{-3.5mm}
+    % \vspace{-1mm}
+    \begin{minipage}{1.0\linewidth}
+        \centering
+        \subfigure[effect of different mini-batch numbers.\label{fig:ablation-ppo-data-minibatch}]{
+        \centering
+         \label{fig:Ablation-mini-SMAC}
+            {
+            \includegraphics[width=1.0\linewidth]{figures/mini_batchsize_subplot_rightlegend.png}
+        	}
+        }
+    \end{minipage}
+    \vspace{-9pt}
+    \centering 
+    \caption{Effect of epoch and mini-batch number on MAPPO's performance in SMAC.} 
+    \vspace{-2mm}
+\label{}
+\end{figure*}
+
+\begin{figure*}[!h]
+	\centering
+	\vspace{-12mm}
+	\subfigure[effect of different training epochs.]
+	{\centering
+        {\includegraphics[width=0.2\textwidth]{figures/ppo_epoch/spread_ppo_epoch.png}
+        \includegraphics[width=0.2\textwidth]{figures/ppo_epoch/reference_ppo_epoch.png}
+        \includegraphics[width=0.2\textwidth]{figures/ppo_epoch/speaker_listener_ppo_epoch.png}
+    	}
+    	\label{fig:Ablation-ppo-epoch-MPE}
+    }
+    % \vspace{-3mm}
+    \subfigure[effect of different mini-batch numbers.]
+    % \vspace{-1mm}
+    {\centering
+        {\includegraphics[width=0.2\textwidth]{figures/mini_batch_size/spread_mini_batch_size.png}
+        \includegraphics[width=0.2\textwidth]{figures/mini_batch_size/reference_mini_batch_size.png}
+        \includegraphics[width=0.2\textwidth]{figures/mini_batch_size/speaker_listener_mini_batch_size.png}
+    	}
+    	\label{fig:Ablation-mini-MPE}
+    }
+    \vspace{-2mm}
+	\centering 
+	\caption{Effect of epoch and mini-batch number on MAPPO's performance in MPE.}
+\label{fig:Ablation-ppo-mini-MPE}
+\vspace{-4mm}
+\end{figure*}
+
+% \vspace{-1mm}
+An important feature of PPO is the use of importance sampling for off-policy corrections, allowing sample reuse.
+%After a batch of samples is collected,
+\cite{stable-baselines} suggest splitting a large batch of collected samples into mini-batches and training for multiple epochs. In single-agent continuous control domains, the common practice is to split a large batch into about 32 or 64 mini-batches and train for tens of epochs. %with around 64 mini-batches per epoch.  
+%\av{i changed the wording to this, is there a citation for it being common to split into 32/64 mini-batches?}
+%\yw{Can we cite the baseline ppo implementation? I think it splits data into 32 mini-batches.}
+However, we find that in multi-agent domains, MAPPO's performance degrades when samples are re-used too often. Thus, we use 15 epochs for easy tasks, and 10 or 5 epochs for difficult tasks. We hypothesize that this pattern could be a consequence of non-stationarity in MARL: using fewer epochs per update limits the change in the agents' policies, which could improve the stability of policy and value learning.
+Furthermore, similar to the suggestions by \cite{Ilyas2020A}, we find that using more data to estimate gradients typically leads to improved practical performance. Thus, we split the training data into at-most two mini-batches and avoid mini-batching in the majority of situations.
+
+
+\textbf{Experimental Analysis:} We study the effect of training epochs in SMAC maps in Fig.~\ref{fig:ablation-ppo-data-epoch}. We observe detrimental effects when training with large epoch numbers: when training with 15 epochs, MAPPO consistently learns a suboptimal policy, with particularly poor performance in the very difficult MMM2 and Corridor maps. In comparison, MAPPO performs well using 5 or 10 epochs.
+% \vspace{-1mmm
+The performance of MAPPO is also highly sensitive to the number of mini-batches per training epoch. We consider three mini-batch values: 1, 2, and 4. A mini-batch of 4 indicates that we split the training data into 4 mini-batches to run gradient descent.
+Fig.~\ref{fig:Ablation-mini-SMAC} demonstrates that using more mini-batches negatively affects MAPPO's performance: when using 4 mini-batches, MAPPO fails to solve any of the selected maps while using 1 mini-batch produces the best performance on 22/23 maps. %, demonstrating that splitting a batch of data into mini-batches can detriment MAPPO's performance.
+% The only exception is the MMM2 map, in which using 2 mini-batches yields a small improvement. 
+As shown in Fig.~\ref{fig:Ablation-ppo-mini-MPE}, similar conclusions can be drawn in the MPE tasks. In \emph{Reference} and \emph{Comm}, the simplest MPE tasks, all chosen epoch and minibatch values result in the same final performance, and using 15 training epochs even leads to faster convergence.
+However, in the harder \emph{Spread} task, we observe a similar trend to SMAC: fewer epochs and no mini-batch splitting produces the best results. 
+
+\textbf{Suggestion 3: } Use at most 10 training epochs on difficult environments and 15 training epochs on easy environments. Additionally, avoid splitting data into mini-batches. 
+
+% \vspace{-3mm}
+% \textbf{Suggestion 3:} Avoid using too many training epochs and avoid splitting data into mini-batches.
+\subsection{PPO Clipping}
+\begin{figure*}[ht]
+	\centering
+    \vspace{-3mm}
+    \includegraphics[width=1.0\linewidth]{figures/clip_subplot_rightlegend.png}
+    % \vspace{-5mm}
+	\centering \caption{Effect of different clipping strengths on MAPPO's performance in SMAC.}
+% 	\vspace{-4mm}
+\label{fig:Abaltion-clip}
+\end{figure*}
+% \vspace{-3pt}
+Another core feature of PPO is the use of clipped importance ratio and value loss to prevent the policy and value functions from drastically changing between iterations. Clipping strength is controlled by the $\epsilon$ hyperparameter: large $\epsilon$ values allow for larger updates to the policy and value function. 
+Similar to the number of training epochs, we hypothesize that policy and value clipping can limit the non-stationarity which is a result of the agents' policies changing during training. For small $\epsilon$, agents' policies are likely to change less per update, which we posit improves overall learning stability at the potential expense of learning speed. In single-agent settings, a common $\epsilon$ value is 0.2 \cite{Engstrom2020Implementation, andrychowicz2021what}.
+
+\textbf{Experimental Analysis:} We study the impact of PPO clipping strengths, controlled by the $\epsilon$ hyperparameter, in SMAC (Fig.~\ref{fig:Abaltion-clip}). Note that  $\epsilon$ is the same for both policy and value clipping.  We generally that with small $\epsilon$ terms such as 0.05, MAPPO's learning speed is slowed in several maps, including hard maps such as MMM2 and 3s5z vs. 3s6z. However, final performance when using $\epsilon = 0.05$ is consistently high and the performance is more stable, as demonstrated by the smaller standard deviation in the training curves. We also observe that large $\epsilon$ terms such as 0.2, 0.3, and 0.5, which allow for larger updates to the policy and value function per gradient step, often result in sub-optimal performance. 
+
+% \vspace{-1mm}
+\textbf{Suggestion 4:} For the best PPO performance, maintain a clipping ratio $\epsilon$ under 0.2; within this range, tune $\epsilon$ as a trade-off between training stability and fast convergence. 
+\vspace{-2mm}
+
+\subsection{PPO Batch Size} 
+\vspace{-2mm}
+\begin{figure*}[ht]
+	\centering
+	\vspace{-4mm}
+	\subfigure[SMAC]
+	{\centering
+        {\includegraphics[width=0.23\textwidth]{figures/batchsize/MMM2-batchsize-bar.png}
+        \includegraphics[width=0.23\textwidth]{figures/batchsize/10m_vs_11m-batchsize-bar.png}
+    	}
+    	\label{fig:Ablation-ppo-batch-SMAC}
+    }
+    \subfigure[GRF]
+	{\centering
+        {\includegraphics[width=0.23\textwidth]{figures/batchsize/academy_3_vs_1_with_keeper-batchsize-bar.png}
+        \includegraphics[width=0.23\textwidth]{figures/batchsize/academy_counterattack_easy-batchsize-bar.png}
+    	}
+    	\label{fig:Ablation-ppo-batch-GRF}
+    }
+    \vspace{-3mm}
+	\centering 
+	\caption{Effect of batch size on MAPPO's performance in SMAC and GRF. Red bars show the final win-rates. The blue bars show the number of environment steps required to achieve a strong win-rate (80\% or 90\% in SMAC and 60\% in GRF) as a measure of sample efficiency. ``NaN'' means such a win-rate was never reached. 
+	The x-axis specifies the batch-size as a multiple of the batch-size used in our main results. 
+	A sufficiently large batch-size is required to achieve the best final performance/sample efficiency; further increasing the batch size may hurt sample efficiency.
+	}
+\label{fig:Ablation-ppo-batch}
+\vspace{-2mm}
+\end{figure*}
+
+During training updates, PPO samples a batch of on-policy trajectories which are used to estimate the gradients for the policy and value function objectives. Since the number of mini-batches is fixed in our training (see Sec. \ref{subsec: data}), a larger batch generally will result in more accurate gradients, yielding better updates to the value functions and policies. However, the accumulation of the batch is constrained by the amount of available compute and memory: collecting a large set of trajectories requires extensive parallelism for efficiency and the batches need to be stored in GPU memory. Using an unnecessarily large batch-size can hence be wasteful in terms of required compute and sample-efficiency.
+
+% \yw{do we also want to mention larger batch can be wasteful either?}
+
+\textbf{Experimental Analysis:} The impact of various batch sizes on both final task performance and sample-efficiency is demonstrated in Fig. \ref{fig:Ablation-ppo-batch}. We observe that in nearly all cases, there is a critical batch-size setting - when the batch-size is below this critical point, the final performance of MAPPO is poor, and further tuning the batch size produces the optimal final performance and sample-efficiency.
+%increasing the batch-size until the critical point improves both final performance and sample-efficiency.
+However, continuing to increase the batch size may not result in improved final performance and in-fact can worsen sample-efficiency. 
+
+
+% Overall, MAPPO requires a sufficiently large batch size to achieve strong performance, but utilizing an exceedingly large batch-size can worsen sample-effiency and waste compute.
+% \ev{I feel that this last sentence and the sentence preceding it are almost identical.}
+
+% after this threshold, increasing the batch size does not result in improved final performance but degrades sample-efficiency.
+
+
+% \yw{I think the observations are are two fold. (1) there is a critical batch size. You need at least such amount of compute to make PPO work. (2) increasing batch size can be helpful (since it can make learning stable and even more sample efficient similar to what hide-and-seek paper reported). However, using too large a batch can be wasteful on samples.}
+
+
+% We also note that the optimal batch size for the majority of environments requires collecting and storing on the order of $10^-5$ individual agent transitions; although this is feasible using the 
+
+% \av{Unsure of how to incorporate the computational cost into this, since we're still operating in a limited compute regime.}
+
+
+\textbf{Suggestion 5:} Utilize a large batch size to achieve best task performance with MAPPO. Then, tune the batch size to optimize for sample-efficiency. 
+\vspace{-2mm}
+\section{Conclusion} \label{sec:conc} 
+\vspace{-3mm}
+This work demonstrates that PPO, an on-policy policy gradient RL algorithm, achieves strong results in both final returns and sample efficiency that are comparable to the state-of-the-art methods on a variety of cooperative multi-agent challenges, which suggests that properly configured PPO can be a competitive baseline for cooperative MARL tasks.
+We also identify and analyze five key implementation and hyperparameter factors that are influential in PPO's performance in these %multi-agent
+settings. Based on our empirical studies, we give concrete suggestions for the best practices with respect to these factors.
+There are a few limitations in this work that point to directions for future study. Firstly, our benchmark environments all use discrete action spaces, are all cooperative, and in the vast majority of cases, contain homogeneous agents. In future work, we aim to test PPO on a wider range of domains such as competitive games and MARL problems with continuous action spaces and heterogeneous agents. Furthermore, our work is primarily empirical in nature, and does not directly analyze the theoretical underpinnings of PPO. We believe that the empirical analysis of our suggestions can serve as starting points for further analysis into PPO's properties in MARL.
+
+\vspace{-2mm}
+\subsubsection*{Acknowledgments}
+\vspace{-2mm}
+This research is supported by NSFC (U20A20334, U19B2019 and M-0248), Tsinghua-Meituan Joint Institute for Digital Life, Tsinghua EE Independent Research Project, Beijing National Research Center for Information Science and Technology (BNRist), Beijing Innovation Center for Future Chips and 2030 Innovation Megaprojects of China (Programme on New Generation Artificial Intelligence) Grant No. 2021AAA0150000.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
+\newpage
+
+\appendix
+\input{appendix.tex}
+\newpage
+
+
+
+\bibliographystyle{plain}
+
+\bibliography{neurips_data_2022}
+
+
+\end{document}

@@ -1,0 +1,39 @@
+\section{Understanding Failures: The Impact of Different LLMs and Agent Architectures}
+\label{sec:failure_across_model}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/effect_of_underlying_llm_system_design.pdf}
+    \caption{Comparison on \taxonomy failure modes and categories on ProgramDev-v2 dataset explained in Section \ref{sec:programdev} to analyze LLM choice effect. MetaGPT is used for both cases with GPT-4o and Claude-3.7-Sonnet on two comparative cases.}
+    \label{fig:underlying_llm_effect}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/effect_of_mas_architecture_system_design.pdf}
+    \caption{Comparison on \taxonomy failure modes and categories on ProgramDev-v2 dataset explained in Section \ref{sec:programdev} to analyze MAS architecture effect. GPT-4o is used on two comparative cases, one using ChatDev and the other on MetaGPT.}
+    \label{fig:mas_archiecture_effect}
+\end{figure}
+
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=\linewidth]{figures/effect_on_MAST.pdf}
+%     \caption{Comparison on \taxonomy failure categories on ProgramDev-v2 dataset explained in Section \ref{sec:programdev}. Left plot shows the effect of underlying LLM: MetaGPT is used for both GPT-4o and Claude-3.7-Sonnet two comparative cases. Right plot shows the effect of MAS archiecture, GPT-4o based MetaGPT and ChatDev frameworks are used in two cases. \melissa{also add fm plot.}}
+%     \label{fig:effect_on_mast_claude_gpt_chatdev_metagpt}
+% \end{figure}
+
+To understand how choices of underlying LLMs and MAS architectures influence failure patterns, we analyze results from our \dataset{}, categorized by \taxonomy{} in the Figures \ref{fig:underlying_llm_effect} and \ref{fig:mas_archiecture_effect}.
+
+First, we examine the impact of different LLMs by comparing GPT-4o and Claude 3.7 Sonnet within the MetaGPT framework on programming tasks Figure~\ref{fig:underlying_llm_effect}. Our findings indicate that GPT-4o exhibits substantially fewer failures in FC1 (System Design Issues, e.g., disobeying task or role specifications) and FC2 (Inter-Agent Misalignment, e.g., issues in coordination or communication) compared to Claude 3.7 Sonnet. This suggests GPT-4o may possess stronger capabilities in instruction following or aspects of `social reasoning' for agentic collaboration within this setup. However, both models show a high number of failures in FC3 (Task Verification), indicating that robust verification remains a significant challenge regardless of the LLM used, though GPT-4o has a marginally lower count here.
+
+Next, we investigate the effect of MAS architecture by comparing MetaGPT and ChatDev, both using GPT-4o as the underlying LLM, on the ProgramDev-v2 benchmark  in Figure~\ref{fig:mas_archiecture_effect}. We observe distinct failure profiles: MetaGPT demonstrates significantly fewer failures in FC1 (System Design Issues) and FC2 (Inter-Agent Misalignment) compared to ChatDev. This could imply that MetaGPT's architecture or operational flow is more effective at maintaining adherence to specifications and ensuring smoother agent coordination with GPT-4o. Interestingly, despite its stronger performance in FC1 and FC2, MetaGPT exhibits a considerably higher number of FC3 (Task Verification) failures than ChatDev. 
+This may stem from the fact that in MetaGPT, the adherence to task specifications and role specifications ar done mostly through SoPs, demonstrating strong performance in FC1 especially. However ChatDev places a higher importance in verification as it is reflected by the specific testing and reviewing phases in ChatDev's archiectural design, causing fewer verification issues.
+These results show that both the choice of LLM and the specific design of the MAS architecture critically shape the landscape of potential failures, and improvements likely require a holistic approach considering both aspects.
+
+
+% \melissa{I rewording the following two paragraph. But overall, I think the content is not offering too much new insight. We already highlight importance of verifier above. We should make some new and interesting observation from the comparison. For example, GPT4o is better at agent instruction following and social reasoning, while claude is commonly known for good at coding. Or such as how are metagpt and chadev different such that lead to one doing better on one but not the other.}
+
+% To understand how the choice of an underlying LLM affects failure patterns in MAS, we compare Claude 3.7 Sonnet and GPT-4o within the MetaGPT framework using programming tasks, with failures categorized by \taxonomy{} (see Figure \ref{fig:effect_on_mast_claude_gpt_chatdev_metagpt}, left panel). Our analysis offers key insights into current system-level failure points. For both models, we find a significant vulnerability in task verification; failures such as missing or incorrect verification steps are the most common errors. This prevalence suggests that even when MAS frameworks like MetaGPT include dedicated verifier roles (simulating software quality assurance processes), the underlying LLMs currently struggle to use these verification capabilities effectively. These findings highlight a broader challenge in achieving reliable MAS: simply including a verification mechanism does not ensure its successful application. This points to a need for more capable verifier agents and better strategies for integrating them into the MAS architecture. \melissa{the verifier insight here is repetitive with above section.}
+
+% While task verification is a critical bottleneck for both models, differences in their failure distributions also provide insights into model-specific behaviors. GPT-4o, for instance, demonstrates comparatively lower failure rates in areas such as disobeying task specifications and step repetition. This suggests it might be better at interpreting and adhering to system design constraints and maintaining a more consistent task execution flow. However, these relative strengths do not overshadow the significant difficulties with verification that GPT-4o shares with Claude 3.7 Sonnet. This complex interplay between the LLM's intrinsic capabilities and the MAS's architectural intricacies suggests that enhancing MAS reliability requires more than just improvements in the foundational models. Instead, we believe a dual-pronged approach is essential for meaningful progress: one that focuses on both bolstering core LLM competencies and advancing the organizational design, communication protocols, and quality control integrations within multi-agent systems.

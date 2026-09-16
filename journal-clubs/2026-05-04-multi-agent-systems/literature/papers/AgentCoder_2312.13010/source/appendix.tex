@@ -1,0 +1,120 @@
+\appendix
+\section{Appendix}\label{sec:appendix}
+
+\subsection{Response Setup}
+To ensure that the output of each agent follows our requirements for the execution of the test executor agent, we will require each agent's output follow the architecture of \texttt{```py[Code]'''} and \texttt{```py[TestCases]'''}, where the [Code] and [TestCases] will be in the \texttt{```py'''}. With this format, the test executor agent can directly obtain [Code] and [TestCases] by removing the other sentences before and after these code blocks, ensuring an accurate and focused analysis.
+
+\subsection{Overhead}
+In \cref{tab:end2end}, we only discuss the pass@1 of AgentCoder and simultaneous multi-agent works. In this section, we further discuss the overhead of \xxx and these baselines. The evaluation results are demonstrated in \cref{tab:comparison}, where we can observe that AgentCoder requires lower tokens and execution time compared with baseline multi-agent frameworks.
+
+\begin{table}[h!]
+    \centering
+    % \scriptsize
+    \caption{pass@1 of AgentCoder and baselines in GPT4. We utilize the tiktoken package to calculate agent response token usage. Tokens and Overhead are calculated for the HumanEval / MBPP.}
+    \resizebox{\columnwidth}{!}{
+    \begin{tabular}{lrrrrr}
+    \toprule
+        Model &HEval&MBPP&Tokens&Overhead&Status\\
+        \midrule
+        SelfCollaboration&90.2&78.9&74.3k / 89.2K&249.2 / 395.6&Not Yet \\
+        AgentVerse&89.0&73.5&149.2K / 193.6K&1573.2 / 1875.5&ICLR (16-01-2024)\\
+         ChatDev&84.1&79.8&183.7K / 259.3K&1925.7 / 2493.4&Not Yet\\
+         MetaGPT&85.9& 87.7&138.2K / 206.5K&1248.5 / 1583.6&ICLR (16-01-2024)\\
+         \textbf{AgentCoder}&96.3&91.8&56.9K / 66.3K&228.7 / 365.9&{------}\\
+         \bottomrule
+    \end{tabular}}
+    \label{tab:comparison}
+\end{table}
+
+\subsection{Case Illustration for CodeCoT and \xxx}
+To provide a comprehensive illustration for CodeCoT and \xxx, we provide two code and tests generation examples 
+for HumanEval and MBPP datasets from Fig.~\ref{fig:human_code_example} to Fig.~\ref{fig:mbpp_test_example}. We can observe that \xxx can generate more fine-grained tests for the generated code. For example, \xxx will consider the code execution results when the input list does not contain element~(\cref{fig:human_test_example} and \cref{fig:mbpp_test_example}), which can improve code snippet reliability for edge behaviors.
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.8\textwidth]{agent_coder_supp_fig1.pdf}
+    \caption{A case illustration of CodeCoT and \xxx generated code for HumanEval task. CodeCoT ignores to use of \textit{abs()} function to check further the absolute values are lower than the threshold, while \xxx employs it to handle the negative values.}
+    \label{fig:human_code_example}
+\end{figure*}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.8\textwidth]{agent_coder_supp_fig2.pdf}
+    \caption{A case illustration of CodeCoT and \xxx generated tests for HumanEval task. CodeCoT only considers the left values to be lower than the right values, which is due to the tests generated with its code where it also ignores the use of the \textit{abs()} function, while \xxx considers two scenarios~(i.e., left value lower/larger than the right values).}
+    \label{fig:human_test_example}
+\end{figure*}
+
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.8\textwidth]{agent_coder_supp_fig3.pdf}
+    \caption{A case illustration of CodeCoT and \xxx generated code for MBPP task. Both CodeCoT and \xxx's code are correct. However, CodeCoT ignores the edge cases~(e.g., the list does not contain values).}
+    \label{fig:mbpp_code_example}
+\end{figure*}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.8\textwidth]{agent_coder_supp_fig4.pdf}
+    \caption{A case illustration of CodeCoT and \xxx generated tests for MBPP task. CodeCoT ignores to consider the list does not contain values and in its generated code this scenario is also ignored. However, \xxx's edge cases will cover these edge scenarios.}
+    \label{fig:mbpp_test_example}
+\end{figure*}
+
+
+
+\subsection{Case Illustration on HumanEval dataset using \xxx}
+We also provide each agent's prompt and response example~(\cref{fig:programmer_prompt} to \cref{fig:executor}) to illustrate \xxx's workflow. \cref{fig:programmer_prompt} and \cref{fig:programmer_response} illustrate \xxx's programmer prompt and response example. \cref{fig:test_designer_prompt} and \cref{fig:test_designer_response} provide \xxx's test designer prompt and response example. \cref{fig:executor} illustrates \xxx's test executor source code.
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics{AgentCoder_Programmer_Prompt.pdf}
+    \caption{\xxx programmer prompt example.}
+    \label{fig:programmer_prompt}
+\end{figure*}
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{AgentCoder_Programmer_Response.pdf}
+    \caption{\xxx programmer response example.}
+    \label{fig:programmer_response}
+\end{figure*}
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{AgentCoder_Tester_Prompt.pdf}
+    \caption{\xxx tester prompt example.}
+    \label{fig:test_designer_prompt}
+\end{figure*}
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{AgentCoder_Tester_Response.pdf}
+    \caption{\xxx test designer response example.}
+    \label{fig:test_designer_response}
+\end{figure*}
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{AgentCoder_Executor.pdf}
+    \caption{\xxx test executor script.}
+    \label{fig:executor}
+\end{figure*}
+
+\subsection{Case Illustration of the programmer + test executor agent}
+We illustrate the pipeline of the programmer + the test executor agent in~\cref{fig:programmer_executor}.
+
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{AgentCoder_Programmer_Executor.pdf}
+    \caption{Programmer + test designer example.}
+    \label{fig:programmer_executor}
+\end{figure*}
+
+\subsection{Case Illustration of the programmer + test designer}
+We illustrate the pipeline of the programmer + the test designer agent in~\cref{fig:programmer_designer}.
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{AgentCoder_Programmer_Tester.pdf}
+    \caption{Programmer + test executor example.}
+    \label{fig:programmer_designer}
+\end{figure*}

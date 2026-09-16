@@ -1,0 +1,125 @@
+
+
+\section{\dataset Benchmark} \label{sec:dataset}
+
+\begin{wrapfigure}[23]{r}{0.5\linewidth}
+    \centering
+    \vspace{-45pt}
+    \includegraphics[width=\linewidth]{figs/CooperBench.pdf}
+    \caption{\small An example feature pool based on DSPy GitHub repository.
+    This feature pool has 6 features which can be implemented compatibly based on the repository state, but without coordination agents could conflict with each other.}
+    \label{fig:feature_pool}
+\end{wrapfigure}
+
+  
+\dataset seeks to satisfy the following desiderata:
+(1) \emph{Realism}: the tasks should be reasonable for a software development team to work on at a given repository state. 
+(2) \emph{Conflict potential}: the agents' scopes should overlap with each other so that they need to coordinate well to avoid potential conflicts. 
+(3) \emph{Verifiable}: the success of the tasks can be evaluated with a pipeline that is deterministic and interpretable. 
+These three desiderata provide a basis for accurately measuring the real-world cooperation capabilities of agents. 
+
+\subsection{Task space}\label{sec:task_space}
+
+
+\noindent\textbf{Task} Each task consists of a repository state, two features, and two corresponding sets of unit tests. 
+The two features are drawn from a pool of features (like the one illustrated in Fig. \ref{fig:feature_pool}) that can be simultaneously implemented on the given repository state. 
+The patches from the two agents are merged and evaluated. 
+Each agent's goal is to get their assigned feature implemented in the merged patch.\footnote{Agents have the freedom to redivide the two features as long as the merged patch implements both features.
+Agents perform this kind of coordination occasionally well.
+Check out \S\ref{sec:emergent-coordination-behavior} for concrete examples.}
+Based on a pool of $n$ features, there will be $\binom{n}{2}$ tasks when we are evaluating agents self-play, and double the number when we evaluate two different agents cooperate with each other. 
+Note that agents can only view their own features. 
+For example, in Fig. \ref{fig:feature_pool}, there are 6 features in this pool, which produces 15 tasks for evaluating \texttt{GPT-5} agents cooperating with each other. 
+If we want to evaluate how well \texttt{GPT-5} agents cooperate with \texttt{Claude Sonnet 4.5} agents, we will have 30 tasks drawn from this pool. 
+In \dataset we have 34 such features pools. 
+
+
+\noindent\textbf{Features} In this paper, we use \texttt{features} to denote desirable changes to the codebase that implement missing functionality, fix existing bugs, or both. 
+As illustrated in Fig. \ref{fig:feature_pool}, each \texttt{feature} is described in a markdown file, which includes a title, description, examples, and a list of files which may be relevant. 
+For each feature, we write a list of unit tests without the help of coding assistants to ensure accurate evaluation of the implementation. 
+In addition, we write a ground-truth solution to understand the potential conflicts between features and to verify that the given feature can be implemented on the repository and pass the unit tests. 
+The tests and the ground-truth solution is not provided to the agents to prevent test leakage.
+
+\noindent\textbf{Task composition} For each repository state, we create a pool of feature candidates. 
+These features are \emph{compatible} and \emph{potentially conflicting}. 
+``Compatible'' means the features can be implemented jointly. 
+To verify this, we produce a joint ground-truth solution of all features in the pool, which passes all individual unit tests. 
+``Potentially conflicting'' means the features have overlapping code logic changes that influence each other. 
+In our dataset, 77.3\% of tasks have conflicting ground-truth solutions. 
+As a result, \dataset tasks are not adversarial, but still require the capability to cooperate under conflicts by communicating individual goals, understanding others' plans, and negotiating mutually compatible solutions. 
+
+\noindent\textbf{Action space} Agents can take two kinds of actions in real time: the \emph{communication tool} and \emph{computer-use tools}. 
+The communication tool allows agents to send open-ended natural language messages to each other, and the computer-use tools include file and terminal operations. 
+In our paper, we limit the computer-use tools to local operations to control the experiments. 
+In the future, researchers could consider GUI and browser-based actions to expand the tasks the agents can take. 
+Both agents can use these tools at any time, without synchronizing their turns with each other. 
+This not only raises the flexibility of agents, but also poses challenges for agents to timely communicate and execute commands. 
+In our benchmarking process, we use cloud virtual machines for agents to ensure isolated workspaces and sufficient resources. 
+We set an upper-bound number (100)\footnote{We do not observe performance gains on our tasks from raising this number.} of actions an agent can take to complete the tasks. 
+  
+\subsection{Evaluation pipeline}\label{sec:evaluation_pipeline}
+
+Cooperation is hard to evaluate, but we make the product of the cooperation verifiable.
+\dataset evaluates tasks based on two criteria: (1) \emph{compatible solutions} and (2) \emph{implementation correctness}.
+
+\noindent\textbf{Solution compatibility} After the two agents complete execution, we attempt to merge their resulting patches using \texttt{git merge-file -L patch\_1 -L repo\_state -L patch\_2}.
+This operation captures whether the independently produced solutions are structurally compatible. 
+In practice, some merge failures arise from superficial differences such as formatting or indentation styles (e.g., K\&R versus Allman) rather than substantive conflicts. 
+To avoid treating such cases as coordination failures, we train a small coding model (\texttt{Qwen 3 Coder 1.5B}; \citealt{yang2025qwen3technicalreport}) on synthetic examples to resolve trivial merge conflicts when standard merging fails.
+This step ensures that the compatibility check reflects semantic agreement between solutions rather than low-level stylistic discrepancies, while leaving the overall cooperation score largely unaffected (App. \S~\ref{app:resolver}).
+If even the coding model cannot produce a patch without conflicts, the agents both fail the tasks.
+
+
+\noindent\textbf{Implementation correctness} If we successfully merge the two patches into the repository state, we run both sets of unit tests on the merged codebase. 
+As mentioned before, we do not restrict agents to only finish their own work. 
+If they can coordinate well, they can divide their two features in a different way as long as the merged solution can pass the two features' tests. 
+This evaluation pipeline ensures a rigorous evaluation of the cooperation outcome. 
+
+
+\subsection{Dataset Construction}
+\label{sec:dataset_construction}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figs/Dataset_Construction.pdf}
+    \caption{The \dataset construction pipeline.
+    Each task is
+    carefully engineered by domain experts to ensure conflicts are realistic, resolvable, and
+    representative of production software development challenges.}
+    \label{fig:dataset_construction}
+\end{figure}
+
+\dataset is constructed through a three-stage pipeline that grounds tasks in real software development and enables controlled evaluation of coordination (Fig. \ref{fig:dataset_construction}). 
+To create the pools of features, we start from real-world feature implementations and proceed as follows: 
+(Stage I) we write \textit{anchor features} drawn from popular repositories, each of them is a slight modification of a real pull request (PR) authored by human contributors; 
+(Stage II) for each anchor feature, we expand the pool by introducing a family of \textit{adjacent features} authored by human annotators, representing plausible alternative features that could realistically co-occur; and 
+(Stage III) we validate the compatibility of each feature pool by executing and testing all feature combinations in a controlled environment to rule out intrinsically incompatible specifications. 
+
+
+\noindent \textbf{Stage I: Repository and PR Selection} 
+In the first stage we select twelve actively maintained open-source repositories spanning Python, TypeScript, Rust, and Go. 
+Each repository exceeds one thousand GitHub stars and does not appear in SWE-Bench~\citep{jimenez2023swe} or Multi-SWE-Bench~\citep{zan2025multiswebench}, reducing data contamination risk. 
+Selection is guided by curator expertise so that each repository is assigned to an author familiar with its architecture and development practices. 
+We extract PRs that meet strict inclusion constraints: clear feature description, code+tests, feature addition, bounded change size, and robust tests. 
+Appendix~\ref{app:dataset_stats} provides full selection details and thresholds, and App. Tab.~\ref{tab:repos} summarizes the repository distribution.
+
+
+
+\noindent\textbf{Stage II: Feature Extraction and Augmentation}
+In the second stage, we convert each selected PR into a feature pool containing one anchor feature and multiple synthetic adjacent features. 
+We sanitize and rewrite original PR descriptions into self-contained specifications to prevent information leakage. 
+% The PR provides a gold implementation patch and a gold test patch for the real feature. 
+Curators author adjacent features to plausibly co-occur and to create natural overlap without adversarial specifications (with LLM-assisted ideation). 
+Appendix~\ref{app:dataset_stats} provides full details on adjacent-feature design, manual test writing, and gold-solution validation. All features derived from the same base commit constitute a feature pool with two to 12 features.
+To ensure the compatibility among all features in a pool, we construct a single gold patch that jointly implements all features in each set and passes all associated tests. 
+
+
+\paragraph{Stage III: Environment and Reproducibility}
+
+The final stage provides a deterministic execution environment for evaluating agents. 
+Each task set includes an automated setup script that clones the repository at the exact base commit, installs dependencies, and executes the full test suite to verify the environment. 
+To ensure consistent behavior across hardware and operating systems, we additionally provide containerized environments that encapsulate the complete repository state and all runtime dependencies. 
+These environments guarantee reproducible execution and isolate agent behavior from external variability, enabling reliable measurement of coordination performance through the evaluation pipeline described in \S\ref{sec:evaluation_pipeline}. 
+
+Dataset composition and feature-complexity statistics are reported in App.~\ref{app:dataset_stats}. 
+Together, these findings demonstrate that \dataset features are individually tractable and realistic, ensuring that the benchmark's primary challenge arises from coordinating partially overlapping implementations rather than from executing unusually complex or oversized programming tasks.

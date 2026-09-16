@@ -1,0 +1,48 @@
+\section{Method: \model}
+Employing the data from \mind, we introduce an exploratory framework, \model, for our task, leveraging the power of LLMs.
+Raw HTML documents, which could consist of thousands of elements, are either infeasible or cost-prohibitive to be directly fed into LLMs.
+We propose a two-stage process that synergizes the strength of small and large LMs, as shown in Figure~\ref{fig:overview}.
+In the first stage, a fine-tuned small LM is used to rank the elements present on a webpage, yielding a small pool of promising candidates.
+In the second stage, these candidate elements are consolidated to form a representative snippet of the webpage, which is then processed by an LLM to predict the final action, including predicting both the element for interaction and the corresponding operation.
+
+\subsection{Candidate Generation with Small LMs}
+\begin{figure}
+    \begin{minipage}{.52\linewidth}
+       \centering
+        \includegraphics[width=0.9\textwidth]{figures/pipeline.pdf}
+        \caption{The overall pipeline for \model\ with a small ranking LM for candidate generation, and a large prediction LM for action prediction.}
+        \label{fig:overview}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{.44\linewidth}
+        \centering
+        \includegraphics[width=0.85\textwidth]{figures/model_0.pdf}
+        \caption{Illustration of the candidate generation module and the templates for constructing task query and candidate representation.}
+        \label{fig:candidate_generation}
+    \end{minipage} 
+    \vspace{-1em}
+\end{figure}
+Given the task description, the snapshot of the webpage at step $t$, and the actions performed in the preceding $t-1$ steps, we treat candidate generation as a ranking task. The task is to select the top-$k$ candidate DOM elements from the webpage that best align with both the task description and the current step.
+We formulate the task query by concatenating the task description with previous actions.
+The textual representation of each candidate DOM element is derived from a combination of the element's tag, its textual content, and salient attribute values, as well as the textual representation of its parent and child elements.
+As shown in Figure~\ref{fig:candidate_generation}, we pair each DOM element with the task query and feed it to an encoder-only LM through the cross-encoder architecture~\cite{reimers-2019-sentence-bert}, yielding a matching score.
+At training time, we randomly sample negative elements from the webpage, and use the target element as the positive example. The matching score is passed through a sigmoid activation function and optimized with a binary cross entropy loss. At inference time, we score all elements in the webpage and pick the top-$k$ elements with the largest logits as input to the second stage.
+
+\subsection{Action Prediction with LLMs}
+After obtaining the top-$k$ candidates, we utilize the candidate set to prune the webpage snapshot and construct snippets that only include the selected candidates and their neighbours as inputs to an LLM.
+Recent studies~\cite{flant5,pangu} have suggested that training LMs for discrimination rather than generation is more generalizable and sample-efficient for other grounding tasks.
+Inspired by that, we convert the task of element selection into a \textit{multi-choice question answering} (QA) problem. 
+Instead of generating the complete target element, the LM is trained to instead select from a list of options.
+For comparison, we also include a baseline that directly generates the target element based on the provided webpage snippet.
+In both cases, we directly let the LLM generate the operation, along with the additional value needed for some operations.
+An example is shown in Figure~\ref{fig:template}.
+We incorporate up to \num{5} candidate elements within each input, together with a None option, and partition the candidate set into several groups.
+During training, we construct the target sequence using ground-truth actions and fine-tune the model using a left-to-right language modeling objective.
+During inference, we divide the top-$k$ candidates into multiple clusters of five options. If more than one option is selected after a round, we form new groups with the selected ones. This process repeats until a single element is selected, or all options are rejected by the model, i.e., the model chooses the None option for all groups.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/model_1.pdf}
+    \caption{Illustration of action prediction with LLMs.}
+    \label{fig:template}
+    \vspace{-1.5em}
+\end{figure}

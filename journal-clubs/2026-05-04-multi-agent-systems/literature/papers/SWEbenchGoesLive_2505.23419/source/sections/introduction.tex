@@ -1,0 +1,133 @@
+% \section{Introduction}
+% Large Language Models (LLMs) have profoundly transformed the field of software engineering, exemplified by tools such as Cursor and GitHub Copilot. These advancements have revolutionized key aspects of the software development lifecycle, ranging from automated code completion to bug detection and resolution, thereby significantly enhancing developer productivity. To systematically evaluate the efficacy of LLMs in these contexts, several human-curated public benchmarks, including HumanEval, MBPP, SWE-bench,  DI-Bench and OpenRCA, have been introduced. These benchmarks play a critical role in assessing the strengths and limitations of LLMs across diverse software engineering challenges.
+
+% In particular, for issue resolution tasks, benchmarks such as SWE-bench and its derivatives—SWE-bench-Verified and SWE-bench-Lite—have gained widespread adoption as metrics for measuring LLM performance in real-world software development scenarios. However, as LLMs continue to advance, SWE-bench is rapidly losing its utility as a reliable discriminator between competing models. For instance, while the best-performing model was able to resolve only 4.40\% of the tasks in SWE-bench-Verified upon its release in October 2023, this performance surged to 65.40\% by March 2025, marking an extraordinary relative increase of over 1300\%. This dramatic improvement can be attributed, in part, to SWE-bench's static nature, which renders it vulnerable to overfitting as models increasingly optimize for the fixed evaluation dataset.
+
+% Despite these advancements, the reliability of LLM performance evaluations faces critical challenges, with \textit{test contamination} emerging as a pivotal concern. Test contamination occurs when benchmark tasks overlap with the training data of the model. This issue is exacerbated by the public availability of benchmark datasets and the prevalent practice of training LLMs on large-scale internet crawls. Such overlap undermines the validity of evaluation results by artificially inflating the perceived capabilities of the model, which may not accurately reflect its true generalization or reasoning abilities. 
+% Addressing this issue is imperative to ensure the integrity of LLM benchmarking processes and to promote the development of models that genuinely advance the field of software engineering.
+
+% To mitigate these concerns, we introduce \benchmark, a high-quality and contamination-free evaluation framework specifically designed to assess LLMs in the context of issue resolution. \benchmark is constructed by collecting new issues over time from diverse GitHub repositories, ensuring that the dataset remains free from overlap with the training data of existing models. As of its current iteration, \benchmark hosts over \textit{xx} repositories and \textit{yy} issues published between May 2023 and May 2024, significantly surpassing the scope of SWEBench, which was derived from only 12 repositories. By covering a broader range of repositories, \benchmark provides a more representative and diverse evaluation dataset, enhancing the robustness of performance assessments.
+
+% The preparation of \benchmark leverages a fully automated approach designed to ensure efficiency, scalability, and reproducibility. Specifically, this approach incorporates sophisticated mechanisms for data collection, repository and pull request analysis, environment setup, and automated testing. This automated pipeline not only streamlines the benchmark creation process but also lays the groundwork for developing reinforcement learning (RL) models that operate within interactive environments.
+
+% Our contributions are threefold:
+% \begin{itemize}
+%     \item We release \benchmark, a contamination-free benchmark tailored for evaluating LLMs in real-world software development scenarios. \benchmark is designed to be high-quality, diverse, scalable, and continuously updatable, mimicking the dynamic nature of software development where new issues are constantly raised.
+%     \item We propose a fully automated methodology, \method, for preparing benchmark instances. \method integrates data collection, environment setup, and automated testing, thereby creating a robust pipeline for benchmark generation. This methodology not only facilitates reliable evaluations but also enables the training of RL models through interactive environments.
+%     \item By introducing \benchmark and \method, we unlock the potential for more rigorous and realistic evaluations of LLMs, ultimately contributing to the development of models that can better support real-world software engineering processes.    
+% \end{itemize}
+
+% In summary, \benchmark and \method represent significant strides in ensuring the integrity of LLM evaluations while fostering advancements in interactive and dynamic model training methodologies. These contributions aim to set a new standard for contamination-free benchmarking in the field of software engineering.
+
+
+
+% \section{Introduction}
+% Large language models (LLMs) have fundamentally reshaped the landscape of software engineering \cite{fan2023large}, powering tools such as Cursor \cite{cursor2025} and GitHub Copilot \cite{dakhel2023github} that are now integral to modern development workflows. These models have revolutionized key stages of the \textit{software development lifecycle}, including automated code generation, bug detection, and issue resolution, leading to significant improvements in developer productivity. To systematically evaluate the capabilities of LLMs in these contexts, a range of curated benchmarks have emerged, including HumanEval \cite{chen2021evaluating}, MBPP \cite{austin2021program}, SWE-bench \cite{jimenez2024swebench}, DI-Bench \cite{zhang2025di},  OpenRCA \cite{xuopenrca} and etc. These benchmarks play a critical role in identifying the strengths and limitations of LLMs across diverse programming and maintenance tasks.
+
+% Among these, SWE-bench~\cite{jimenez2024swebench} and its variants (e.g., SWE-bench-Verified~\cite{swebench-verified} and SWE-bench-Lite)  have become widely adopted for evaluating LLMs on issue resolution tasks, where models are asked to understand codebases, interact with environment and generate patches that fix bugs in real-world repositories. However, SWE-bench has started to show critical limitations that hinder its  usefulness:
+% \begin{enumerate}[leftmargin=*]
+%     \item \textbf{Staleness.} SWE-bench has not been updated since its initial release, making it a static benchmark. As model performance improves, the risk of overfitting to a fixed evaluation set increases, reducing the benchmark’s ability to meaningfully distinguish between newer, more capable models.
+%     \item \textbf{Limited repository coverage.} The benchmark is constructed from only 12 repositories, providing limited diversity in codebases, domains, and programming styles. This narrow scope reduces the generalizability of evaluation results.
+%     \item \textbf{Heavy reliance on manual effort.} Constructing benchmark instances in SWE-bench requires extensive manual labor: identifying suitable issue-resolution pairs and configuring runnable environments for automated patch validation. These labor-intensive processes create bottlenecks and hinder scalability.
+% \end{enumerate}
+
+% These shortcomings collectively constrain the scalability, reliability, and relevance of SWE-bench as a long-term evaluation framework. Moreover, test contamination—the inadvertent inclusion of benchmark instances in LLM training data—is an increasingly urgent concern due to the open availability of evaluation datasets and the widespread use of internet-scale pretraining. Contaminated benchmarks may yield inflated performance scores that fail to reflect true generalization or reasoning capabilities. While recent efforts such as \textit{LiveCodeBench}~\cite{jain2024livecodebench} have introduced live-updating benchmarks for algorithmic programming, such approaches do not extend to complex, repository-level issue resolution tasks that require multi-file reasoning, dependency installation, and reproducible execution environments.
+
+% To address these challenges, we introduce \benchmark{}, a live and scalable benchmark specifically designed for evaluating LLMs on real-world issue resolving tasks.  Figure~\ref{fig:overview} shows the construction process of \benchmark{}. It eliminates the need for manual effort and achieves full automation, enabling the continual delivery of up-to-date task instances with broader repository coverage and greater dataset scale. As of the current release, \benchmark{} includes \textit{1,319} issue resolving tasks created since year 2024 from \textit{93} repositories—significantly expanding beyond SWE-bench's static dataset and narrow repository coverage.
+
+% We propose the first fully automated pipeline for generating issue-resolving datasets, enabling an end-to-end construction of SWE-bench-Live. We are planning to update the SWE-bench-Live dataset on a monthly basis, continuously providing the community with fresh evaluation instances. Our contributions are as follows:
+% \begin{itemize}[leftmargin=*]
+%     \item We introduce \benchmark, a contamination-resistant, reproducible, and continuously updatable benchmark tailored to real-world issue resolution tasks. It reflects the dynamic nature of software development and provides broader repository coverage than prior work.
+%     \item We propose \method, a fully automated pipeline for benchmark construction that integrates data curation, environment setup, and test validation into a cohesive and scalable system.
+%     % \item By addressing the limitations of prior benchmarks such as SWE-bench and filling a gap not covered by live algorithmic benchmarks like LiveBench, our work establishes a more robust foundation for LLM evaluation and opens the door to RL training on realistic, interactive code tasks. \cz{This contribution is not proved, should replace by insights after running existing agents.}
+%     \item We observed XXX \cz{missing}
+% \end{itemize}
+% In summary, \benchmark and \method represent a significant step forward in the rigorous, scalable, and contamination-free evaluation of LLMs in software engineering. Our contributions aim to set a new standard for benchmarking dynamic, repository-scale tasks in the era of rapidly evolving foundation models.
+
+
+% Multi-SWE-bench retains 2, 456 issue-resolving instances spanning 39 repositories across 7 languages. 
+
+% 1.96\% of the issues on SWE-bench-full to  33.83\% on swebench-full
+
+% SWE-bench consists of data that could be outdated, old....
+
+% SWE-bench score very high, not able to evlaute the performance of LLMs, cannot make a distinguish.
+
+\section{Introduction}
+Large language models (LLMs) have fundamentally reshaped the landscape of software engineering \cite{fan2023large}, powering tools such as Cursor \cite{cursor2025} and GitHub Copilot \cite{dakhel2023github} that are now integral to modern development workflows. 
+These models have transformed key stages of the software development lifecycle—automated code generation, bug detection, and issue resolution—leading to substantial gains in developer productivity. 
+To systematically assess LLM capabilities across these tasks, a variety of curated benchmarks have been developed, including HumanEval \cite{chen2021evaluating}, MBPP \cite{austin2021program}, SWE-bench \cite{swebench}, DI-Bench \cite{zhang2025di}, and OpenRCA \cite{xuopenrca}. 
+These benchmarks are instrumental in identifying both the strengths and limitations of LLMs in diverse programming and maintenance settings.
+
+Among them, SWE-bench~\cite{swebench} and its variants, such as Multimodal SWE-bench~\cite{yang2024swebenchmultimodalaisystems} and Multi-SWE-bench~\cite{zan2025multi}, have become standard for evaluating LLMs on the issue resolution task, where models are required to comprehend complex codebases, interact with execution environments, and generate patches that fix real-world issues.
+However, as LLMs evolve rapidly, existing benchmarks exhibit several critical limitations that undermine their continued utility:
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/overview.pdf}
+    \caption{The automatic construction pipeline of \benchmark.}
+    \label{fig:overview}
+\end{figure}
+
+\begin{table}[ht]
+    \centering
+     \vspace{-1em}
+    \caption{Comparison with existing issue resolving benchmarks.}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{c|ccccc}
+    \toprule
+      \textbf{Dataset} & \textbf{Date}  & \textbf{\#Instances} & \textbf{\#Repository} & \textbf{Real/Synthetic} & \textbf{Curation}\\
+      \midrule
+      SWE-bench~\cite{swebench} & Oct, 2023 & 2,294 & 12 & Real & Manual \\
+      SWE-bench-Verified~\cite{swebench-verified} & Aug, 2024 &  500 & 12 & Real &  Manual \\
+      SWE-Gym~\cite{swegym} & Dec, 2024 & 2,438 & 11 & Real & Manual \\
+      Multi-SWE-bench~\cite{zan2025multi} & Apr, 2025 & 1,632 & 39 & Real & Manual \\
+      SWE-smith~\cite{yang2025swesmith} & Apr, 2025 & 50,000 & 128 & Synthetic & Semi-manual  \\
+      \midrule
+      \textbf{\benchmark} (Ours) & April, 2025 & \textbf{1,319 (since 2024)} & \textbf{93} & \textbf{Real} & \textbf{Automatic} \\
+    \bottomrule
+    \end{tabular}
+    }
+    \vspace{-1em}
+    \label{tab:comparison}
+\end{table}
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Staleness.} SWE-bench and its derivatives have not been updated since their initial releases, making them static benchmarks. 
+	Because LLMs are trained on massive inscrutable corpora, these static datasets are at risk of data contamination, as they could have be been unpurposely included in model training data. 
+	This raises concerns about whether newer models are making truly generalizable progress or merely memorizing benchmark content, reducing the benchmarks' effectiveness in distinguishing model capabilities. 
+
+	\item \textbf{Limited repository coverage.} These benchmarks draw from a small set of repositories, limiting diversity in codebases, domains, and programming practices (see Table~\ref{tab:comparison} for details). This narrow scope weakens the generalizability and robustness of evaluations.
+
+	\item \textbf{Heavy reliance on manual effort.} Constructing instances for SWE-bench-like task istances involves substantial human labor: identifying appropriate issue-resolution pairs, locating relevant tests, configuring runnable environments, composing test commands, and validating the full workflow.\footnote{For instance, it take about one year for Multi-SWE-bench \cite{zan2025multi} to create 1,632 benchmark instances with 68 expert annotators. } This process is resource-intensive and creates scalability bottlenecks.
+\end{enumerate}
+
+
+To address these challenges, we introduce \benchmark{}, a live and scalable benchmark built for evaluating LLMs on real-world issue resolution tasks. 
+In contrast to recent efforts such as LiveCodeBench~\cite{jain2024livecodebench}, which target algorithmic programming problems, \benchmark{} is the first live-updating benchmark designed for complex, repository-level tasks that demand multi-file reasoning, environment setup, and reproducible execution.
+Figure~\ref{fig:overview} illustrates the construction pipeline of \benchmark{}. 
+At the core of our framework is \method{}, a fully automated pipeline that eliminates manual bottlenecks by streamlining the entire process—from issue mining to environment packaging.
+More specifically, \method{} leverages an agentic and end-to-end workflow to setup the Docker environment by identifying relevant instruction files, selecting base images, installing necessary dependencies, building the project, and validating its test suite.
+This automation enables continuous updates, broad repository coverage, and large-scale dataset expansion.
+Our current release of \benchmark{} contains 1,319 issue-resolution tasks sourced from real-world GitHub issues created since 2024, spanning 93 repositories.
+Compared to existing benchmarks, this represents a significant leap in freshness, diversity, and scale (see Table~\ref{tab:comparison}).
+
+We evaluate three leading agent frameworks (i.e., OpenHands~\cite{openhands}, SWE-Agent~\cite{sweagent}, and Agentless~\cite{xia2024agentless}) in combination with four state-of-the-art LLMs (namely, GPT-4.1, GPT-4o, Claude 3.7 Sonnet, and DeepSeek V3). Consistent with performance rankings reported on SWE-bench Verified,\footnote{\url{https://www.swebench.com/}} we observe that OpenHands, when paired with Claude 3.7 Sonnet, achieves the highest performance on \benchmark{}. However, its overall results are significantly lower compared to those achieved on SWE-bench Verified.
+To explore this discrepancy further, we conduct a controlled comparison and find that the same agent-LLM pair consistently performs worse on \benchmark{} than on SWE-bench. This finding suggests that existing models may be overfitting to static benchmarks like SWE-bench, underscoring the importance of developing more dynamic and diverse evaluation settings, such as those provided by \benchmark{}.
+
+
+% Our main contributions are as follows:
+% \begin{itemize}[leftmargin=*]
+%     \item We introduce \benchmark, a contamination-resistant, reproducible, and continuously updatable benchmark tailored to real-world issue resolution tasks. It reflects the dynamic nature of software development and provides broader repository coverage than prior work.
+%     \item We propose \method, a fully automated pipeline for benchmark construction that integrates data curation, environment setup, and test validation into a cohesive and scalable system.
+%     \item We observed low performances of leading agent frameworks on our \benchmark, indicating huge spaces for future development on  contamination-free benchmark.  
+% \end{itemize}
+
+
+Our main contributions are summarized as follows:
+\begin{itemize}[leftmargin=*]
+\item We introduce \benchmark, a contamination-resistant, reproducible, and continuously updatable benchmark tailored to real-world issue resolution tasks. It reflects the dynamic nature of software development and offers broader repository coverage compared to prior benchmarks.
+\item We propose \method, a fully automated pipeline for benchmark construction that seamlessly integrates data curation, environment setup, and test validation into a cohesive and scalable system.
+\item Through experimental evaluation, we observe the suboptimal performance of leading agent frameworks on \benchmark, highlighting significant opportunities for improvement on the contamination-free benchmark.
+\end{itemize}
+    % \item By addressing the limitations of prior benchmarks such as SWE-bench and filling a gap not covered by live algorithmic benchmarks like LiveBench, our work establishes a more robust foundation for LLM evaluation and opens the door to RL training on realistic, interactive code tasks. \cz{This contribution is not proved, should replace by insights after running existing agents.}

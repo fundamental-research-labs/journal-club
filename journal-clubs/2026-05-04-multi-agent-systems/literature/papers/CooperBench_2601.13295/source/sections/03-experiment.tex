@@ -1,0 +1,14 @@
+
+\section{Experiment Settings}\label{sec:experimental_design}
+
+% \hao{Move this paragraph to next section. Open what our RQs are and talk about how we set up our experiments and the implementation details}
+
+\dataset allows us to study the following research questions. First, how well can current state-of-the-art foundation models cooperate with each other when they are used in coding agents? Second, do agents use the communication channel effectively for coordination? And, what are the reasons why agents fail or succeed on \dataset? 
+
+In order to evaluate models fairly, we create an agent framework incorporating leading open-source coding agent framework \texttt{OpenHands (v0.54)}~\citep{wang2024openhands}. The two agents perform their own work in their respective docker-based containers without interruption from another agent. Since OpenHands was not designed as a framework which performs multi-agent cooperation, we created a communication tool (\S\ref{sec:task_space}) using an SQL database for message passing. This communication tool supports message sending action. When an agent sends a message to another agent, the other agent will immediately receive it, and include it in the prompt of the next step. This communication setting achieves both real-time communication and asynchronous execution. We open-source this framework to not only ensure reproducibility of our experiments, but also provide a starting point for researchers to build multi-agent cooperation systems which can perform multiple tasks and resolve conflicts. 
+
+\emph{However, note that \dataset does not tie with the agent framework or the communication tool.} In this paper, we are more concerned with foundation models' intrinsic capability to cooperate, so we do not compare different agent frameworks or creative methods to enhance coordination. In the future, researchers should use \dataset to compare different models, different frameworks, and different combinations as well. We especially encourage researchers to develop novel frameworks or to train agents to achieve higher Coop scores or to close the Solo-Coop gaps (\S\ref{sec:cooperation_performance}) on \dataset.
+Similarly, we encourage researchers to develop other communication tools, e.g. screen sharing, to expand the communication bandwidth or reduce the communication noises. 
+
+We evaluate the performance of five language models, both closed-source ones, and open-source ones: \texttt{GPT-5}, \texttt{Claude 4.5 Sonnet}, \texttt{MiniMax-M2}, \texttt{Qwen3-Coder-30B-A3B-Instruct}, and \\\texttt{Qwen3-30B-A3B-Instruct-2507}.
+We serve the two Qwen models via vLLM\footnote{\url{https://vllm.ai/}}, GPT-5 and Minimax models via their respective official API, and the Claude model through GCP. 

@@ -1,0 +1,121 @@
+\begin{tcolorbox}[breakable,title=Prompt Details for Todo]
+\textbf{\textcolor{blue}{System Prompt}}\\ 
+You can use actions to help people solve problems.\\
+\begin{tikzpicture}
+\draw[dashed] (0,0) -- (\linewidth,0); % 绘制一条宽度为\linewidth的虚线
+\end{tikzpicture}
+\textbf{\textcolor{blue}{Instruction}}\\
+We detail name, description, input(parameters) and output(returns) of each action as follows:\\
+Name: get\_user\_current\_date()\\
+Description: Get the user's current date.\\
+Returns:\\
+The current date in `YYYY-MM-DD' format.\\
+\\
+Name: get\_user\_current\_location()\\
+Description: Get the user's current city.\\
+Returns:\\
+The user's current city.\\
+\\
+Name: get\_projects()\\
+Description: Get all projects in the Todoist account\\
+Returns:\\
+- Array of objects with properties:\\
+  - id (Type: string)\\
+  - name (Type: string)\\
+  - order (Type: integer)\\
+  - color (Type: string)\\
+  - is\_favorite (Type: boolean)\\
+\\
+Name: update\_project(project\_id, is\_favorite)\\
+Description: Update a project\\
+Parameters:\\
+- project\_id (Type: string)\\
+- is\_favorite (Type: string, Enum: [True, False])\\
+Returns:\\
+Information of the updated project\\
+\\
+Name: get\_tasks(project\_id)\\
+Description: Get all tasks for a given project\\
+Parameters:\\
+- project\_id (Type: string)\\
+Returns:\\
+- Array of objects with properties:\\
+  - id (Type: string)\\
+  - project\_id (Type: string)\\
+  - order (Type: integer)\\
+  - content (Type: string): Name of the task.\\
+  - is\_completed (Type: boolean)\\
+  - priority (Type: integer): Task priority from 1 (normal) to 4 (urgent).\\
+  - due\_date (Type: string): The due date of the task.\\
+\\
+Name: get\_task\_description(task\_id)\\
+Description: Get the description of a specific task in the Todoist account.\\
+Parameters:\\
+- task\_id (Type: string)\\
+Returns:\\
+- id (Type: string): Unique identifier of the task.\\
+- content (Type: string): Name of the task.\\
+- description (Type: string): Description of the task. Incluing the Place, Tips, etc.\\
+\\
+Name: get\_task\_duration(task\_id)\\
+Description: Get the duration of a specific task in the Todoist account.\\
+Parameters:\\
+- task\_id (Type: string)\\
+Returns:\\
+- id (Type: string)\\
+- content (Type: string): Name of the task.\\
+- duration (Type: string): Duration of the task in the format of `amount(unit)'.\\
+\\
+Name: complete\_task(task\_id)\\
+Description: Mark a task as completed\\
+Parameters:\\
+- task\_id (Type: string)\\
+Returns:\\
+information of the completed task\\
+\\
+Name: update\_task(task\_id, due\_date)\\
+Description: Update a task\\
+Parameters:\\
+- task\_id (Type: string)\\
+- due\_date (Type: string)\\
+Returns:\\
+Information of the updated task\\
+\\
+Name: delete\_task(task\_id)\\
+Description: Delete a specific task from the Todoist account.\\
+Parameters:\\
+- task\_id (Type: string): Unique identifier of the task to delete.\\
+Returns:\\
+Information of the deleted task.\\
+\\
+Name: check\_valid\_actions()\\
+Description: Get supported actions for current tool.\\
+Returns:\\
+Supported actions for current tool.\\
+\\
+Name: finish(answer)\\
+Description: Call this action, when find the answer for the current task or complete essential operations.\\
+Parameters:\\
+- answer (Type: [`string', `number', `array']): If the task is a question answering task, this is the answer to be returned. If the task is an operation task, the answer in `done'\\
+\\
+\\
+If you are finished, you will call ``finish'' action\\
+Please refer to the format of examples below to solve the requested goal. Your response must be in the format of ``Action: [your action] with Action Input: [your action input]''\\
+\begin{tikzpicture}
+\draw[dashed] (0,0) -- (\linewidth,0); % 绘制一条宽度为\linewidth的虚线
+\end{tikzpicture}
+\textbf{\textcolor{blue}{Examples}}\\
+Goal: Is Prepare for history quiz a task of School project? Please answer yes or no.\\
+\\
+Action: get\_projects with Action Input: \{\}\\
+Observation: [\{`id': `12345', `order': 0, `color': `charcoal', `name': `School', `is\_favorite': false\}]\\
+Action: get\_tasks with Action Input: \{``project\_id'': ``12345''\}\\
+Observation: [\{`id': `123451', `order': 0, `content': `Prepare for history quiz', `is\_completed': false, `priority': 1, `due\_date': `2030-10-10'\}, \{`id': `123452', `order': 1, `content': `Prepare for math quiz', `is\_completed': false, `priority': 1, `due\_date': `2030-11-10'\}]\\
+Action: finish with Action Input: \{``answer'': ``yes''\}\\
+Observation: yes\\
+\end{tcolorbox}
+\begin{figure}[!h]
+    \vspace{-0.08cm}
+    \caption{Prompt Details for Todo in Tool-Operation Environments.}
+    \label{fig:todo_prompt}
+\end{figure}

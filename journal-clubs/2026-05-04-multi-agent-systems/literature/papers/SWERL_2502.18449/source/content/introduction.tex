@@ -1,0 +1,57 @@
+\begin{figure}[tb!]
+\centering
+\includegraphics[width=0.95\linewidth]{plots/DevLlama-swerl.pdf}
+\caption{\textbf{Overview of \tech{}.}
+We create a seed RL dataset from GitHub PRs, including issue descriptions, code context, and oracle patches. A policy LLM generates code edits via reasoning. Rewards are based on the similarity to oracle patches, with penalties for formatting errors. We optimize the policy using \grpo.
+}
+\label{fig:overview}
+\end{figure}
+
+
+\section{Introduction}
+\label{section:intro}
+
+The application of large language models (LLMs) to software engineering (SE) tasks has received significant attention, with researchers exploring their potential to automate various complex SE tasks,
+such as library-level and complex code generation~\cite{bigcodebench,commit0},
+real-world bug/issue resolution~\cite{alpharepair, swebench,swebenchm},
+and software testing~\cite{titanfuzz, testgeneval}.
+Among these tasks, \swebench~\cite{swebench}---a benchmark for solving real-world software issues---has emerged as a focal point of research efforts, and researchers have proposed various agentic~\cite{sweagent,openhands,aider} and pipeline-based~\cite{agentless,moatless,autocoderover} methods to push LLMs' real-world issue solving capability.
+However, most current techniques rely on powerful proprietary LLMs like \gpt{-4o}~\cite{gpt4o} or \sonnet~\cite{claude35}, where advancements are driven more by enhanced prompting strategies than by improvements in the underlying LLM.
+
+With the release of \dpsk-R1~\cite{deepseekr1}, reinforcement learning (RL) using rule-based rewards has become a crucial technique for enhancing the reasoning capabilities of LLMs across various downstream tasks, including coding~\cite{acecoder} and mathematics~\cite{cotstudy}.
+However, their effectiveness in SE tasks remains limited~\cite{deepseekr1}, and their substantial total parameter size (671B) poses challenges for researchers attempting to train them.
+For mathematics, the reward is generally defined as whether the answer predicted by the LLM can exactly match the ground truth~\cite{deepseekr1}.
+While in coding, existing RL research typically utilizes execution feedback~\cite{deepseekr1,rlef} as the reward signal and is limited to competitive programming tasks~\cite{codecontests,lcb}, where code is self-contained and easily executable.
+This is challenging to apply to real-world SE tasks due to the execution cost and lack of executable environments~\cite{swegym}.
+Meanwhile, previous research~\cite{swegpt,swegym,swefixer} relied on proprietary teacher models and focused primarily on supervised fine-tuning (SFT), which, as we show in the paper, is less effective and less generalizable.
+
+
+
+
+To address these limitations, we propose \tech, the first RL method to improve LLMs on SE tasks by directly using rule-based rewards and software evolution data---the record of entire software lifecycle, including all code snapshots, changes, and events like PRs and issues.
+As shown in \Cref{fig:overview}, we begin by curating a comprehensive dataset of \github pull requests (PRs), which is then transformed into the seed dataset for RL.
+Each data item includes an issue, the corresponding code context, and the oracle patch merged by the PR.
+During RL, the policy LLM is tasked with solving a given issue through reasoning and producing the code changes.
+The code changes are then converted into a consistent patch format for reward calculation.
+If the response is incorrectly formatted, the reward will be $-1$; otherwise, the reward is a similarity score (between 0 and 1) of the predicted and the oracle patch calculated by Python's \verb|difflib.SequenceMatcher|~\cite{Gestalt_pattern_matching}.
+Notably, we provide the complete content of each file in the input prompt, which implicitly teaches the model to reason about the precise fault locations before suggesting repair edits.
+
+
+
+
+
+
+Applying \tech to \llama-3.3-70B-Instruct~\cite{llama31}, our model \ours[70] solves \textbf{\swebfinalbig{\%}} of the issues in \swebverified~\cite{swebverified}, a human-verified subset of \swebench, with \ouragentless, our pipeline-based scaffold built upon \agentless~\cite{agentless}, featuring simplifications to match our RL process and enhancements for scaling.
+This performance is comparable to leading proprietary LLMs like \gpt{-4o}~\cite{gpt4o} and state-of-the-art among medium-sized LLMs with less than 100B total parameters.
+Our ablation studies demonstrate that \ours[70] significantly outperforms its \llama baseline. Additionally, we developed a competitive supervised fine-tuning (SFT) model from \llama-3.3-70B-Instruct using synthetic data generated in the \magicoder~\cite{magicoder} style to enhance the chain-of-thought~\cite{cot} process, employing the same seed as \tech.
+We show that \ours[70], trained with \tech solely for solving issues, not only surpasses the SFT model in \swebench but also excels in other out-of-domain (OOD) tasks, including function-level coding~\cite{codex,liu2023code}, practical code generation with library use~\cite{bigcodebench}, code reasoning~\cite{cruxeval}, mathematics~\cite{mathbench}, and general language understanding~\cite{mmlu}.
+In these OOD tasks, \ours[70] even outperforms \llama-3.3-70B-Instruct, whereas the SFT model results in decreased performance.
+
+
+In summary, our contributions are as follows:
+\begin{itemize}
+\item We introduce \tech, the first RL approach specifically designed to enhance LLMs for SE tasks using software evolution data (e.g., PRs) and rule-based rewards.
+\item We develop \ours[70], trained with \tech on \llama-3.3-70B-Instruct. It achieves \textbf{\swebfinalbig{\%}} on \swebverified, the best performance among medium-sized language models (<100B) and even comparable to leading proprietary models like \gpt{-4o}.
+\item We show for the first time that applying RL solely to real-world SE tasks, such as issue solving, can already enhance an LLM's general reasoning abilities, enabling it to improve on out-of-domain tasks like math, code generation, and general language understanding.
+\end{itemize}
+

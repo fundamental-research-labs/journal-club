@@ -1,0 +1,107 @@
+\subsection{Object-level reference}
+\label{sec:exp2}
+
+We established that our agents can solve the coordination problem, and
+we have at least tentative evidence that they do so by developing
+symbol meanings that align with our semantic intuition. We turn now to
+a simple way to tweak the game setup in order to encourage the agents
+to further pursue high-level semantics. 
+
+The strategy is to remove some
+aspects of ``common knowledge'' from the game. Common knowledge, in
+game-theoretic parlance, are facts that everyone knows, everyone knows
+that everyone knows, and so on
+\citep{brandenburger2014hierarchies}. Coordination can only occur if
+the basis of the coordination is common knowledge
+\citep{rubinstein1989electronic}, therefore if we remove some facts
+from common knowledge, we will preclude our agents from coordinating
+on them. In our case, we want to remove facts pertaining to the
+details of the input images, thus forcing the agents to coordinate on
+more abstract properties.
+% At the same time, we aim to simulate real reference scenarios more
+% closely.  In the simulations of Section~\ref{sec:exp1}, both agents
+% had access to the exact same visual representation of each
+% image. This is a highly suspect assumption. If we imagine two
+% humans playing this game, there are many reasons we should expect them
+% to have different interpretations of each object. At a simple physical
+% level, they will not have the same viewpoint of the object (and this
+% alone will alter low-level properties such as illumination). At a
+% higher cognitive level, each of us has unique interaction histories
+% with the world as well as differences in our biology (e.g.,
+% color-blindness) and so we perceive and interpret things in different
+% ways \textbf{(CITE?)}.
+We can remove all low-level common knowledge by letting the agents
+play only using class-level properties of the objects. We achieve this by modifying the game to show the agents different pairs of images but maintaining the ImageNet class of both the target and distractor (e.g., if the
+target is \emph{dog}, the sender is shown a picture of a Chihuahua and
+the receiver that of a Boston Terrier).
+
+% \begin{table}[tb]
+% \centering
+% \begin{tabular}{c|c|c|c|c|c|c|c}
+% visual representation&vobab size & used words& sender & commun. success &purity & rand. purity & purity-rand. purity\\\hline
+% fc & 100 & shared & 43 & 1.00 & 0.45 & 0.24 & 0.21\\
+% %probs & 10 & shared & 10 & 0.99 & 0.37 & 0.18 & 0.20\\
+% fc & 10 & shared & 10 & 1.00 & 0.37 & 0.18 & 0.19\\
+% %probs & 100 & shared & 62 & 0.99 & 0.46 & 0.28 & 0.18\\
+% fc & 10 & fullyconnected & 3 & 0.98 & 0.28 & 0.16 & 0.12\\
+% %probs & 10 & fullyconnected & 2 & 0.94 & 0.22 & 0.15 & 0.07\\
+% fc & 100 & fullyconnected & 2 & 0.92 & 0.23 & 0.15 & 0.07\\
+% %probs & 100 & fullyconnected & 2 & 0.93 & 0.22 & 0.15 & 0.06\\
+% \end{tabular}
+% \caption{Table with results, multiple instance noise}
+% \label{tab:exp2_multiinstance}
+% \end{table}
+
+\begin{table}[tb]
+\centering
+\small
+\begin{tabular}{c|c|c|c|c|c|c|c}
+id &sender   &vis   &voc &used     &comm    &      purity ($\%$)   &obs-chance\\
+ &		& rep & size& symbols & success($\%$) &  & purity ($\%$) \\\hline
+1&informed&fc      &100     &43          &100               &45         &21\\
+2&informed&fc      &10      &10          &100               &37         &19\\
+3&agnostic&fc      &100     &2           &92               &23         &7\\
+4&agnostic&fc      &10      &3           &98               &28         &12\\
+\end{tabular}
+\caption{Playing the referential game with image-level targets: test results after 50K training plays. Columns as in Table \ref{tab:exp1_table}. All purity values significant at $p<0.001$.}
+\label{tab:exp2_multiinstance}
+\end{table}
+
+Table~\ref{tab:exp2_multiinstance} reports results for various
+configurations. We see that the agents are still able to
+coordinate. Moreover, we observe a small increase in symbol usage
+purity, as expected since agents can now only coordinate on general
+properties of object classes, rather than on the specific properties
+of each image. This effect is clearer in Figure \ref{fig:exp1_tsne} (right), when we repeat t-SNE based visualization of the relationship that emerges between visual embeddings and the words used to refer to them in this new experiment. 
+
+%\COMMENT{I have tentatively commented out the discussion of the cross-layer strategy, since it doesn't seem% to improve purity, and the table was already commented out. Feel free to reinstate.}
+
+% While effective, the aforementioned  training curriculum requires access to image object annotations and is a bit artificial. A less knowledge-intensive technique for removing low-level common knowledge is to present agents with different representations of the same image. 
+
+% This can be achieved either by using, for the visual representation, a different network architecture or the same architecture trained differently (different seed or training data). 
+
+% Here,  we adopt a simpler way and present agents with representations of the same image coming from the same network but from different layers, e.g., the sender's input representation of an image is the last layer while the receiver's is the second to last layer.  
+
+% We note that this does not exactly remove common knowledge of low level features, since by definition the last layer is a (non-linear) transformation of previous ones. However, it does make coordination on one particular dimension, or simple function of several dimensions, of the embedding much more difficult. 
+
+% Again, we find that this does not impede accuracy very much but does lead to an increase in the purity of our clusters - that is, words used to refer to entities become more predictable by higher level features of the image, eg. its class.
+
+\iffalse
+\begin{table}
+\centering
+\begin{tabular}{c|c|c|c|c|c|c|c}
+visual representation&vobab size & used words& sender & commun. success &purity & rand. purity & purity-rand. purity\\\hline
+fc & 100 & shared & 54 & 0.98 & 0.48 & 0.26 & 0.22\\
+%probs & 100 & shared & 59 & 0.98 & 0.47 & 0.27 & 0.20\\
+%probs & 10 & shared & 10 & 0.96 & 0.35 & 0.18 & 0.18\\
+fc & 10 & shared & 10 & 0.97 & 0.29 & 0.18 & 0.11\\
+%probs & 10 & fullyconnected & 2 & 0.88 & 0.25 & 0.15 & 0.09\\
+fc & 10 & fullyconnected & 2 & 0.89 & 0.24 & 0.15 & 0.09\\
+%probs & 100 & fullyconnected & 2 & 0.87 & 0.22 & 0.15 & 0.06\\
+fc & 100 & fullyconnected & 2 & 0.90 & 0.21 & 0.15 & 0.05\\
+\end{tabular}
+\caption{Table with results, crosslayer noise}
+\label{tab:exp2_crosslayer}
+\end{table}
+\fi
+

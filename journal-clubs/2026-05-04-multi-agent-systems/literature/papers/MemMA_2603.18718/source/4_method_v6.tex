@@ -1,0 +1,183 @@
+\section{Methodology}
+\label{sec:methodology}
+% We present \method, a plug-and-play multi-agent framework for coordinating the memory cycle.
+% The framework has two parts.
+% Sec.~\ref{ssec:architecture_design} describes the forward path, which handles online memory construction and iterative retrieval through a planner--worker architecture.
+% Sec.~\ref{ssec:self_evolving_construction} describes the backward path, which uses in-situ self-evolution to repair the current memory before it is committed. 
+% \suhang{I think we should rewrite this paragraph.  Directly start with something like ``Motivated by the xxx, we propose xxx'', then give the high-level idea of the proposed framework. This will have a smoother logic}
+Motivated by the memory cycle effect (Sec.~\ref{ssec:cycle_effect}) and strategic blindness (Sec.~\ref{ssec:motivate_study}), we present \method, a plug-and-play multi-agent framework that coordinates the memory cycle along its forward and backward paths (Fig.~\ref{fig:framework_memma}). Sec.~\ref{ssec:architecture_design} describes the forward path: a planner--worker architecture that separates strategic reasoning from low-level execution to address strategic blindness. 
+Sec.~\ref{ssec:self_evolving_construction} describes the backward path: an in-situ self-evolution mechanism that addresses sparse, delayed feedback by generating synthetic probe QA immediately after each session, providing dense, localized supervision for memory repair before the current memory is committed. 
+% Sec.~\ref{ssec:self_evolving_construction} describes the backward path: an in-situ self-evolution mechanism that replaces sparse, delayed utilization feedback with dense, immediate supervision through synthetic probe QA, enabling memory repair before the current memory is committed. 
+% The overall framework is illustrated in Fig.~\ref{fig:framework_memma}.
+
+
+\begin{figure}[t]
+    \small
+    \centering
+        % \includegraphics[width=0.95\linewidth]{figures/memma_v2.drawio.pdf}
+        \includegraphics[width=0.95\linewidth]{figures/memma_framework_v6.pdf}
+        % \vskip -1em
+    % \vskip -0.5em
+    \caption{Overview of \method.}
+    \vspace{-1.2em}
+    \label{fig:framework_memma}
+\end{figure}
+
+
+\subsection{Reasoning-Aware Coordination over the Forward Path}
+\label{ssec:architecture_design}
+% Motivated by the memory cycle effect (Sec.~\ref{ssec:cycle_effect}) and strategic blindness (Sec.~\ref{ssec:motivate_study}), 
+\method coordinates online construction, iterative retrieval, and answer-time utilization through specialized yet tightly coupled agents.
+Its key design principle is to separate strategic reasoning (what to store, what is missing, and when to stop) from low-level execution (memory editing, evidence retrieval, and answer generation).
+
+% We first describe the forward path of \method.
+% Its key design principle is to separate strategic reasoning (what to store, what is missing, and when to stop) from low-level execution (memory editing, evidence retrieval, and answer generation).
+% \method coordinates online construction, iterative retrieval, and answer-time utilization through specialized yet tightly coupled agents.
+
+\noindent\textbf{Pipeline Overview.}
+\method uses a planner--worker architecture with four roles:
+(i)~a \textit{Meta-Thinker} $\pi_{p}$ for high-level strategic reasoning,
+(ii)~a \textit{Memory Manager} $\pi_{s}$ for memory editing,
+(iii)~a \textit{Query Reasoner} $\pi_{r}$ for iterative query refinement, and
+(iv)~an \textit{Answer Agent} $\pi_{a}$ for final response generation.
+
+During \emph{construction}, when a new dialogue chunk $c_t$ arrives, $\pi_{p}$ analyzes it against existing memory $M_{t-1}$ and produces meta-guidance on what to retain, consolidate, or resolve.
+Conditioned on the guidance, $\pi_{s}$ selects an atomic edit to update $M_{t-1}$ to $M_t$.
+During \emph{question answering}, given a query $q$, $\pi_{r}$ retrieves candidate evidence from $M_T$ and iteratively refines its search.
+At each step, $\pi_{p}$ judges whether the current evidence is sufficient; if not, it identifies the most critical gap and directs $\pi_{r}$ to refine the query toward complementary evidence.
+The loop ends when $\pi_{p}$ deems the evidence sufficient or a budget $H$ is reached. Then $\pi_{a}$ generates the final answer.
+We detail each component below.
+
+\noindent\textbf{Meta-Thinker $\pi_{p}$.}
+$\pi_{p}$ is the planning layer of \method, responsible for both construction and retrieval guidance.
+It produces phase-specific guidance conditioned on the current input and a bounded memory view:
+\begin{equation}
+% \small
+\begin{aligned}
+g_t^{S} &\sim \pi_{p}(\cdot \mid c_t,\tilde{M}_{t-1}), \\
+% g_{q,h}^{R} &\sim \pi_{p}(\cdot \mid q,E_h,\tilde{M}_{T}),\\
+g_{q,h}^{R} &\sim \pi_{p}(\cdot \mid q, E_h, U_h, \tilde{M}_{T}),
+\end{aligned}
+\label{eq:meta_guidance}
+\end{equation}
+where $g_t^{S}$ is construction guidance at step $t$ and $g_{q,h}^{R}$ is retrieval guidance at refinement step $h$.
+Here, {$E_h$ denotes the evidence accumulated up to step $h$}, $U_h=\{u_0,\ldots,u_h\}$ denotes the query history, and $\tilde{M}$ denotes a \emph{bounded} view of the memory bank, e.g., top-$k$ recent or semantically related entries.
+% Each guidance signal is a structured textual directive for the downstream worker, with phase-specific content.
+
+% where $g_t^{S}$ is construction guidance at step $t$ and $g_{q,h}^{R}$ is retrieval guidance at refinement step $h$.
+% Here, $U_h=\{u_0,\ldots,u_h\}$ denotes the query history, and $\tilde{M}$ denotes a \emph{bounded} view of the memory bank, such as top-$k$ recent and/or semantically related entries that fit within the context window. \suhang{what is $E_h$??}
+% Each guidance signal is a structured textual directive for the downstream worker, with phase-specific content.
+
+
+\emph{Construction.}
+$g_t^{S}$ provides a set of \emph{focus points} that flag information importance, redundancy with existing entries, and potential conflicts.
+These focus points steer $\pi_s$ toward globally consistent memories rather than indiscriminate accumulation.
+
+\emph{Retrieval.}
+$g_{q,h}^{R}$ is a critique of the current evidence $E_h$.
+$\pi_{p}$ evaluates coverage, consistency, and specificity with respect to $q$.
+If the evidence is sufficient, it returns \textsc{answerable}; otherwise, it returns \textsc{not-answerable} together with a diagnosis of what is missing and how to retrieve it, \eg, a missing attribute or temporal scope.
+This encourages orthogonal evidence acquisition rather than near-duplicate searches.
+Full guidance templates and examples are in Appendix~\ref{appendix:meta_thinker_details}.
+
+
+\noindent\textbf{Memory Manager $\pi_{s}$.}
+$\pi_{s}$ performs atomic memory edits based on the current chunk, bounded context, and guidance from $\pi_{p}$.
+Given $c_t$, $\tilde{M}_{t-1}$, and $g_t^{S}$, it selects an action $a_t^{S} \in \{\texttt{ADD}, \texttt{UPDATE}, \texttt{DELETE}, \texttt{NONE}\}$:
+\begin{equation}
+\begin{aligned}
+a_t^{S} &\sim \pi_{s}(\cdot \mid c_t,\tilde{M}_{t-1},g_t^{S}),\\
+M_t &= \textsc{Apply}(M_{t-1}, a_t^{S}),
+\end{aligned}
+\label{eq:memory_manager}
+\end{equation}
+The guidance signal $g_t^{S}$ helps $\pi_{s}$ filter noise, consolidate redundancy, and resolve conflicts at the source rather than blindly appending.
+$\pi_{s}$ is backend-agnostic and can wrap diverse memory implementations such as LightMem~\cite{fang2025lightmem} and A-Mem~\cite{xu2025mem}.
+
+\noindent\textbf{Query Reasoner $\pi_r$.}
+$\pi_r$ implements the \emph{active retrieval policy}.
+To overcome the \emph{Aimless Retrieval} (Sec.~\ref{ssec:motivate_study}),
+it replaces one-shot search with an iterative \emph{Refine-and-Probe} loop.
+Let $u_0=q$ be the initial query and $U_h=\{u_0,\ldots,u_h\}$ the query history.
+At step $h$, when $\pi_p$ deems the current evidence $E_h$ \textsc{not-answerable}, it emits guidance $g_{q,h}^{R}$.
+$\pi_r$ then proposes the next query and retrieves additional evidence:
+\begin{equation}
+\begin{aligned}
+u_{h+1} &\sim \pi_r(\cdot \mid U_h, E_h, g_{q,h}^{R}),\\
+E_{h+1} &= E_h \cup \textsc{Search}(M_T, u_{h+1}).
+\end{aligned}
+\label{eq:query_reasoner}
+\end{equation}
+The loop terminates when $\pi_p$ returns \textsc{answerable} or the budget $H$ is reached.
+Each refinement step targets the specific information gap diagnosed by $\pi_p$, so successive queries narrow the deficit rather than drifting across redundant rewrites. Full query rewrite prompt templates are in Appendix~\ref{appendix:query_reasoner_details}.
+
+
+\noindent\textbf{Answer Agent $\pi_a$.}
+Once the retrieval loop terminates, $\pi_a$ generates the final answer $\hat{y}(q)$ based on the query and the final evidence set $E(q)=E_H$:
+\begin{equation}
+\hat{y}(q) = F_{\pi_a}(q, E(q)),
+\end{equation}
+where $F_{\pi_a}$ denotes a generation function (\eg, an LLM call).
+In our experiments, $\pi_a$ is kept frozen to decouple answer-generation capacity from memory quality, so that gains can be attributed to coordination over the memory cycle rather than to the parametric knowledge of $\pi_a$.
+
+\subsection{In-Situ Self-Evolving Memory Construction}
+\label{ssec:self_evolving_construction}
+A major bottleneck in the memory cycle is that feedback for construction is typically sparse and delayed.
+The utility of a storage decision made in session $\tau$ may become observable only much later, when the agent fails a downstream question.
+Optimizing construction solely from final-task outcomes makes credit assignment difficult and lets early omissions propagate uncorrected. To address this, we introduce \textbf{in-situ self-evolving memory construction}, which provides dense intermediate feedback for the construction stage.
+Instead of waiting for a future user query to expose a memory failure, \method synthesizes a set of probe QA pairs after each session and uses them to verify and repair the current memory before it is committed.
+
+\noindent\textbf{Probe Generation.}
+Let $s_\tau$ denote the current session, and let $M_{\tau}^{(0)}$ denote the provisional memory state obtained after applying the construction policy of Sec.~\ref{ssec:architecture_design} to $s_\tau$.
+To obtain intermediate supervision, we construct a probe set
+\begin{equation}
+\mathcal{Q}_\tau = \{(q_j, y_j)\}_{j=1}^{J},
+\end{equation}
+where each $(q_j, y_j)$ is a synthetic question--answer pair grounded in $s_\tau$ and its relevant historical context $\tilde{M}_{\tau-1}$.
+The questions are designed to test whether the provisional memory faithfully captures and can retrieve information introduced in the current session, covering single-session factual recall, cross-session relational reasoning, and temporal inference~\cite{shen2026membuilder}.
+This turns a delayed end-task signal into $J$ localized supervision signals immediately after construction.
+% In our setting, probe generation is triggered after each session.
+Design details are in Appendix~\ref{appendix:synthetic_qa_details}.
+
+% Let $s_\tau$ denote the current session, and let $M_{\tau}^{(0)}$ denote the provisional memory state obtained after applying the construction policy of Sec.~\ref{ssec:architecture_design} to $s_\tau$.
+% To obtain intermediate supervision, we construct a probe set
+% \begin{equation}
+% \mathcal{Q}_\tau = \{(q_j, y_j)\}_{j=1}^{J},
+% \end{equation}
+% where each $(q_j, y_j)$ is a synthetic question--answer pair grounded in $s_\tau$ and its relevant historical context $\tilde{M}_{\tau-1}$.
+% The questions are designed to test whether the memory bank correctly captured and can retrieve information from the current session, covering single-session factual recall, cross-session relational reasoning, and temporal inference~\cite{shen2026membuilder}.
+% This converts one delayed end-task signal into $J$ localized supervision signals immediately after construction.
+% In practice, probe generation can be triggered after every session or after a batch of sessions.
+% Design details are in Appendix~\ref{appendix:synthetic_qa_details}.
+
+\noindent\textbf{In-situ Verification.}
+Given $\mathcal{Q}_\tau$, \method verifies the provisional memory state $M_{\tau}^{(0)}$ immediately after the initial construction pass.
+% For efficiency, we process all probes in $\mathcal{Q}_\tau$ in parallel.
+For each probe $q_j$, we retrieve top-$k$ evidence from $M_{\tau}^{(0)}$ and generate an answer with $\pi_a$:
+\begin{equation}
+E_j = \textsc{Search}(M_{\tau}^{(0)}, q_j), \quad
+\hat{y}_j = F_{\pi_a}(q_j, E_j).
+\end{equation}
+A probe is considered failed if $\hat{y}_j$ is judged incorrect with respect to $y_j$.
+Such failures provide localized evidence that $M_{\mathrm{0}}$ is insufficient for information introduced in or linked to $s_\tau$.
+
+\noindent\textbf{Evidence-grounded Repair.}
+For each failed probe, a reflection module converts the failure into a repair proposal.
+Conditioned on the question, gold answer, predicted answer, retrieved evidence, and the provisional memory state $(q_j, y_j, \hat{y}_j, E_j, M_{\tau}^{(0)})$, it diagnoses whether the failure reflects missing information or memory content that is difficult to retrieve in its current form, and then proposes a candidate repair fact.
+Collecting all failed probes in the current batch yields a set of repair proposals
+\begin{equation}
+    \mathcal{R}_\tau = \{r_j\}_{q_j \in \mathcal{Q}_\tau^{\mathrm{fail}}},
+\end{equation}
+where $\mathcal{Q}_\tau^{\mathrm{fail}} \subseteq \mathcal{Q}_\tau$ denotes the failed probes.
+
+\noindent\textbf{Semantic Consolidation.}
+Applying all repairs in $\mathcal{R}_\tau$ directly would reintroduce redundancy or conflicts, e.g., when two probes request overlapping or inconsistent additions.
+We therefore consolidate the candidate repair facts against $M_{\tau}^{(0)}$.
+For each candidate fact, the consolidation step assigns one of three actions with respect to the existing memory: \texttt{SKIP} if it is redundant, \texttt{MERGE} if it complements an existing entry, or \texttt{INSERT} if it is novel.
+This resolves both conflicts with the existing memory and conflicts across repair proposals before any update is written back.
+The refined memory is obtained as
+\begin{equation}
+M_{\tau}^{*} = \textsc{Refine}(M_{\tau}^{(0)}, \mathcal{R}_\tau),
+\end{equation}
+where $\textsc{Refine}$ denotes consolidation followed by write-back over $\mathcal{R}_\tau$.
+In this way, utilization failures are detected and repaired during construction before they can propagate into later memory updates, while keeping the evolving memory compact and internally consistent.

@@ -1,0 +1,67 @@
+\section{The Multi-Agent Systems Dataset}
+\label{sec:methodology}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=1\linewidth]{figures/arxiv_figure_neurips_cropped.pdf}
+\caption{Methodological workflow for constructing the \dataset{} dataset, involving the empirical identification of failure modes, the development of \taxonomy{}, iterative refinement through inter-annotator agreement studies ($\kappa = \cohenskappainterannotatoraverage{}$), and the creation of a scalable LLM annotation pipeline. This figure highlights our systematic approach to creating a comprehensive dataset for studying MAS failures.}
+\label{fig:methodology_flow_chart}
+\end{figure*}
+
+
+To facilitate a principled understanding of why MAS fail and to guide the development of more reliable future systems, we introduce \dataset{}, the Multi-Agent System Failure Dataset. \dataset{} is a comprehensive, empirically grounded dataset comprising \numTraceInMAD{} annotated execution traces collected from \numMASDomain popular MAS frameworks, covering domains of coding, math, and generic tasks.
+
+Constructing such a dataset, however, presents distinct challenges. First, unlike in traditional software where failures often have clearly identifiable root causes, failures in MAS are frequently complex. They involve convoluted agent interactions and the compounding effects of individual model behaviors and overall system design. Therefore, pinpointing the precise nature and origin of a failure in MAS requires more than simple error detection; it necessitates understanding the system's dynamics. Second, the lack of a standardized failure framework with clear definitions makes identifying and classifying MAS failures across different systems inconsistent, which complicates annotation and cross-system analysis.
+
+To address these challenges, we develop a rigorous, principled methodology to construct \dataset{}. In this section, we detail our approach, which centers on building the first empirical MAS failure taxonomy, \taxonomy{}, and a scalable annotation pipeline for systematic and comprehensive data collection. Figure \ref{fig:methodology_flow_chart} summarizes our methodological workflow.
+
+\subsection{Data Collection with Grounded Theory Analysis}
+\label{sec:gt_study}
+To uncover a comprehensive set of failure patterns that are both diverse and generalizable to standardize failure labels which we detail further in Section \ref{sec:taxonomy_development}, we first collect 150 traces from five MAS frameworks, which are closely examined by six human experts. Our goal at this stage is to identify as many distinct failure modes as possible, ensuring these observed patterns are not merely artifacts of a single system but can likely apply more broadly. To achieve this without predefined hypotheses, we adopt the \textbf{Grounded Theory} (GT) approach \citep{glaser1967discovery}. This qualitative research method allows failure modes to emerge organically from empirical data.
+
+For this initial data collection, we use \emph{theoretical sampling} \citep{draucker2007theoretical} to ensure robust coverage across different system objectives and interaction patterns. This method guides our selection of the five MAS frameworks (HyperAgent, AppWorld, AG2, ChatDev, and MetaGPT) and two task categories (programming and math problem-solving). We then iteratively analyze these traces using core GT techniques: \emph{open coding} \citep{khandkar2009open} to label trace data with observed failure behaviors; \emph{constant comparative analysis} to refine our understanding of these failure behaviors and their recurrence across systems; \emph{memoing} to document insights; and \emph{theorizing} to structure these findings into an initial set of failure modes with their definitions. This iterative analysis continues until we reach \emph{theoretical saturation}, where further data analysis does not yield new failure mode insights. This initial process requires significant human effort, over 20 hours of annotation per expert for these 150 traces.
+
+\subsection{Standardizing Failure Labels via Inter-Annotator Agreement}
+\label{sec:taxonomy_development}
+To make the failure observations from our GT analysis useful for creating consistent labels in \dataset{}, we recognize the critical need for standardized definitions that apply uniformly across different MAS. To address this, we develop the failure taxonomy - \taxonomy{}. \taxonomy{} serves as a foundational first step towards a common understanding of MAS failures by providing clear, empirically grounded failure observation labels. We provide a detailed description and analysis of \taxonomy{} in Section~\ref{sec:mast}.
+
+To develop a taxonomy that is unambiguous and consistently applicable by different annotators, we rigorously validate and refine \taxonomy{} definitions through Inter-Annotator Agreement (IAA) studies. This iterative process begins with a preliminary version of \taxonomy{} derived from our GT findings. In each round of IAA, three expert annotators independently label a subset of five randomly selected traces from our initial 150+ trace collection using \taxonomy{}. We then facilitate discussions to collectively resolve any disagreements. Based on these discussions, we iteratively refine \taxonomy{} by adjusting failure mode definitions, adding new modes, or removing and merging existing ones until we achieve high consensus. We conduct three such rounds of IAA, requiring about 10 hours in total solely for resolving disagreements, not including the annotation time itself. We measure agreement using Cohen's Kappa score, achieving a strong average of $\kappa = \cohenskappainterannotatoraverage{}$ in the final rounds. This high IAA score signifies that \taxonomy{} provides a clear and shared understanding of failure modes, crucial for the consistent annotation of \dataset{}. Figure~\ref{fig:amb_failure_example} illustrates an example of a trace snippet with a \taxonomy{} label.
+% \melissa{TODO: add a table for cohen's kappa score in appendix, @mert if you have the number, could you please handle this?}
+
+\subsection{Enabling Scalable Annotation: The LLM-as-a-Judge Pipeline}
+\label{sec:llm_annotator}
+
+Manually annotating over 1600 MAS traces with fine-grained failure modes is time-consuming and costly. To enable scalable and automated failure annotation for \dataset{}, we develop an LLM-as-a-Judge pipeline (LLM annotator), building upon our validated \taxonomy{}. This pipeline prompts an LLM (OpenAI's o1 model) with an execution trace, the \taxonomy{} definitions, and few-shot examples from our human-annotated data (details in Appendix~\ref{appendix:examples}) to classify observed failure modes. We validate the LLM annotator's reliability against expert human annotations on a held-out set from our IAA studies. The LLM annotator achieves high agreement with human experts (accuracy 94\%, Cohen's Kappa of 0.77; Table~\ref{tab:llm_as_a_judge}), confirming its suitability for scaling the annotation process while adhering to \taxonomy{} definitions.
+
+\begin{table}[ht]
+\small
+\renewcommand{\arraystretch}{1.3} % Adjust row spacing
+\setlength{\tabcolsep}{4pt} % Adjust column spacing
+\centering
+\caption{Performance of LLM-as-a-judge pipeline}
+\label{tab:llm_as_a_judge}
+\begin{tabular}{p{1.62cm} p{1.1cm} p{0.81cm} p{1.1cm} p{0.55cm} p{1.33cm}}
+    \toprule
+    \textbf{Model} & \textbf{Accuracy} & \textbf{Recall} & \textbf{Precision} & \textbf{F1} & \textbf{Cohen's $\kappa$} \\
+    \toprule
+    o1 & 0.89 & 0.62 & 0.68 & 0.64  & 0.58 \\
+    \hline
+    o1 (few shot) & 0.94 & 0.77 &  0.833  & 0.80 & 0.77 \\
+    \hline
+\end{tabular}
+\vspace{-4mm}% Adjust this value as needed
+\end{table}
+% \melissa{can move to appendix if needed}
+
+\begin{figure*}
+\centering
+\includegraphics[width=0.9\linewidth]{figures/phone-agent-narrow.pdf}
+\caption{Visualization of a trace segment in \dataset{}. This illustrates an agent-to-agent conversation exhibiting Failure Mode 2.4: Information Withholding. The Phone Agent fails to communicate API requirements (username format) to the Supervisor Agent, who also fails to seek clarification, leading to repeated failed logins and task failure.}
+\label{fig:amb_failure_example}
+\end{figure*}
+
+\subsection{Constructing the Multi-Agent Dataset}
+\label{sec:constructing_mad}
+Before large-scale data collection for \dataset{}, we confirm the generalizability of our finalized \taxonomy{} and the LLM annotator. We evaluate their performance on two new MAS (OpenManus and Magentic-One) with two new benchmarks (MMLU and GAIA, the latter representing a new general-agent task domain for validation) not part of the initial \taxonomy{} development. An additional human IAA round on these out-of-domain traces using the finalized \taxonomy{} yields a strong Cohen's Kappa score of 0.79. This demonstrates \taxonomy{}'s effectiveness in capturing failures in diverse systems and tasks without further modification, supporting the robustness of our annotation approach for broader application. We further detail the uniqueness of \taxonomy{} failure modes via a correlation study in Appendix~\ref{appendix:mas-failure-modes-corr}.
+
+Leveraging our validated \taxonomy{} and LLM annotator, we expand data collection to construct \dataset{}, comprising \numTraceInMAD{} annotated traces from seven popular MAS frameworks (Table~\ref{tab:mad}). These frameworks include the five from our initial studies, the two from the generalization validation, and Manus~\cite{manus} as detailed in Appendix~\ref{appendix:mas-with-annotated-traces-appendix}. These traces cover diverse tasks like coding, math problem-solving, and general agent functionalities. For \dataset{}, our LLM annotator identifies \taxonomy{} failure modes in each trace and provides a corresponding reason. We also release \datasetHuman{}, consisting of all traces annotated by human experts during our IAA studies, where each annotation specifies \taxonomy{} failure modes with textual justifications. We open-source \dataset{} and \datasetHuman{} as resources to analyze MAS failure dynamics and guide robust system design.

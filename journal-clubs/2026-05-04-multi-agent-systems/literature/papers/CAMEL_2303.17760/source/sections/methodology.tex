@@ -1,0 +1,150 @@
+\vspace{-0.25cm}
+\section{Methodology} \label{sec:method}
+\vspace{-0.25cm}
+
+In this paper, we focus on studying communicative agents under cooperative settings where they share common interests. In particular, we study the assistant-user scenario, where a 
+preliminary idea is given at the start. Agents will conceptualize the idea into a specific task and complete it autonomously through conversations.
+
+
+\subsection{Role-playing Framework} \label{subsec:role-playing_framework}
+
+\textit{``What's the most resilient parasite? An Idea. A single idea from the human mind can build cities. An idea can transform the world and rewrite all the rules. Which is why I have to steal it.''}
+
+\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad   \textit{- Dom Cobb, Inception}
+
+Our proposed framework is a novel \RP approach for studying multiple communicative agents. Specifically, we concentrate on task-oriented role-playing that involves one \textit{AI assistant} and one \textit{AI user}. After the multi-agent system receives a preliminary \textit{idea} and the \textit{role assignment} from human users, a \textit{task-specifier agent} will provide a detailed description to make the idea specific. Afterwards, the AI assistant and AI user will cooperate on completing the specified task through multi-turn conversations until the AI user determines the task is done. The AI user is responsible for giving instructions to the AI assistant and directing the conversation toward task completion. On the other hand, the AI assistant is designed to follow the instructions from the AI user and respond with specific solutions. The whole \RP framework is depicted in \figLabel \ref{fig:role-playing}.
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[scale=0.45]{figures/pipeline.pdf}
+    \caption{\textbf{CAMEL Role-Playing Framework.} Our role-playing setup starts with the human user having an idea they want to implement, \eg develop a trading bot for the stock market. The roles involved in this task would be an AI assistant agent who is a python programmer and an AI user agent who is a stock trader. The task is made more specific using our task specifier agent, leading to a well-defined task for the assistant to solve. Both AI user and AI assistant are provided with the specified task, after which they collaboratively communicate by chatting with each other in an instruction-following fashion to solve the specified task.}
+    \label{fig:role-playing}    
+\end{figure*}
+
+
+\mysection{Human Input and Task Specifying} The \RP session will be instantiated from an \textit{idea} and \textit{selected roles} by humans. As an example in \figLabel \ref{fig:role-playing}, a human has a preliminary idea to \textit{develop a trading bot for the stock market}. Humans may or may not have the knowledge about how the idea can be realized. What is needed is only to designate the potential roles that can implement the idea. For instance, a \textit{Python Programmer} could collaborate with a \textit{Stock Trader} to realize the idea of \textit{developing a trading bot for the stock market}. After the idea and roles are determined, the \textit{task specifier} agent will brainstorm a specific task that the AI Assistant role can help with the AI user role to complete based on the input idea. An example of a specified task in this scenario could be: \textit{develop a trading bot with a sentiment analysis tool that can monitor social media platforms for positive or negative comments about a particular stock, and execute trades based on sentiment analysis results}. The main motivation for introducing a task specifier is that conversational agents usually require a concrete task prompt for realizing the task which might be challenging or time-consuming for a non-domain expert. 
+Therefore, the task specifier agent serves as an enhanced imagination module for the idea implementation. Please note that, when studying our framework at a large scale for AI society and Code scenarios, we generate \textit{roles} and \textit{ideas} automatically by prompting LLMs instead of relying on human inputs. For our generated Math and Science datasets we generated problem \textit{topics}, \textit{subtopics}, and \textit{problems} automatically by prompting LLMs. 
+
+\mysection{AI Assistant-User Role Assignment} After the task specification, The AI assistant role and the AI user role will be assigned to the user agent and the assistant agent correspondingly to complete the specified task. In practice, a system message is passed to each agent declaring their role. We refer to the assistant system prompt/message by $\mathcal{P}_\mathcal{A}$ and that of the user by $\mathcal{P}_\mathcal{U}$. The system messages are passed to the agents before the conversations start. 
+Let $\mathcal{F}_1$ and $\mathcal{F}_2$ denote two large-scale auto-regressive language models \cite{openai_chatgpt}. When the system message is passed to those models respectively, we obtain $\mathcal{A} \leftarrow \mathcal{F}_{1}^{\mathcal{P}_{\mathcal{A}}}$ and $\mathcal{U} \leftarrow \mathcal{F}_{2}^{\mathcal{P}_{\mathcal{U}}}$ which are referred to as the assistant and user agents respectively. In \figLabel \ref{fig:role-playing}, the AI assistant and the AI user are assigned the roles of a \textit{Python Programmer} and a \textit{Stock Trader} at the beginning of the role-playing session respectively. The AI user serves as a task planner, engaging in interactive planning to determine feasible steps for the AI assistant to execute. Meanwhile, the AI assistant acts as a task executor, offering solutions, executing planned steps, and providing responses to the AI user.
+
+\mysection{Conversation Towards Task-Solving} 
+After the role assignment is completed, the AI assistant $\mathcal{A}$ and AI user $\mathcal{U}$ will collaborate in an instruction-following manner to accomplish the task. In the AI assistant-user scenario, the AI user is responsible for providing instructions, and the assistant is expected to respond with a solution that fulfills the instructions. Formally, we denote the user instruction message obtained at time $t$ by $\mathcal{I}_t$ and the assistant solution by $\mathcal{S}_t$. The set of conversational messages obtained up until time $t$ is denoted by \eqnLabel \eqref{message_set} shown below:
+\begin{equation} \label{message_set}
+    \mathcal{M}_t  = \{(\mathcal{I}_0, \mathcal{S}_0),...,(\mathcal{I}_t, \mathcal{S}_t)\} = \{(\mathcal{I}_i, \mathcal{S}_i)\}|_{i=0}^{t}
+\end{equation}
+
+At the next time step, $t+1$, the AI user $\mathcal{U}$ takes the historical conversation message set $\mathcal{M}_t$ and provides a new instruction $\mathcal{I}_{t+1}$, as shown in \eqnLabel \eqref{eq:user_step}. The produced instruction message $\mathcal{I}_{t+1}$ is then passed, along with message set $\mathcal{M}_t$, to the AI assistant $\mathcal{A}$. The AI assistant will then respond with a solution, denoted by $\mathcal{S}_{t+1}$ in \eqnLabel \eqref{eq:assistant_step}:
+
+\begin{minipage}{0.5\textwidth}
+\begin{equation} \label{eq:user_step}
+\mathcal{I}_{t+1} = \mathcal{U}(\mathcal{M}t)
+\end{equation}
+\end{minipage}
+\hfill
+\begin{minipage}{0.5\textwidth}
+\begin{equation} \label{eq:assistant_step}
+\mathcal{S}{t+1} = \mathcal{A}(\mathcal{M}t, \mathcal{I}{t+1})
+\end{equation}
+\end{minipage}
+
+
+After obtaining the solution $\mathcal{S}_{t+1}$ to the instruction $\mathcal{I}_{t+1}$, the message set is updated using \eqnLabel \eqref{update_message_set} to obtain $\mathcal{M}_{t+1}$:
+
+\begin{equation}\label{update_message_set}
+    \mathcal{M}_{t+1}  \leftarrow \mathcal{M}_t \cup (\mathcal{I}_{t+1}, \mathcal{S}_{t+1})
+\end{equation}
+
+Note that the formulation above not only models AI-AI communicative scenarios, but it can also be easily extended to model human-AI communication or communication between more than two agents. Specifically, we can use message-passing graphs to model communication between an arbitrary number of agents. In \figLabel \ref{fig:role-playing}, we observe that the AI user initiates the \textit{installation and import of essential Python libraries for sentiment analysis and stock trading} by instructing the AI assistant through conversations. This example is drawn from our experiments, and the entire conversation is available in the Appendix.
+
+\mysection{Critic-In-The-Loop} To enhance the controllability of the role-playing framework, we introduce a critic agent capable of selecting proposals from or providing feedback to the role-playing agents. This enables tree-search-like decision-making for task-solving. In practice, the critic can be either an AI agent or a human. The detailed implementation and case studies can be found in the Appendix.
+
+
+\subsection{Inception Prompting} \label{subsec:inception_prompting}
+Since prompt engineering is crucial to our role-playing framework, this section delves deeply into our prompting techniques. 
+Our prompt engineering occurs solely at the beginning of role-playing, for task specification and role assignment. Once the conversation phase commences, the AI assistant and AI user prompt each other automatically in a loop until termination. As such, we refer to our technique as \textit{Inception Prompting}. Our Inception prompt consists of three prompts: the task specifier prompt $\mathcal{P}_{\mathcal{T}}$, the assistant system prompt $\mathcal{P}_{\mathcal{A}}$, and the user system prompt $\mathcal{P}_{\mathcal{U}}$. As an example, we consider the inception prompt of the \textit{AI Society} scenario. The templates for these prompts of \textit{AI Society} role-playing are shown in Figure \ref{fig:ai_society_inception_prompt}. The task specifier prompt contains information about the roles of the AI assistant and AI user in the role-playing session. Therefore, the task specifier agent can take a preliminary task/idea as input and generate a specific task using imagination. The AI assistant system prompt $\mathcal{P}_{\mathcal{A}}$ and the AI user system prompt $\mathcal{P}_{\mathcal{U}}$ are mostly symmetrical and include information about the assigned task and roles, communication protocols, termination conditions, and constraints or requirements to avoid unwanted behaviors. The prompt designs for both roles are crucial to achieve autonomous cooperation between agents. It is non-trivial to engineer prompts that ensure agents act in alignment with our intentions. We take the prompt templates from the \textit{AI Society} in \figLabel \ref{fig:ai_society_inception_prompt} as an example to explain our key design choices. The prompts used for the Code scenario follow a similar sprint as the AI society scenario, but with some additional engineering related to programming languages. More details in the Appendix.
+
+
+\begin{figure}[ht]
+\begin{AIBox}{AI Society Inception Prompt}
+
+\parbox[t]{\textwidth}{{\bf Task Specifier Prompt:} \scriptsize\begin{alltt}
+Here is a task that <ASSISTANT\_ROLE> will help <USER\_ROLE> to complete: <TASK>. \\
+Please make it more specific. Be creative and imaginative. \\
+Please reply with the specified task in <WORD\_LIMIT> words or less. Do not add anything else. \\
+\end{alltt}}
+
+\tcbline
+
+\parbox[t]{0.35\textwidth}{{\bf Assistant System Prompt:} \scriptsize \begin{alltt}
+Never forget you are a <ASSISTANT\_ROLE> and I am a <USER\_ROLE>. Never flip roles! Never instruct me! \\
+We share a common interest in collaborating to successfully complete a task. \\
+You must help me to complete the task. \\
+Here is the task: <TASK>. Never forget our task! \\
+I must instruct you based on your expertise and my needs to complete the task. \\
+
+% \vspace{5pt}
+I must give you one instruction at a time. \\
+You must write a specific solution that appropriately completes the requested instruction. \\
+You must decline my instruction honestly if you cannot perform the instruction due to physical, moral, legal reasons or your capability and explain the reasons. \\
+% Do not add anything else other than your solution to my instruction. \\
+% You are never supposed to ask me any questions you only answer questions. \\
+% You are never supposed to reply with a flake solution. Explain your solutions. \\
+% Your solution must be declarative sentences and simple present tense. \\
+Unless I say the task is completed, you should always start with: \\
+
+Solution: <YOUR\_SOLUTION> \\
+
+<YOUR\_SOLUTION> should be specific, and provide preferable implementations and examples for task-solving. \\
+Always end <YOUR\_SOLUTION> with: Next request.\end{alltt}}
+\parbox[t]{0.65\textwidth}{{\bf User System Prompt:} \scriptsize \begin{alltt}
+Never forget you are a <USER\_ROLE> and I am a <ASSISTANT\_ROLE>. Never flip roles! You will always instruct me. \\
+We share a common interest in collaborating to successfully complete a task. \\
+I must help you to complete the task. \\
+Here is the task: <TASK>. Never forget our task! \\
+You must instruct me based on my expertise and your needs to complete the task ONLY in the following two ways: \\
+
+1. Instruct with a necessary input: \\
+Instruction: <YOUR\_INSTRUCTION> \\
+Input: <YOUR\_INPUT> \\
+2. Instruct without any input: \\
+Instruction: <YOUR\_INSTRUCTION> \\
+Input: None \\
+The "Instruction" describes a task or question. The paired "Input" provides further context or information for the requested "Instruction". \\
+
+You must give me one instruction at a time. \\
+I must write a response that appropriately completes the requested instruction. \\
+I must decline your instruction honestly if I cannot perform the instruction due to physical, moral, legal reasons or my capability and explain the reasons. \\
+You should instruct me not ask me questions. \\
+Now you must start to instruct me using the two ways described above. \\
+Do not add anything else other than your instruction and the optional corresponding input! \\
+Keep giving me instructions and necessary inputs until you think the task is completed. \\
+When the task is completed, you must only reply with a single word <CAMEL\_TASK\_DONE>. \\
+Never say <CAMEL\_TASK\_DONE> unless my responses have solved your task.
+\end{alltt}}
+\end{AIBox}
+	\caption{\textbf{Inception Prompt of AI Society Role-Playing.} This shows the task specifier prompt, assistant system prompt, and user system prompt which are used for studying the AI society scenario.}
+
+	\label{fig:ai_society_inception_prompt}
+\end{figure}
+
+\mysection{Prompt Engineering} To delve deeper into the details in \figLabel \ref{fig:ai_society_inception_prompt}, we start by chunking the various parts of the AI assistant system prompt $\mathcal{P}_{\mathcal{A}}$ shown below:
+
+\begin{itemize}[leftmargin=0.5cm]
+    \item \texttt{Never forget you are a <ASSISTANT\_ROLE> and I am a <USER\_ROLE>.} This assigns the chosen role to the assistant agent and provides it with information about the user's role.
+    \item \texttt{Never flip roles! Never instruct me!} This prevents agents from flipping roles. In some cases, we have observed the assistant and the user switching roles, where the assistant suddenly takes control and instructs the user, and the user follows those instructions.
+    \item \texttt{You must decline my instruction honestly if you cannot perform the instruction due to physical, moral, legal reasons or your capability and explain the reasons.} This prohibits the agent from producing harmful, false, illegal, and misleading information.
+    \item \texttt{Unless I say the task is completed, you should always start with: Solution: <YOUR\_SOLUTION>. <YOUR\_SOLUTION> should be specific, and provide preferable implementations and examples for task-solving.} This encourages the assistant always responds in a consistent format, avoiding any deviation from the structure of the conversation, and preventing vague or incomplete responses, which we refer to as flake responses, such as "I will do something".
+    \item \texttt{Always end your solution with: Next request.} This ensures that the assistant keeps the conversation going by requesting a new instruction to solve.
+\end{itemize}
+
+
+For the AI user system prompt $\mathcal{P}_{\mathcal{U}}$, we strive to maintain as much symmetry as possible with respect to the AI assistant system prompt. Apart from the opposite role assignment, the user system prompt differs from the assistant prompt in the following ways:
+
+
+
+\begin{itemize}[leftmargin=0.5cm]
+    \item \texttt{You must instruct me  ... to complete the task ONLY in the following two ways: 1. Instruct with a necessary input: ...; 2. Instruct without any input: ...} This follows the typical data structure of instruction-following, which allows the generated instruction-solution pairs to be easily used for fine-tuning LLMs.
+    \item \texttt{Keep giving me instructions and necessary inputs until you think the task is completed. When the task is completed, you must only reply with a single word <CAMEL\_TASK\_DONE>.} We introduce an end-of-task token, namely, \texttt{<CAMEL\_TASK\_DONE>}. This token is used once the user believes the task is done. This ensures that the chat is terminated when the user is satisfied. Without doing so, the agents might fall into a chatting loop where they keep on saying ``thank you'' to each other or ``goodbye'' indefinitely. 
+\end{itemize}

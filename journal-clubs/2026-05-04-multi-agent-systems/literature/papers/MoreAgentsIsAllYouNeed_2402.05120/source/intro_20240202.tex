@@ -1,0 +1,46 @@
+
+\section{Introduction}
+Although large language models (LLMs) demonstrate remarkable capabilities in variety of applications \citep{llmsurvey}, such as language generation, understanding, and reasoning, they struggle to provide accurate answers when faced with complicated tasks. To improve the performance of LLMs, some of recent studies focus on ensemble methods \citep{cotsc, fusellm} and multiple LLM-Agents collaboration frameworks \citep{debate,autogen}. 
+
+In these works, multiple LLM agents are used to improve the performance of LLMs. For instance, LLM-Debate \cite{debate} employs multiple LLM agents in a debate form. The reasoning performance is improved by creating a framework that allows more than one agent to ``debate'' the final answer of arithmetic tasks. They show performance improvements compared to using one single agent. 
+Similarly, CoT-SC \citep{cotsc} generates multiple thought chains and picks the most self-consistent one as the final answer. 
+The reasoning performance is improved by involving more thought chains compared to chain-of-thought (CoT) \citep{cot} which employs a single thought chain. 
+Incidentally, from the data analysis of these works, we can notice the effects of putting multiple agents together, to some extent, can lead to a performance improvement in certain problems. 
+For example, in Table 10 of Section 3.3 of LLM-Debate \cite{debate}, the authors have reported a preliminary curve: the accuracy of a math problem increases with the number of debating agents (although the number was simply increased from 1 to 7). 
+Also, in \citet{cotsc}, involving more chain-of-thought pipelines (termed as a ``sample-and-marginalize'' decoding procedure), can lead to a performance gain. 
+We realize that the LLM performance may likely be improved by a brute-force scaling up of the number of agents instantiated. 
+However, since the scaling property of ``raw'' agents is not the focus of these works, the scenarios/tasks and experiments considered are limited. 
+So far, there lacks a dedicated in-depth study on such a phenomenon. 
+Hence, a natural question arises: 
+\textit{Does this phenomenon generally exist?} 
+%And also, \textit{do these compound frameworks or pipelines in existing works necessary to stimulate the power of LLMs?} 
+
+
+\begin{figure}[t!]
+    \centering
+    \includegraphics[width=0.5\linewidth]{fig/intro_finding_rebuttal.pdf}
+    \caption{The accuracy increases with ensemble size across Llama2-13B, Llama2-70B and GPT-3.5-Turbo in GSM8K. When the ensemble size scales up to $15$, Llama2-13B achieves comparable accuracy with Llama2-70B. Similarly, When the ensemble size scales up to $15$ and $20$, Llama2-70B and GPT-3.5-Turbo achieve comparable accuracy with their more powerful counterparts. The error bars represent the standard error.}
+    \label{fig:intro_finding}
+\end{figure}
+
+To answer the research question above, we conduct the first comprehensive study on the \textit{scaling property} of LLM agents. 
+To dig out the potential of multiple agents, we propose to use a simple(st) sampling-and-voting method, which involves two phases. 
+First, the query of the task, i.e., the input to an LLM, is iteratively fed into a single LLM, or a multiple LLM-Agents collaboration framework, to generate multiple outputs. Subsequently, majority voting is used to determine the final result. 
+The procedure is inspired by that of the CoT-SC, but it does not rely on designing complex CoT paths. 
+In fact, it can be used as a plug-in to further enhance CoT-based methods, as will be shown in our evaluations. 
+Our method is termed as \textbf{Agent Forest}, a tribute to the classic Random Forest \citep{breiman2001random}. 
+
+The experiments are conducted by using various LLMs of different sizes on diverse datasets covering reasoning and generation. The result indicates that LLM performance can generally be improved by increasing the ensemble size, i.e., the number of agents, across a wide range of tasks. Surprisingly, a brute-force ensemble of smaller LLMs can achieve comparable or superior performance to larger LLMs, with a nutshell shown in Figure \ref{fig:intro_finding}, which will be further expanded in later sections. 
+Moreover, by combining our method with other existing methods, we find the performance can be further improved. By comparing with the performance of complicated methods, the result shows that employing our method solely can achieve comparable performance in most cases. 
+This implies that comparable performance can be achieved without the need for additional handcraft prompt design or complex collaboration frameworks.
+
+Additionally, the experimental results indicate that there are greater performance improvements when addressing difficult tasks and when using weaker models. To understand the reasons behind these performance improvements, we analyze the influence of problem difficulty on the effectiveness of our method. We classify difficulty into three dimensions: the inherent difficulty, the length of reasoning steps, and the prior probability of the correct answer. Through a series of experiments, we adjust these dimensions and observe their effects independently. 
+We observe and summarize a few properties, based on which, we further develop optimization strategies that can intrigue the power of ``More Agents''. 
+
+Our contributions are summarized as follows:
+
+\begin{itemize}
+\item We present the first systematic study on the scaling property of raw agents instantiated by LLMs. We find that the performance scales with the increase of agents, using the simple(st) way of sampling and voting.  
+\item We explore the compatibility of our method with existing complicated methods that stimulate the potential of LLMs, revealing that our method can enhance these methods to achieve further performance improvements.
+\item We analyze the effectiveness of our method in tackling problems at varying difficulties and then distill the properties behind, based upon which, we propose further optimization methods that can facilitate the occurrence of our finding. 
+\end{itemize}

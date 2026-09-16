@@ -1,0 +1,1187 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage{colm2024_conference}
+
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsmath, amsfonts, bm}
+\usepackage{graphicx}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{amssymb, bbding}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{longtable, wrapfig}
+\usepackage{makecell}
+\usepackage{caption}
+\usepackage{ulem}
+\usepackage[capitalize,noabbrev]{cleveref}
+
+
+\definecolor{mydarkgreen}{rgb}{0.2,0.7,0.2}
+
+\title{A Dynamic LLM-Powered Agent Network \\for Task-Oriented Agent Collaboration}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \colmfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+\author{Zijun Liu$^{1}$\thanks{Work done when the first author was a UGVR visiting student at Stanford University.}, Yanzhe Zhang$^{2}$, Peng Li$^{3}$, Yang Liu$^{1,3,4}$, Diyi Yang$^{5}$ \\
+$^1$Dept. of Comp. Sci. \& Tech., Institute for AI, Tsinghua University, Beijing, China\\
+$^2$Georgia Institute of Technology, Georgia, USA\\
+$^3$Institute for AI Industry Research (AIR), Tsinghua University, Beijing, China\\
+$^4$Jiangsu Collaborative Innovation Center for Language Competence, Jiangsu, China\\
+$^5$Stanford University, California, USA\\
+\texttt{liuzijun20@mails.tsinghua.edu.cn}, \texttt{diyiy@stanford.edu}
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+\newtheorem{definition}{Definition}
+
+
+\colmfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\normalem
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+Recent studies show that collaborating multiple large language model (LLM) powered agents is a promising way for task solving. However, current approaches are constrained by using a fixed number of agents and static communication structures. 
+In this work, we propose automatically selecting a team of agents from candidates to collaborate in a dynamic communication structure toward different tasks and domains. 
+Specifically, we build a framework named Dynamic LLM-Powered Agent Network (\textbf{DyLAN}) for LLM-powered agent collaboration, operating a two-stage paradigm: (1) Team Optimization and (2) Task Solving.
+During the first stage, we utilize an \textit{agent selection} algorithm, based on an unsupervised metric called \emph{Agent Importance Score}, enabling the selection of best agents according to their contributions in a preliminary trial, oriented to the given task. Then, in the second stage, the selected agents collaborate dynamically according to the query. Empirically, we demonstrate that DyLAN outperforms strong baselines in code generation, decision-making, general reasoning, and arithmetic reasoning tasks with moderate computational cost. On specific subjects in MMLU, selecting a team of agents in the team optimization stage improves accuracy by up to 25.0\% in DyLAN.\footnote{Code is available at \url{https://github.com/SALT-NLP/DyLAN}.}
+\end{abstract}
+
+\begin{figure}[H]
+    % \vspace{-1em}
+    \centering
+    \includegraphics[width=0.92\linewidth]{figs/overview-fig1.pdf}
+    \caption{DyLAN adopts a two-stage paradigm. Agents communicate in a structure of the temporal feed-forward network (T-FFN). At the ``Team Optimization'' stage, DyLAN performs \textit{agent selection} for the most contributory agents in a primary collaboration, oriented to tasks or domains. The selected agents then collaborate dynamically for an answer on the given query at the ``Task Solving'' stage.}
+    \label{fig:overview-stages}
+    % \vspace{-1.5em}
+\end{figure}
+
+\section{Introduction}
+
+Large Language Model (LLM) agents~\citep{autogpt,babyagi,agentgpt} have demonstrated promising performance on various tasks, ranging from reasoning~\citep{yao2023react}, code generation~\citep{reflexion} to embodied tasks such as video gaming~\citep{voyager} and autopilot systems~\citep{jin2023surrealdriver}. Given the impracticality of a single agent managing all these tasks efficiently, recent research has shifted towards multi-agent collaborations, yielding significant advancements~\citep{li2023camel, debate1-mit, multi-persona, blender, reflexion, chen2023agentverse, autogen}.
+
+As an analogy to human society, how human teams function may provide valuable insights for developing more effective multi-agent collaboration systems. For instance, recent studies have demonstrated that certain effective communication structures, derived from human society, also play a positive role in multi-agent collaborations~\citep{exchange-of-thought,chen2023agentverse}. In addition to communication structures, another notable characteristic of human teams is that they would optimize team members according to the given task. 
+Take medical consultations as an example. 
+Collaborations in dynamic structures are evident when the composition of the team changes within the procedure of consultation, as some doctors may become less relevant in major as the conversation goes deeper and ``leave'' the consultation, leading to corresponding changes in the communication structure. Team optimization is often observed in the varying initial composition of doctors for consultations with different diseases, influenced by changes in the related medical fields and the contribution of each doctor. These characteristics prompt an important question: \emph{{Does a dynamically changing team of agents benefit LLM-powered agent collaborations similarly?}} 
+
+However, the question is not well-addressed yet. While various communication structures have been studied for different tasks, such as debating for reasoning~\citep{debate1-mit,debate2-thu,debate3-multi-models} and self-collaboration for coding~\citep{self-collab-codegen,software-dev,software-dev-2}, these communication structures do not alter members in the agent team and remain fixed throughout the collaboration. %such as when processing a user query, 
+It indicates that task-oriented dynamic selections in agents are not thoroughly explored in current research. Furthermore, in the context of agent teams, most existing studies opt for hand-crafting agents from human priors~\citep{bolaa, babyagi, meta-gpt, reflexion, li2023camel} or employ an LLM to generate them~\citep{multi-persona,auto-agents,pangu-agent}. These approaches generally predefine agents without further validation of the collaboration process. This leads to static agent teams or rebuilding teams without principled verification~\citep{chen2023agentverse}. Challenges still remain for optimization methods. %Thus, optimization methods and its effectiveness for selecting a team of agents from candidates are also under-explored. %Therefore, there is a significant need for more research into the impact of dynamic agent teams on the effectiveness of LLM-powered agent collaborations.
+
+As a first attempt towards addressing the above question, we introduce a novel framework named Dynamic LLM-Powered Agent Network (\textbf{DyLAN}). DyLAN conceptualizes multi-agent collaboration using temporal feed-forward networks (T-FFNs). In this formulation, each communication step of the agents corresponds to a network layer, with nodes representing the agents involved at that step and edges indicating communications between agents, for incorporating dynamic agent teams agnostically. 
+DyLAN functions in two stages to incorporate task-oriented agent collaborations (Figure~\ref{fig:overview-stages}). The first stage is termed \textbf{Team Optimization}, where we select top contributory agents unsupervisedly among the initial team of candidates according to the task query, based on their individual contributions. We propose a forward-backward message passing algorithm on the T-FFN termed \textit{agent selection} in \cref{sec:role-optimize}, inspired by the back-propagation algorithm~\citep{rumelhart1986learning} and neuron importance scores~\citep{imp-score}. This algorithm measures the contribution of each agent at the first stage with an unsupervised metric named \emph{Agent Importance Score}. The most contributory agents form a smaller team to collaborate at the second stage — \textbf{Task Solving}, thereby minimizing the impact of less effective agents on the final answer. Specifically, the collaboration begins with a team of agents, and an LLM-powered ranker in the middle dynamically deactivates low-performing agents (i.e., \textit{agent team reformation}), thus expanding the T-FFN, integrating dynamic communication structures into DyLAN (\cref{sec:inference-proc}). 
+Incorporating \textit{agent selection}, DyLAN effectively identifies and coordinates a task-oriented team of agents in a principled way. Extensive experiments demonstrate that DyLAN outperforms strong baselines in various tasks, including code generation, decision-making, general reasoning, and arithmetic reasoning. Notably, \textit{agent selection} in DyLAN has improved accuracy by up to 25.0\% in certain subjects of the MMLU dataset~\citep{mmlu}, underlining the significance of dynamic agent teams.
+
+
+In summary, our contributions are threefold:
+% \vspace{-0.5em}
+\begin{itemize}\setlength{\itemsep}{0pt}
+% \vspace{-0.5em}
+    \item We introduce a novel framework named DyLAN for task-oriented agent collaboration in two stages with \textit{agent selection}, marking a significant advancement in the study of dynamic agent teams.
+    \item DyLAN innovatively formulates agent collaborations in temporal feed-forward networks with \textit{agent team reformation}, enhancing its adaptability and reducing dependence on human preconceptions.
+    \item Empirical results demonstrate the superior accuracy, efficiency, and stability of DyLAN across various tasks, underscoring the need for dynamic agent teams.
+\end{itemize}
+
+
+% \begin{figure*}[t]
+%     \centering
+    
+%     \includegraphics[width=0.98\linewidth]{figs/overview-old.v4.pdf}
+%     %\vspace{-1em}
+%     \caption{The left part shows how DyLAN outputs the answer in a temporal feed-forward network (T-FFN), where nodes 
+%     represent agents at specific time steps (\cref{sec:system-llmlp}). Agent team reformation functions in the middle steps, during which the low-performing agent is deactivated in subsequent time steps. The right part depicts \textit{agent selection} (\cref{sec:role-optimize}), where the contribution of each agent in a primary trial is automatically evaluated in three steps using \emph{Agent Importance Score}, denoted as $\bm{I}$. Then, the top-ranked agents based on $\bm{I}$ will be selected as the optimized, task-oriented team of agents.
+%     }
+%     \label{fig:llmlp-structure}
+%     \vspace{-0.5em}
+% \end{figure*}
+
+\section{Related Work}\label{sec:related-work}
+\textbf{Team Optimization of LLM-Powered Agents}
+The construction of agent teams is the essential and initial step for LLM-powered agent collaboration. TPTU~\citep{tptu} and Chameleon~\citep{lu2023chameleon} decompose tasks to choose or create tools accordingly. Recent studies also use LLMs to generate a fixed number of role prompts for agents in response to a task query~\citep{multi-persona, meta-prompting}, or for each round of discussion~\citep{chen2023agentverse}.
+However, manual prompts require careful design, which is impractical for adaptation on each task or domain, and prompting LLMs with predefined or generated descriptions may not result in the desired abilities of the agents without verification. Therefore, posteriorly selecting a team of agents based on their actual behaviors in the collaboration according to the task becomes essential.
+While team optimization for LLM agents is a relatively new area, human-team optimization has been studied for a long time. For instance, \citet{human-team-building} show that skill contribution is essential for selecting crowd workers to solve outsourced tasks efficiently. Based on peer rating, researchers have developed an algorithm for managing online workers in an optimal organization~\citep{human-team-optimization}. 
+Drawing inspirations, we introduce an unsupervised algorithm to select a team of agents by quantifying their contributions based on peer ratings in \cref{sec:role-optimize}.
+
+\noindent
+\textbf{Communication Structures in LLM-Powered Agent Collaboration}
+Collaboration between multiple LLM agents has demonstrated strong performance on various tasks in recent years and has emerged as a promising approach to enhance the capabilities of individual LLMs. To enable collaborations between multiple agents, recent studies have developed different communication structures and assigned agents in pre-defined architecture. 
+For instance, researchers have found taking multiple LLM instances to debate for a fixed number of rounds can boost their factuality and reasoning capacities~\citep{debate1-mit, debate2-thu, debate3-multi-models}.  
+To aggregate multiple LLM responses, LLM-Blender~\citep{blender} calls different LLMs in one round and uses pairwise ranking to combine the top responses. It has also been shown effective in distributing workloads to LLMs and concatenating their answers, thus producing better results~\citep{sot,meta-prompting,autoact}. 
+It is worth noting that existing studies~\citep{chatllm-network, widedeep} have tried organizing LLM instances into linear layers, but they mainly studied supervised learning in context space and LLM evaluation, respectively, not the scenario in which we are interested. 
+However, running LLMs in a static architecture may limit the performance and generalization. 
+On specific reasoning tasks, adopting a dynamic directed acyclic graph structure for LLMs has been shown effective~\citep{cumulative-cr}.%, there is still no task-agnostic framework compatible with external tools and diverse roles of agents. 
+Also, recent studies~\citep{exchange-of-thought,chen2023agentverse,social-collab,gpt-swarm} have demonstrated that optimal communication structures vary with tasks and compositions of agents. 
+Aligned with the findings, we propose a structure that adjusts dynamically based on selecting agents according to the tasks and the construction of the agent team in \cref{sec:inference-proc}. 
+
+\noindent
+\textbf{Evaluation of the Contribution of LLM-Powered Agents}
+It is non-trivial to evaluate the contribution of each LLM agent in a multi-agent system, especially when they communicate over multiple rounds. In the single-round setting, existing methods use LLMs heavily for evaluation. To overcome the over confidence of LLMs~\citep{llm-overconfident}, pairwise ranking based on an additional LLM ranker has been introduced in LLM-Blender~\citep{blender}. To rank $n$ responses with an independent LLM in a single round, they compare all $O(n^2)$ pairs. For better efficiency, researchers use a $k$-length sliding window to choose top $k$ responses within $O(nk)$ pairwise comparisons~\citep{sliding-window}. However, these methods have not been extended to multi-round settings.
+Inspired by the neuron importance score~\citep{imp-score}, we evaluate agents by propagating and aggregating single-round peer ratings in a back-propagation manner~\citep{rumelhart1986learning}. In this way, we then introduce an unsupervised metric called \textit{Agent Importance Score} to quantify the contribution of each agent in multi-round collaborations (\cref{sec:role-optimize}).
+
+\begin{table*}[t]
+    \centering
+        % \vspace{-0.5em}
+    \resizebox{\linewidth}{!}{
+    \begin{tabular}{lccccccc}
+    \toprule
+       \multicolumn{1}{l}{\textbf{Method}}  & \multicolumn{1}{c}{\textbf{Single Exec.}} & \multicolumn{1}{c}{\textbf{LLM-Blender}} &  \multicolumn{1}{c}{\textbf{LLM Debate}} & \multicolumn{1}{c}{\textbf{Reflexion}} & \multicolumn{1}{c}{\textbf{CAMEL}} & \multicolumn{1}{c}{\textbf{AgentVerse}} & \textbf{DyLAN}  \\ \midrule\midrule
+      \multicolumn{1}{l}{\parbox{40mm}{\textbf{Communication Structure\\$(\mathcal{V};E)$}}} &  
+      \multicolumn{1}{c}{\begin{minipage}[b]{0.13\columnwidth}
+		\centering
+		\raisebox{-.5\height}{\includegraphics[width=\linewidth]{figs/instance_1.pdf}}
+	\end{minipage}}
+  & 
+  \multicolumn{1}{c}{\begin{minipage}[b]{0.13\columnwidth}
+		\centering
+		\raisebox{-.5\height}{\includegraphics[width=\linewidth]{figs/instance_2.pdf}}
+	\end{minipage}}
+ & 
+  \multicolumn{1}{c}{\begin{minipage}[b]{0.13\columnwidth}
+		\centering
+		\raisebox{-.5\height}{\includegraphics[width=\linewidth]{figs/instance_3.pdf}}
+	\end{minipage}}
+ &
+ \multicolumn{1}{c}{\begin{minipage}[b]{0.13\columnwidth}
+		\centering
+		\raisebox{-.5\height}{\includegraphics[width=\linewidth]{figs/instance_5.pdf}}
+	\end{minipage}} 
+ & 
+  \multicolumn{1}{c}{\begin{minipage}[b]{0.13\columnwidth}
+		\centering
+		\raisebox{-.5\height}{\includegraphics[width=\linewidth]{figs/instance_7.pdf}}
+	\end{minipage}}
+ &
+  \multicolumn{1}{c}{\begin{minipage}[b]{0.13\columnwidth}
+		\centering
+		\raisebox{-.5\height}{\includegraphics[width=\linewidth]{figs/instance_8.pdf}}
+	\end{minipage}}
+ &  \begin{minipage}[b]{0.13\columnwidth}
+		\centering
+		\raisebox{-.5\height}{\includegraphics[width=\linewidth]{figs/instance_6.pdf}}
+	\end{minipage} \\\midrule
+% \multicolumn{1}{l|}{\textbf{Output Strategy}} & \multicolumn{4}{c|}{Last Node Only} & \multicolumn{2}{c}{Majority Voting}  \\ \midrule
+\multicolumn{1}{l}{\textbf{Multiple Roles}} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{black}{Manual} & \textcolor{black}{Manual} & \textcolor{black}{Generated} & \textcolor{black}{Man.\&Gen.}   \\ 
+\multicolumn{1}{l}{\textbf{Early Stopping}} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$}  & \textcolor{red}{$\times$}  & \textcolor{mydarkgreen}{\Checkmark} & \textcolor{mydarkgreen}{\Checkmark} & \textcolor{mydarkgreen}{\Checkmark} &\textcolor{mydarkgreen}{\Checkmark} \\ 
+\multicolumn{1}{l}{\textbf{Dynamic Structure}}   & \textcolor{mydarkgreen}{\Checkmark} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{mydarkgreen}{\Checkmark}   \\ 
+\multicolumn{1}{l}{\textbf{Team Optimization}}  & \textcolor{red}{$\times$} &  \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} & \textcolor{red}{$\times$} &  \textcolor{red}{$\times$}  &  \textcolor{mydarkgreen}{\Checkmark}  \\
+\bottomrule
+    \end{tabular}}
+    \caption{
+    Comparison between \textbf{DyLAN} and representative previous works.
+    In the second row, nodes denote agents at different time steps ($\mathcal{V}$), arrows represent edges ($E$), and color indicates the role of agents. 
+    }
+    \label{tab:fw-instance}
+% \vspace{-1em}
+
+\end{table*}
+
+\section{Dynamic LLM-Powered Agent Network}\label{sec:system-llmlp}
+
+\subsection{Overview}
+
+%We introduce a framework for LLM-powered agent collaboration named Dynamic LLM-Powered Agent Network (\textbf{DyLAN}), facilitating dynamic communication structures and automatically task-oriented \textit{agent selection} in a two-stage fashion. As shown in \cref{fig:overview-stages}, an optimized agent team is constructed in the first stage ``Team Optimization'' through a preliminary trial and then the team collaborates to solve the task in the second stage ``Task Solving''.
+We introduce a framework for LLM-powered agent collaboration named Dynamic LLM-Powered Agent Network (\textbf{DyLAN}), facilitating dynamic communication structures and automatically task-oriented \textit{agent selection} in a two-stage fashion (\cref{fig:overview-stages}): an optimized agent team is constructed in the first stage ``Team Optimization'' through a preliminary trial and then the team collaborates to solve the task in the second stage ``Task Solving''.
+
+A core component of DyLAN is the temporal feed-forward networks (T-FFNs), whose nodes denote agents and edges denote the communication channels between agents (\cref{fig:llmlp-structure} left). T-FFNs serve not only as the abstraction of communication structures but also the computation graph.
+From this perspective, as shown in \cref{tab:fw-instance}, various LLM-powered agent collaboration systems~\citep{blender,reflexion,debate1-mit,li2023camel,chen2023agentverse} can be represented by similar network structures as T-FFNs. DyLAN is the only framework that supports multiple agents with roles and tools, early stopping (\cref{sec:inference-proc}), dynamic communication structures and team optimization simultaneously. To be specific, for team optimization, our \textit{agent selection} algorithm is performed as a backward message passing algorithm on the T-FFN (\cref{fig:llmlp-structure} right), and for task solving, \textit{agent team reformation} expands the T-FFN dynamically with messages passing forward.
+
+%Below we present the formulation of T-FFNs, inference process, \textit{agent team reformation}, and \textit{agent selection} algorithm for team optimization in detail.
+%To ease understanding, we will first present the formulation of T-FFNs, then the task solving stage, and finally the team optimization stage, which depends on components of task solving.
+To make it easier to understand, we will start by explaining the formulation of T-FFNs. Then, we will move on to the task solving stage, and finally, we will explain the team optimization stage, which relies on components of task solving.
+
+% \vspace{-0.5em}
+\subsection{Temporal Feed-Forward Networks (T-FFNs)}\label{sec:definition}
+
+\begin{figure*}[t]
+    \centering
+    
+    \includegraphics[width=0.98\linewidth]{figs/overview-old.v4.pdf}
+    %\vspace{-1em}
+    \caption{The left part shows how DyLAN outputs the answer in a temporal feed-forward network (T-FFN), where nodes 
+    represent agents at specific time steps (\cref{sec:definition}). Agent team reformation functions in the middle steps, during which the low-performing agent is deactivated in subsequent time steps. The right part depicts \textit{agent selection} (\cref{sec:role-optimize}), where the contribution of each agent in a primary trial is automatically evaluated in three steps using \emph{Agent Importance Score}, denoted as $\bm{I}$. Then, the top-ranked agents based on $\bm{I}$ will be selected as the optimized, task-oriented team of agents.
+    }
+    \label{fig:llmlp-structure}
+    % \vspace{-1.5em}
+\end{figure*}
+
+A T-FFN is a multi-layer network, of which each layer represents a time step. Its formal definition is as follows.
+
+
+\begin{definition}[Agents]
+    Agents participating the collaboration are represented by 
+    \begin{equation}
+        \mathcal{A} = \{a_1, a_2, \cdots, a_N \},\label{eq:A}
+    \end{equation}
+    where $N$ denotes the total number of agents, and $a_i$ can be (I) an LLM-powered agent possibly equipped with tools, or (II) an independent tool, e.g., scripts, code interpreters.
+\end{definition}
+% \vspace{-0.5em}
+\begin{definition}[Nodes]
+    The $t$-th layer of a T-FFN consists of $N$ nodes, each of which corresponding to one agent:
+    \begin{equation}
+         \mathcal{V}_t=\{v_{t,1},\cdots,v_{t,N} \},
+    \end{equation}
+    where $t=1,\cdots,T$, and node $v_{t,i}$ corresponds to agent $a_i$.
+\end{definition}
+% \vspace{-0.5em}
+\begin{definition}[Edges]\label{def:edges}
+    Edges in a T-FFN refer to the communication channels between nodes, forming the communication structure between agents. Specifically, the set of edges between the nodes in layer $t-1$ and $t$ is denoted as
+    \begin{equation}
+        E_{t-1,t}=\{(v_{t-1,i}, v_{t,j})\}\subseteq\mathcal{V}_{t-1}\times\mathcal{V}_t,
+    \end{equation}
+    where $t=2,\cdots,T$, and $(v_{t-1,i}, v_{t,j})$ denotes an edge connecting nodes $v_{t-1,i}$ and $v_{t,j}$.
+\end{definition}
+% \vspace{-0.5em}
+\begin{definition}[T-FFN]\label{def:t-ffn}
+    Finally, the T-FFN corresponding to the collaboration is defined as a $T$-layer network:
+    \begin{equation}
+        \mathcal{G}=(\mathcal{V}_1, \cdots, \mathcal{V}_T; E_{1,2}, \cdots, E_{T-1,T}).
+    \end{equation}
+    Note that we only consider T-FFNs where edges only exist in adjacent layers. However, edge can be added to arbitrary pairs of nodes, making the T-FFN capable of representing more complex communication structures.
+\end{definition}
+
+% \vspace{-0.5em}
+\subsection{Task Solving}\label{sec:task-solving}
+Task solving involves performing \textit{inference} on the T-FFNs, jointly with \textit{agent team reformation}, which be elaborated on in the subsequent two sections.
+
+% \vspace{-0.5em}
+\subsubsection{Inference}\label{sec:answer-infernece}
+Before details, we first introduce the formulation of message passing on T-FFNs.
+
+% \vspace{-0.5em}
+\begin{definition}[Message Passing]\label{def:message-passing}
+    Given a T-FFN, a node $v_{t,j}$, a set of adjacent nodes $\mathcal{U}=\{u_1,\cdots,u_K\}$, and the messages $\mathcal{M}=\{m_{u_1}, \cdots, m_{u_K}\}$ received by $v_{t,j}$, where $K$ is the size of $\mathcal{U}$, and $m_{u_k}$ is the message sent from $u_k$ to $v_{t,j}$, message passing aggregates all the messages $\mathcal{M}$ to produce a updated message $\hat{m}_{v_{t,j}}$ for $v_{t,j}$, which is formally defined as
+    \begin{equation}
+        \hat{m}_{v_{t,j}} = f_{\mathrm{mp}}\left(\mathcal{M}, v_{t,j}\right),
+    \end{equation}
+    where $f_{\mathrm{mp}}(\cdot,\cdot)$ is the aggregator function.
+\end{definition}
+
+\begin{definition}\label{def:forward-backward}
+    We refer the algorithm as {\bf forward message passing} when $\mathcal{U}$ is the set of all adjacent nodes of $v_{t,j}$ from the previous time step, i.e., $\mathcal{U}=\{u_k|\forall u_k, (u_k, v_{t,j})\in E_{t-1,t}\}$. Similarly, it is referred as {\bf backward message passing} when $\mathcal{U}$ is the set of all adjacent nodes from the next time step: $\mathcal{U}=\{u_k|\forall u_k, (v_{t,j}, u_k)\in E_{t, t+1}\}$.
+\end{definition}
+
+With the above formulation, we can describe the inference process of a T-FFN $\mathcal{G}$ in the manner of \textbf{forward message passing}. During collaborations on a given task, an agent at a specific time step takes the responses, i.e., messages, from other agents at the previous time step as input and generates responses based on the task query. 
+Based on different types of agents at $v_{t,j}$, we can implement $f_{\mathrm{mp}}(\cdot, v_{t,j})$ respectively: (I) concatenating input messages along with the task query into prompt templates (refer to task instructions in \cref{app:e}) and take the response from LLM after generation or tool calling, 
+or (II) filter the input that the tool can process, e.g., code completions and structured text. 
+
+During inference, we begin feeding the task query $q\in\mathcal{Q}$ into agents at time step 1 ($\mathcal{V}_1$), where $\mathcal{Q}$ denotes the dataset. By passing responses of nodes $\mathcal{V}_{t-1}$ at time step $t-1$ to nodes $\mathcal{V}_{t}$ at $t$, agents can perceive responses from all nodes at the previous time step and perform collaborative behavior, which might include criticizes, advice, refinement, or quality reviews, depending on the implementation of agents. Formally, the inference process is defined as 
+\begin{equation}
+f_{\mathrm{Infer}}(q, \mathcal{G}) = o,
+\end{equation}
+where $o = \mathrm{argmax}\{\mathcal{M}_T\}$ and $\mathcal{M}_T$ denotes the responses from $\mathcal{V}_T$. 
+Please refer to \cref{alg:try} for detailed procedure. 
+
+% \vspace{-0.5em}
+\subsubsection{Agent Team Reformation}\label{sec:inference-proc}
+
+Given a set of agents $\mathcal{A}$, \textit{agent team reformation} aims to identify more contributory agents and construct a dynamic communication structure accordingly. To this end, we leverage an additional LLM instance, referred as the ``LLM Ranker'', to analyze responses from the agents participate in the current time step and give out a ranking, prompted by the template of ``Ranker'' in \cref{app:e}. Then, the top-ranked agents are allowed to participate in the next time step. In other words, edges will only be added for these top-ranked agents, resulting in a dynamic communication structure.
+
+Formally, suppose the set of agents participates in time step $t$ is $\mathcal{A}_t=\{a_k\}$, and the top-ranked agents are $\mathcal{A}_{t+1}=\{a_l\}$, where $k$ and $l$ are the indices of the agents as defined in \cref{eq:A}, then we can obtain two nodes sets $\mathcal{V}_t'=\{v_{t,k}|\forall a_k\in \mathcal{A}_t\}$ and $\mathcal{V}_{t+1}'=\{v_{t+1,l}|\forall a_l\in \mathcal{A}_{t+1}\}$, and the edge set $E_{t,t+1}$ is defined as
+\begin{equation}
+    E_{t,t+1} = \mathcal{V}_t' \times \mathcal{V}_{t+1}'.
+\end{equation}
+The process progresses iteratively until the stop condition is met, and finally, we get a T-FFN $\mathcal{G}_q^\mathcal{A}$ for the query input $q$. We use function $f_{\mathrm{IAS}}$ to denote the entire computation:
+\begin{equation}
+    \mathcal{G}_q^\mathcal{A}=f_{\mathrm{IAS}}(\mathcal{A}, q).
+    % \vspace{-0.5em}
+\end{equation}
+
+To further enhance efficiency, we introduce an \textbf{early-stopping mechanism}. Inspired by the Byzantine Consensus theory~\citep{pbft}, at least $3p+1$ agents are needed to tolerate $p$ faulty agents in a single round of communication. 
+Following the theory, the inference process will be terminated when over 2/3 of agents in a single layer have a consistent answer. In practice, the inference process will also be terminated when the maximum time step is reached.
+Note that none of the consistency measures used in prior work~\citep{wang2023selfconsistency, aggarwal2023adaptive-consistency, exchange-of-thought} applies to multi-round multi-agent interaction since their theories are assumed to execute a single LLM instance multiple times or expect all agents to reach the same answer.
+
+% \vspace{-0.5em}
+\subsection{Team Optimization}\label{sec:role-optimize}
+The goal of team optimization is to select a subset of agents from candidates based on their contributions evaluated from a primary trial, such that the new team solves the task query more effectively and efficiently.
+Formally, given a task query $q$, a set of agents $\mathcal{A}$, a trial is performed based on the algorithm proposed in \cref{sec:inference-proc} resulting in a T-FNN $\mathcal{G}_q^\mathcal{A}$.
+And team optimization is formulated as
+\begin{equation}
+   \hat{\mathcal{A}}=f_{\mathrm{Optim}}(\mathcal{A}, \mathcal{G}_q^\mathcal{A}, q), \text{ where }\hat{\mathcal{A}}\subset\mathcal{A}.
+   % \vspace{-0.5em}
+\end{equation}
+
+$f_{\mathrm{Optim}}$ is implemented as in a three-step procedure of \textit{agent selection} (\cref{fig:llmlp-structure} right): 
+
+(1) \textit{Propagation}: Each node rates the solutions to the task query from its predecessors, which is a forward message passing process. Formally, given a node $v_{t,j}$ and an edge $(v_{t-1, i}, v_{t,j})$, the message $m_{v_{t-1,i}}$ sent from $v_{t-1, i}$ to $v_{t,j}$ is defined as the response to the task query $q$ from the agent $a_i$ at the previous time step. The aggregator function $f_{\mathrm{mp}}(\cdot, v_{t,j})$ is implemented as a scoring function $f^{(s)}_{t,j}(\cdot, \cdot, \cdot)$, which maps the prompt $p_j$, the input query $q$, and all the messages $\mathcal{M}$ to the rating scores. Here, we use $w_{t-1,i,j}$ to refer to the rating score on $v_{t-1,i}$ from $v_{t,j}$, and 
+\begin{equation}
+    [w_{t-1,1,j}, w_{t-1,2,j}, ..., w_{t-1,N,j}] = f^{(s)}_{t,j}\left(p_j, q, \mathcal{M}\right).
+    % \vspace{-0.5em}
+\end{equation}
+
+(2) \textit{Aggregation}: Each node aggregates the ratings it has received from its successors towards itself to quantify its own contribution independently at different time steps. The contribution of node $v_{t-1,i}$ is the sum of its successors' contribution multiplied by their peers' ratings on the agent's response. Aggregation is a backward message passing process. Formally, given a node $v_{t-1,i}$ and an edge $(v_{t-1, i}, v_{t,j})$, the message $m_{v_{t,j}}$ sent from $v_{t, j}$ to $v_{t-1,i}$ is defined as $w_{t-1,i,j}$. And the aggregator function $f_{\mathrm{mp}}$ is defined as a weighted sum function: 
+\begin{equation}\label{eqn:imp-score}
+    \bm{I}_{t-1,i} = \sum_{(v_{t-1,i}, v_{t,j})\in E_{t-1,t}}  \bm{I}_{t,j} \cdot w_{t-1,i,j},
+    % \vspace{-0.5em}
+\end{equation}
+where $\bm{I}_{t,i}$ denotes the contribution of $a_{t,i}$. 
+
+(3) \textit{Selection}: During the last step, we sum up the scores for the same agent over all time steps to derive an importance score for each agent,  and extract the top-$k$ agents that are most contributory according to these scores to form the optimized agent team. Formally, the \textit{Agent Importance Score} $\bm{I}_{i}$ for agent $a_i$ is defined as 
+\begin{equation}
+    \bm{I}_{i} = \sum_{t=1}^T \bm{I}_{t, i}.
+    % \vspace{-0.5em}
+\end{equation}
+In practice, we initialize the contributions in the final layer first, and step backward to perform \textit{Aggregation} layer by layer (\cref{alg:evaluate}). 
+The definition guarantees that the agent importance scores add up to 1 in each layer, which benefits fair comparison. 
+Other details, such as initializing contributions in the final layer, are presented in \cref{app:imp}.
+
+\begin{table*}[t]
+\centering
+\begin{minipage}{\linewidth}
+% \vspace{-0.5em}
+\centering
+\resizebox{0.43\textwidth}{!}{
+\begin{tabular}{l|rr|r}
+\toprule
+\textbf{Method} & \multicolumn{2}{c|}{\textbf{Pass@1}} & \textbf{\#API Calls} \\ \midrule\midrule
+    Single Execution  &          73.2 & (\textcolor{gray}{+0.0})           &     1.00                 \\
+ CodeT  &          65.8 & (\textcolor{red}{-7.4})           &           20.00           \\
+ CodeT (Codex)  &       74.8 & (\textcolor{mydarkgreen}{+1.6})           &             20.00         \\
+ Reflexion      &       68.3  &  (\textcolor{red}{-4.9})              &         4.05             \\
+      LATS & 81.1  & (\textcolor{mydarkgreen}{+7.9}) & 48.00  \\
+      \midrule\midrule
+ CAMEL & 69.5   & (\textcolor{red}{-4.1}) & 12.03 \\
+ AgentVerse &  75.0 & (\textcolor{mydarkgreen}{+1.8}) & 22.50 \\
+  \textbf{DyLAN} (\textit{Ours})      &           \textbf{82.9} & (\textcolor{mydarkgreen}{+\textbf{9.7}})          &             16.85         \\
+  \bottomrule
+\end{tabular}}
+\hspace{15pt}
+\resizebox{0.50\textwidth}{!}{
+\begin{tabular}{l|rrc|r}
+\toprule
+\multirow{2}{*}{\textbf{Method}} & \multicolumn{2}{c}{\multirow{2}{*}{\textbf{Reward}}} & \textbf{Success} & \textbf{\#API} \\
+ &      \multicolumn{2}{c}{}      &  \textbf{Rate}       & \textbf{Calls}        \\ \midrule\midrule
+    Direct Execution  &          50.6  & (\textcolor{gray}{+0.0})       &  28.0   &     14.52     \\
+ ReAct  &       53.8 &(\textcolor{mydarkgreen}{+3.2})           &     30.0      &     8.40      \\
+ ReAct-SC & 58.0 & (\textcolor{mydarkgreen}{+7.4}) & 36.0 &  25.75  \\
+ Reflexion (\textit{trial=4})     &         62.0   & (\textcolor{mydarkgreen}{+11.4})              &     40.0      &    25.40    \\
+    LATS &  64.5 &(\textcolor{mydarkgreen}{+13.9}) & 38.0 & $>$ 400 \\
+      \midrule\midrule
+ BOLAA &  66.0  &(\textcolor{mydarkgreen}{+15.4})  & 40.0 & 32.40 \\
+  \textbf{DyLAN} (\textit{Ours})      &           \textbf{68.3}  &(\textcolor{mydarkgreen}{+\textbf{17.7}})          &             \textbf{42.0}    &   24.85   \\
+  \bottomrule
+\end{tabular}}
+\end{minipage}
+\captionof{table}{Experimental results on the CG task (left) and results on the DM task (right). The number in parentheses indicates the difference relative to the single execution or direct execution. We indicate the foundation model of methods except for GPT-35-turbo. The median of three trials is reported when non-zero \texttt{temperature} is used.
+}\label{tab:humaneval}
+\end{table*}
+
+% \vspace{-0.5em}
+\begin{table*}[t]
+\begin{center}
+% \vspace{-1em}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|c|ccccccc|c|r}
+\toprule
+\multirow{2}{*}{\textbf{Method}}          &   \multirow{2}{*}{\textbf{Prompting}}          &  \multirow{2}{*}{\textbf{Algebra}}           & \textbf{Counting and}      & \multirow{2}{*}{\textbf{Geometry}}                 & \textbf{Intermediate}      &  \textbf{Number}   &     \textbf{Pre-}  &     \textbf{Pre-}      & \multirow{2}{*}{\textbf{Overall}}               & \textbf{\#API}          \\
+     &    &        & \textbf{Probability}      &               &    \textbf{Algebra}    &   \textbf{Theory}  &   \textbf{Algebra}  &   \textbf{Calculus} &      & \textbf{Calls}          \\ \midrule\midrule
+ Single Execution &   \multirow{4}{*}{CoT}  &    43.6       &     29.3     &        21.5        &      15.8         &       30.0        &  48.9   &  16.5 & 31.6 (\textcolor{gray}{+0.0})  &       1.00           \\
+ LLM-Blender  &       &    47.5     &  25.5             &       23.8       &        13.8          &         39.7     &  46.7   &  15.8  & 31.7 (\textcolor{mydarkgreen}{+0.1})  &       6.00          \\
+ LLM Debate &  &  50.2     &   25.3     &  22.3             &       13.1       &       28.9         &         48.0     &  19.0     &  32.4 (\textcolor{mydarkgreen}{+0.8}) &        8.00          \\
+\textbf{DyLAN} (\textit{Ours}) &   &   52.9      &  27.2    &          25.3   &      15.5       &       33.5       &    55.2          &   19.0  &    \textbf{35.7} (\textcolor{mydarkgreen}{+\textbf{4.1}}) &      7.15        \\ \midrule\midrule
+ Single Execution &  \multirow{3}{*}{\makecell{Complex\\CoT}}   &    49.1       &     29.7     &        22.3        &      14.6         &       33.4        &  53.8   &  16.8 & 34.1 (\textcolor{gray}{+0.0})  &       1.00         \\
+PHP &      &   51.1    &      33.7       &      25.4          &     17.1          &          35.1     &  57.7   & 16.1  &  36.5 (\textcolor{mydarkgreen}{+2.4}) &        3.67   \\
+\textbf{DyLAN} (\textit{Ours}) &   &   53.7     &    33.3   &   26.1            &       18.1        &   33.5               &      58.7        &   18.9    &  \textbf{37.6} (\textcolor{mydarkgreen}{+\textbf{3.5}})  &      6.21       \\ \bottomrule 
+\end{tabular}}
+% \vspace{-1em}
+\end{center}
+\caption{Accuracy (\%) on the AR task. The number in parentheses indicates the performance difference relative to a single execution.
+}
+\label{tab:math}
+% \vspace{-1.5em}
+\end{table*}
+
+% \vspace{-1em}
+\section{Experiments}\label{sec:exps}
+
+% \vspace{-1em}
+\subsection{Setup}\label{sec:exps-setup}
+
+\textbf{Code Generation (CG)}
+We use the HumanEval benchmark, with 164 human-labeled function-level completion codes and unit tests~\citep{human-eval}. Unit tests are used to validate the correctness of generated codes. 
+We leverage two strong baselines CodeT~\citep{chen2023codet} and Reflexion~\citep{reflexion} along with the single execution. For multi-agent baselines, we re-implement CAMEL~\citep{li2023camel} and AgentVerse~\citep{chen2023agentverse} under their original configurations for fair comparisons.
+
+\noindent
+\textbf{Decision Making (DM)}
+We evaluate our methods in the WebShop environment, selecting 50 environments in its test set~\citep{human-eval} following the setting of LATS~\citep{lats}. WebShop requires to find the item given an instruction of the customer. It provides ``reward'' as an intrinsic metric for item-instruction relevance, and ``success'' is marked when the reward is 1.0. Besides ReAct~\citep{yao2023react} and Reflexion, we re-ran a multi-agent method BOLAA~\citep{bolaa}, and a single-agent method LATS as strong baselines. 
+
+\noindent
+\textbf{General Reasoning (GR)}
+For the general reasoning task, we use the MMLU dataset~\citep{mmlu}, which contains four categories of a vast amount of problems in 57 subjects. We down-sample 1/5 of the problems in the test set because of its huge quantity. 
+We choose LLM Debate~\citep{debate1-mit}, LLM-Blender~\citep{blender}, and the single execution on LLM as baselines. 
+
+\noindent
+\textbf{Arithmetic Reasoning (AR)}
+We leverage the test set of MATH~\citep{hendrycksmath2021} for evaluation, which consists of 7 subareas and 5,000 questions in total.  
+To draw a fair comparison and verify the robustness, we categorize methods by different prompting strategies and select strong baselines accordingly.
+% , including normal CoT prompts~\citep{cot} from the original dataset and Complex CoT from PHP~\citep{PHPrompting}
+Preliminary experiments show that collaborating agents in different domains (e.g., algebra and geometry experts) does not make significant improvement, therefore we adopt agents with same prompts for all methods. 
+
+\noindent
+\textbf{DyLAN Setup}
+In \cref{tab:exp-setup}, we elaborate the setup of DyLAN. To keep in line with baseline methods, we only equipped DyLAN with code interpreters as tools in the CG task. It is worth noting that \textit{agent selection} is performed for each subject in the GR task, for each web page in the DM task, and directly for CG task in the team optimization stage. Due to space limitations, please refer to \cref{app:a} for details. 
+
+\begin{table}[t]
+\begin{minipage}[t]{0.55\linewidth}
+\begin{center}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|cccc|c|r}
+\toprule
+\multirow{2}{*}{\textbf{Method}}          & \multirow{1}{*}{\textbf{Hum-}}           & \textbf{Social}       & \multirow{2}{*}{\textbf{STEM}}                 & \multirow{2}{*}{\textbf{Other}}                 & \multirow{2}{*}{\textbf{Overall}}               & \textbf{\#API}          \\
+         &   \textbf{anities}     & \textbf{Science}       &               &               &             & \textbf{Calls}          \\ \midrule\midrule
+Random & 25.0                & 25.0                & 25.0                & 25.0                 & 25.0                 &  -                  \\ 
+ Single Exec. &       59.8               &  74.0                    &         62.9             &               71.8        &       66.4    (\textcolor{gray}{+0.0})            &         1.00            \\ 
+    LLM-Blender    &        60.4            &            75.2        &          66.3        &            70.7         &              67.3   (\textcolor{mydarkgreen}{+0.9})       &   6.00                   \\
+    LLM Debate    &        59.8              &           77.4           &          69.0            &           75.5            &          69.3   (\textcolor{mydarkgreen}{+2.9})             &           12.00           \\ 
+    % \textbf{DyLAN}    &         60.5   &          78.9       &               69.3       &         76.4                &         \textbf{70.1}   (\textcolor{mydarkgreen}{+\textbf{3.7}})              &          3.98            \\
+    \textbf{DyLAN}        &              62.1        &          79.1            &       69.7      &            75.5            &                \textbf{70.5}   (\textcolor{mydarkgreen}{+\textbf{4.1}})        &  4.39   \\ \bottomrule 
+\end{tabular}}
+% \begin{minipage}{0.57\linewidth}
+% \vspace{-0.5em}
+\caption{Accuracy (\%) on the GR task. ``Other'' stands for subjects like business, health, and misc in the MMLU dataset. We report the median of three runs for experiments. 
+}
+\label{tab:mmlu}
+\end{center}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.44\linewidth}
+\begin{center}
+\resizebox{\linewidth}{!}{
+% \small
+\begin{tabular}{lcc|c|c}
+\toprule
+\multirow{2}{*}{\textbf{Task}} & \multirow{2}{*}{\textbf{\#Agents}} & \textbf{Tool} & \textbf{Performance}  & \multirow{2}{*}{\textbf{\#API Calls}} \\
+ &                 & \textbf{Usage}        &  \textbf{Improvement} & \textbf{} \\ \midrule\midrule
+\textbf{CG} & $12\rightarrow 8$ &  \textcolor{mydarkgreen}{\Checkmark} & 76.2 $\rightarrow$ 82.9 &  23.04 $\rightarrow$ 16.85  \\
+\multirow{1}{*}{\textbf{DM}} & \multirow{1}{*}{$8\rightarrow 4$} & \multirow{1}{*}{\textcolor{red}{$\times$}} &  53.0 $\rightarrow$ 68.3 & \multirow{1}{*}{32.03 $\rightarrow$ 24.85} \\
+% & &   &   38.0 $\rightarrow$ 42.0  &    \\
+\textbf{GR} & $7\rightarrow4$ & \textcolor{red}{$\times$} &  69.5 $\rightarrow$ 70.5 & \phantom{0}8.30 $\rightarrow$ \phantom{0}4.39 \\
+\textbf{AR} &  $4$ & \textcolor{red}{$\times$} &  - & -\\
+ \bottomrule
+\end{tabular}}
+% \vspace{-0.5em}
+\caption{Demonstration of experiment settings, including the number of agents and the performance throughout team optimization. We report reward for the DM task.}\label{tab:exp-setup}
+\end{center}
+\end{minipage}
+% \vspace{-1.8em}
+\end{table}
+
+% \begin{table}[t]
+% \begin{minipage}[t]{0.58\linewidth}
+% \vspace{0pt}
+% \centering
+% \resizebox{0.49\linewidth}{!}{
+% \includegraphics[width=\linewidth]{figs/Figure_role1-crop.pdf}
+% }
+% \resizebox{0.48\linewidth}{!}{
+% \includegraphics[width=\linewidth]{figs/Figure_role2-crop.pdf}
+% }
+% \vspace{-0.7em}
+% \captionof{figure}{Impact of optimized agent team size. 2$\sim$4 agents are selected from 7 candidate agents based on \textit{Agent Importance Score}. Accuracy (left) and \#API calls (right) on the GR task are visualized.
+% }\label{fig:7-role-optimize}
+% \end{minipage}
+% \hfill
+% \begin{minipage}[t]{0.4\linewidth}
+% \vspace{0pt}
+% \centering
+% \begin{minipage}[t]{\linewidth}
+    
+% \end{minipage}
+% \begin{minipage}[t]{\linewidth}
+    
+% \end{minipage}
+% \resizebox{\linewidth}{!}{
+% \begin{tabular}{l|cr|cr|cr|cr}
+% \toprule
+% \multirow{2}{*}{\textbf{Method}} & \multicolumn{2}{c|}{\textbf{AR}} & \multicolumn{2}{c|}{\textbf{GR}} & \multicolumn{2}{c|}{\textbf{CG}} & \multicolumn{2}{c}{\textbf{DM}} \\ \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+%   & Acc. & \#API & Acc. & \#API & Pass@1 & \#API & Reward & \#API  \\ \midrule\midrule
+%  \textbf{DyLAN} & \textbf{35.7} & \textbf{7.15} & \textbf{70.5}  & \textbf{4.39} & \textbf{82.9} & \textbf{16.85} & \textbf{68.3} & \textbf{24.85} \\ 
+%  \multicolumn{1}{r|}{\textit{w/o es}} & 35.0 & 13.00 & 70.1 & 13.00 & 80.5 & 19.00 & 67.5 & 54.25 \\
+%  \multicolumn{1}{r|}{\textit{w/o atr}} & 33.8 & 8.20 & 69.9 & 7.05 & 76.2 & 17.98 & 66.0  & 48.90 \\ 
+% \bottomrule
+% \end{tabular}}
+% \vspace{-0.5em}
+% \captionof{table}{Ablation study on the early-stopping mechanism (\textit{es}) and the agent team reformation (\textit{atr}).}
+% \label{tab:ablation}
+% \end{minipage}
+% \vspace{-1.3em}
+% \end{table}
+
+% \vspace{-1em}
+\subsection{Main Results}
+
+In \cref{tab:humaneval}, \cref{tab:math}, and \cref{tab:mmlu}, we report the results on each dataset respectively. The number of API calls serves as a proxy for the efficiency of communication structures for agents, which cannot be clearly determined from token consumption which varies greatly depending on tasks and prompting strategies. Since ``Task solving'' after ``Team Optimization'' is essential for testing and deployment, we mainly report the cost from the second stage. The difference can be seen in \cref{tab:exp-setup}, and further discussions in \cref{app:data-efficiency}. 
+
+\textbf{DyLAN improves overall performance on different tasks with a reasonable computational cost.}
+From \cref{tab:math}, we find DyLAN realizes an \textcolor{mydarkgreen}{10.2\%} improvement to LLM Debate in terms of accuracy, with \textcolor{mydarkgreen}{10.6\%} lower \#API calls (L3 vs.~L4), suggesting it is a better trade-off between efficiency and effectiveness. Similar trends can be observed as DyLAN has a better performance with only \textcolor{mydarkgreen}{36.6\%} API calls of LLM Debate (L5 vs.~L4 in \cref{tab:mmlu}), and \textcolor{mydarkgreen}{35.1\%} of LATS on CG and \textcolor{mydarkgreen}{$<$6\%} on DM (L8 vs.~L5 (left), L7 vs.~L5 (right) in \cref{tab:humaneval}). We argue it can be attributed to the feed-forward structure and early-stopping mechanism, which allows different solutions to be delivered simultaneously and confirmed rapidly. 
+In contrast, for methods in sequential architecture like PHP and Reflexion (\cref{tab:humaneval}), incorrect intermediates might easily influence the final output due to the single thread of reasoning or code generation and review. Also, ReAct on DM tasks exhibits similar failures due to misoperations in the middle. In contrast, Reflexion and LATS access the environment at certain states for multiple times to for reflection, limiting generalizabilities. 
+In our case, any feedback from predecessors could be rated by successor nodes, making it easier to rectify potential invalid actions. 
+Moreover, we see that DyLAN dynamically adjust the cost based on the difficulty of tasks. For instance, most questions in the MMLU dataset are less challenging than MATH, DyLAN has \textcolor{mydarkgreen}{2.76} fewer API calls on the query from the former. However, compared to other tasks, DyLAN introduces relatively lower improvements in AR tasks, which might be due to the high knowledge dependency of the MATH dateset.
+
+\noindent
+\textbf{DyLAN benefits from the team optimization.}
+Moreover, we found that a dynamic team of task-oriented agents could enhance DyLAN.
+For different subjects in GR tasks, agent compositions are adjusted correspondingly to improve up to \textcolor{mydarkgreen}{25.0\%} in accuracy, as shown in \cref{tab:composition}. As denoted in \cref{tab:exp-setup}, a dynamically selected team of agents could result in significant performance improvement, especially for DM tasks, where agents might have great interference from others. The overall performance can be significantly improved (up to \textcolor{mydarkgreen}{6.7\%}) with lower computational costs on each tasks after \textit{agent selection}.
+Moreover, it also suggests that \textit{Agent Importance Scores} can effectively capture and reflect the actual contributions of agents on a wide range of tasks. We further verify this claim in \cref{app:shap}. 
+
+
+\begin{table}[t]
+\begin{minipage}[t]{0.63\linewidth}
+\vspace{0pt}
+\centering
+\resizebox{0.49\linewidth}{!}{
+\includegraphics[width=\linewidth]{figs/Figure_role1-crop.pdf}
+}
+\resizebox{0.48\linewidth}{!}{
+\includegraphics[width=\linewidth]{figs/Figure_role2-crop.pdf}
+}
+% \vspace{-0.7em}
+\captionof{figure}{Impact of optimized agent team size. 2$\sim$4 agents are selected from 7 candidate agents based on \textit{Agent Importance Score}. Accuracy (left) and \#API calls (right) on the GR task are visualized.
+}\label{fig:7-role-optimize}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.35\linewidth}
+\vspace{0pt}
+\centering
+\begin{minipage}[t]{\linewidth}
+    
+\end{minipage}
+\begin{minipage}[t]{\linewidth}
+    
+\end{minipage}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|cr|cr}
+    \toprule
+    \multirow{2}{*}{\textbf{Method}} & \multicolumn{2}{c|}{\textbf{AR}} & \multicolumn{2}{c}{\textbf{GR}} \\
+     \cmidrule(lr){2-3}\cmidrule(lr){4-5}
+      & Acc. & \#API & Acc. & \#API \\ \midrule\midrule
+     \textbf{DyLAN} & \textbf{35.7} & \textbf{7.15} & \textbf{70.5}  & \textbf{4.39} \\ 
+     \multicolumn{1}{r|}{\textit{w/o es}} & 35.0 & 13.00 & 70.1 & 13.00 \\
+     \multicolumn{1}{r|}{\textit{w/o atr}} & 33.8 & 8.20 & 69.9 & 7.05 \\ 
+    \bottomrule
+    \toprule
+    \multirow{2}{*}{\textbf{Method}} & \multicolumn{2}{c|}{\textbf{CG}} & \multicolumn{2}{c}{\textbf{DM}} \\ \cmidrule(lr){2-3}\cmidrule(lr){4-5}\
+    & Pass@1 & \#API & Reward & \#API  \\ \midrule\midrule
+   \textbf{DyLAN} & \textbf{82.9} & \textbf{16.85} & \textbf{68.3} & \textbf{24.85} \\ 
+   \multicolumn{1}{r|}{\textit{w/o es}} & 80.5 & 19.00 & 67.5 & 54.25 \\
+   \multicolumn{1}{r|}{\textit{w/o atr}} & 76.2 & 17.98 & 66.0  & 48.90 \\ 
+    \bottomrule
+\end{tabular}
+}
+
+% \vspace{-0.5em}
+\captionof{table}{Impact off the early-stopping mechanism (\textit{es}) and agent team reformation (\textit{atr}). %\#API denotes the average number of API calls.
+}
+\label{tab:ablation}
+\end{minipage}
+% \vspace{-1.5em}
+\end{table}
+
+
+% \vspace{-1em}
+\subsection{Ablation Studies}\label{sec:more-anal}
+
+% \vspace{-0.5em}
+\noindent
+\textbf{Impact of Optimized Agent Team Size}
+Fewer proper agents in a team could have better performance. As shown in \cref{fig:7-role-optimize}, DyLAN with an optimized team of 3 agents can outperform both DyLAN before team optimization and LLM Debate with 4 agents, suggesting the effectiveness of our proposed agent selection. The efficiency is also significantly improved by \textcolor{mydarkgreen}{52.9\%} and \textcolor{mydarkgreen}{67.8\%}, respectively. Probably because the imbalance of agents' expertise and opinions interfere with each other before optimization, especially on GR, where few candidates are relevant to a subject.
+
+% \begin{wraptable}[15]{r}{8.5cm}
+% % \vspace{-1.5em}
+% \setlength\tabcolsep{2pt}
+% \resizebox{\linewidth}{!}{
+% \begin{tabular}{l|c|c}
+% \toprule
+%    \textbf{Subject}  & \textbf{Optimized Composition} & \textbf{Performance Improvement} \\ \midrule\midrule
+%     college & Economist, Lawyer,
+%  & \multirow{2}{*}{$\mathbf{25.0}: 40.0 \rightarrow 65.0$} \\
+%     mathematics & Programmer, Mathematician & \\ \midrule
+%    \multirow{2}{*}{management}  & Lawyer, Psychologist, & \multirow{2}{*}{$\mathbf{14.3}: 76.2 \rightarrow 90.5$} \\
+%      & Economist, Programmer & \\ \midrule
+%     high school
+%  & Historian, Programmer,
+%  & \multirow{2}{*}{$\mathbf{9.3}: 65.1 \rightarrow 74.4$} \\
+%     statistics & Psychologist, Mathematician & \\ \midrule
+%    clinical
+%   & Doctor, Mathematician,
+%  & \multirow{2}{*}{$\mathbf{5.7}: 69.8 \rightarrow 75.5$} \\
+%     knowledge & Programmer, Psychologist & \\ \midrule
+%    public
+%   & Historian, Psychologist, & \multirow{2}{*}{$\mathbf{4.5}: 54.5 \rightarrow 59.1$} \\
+%    relations  & Lawyer, Mathematician & \\
+% \bottomrule
+% \end{tabular}}
+% \caption{The optimized composition of agents and performance improvement on different subjects in the GR task. 
+% }\label{tab:composition}
+% \vspace{-1em}
+% \end{wraptable}
+
+\begin{table}[t]
+\begin{minipage}{0.64\linewidth}
+\centering
+\setlength\tabcolsep{2pt}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|c|c}
+\toprule
+   \textbf{Subject}  & \textbf{Optimized Composition} & \textbf{Performance Improvement} \\ \midrule\midrule
+    college & Economist, Lawyer,
+ & \multirow{2}{*}{$\mathbf{25.0}: 40.0 \rightarrow 65.0$} \\
+    mathematics & Programmer, Mathematician & \\ \midrule
+   \multirow{2}{*}{management}  & Lawyer, Psychologist, & \multirow{2}{*}{$\mathbf{14.3}: 76.2 \rightarrow 90.5$} \\
+     & Economist, Programmer & \\ \midrule
+    high school
+ & Historian, Programmer,
+ & \multirow{2}{*}{$\mathbf{9.3}: 65.1 \rightarrow 74.4$} \\
+    statistics & Psychologist, Mathematician & \\ \midrule
+   clinical
+  & Doctor, Mathematician,
+ & \multirow{2}{*}{$\mathbf{5.7}: 69.8 \rightarrow 75.5$} \\
+    knowledge & Programmer, Psychologist & \\ \midrule
+   public
+  & Historian, Psychologist, & \multirow{2}{*}{$\mathbf{4.5}: 54.5 \rightarrow 59.1$} \\
+   relations  & Lawyer, Mathematician & \\
+\bottomrule
+\end{tabular}}
+\caption{The optimized composition of agents and performance improvement on different subjects in the GR task. 
+}\label{tab:composition}
+\end{minipage}
+\hfill
+\begin{minipage}{0.34\linewidth}
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}{cc|c|c}
+\toprule
+\textbf{\#Code} & \textbf{\#Code} & \multirow{2}{*}{\textbf{Pass@1}} & \textbf{\#API} \\
+\textbf{Writers} &     \textbf{Reviewers}     &      &  \textbf{Calls} \\ \midrule\midrule
+6 & 6 & 76.2 & 23.04 \\ \midrule\midrule
+4 & 4 &  82.9  & 16.85 \\ 
+4 & 3 & 81.1 & 14.64 \\
+4 & 2 & 77.4 &  12.50 \\
+3 & 3 & 78.0 & 11.73 \\
+3 & 2 & 75.6 & \phantom{0}9.60 \\
+ \bottomrule
+\end{tabular}}
+\caption{Different compositions of agents on the CG task of an optimized team of agents. Agent teams are optimized by the \textit{Agent Importance Score} from the first line.}\label{tab:cg-composition}
+\end{minipage}
+\end{table}
+
+
+\noindent
+\textbf{Robustness of Agent Importance Score}
+The \textit{Agent Importance Score} is robust over the imbalance of agent roles.
+On GR tasks, the candidates are imbalanced in terms of expertise. For most queries, there are less than 2 candidates that are related according to their role prompts. In \cref{tab:composition}, we found \textit{agent selection} is capable for selecting related agents, e.g., ``Mathematician'' for ``college mathematics'', that matches human priors. However, if candidates are all vastly different from the task domain, e.g., ``public relation'', where the improvement is less significant. We also tested DyLAN on CG tasks with different amount of code writers and code reviewers after the ``Team Optimization'' stage. It is worth noting that a single run of ``Team Optimization'' could provides reusable \textit{Agent Importance Scores} for multiple trials of agent selection. In \cref{tab:cg-composition}, we exhibit the results under imbalanced teams of agents. We verified the imbalance of code writers and reviewers after optimization won't cause great performance drops. Though, reviewers affect the performance slightly greater than writers (L2,3 vs.~L4,5), indicating the necessity of the amount of reviewers for code refinement. 
+
+
+
+\noindent
+\textbf{Impact of Early-Stopping and Agent Team Reformation}
+As shown in \cref{tab:ablation}, early-stopping mechanism boosts efficiency to a great extent by minimizing \#API calls by \textcolor{mydarkgreen}{45.0\%}, \textcolor{mydarkgreen}{66.2\%}, \textcolor{mydarkgreen}{11.3\%},  and \textcolor{mydarkgreen}{54.2\%} on AR, GR, CG, and DM tasks respectively, while providing slight performance improvement. Agent team reformation, however, is critical to enhance the correctness of the final answer. We conjecture it is because agents are filtered for temporary mistakes in LLMs, such as hallucinations, etc. Additionally, answer comparison is more challenging for open-ended tasks like CG or DM tasks. We use the BLEU score with a 0.9 threshold for consistency checks. This makes early stopping less effective since agents may generate codes in different formats, leading to fewer opportunities to stop early.
+
+
+\noindent
+\textbf{Stability of DyLAN with Different Backbone Models}
+There is also a notable difference in CG tasks when the backbone model changes (\cref{tab:humaneval}). Reflexion and CodeT's performances are heavily related to the backbone model (L4 vs. L5 and L6 vs. L9). 
+Instead, DyLAN shows a steady, consistent high performance (L7 vs. L10) under different backbone models with almost the same amount of API calls.
+
+% \vspace{-1em}
+\section{Conclusion and Future Work}
+% \vspace{-0.5em}
+This work introduces a framework named Dynamic LLM-Powered Agent Network (DyLAN) for collaboration of dynamic agent teams on complicated tasks. DyLAN functions in a two-stage paradigm, enabling agents to interact in a dynamic structure with agent team reformation. In ``Team Optimization'' stage, the \textit{agent selection} algorithm based on an unsupervised metric termed \textit{Agent Importance Score}, selects top contributory agents in a principled way for collaboration on ``Task Solving''. Overall, DyLAN reveals improvement on diverse tasks with relatively less computational cost compared to baselines. In the future, we plan to 
+explore the effectiveness of DyLAN built on open-source foundation models. 
+
+% \section{Conclusion}
+% \vspace{-0.5em}
+% This work introduces a framework named DyLAN for collaboration of dynamic agent teams on complicated tasks. DyLAN enables agents to interact in a dynamic structure with agent team reformation. Overall, DyLAN reveals significant improvement on diverse tasks with relatively less computational cost compared to baselines.
+
+% This work introduces a framework named DyLAN that enables agents to interact in a dynamic structure with agent team reformation. Overall, DyLAN reveals significant improvement on diverse tasks with relatively less computational cost compared to baselines.
+
+\subsubsection*{Acknowledgments}
+We thank Yilun Du for the helpful assistance on code implementation.
+We sincerely thank William Held, Ruibo Liu, Dr.~Yue Zhuge, Noah Shinn and Kangfu Zheng for their valuable feedback on the project.
+
+\section*{Ethics Statement}
+
+LLM-powered agent systems are widely used in practical applications. DyLAN could also effortlessly cover practical software development, virtual room chat, video games, and so on~\citep{meta-gpt,gpt-iot,llm-dba,minecraft-agent,chateval}. 
+In these open-world environments, agents may operate as planners, actors, etc. 
+DyLAN only requires people to give rough instructions on the constitute of agents and could automatically optimize a better team of agents to construct an efficient multi-agent system.
+These systems could benefit from DyLAN to reduce human labor on designing agents and have a better performance on their target tasks.
+
+Also, the overall architecture of DyLAN (\cref{fig:llmlp-structure}) reflects the optimal collaboration organization of human online workers~\citep{human-team-optimization}, and reveals significant performance in agent collaborations. Therefore, simulating human collaboration by LLM-powered agent collaborations under DyLAN might also be possible. Optimizing human collaboration by searching and simulating LLM agents will hopefully be more convenient and effective. We also acknowledge the potential risk in pretrained language models used in the paper, e.g., GPT-3.5 and GPT-4, which may cause improper responses. Furthermore, creating agents by hand and LLM generations might prompt LLM-powered agents to act or response misaligned with principles of society, which may possibly happen during agent collaborations. However, we think team optimization process could potentially alleviate this situation.
+
+% \begin{figure}[h]
+% \begin{center}
+% %\framebox[4.0in]{$\;$}
+% \fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+% \end{center}
+% \caption{Sample figure caption.}
+% \end{figure}
+
+% \begin{table}[t]
+
+% \label{sample-table}
+% \begin{center}
+% \begin{tabular}{ll}
+% \toprule
+% \multicolumn{1}{c}{\bf PART}  &\multicolumn{1}{c}{\bf DESCRIPTION} \\
+% \midrule
+% Dendrite         &Input terminal \\
+% Axon             &Output terminal \\
+% Soma             &Cell body (contains cell nucleus) \\
+% \bottomrule
+% \end{tabular}
+% \end{center}
+% \caption{Sample table title}
+% \end{table}
+
+
+
+% \subsubsection*{Author Contributions}
+% If you'd like to, you may include  a section for author contributions as is done
+% in many journals. This is optional and at the discretion of the authors.
+
+% \subsubsection*{Acknowledgments}
+% Use unnumbered third level headings for the acknowledgments. All
+% acknowledgments, including those to funding agencies, go at the end of the paper.
+
+
+\bibliography{colm2024_conference}
+\bibliographystyle{colm2024_conference}
+
+\appendix
+
+\section{Discussion \& Limitation}
+
+In experiments, we view code generation tasks as representative of open-ended generation tasks and adopt \texttt{BLEU} to decide whether two answers are consistent in early stopping mechanism in \cref{sec:inference-proc}. In fact, the performance could be further leveraged by task-specific methods like CodeBLEU~\citep{Ren2020CodeBLEUAM} or CodeT~\citep{chen2023codet}.
+
+For practical usage, the agent-evaluation metrics could cooperate with human annotation to give a more precise evaluation result on individual contributions of agents, mainly when facing data scarcity problems. Furthermore, we simply incorporating \textit{agent selection} on DyLAN with \textit{agent team reformation}, as a primary step towards collaboration of dynamic agent teams. It still remains to be seen how to cooperate off-collaboration and in-collaboration optimization methods in a finer granularity to further improve performance and efficiency in LLM-powered agent collaboration systems.
+
+Additionally, though \textit{agent selection} could differentiate top contributory agents, in extreme cases where the majority of agents are designed to contradict the task requirement, low performance might be caused, e.g., agents are prompted or trained to generate codes may face difficulties in clinical question answering. To tackle the imbalance of high- and low-performing agents, replicating agents with high  \textit{Agent Importance Score} instead of including low-score agents could be a solution. Additionally, in extreme circumstances, we can automatically introduce agents from more capable LLMs with validation, in addition to \textit{agent selection}.
+
+\section{Implementation Details}\label{app:all-a}
+
+\subsection{Detailed Experiment Settings} \label{app:a}
+
+\begin{figure}[htb]
+  \centering
+  \small
+  \begin{minipage}[t]{.57\linewidth}
+\begin{algorithm}[H]
+\caption{The Inference Process of \textbf{DyLAN} on an Arbitrary Query}\label{alg:try}
+\begin{algorithmic}
+\STATE {\bfseries Input:} T-FFN $\mathcal{G}=(\mathcal{V}_1,\cdots, \mathcal{V}_T; E_1, \cdots, E_{T-1, T})$, Query $q$
+\STATE {\bfseries Output:} Final Answer $o$
+\STATE // $E = \{(v_{t,i}, v_{t+1, j})\}_{t=1}^{T-1}, v_{t,i}, v_{t+1, j} \in \mathcal{V} $
+\STATE // $\phantom{E} = \bigcup_{t=1}^{T} \mathcal{V}_t$.
+\STATE // $m_{t,i} \in \mathcal{M}_t$ denotes the response from $v_{t,i}\in\mathcal{V}_t$.
+\FOR{$t=1;T$}
+\IF{\textit{agent team reformation} at time step $t$}
+\STATE $\mathcal{M}_{top} \gets \mathrm{top-}k(\{ m_{t-1,j} | v_{t-1, j} \in \mathcal{V}_{t-1}\})$\;
+\STATE $E \gets E \backslash \{(v_{t',j},v_{t'',j'}),(v_{t'', j'},v_{t',j})|$ \; 
+\STATE $ \quad m_{t',j}\in\mathcal{M}_{top}, m_{t', j'}\notin\mathcal{M}_{top}, t', t''\geq t-1\}$\;
+\STATE $m_{t,j} \gets m_{t-1,j}, \forall (v_{t-1, j}, v_{t, j}) \in E $\;
+
+\ELSE 
+\STATE $\forall i, \exists k, (v_{t,i}, v_{t+1,k}) \in E_{t, t+1}$, \;
+\STATE $m_{t,i} \gets $\;
+\STATE $ \quad f_{\mathrm{mp}}(\{m_{t-1, j} | (v_{t-1, j}, v_{t, i}) \in E_{t, t+1} \}, v_{t,i}) $ \;
+\ENDIF
+\IF{early stopping}
+\STATE $ T \gets t$ \;
+\STATE break\;
+\ENDIF
+\ENDFOR
+\STATE $o \gets \mathrm{postProcess} (\mathrm{maxCount} \{\mathcal{M}_{T}\})$\;
+
+
+\end{algorithmic}
+\end{algorithm}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{.415\linewidth}
+\begin{algorithm}[H]
+\caption{The Team Optimization Process $f_{\mathrm{Optim}}$ of \textit{Agent Importance Score} within \textbf{DyLAN}}\label{alg:evaluate}
+\begin{algorithmic}
+\STATE {\bfseries Input:} Output $o$, T-FFN $\mathcal{G}=(\mathcal{V}, E)$
+\STATE {\bfseries Output:} \textit{Agent Importance Score} of agents $\bm{I}$
+\STATE // $m_{t,i} \in \mathcal{M}_t$ denotes the response from $v_{t,i}\in\mathcal{V}_t$.
+\STATE $\mathrm{flag} \gets \mathrm{False}$\;
+\FOR{$t=T;1$}
+\IF{$\{v_{t,i} |\exists k, (v_{t-1,k}, v_{t,i}) \in E\} \neq \phi$}%{
+\IF{$\neg \mathrm{flag}$}
+\STATE $\mathrm{flag} \gets \mathrm{True}$\;
+\STATE distribute scores for $I_{t,i}$\;
+\ELSE
+\STATE $\mathcal{M}_{t-1} \gets$ \;
+\STATE $\quad  \{m_{t-1,j} | (v_{t-1,j}, v_{t,i})\in E\}$\;
+\STATE $[w_{t-1,1,i}, ..., w_{t-1,m,i}] \gets $ \;
+\STATE $\quad f_{t,i}^{(s)}(p_i, q, \mathcal{M}_{t-1})$\;
+\STATE $\bm{I}_{t-1,j} \gets \bm{I}_{t-1,j} + \bm{I}_{t,i} w_{t-1,j,i},  $\;
+\STATE $\quad  \exists (v_{t-1,j}, v_{t,i})\in E$\;
+\ENDIF
+\ENDIF
+\ENDFOR
+
+
+\end{algorithmic}
+\end{algorithm}
+  \end{minipage}
+
+\end{figure}
+
+\paragraph{Common Settings}
+
+In all experiments, we use \texttt{gpt-35-tubo-0301} for every method if not specified. The version of GPT-4 is \texttt{GPT-4-0613}. In \cref{tab:humaneval}, ``(Codex)'' denotes \texttt{code-davinci-002} from OpenAI~\citep{human-eval,openai2023gpt4}. All experiments with non-zero \texttt{temperature} is repeated for three times and the median is reported. To avoid the context length issue in prior work~\citep{debate1-mit, agent-bench}, we set memory space for agents in DyLAN to $1$ only to keep the freshest responses of predecessors. We set \texttt{max tokens} to 2048 for GR and AR tasks and 1024 for CG and DM tasks to avoid exceeding the maximum context length. The construction of candidates are demonstrated in \cref{app:e}. We set $N=4$ in T-FFN after team optimization because the early-stopping mechanism requires at least four agents to tolerate one different response at a specific time step (\cref{sec:inference-proc}); when reaching consensus over 2/3 of agents, it allows for $4- \left \lceil{\frac{2}{3}N}\right \rceil = 1$ excetional response. We use a listwise ranker in the agent team reformation of DyLAN because of the effectiveness and efficiency, compared to ELo rating~\citep{trueskill} or Sliding Window~\citep{sliding-window} we have tested in \cref{app:ranking-methods}. We use the same ranker to implement LLM-Blender~\citep{blender} in experiments. We set $k=2$ in the \textit{agent team reformation}, because it’s the minimal number for collaborations and we empirically found it brings great trade-off between effectiveness and efficiency. To avoid positional bias, for each time step $t$, we shuffle the responses from agents at $t-1$ when passing messages towards agents at $t$. The detailed inference algorithm is in \cref{alg:try}. To implement the early-stopping mechanism, we need to determine whether the answers from the nodes in the same layer of DyLAN are consistent. For classification and decision-making problems, the answers are consistent if identical, and for open-ended generation, the consistency is determined by a threshold of \texttt{BLEU} score. 
+
+
+
+\paragraph{Experiments on Reasoning Tasks}
+
+In general reasoning, we extract the answer from the response by matching the last ``(X'' or ``(X)'', where ``X'' represents A, B, C or D. On average, Agent team reformation functions on the third time step. They could go through at maximum $T=4$ rounds of interaction. We also searched \texttt{temperature} in \{0, 0.2, 0.8, 1.0\} for the best configuration for each system. 
+In arithmetic reasoning, we set \texttt{temperature} to 0 for the single execution and PHP, 0.2 for LLM Debate, LLM-Blender, and DyLAN with Complex CoT prompts, and 1.0 for DyLAN with simple CoT prompts in \cref{tab:math}, since systems with the same prompts will give all the same responses if \texttt{temperature} is zero, causing degradation. Prompting templates are replicated from their original studies, including normal CoT prompts~\citep{cot} from the MATH dataset~\citep{hendrycksmath2021} and Complex CoT from PHP~\citep{PHPrompting}. We follow the answer extraction method from the origin paper~\citep{hendrycksmath2021}. We construct DyLAN with 4 agents assigned no specific roles and let agents to interact for at maximum $T=4$ rounds under T-FFN formulation. We reported the classification accuracy of each category averaged across subjects and the numbers of API calls of running DyLAN on the optimized team of agents. 
+
+\paragraph{Experiments on Code Generation Tasks}
+
+In the code generation task, we set \texttt{temperature} to 0 for the single execution, Reflexion, and 0.8 for LLM Debate, LLM-Blender, CodeT, and DyLAN in \cref{tab:humaneval}. In DyLAN, we optimized four agents to write code and four agents to give code reviews from 12 candidates in \cref{app:e}. The selected code writers are ``Python Assistant'', ``Algorithm Developer'', ``Computer Scientist'', and ``Programmer''; and the selected code reviewers are ``Syntax Checker'', ``Unit Tester'', ``Reflector'', and ``Ranker''. ``Syntax Checker'' is pure external tools using a code interpreter for syntax checking without LLMs, and ``Unit Tester'' is equipped with a code interpreter. The tool is triggered when LLM generated codes inside the format \textasciigrave\textasciigrave\textasciigrave\verb|python\n(code)\n|\textasciigrave\textasciigrave\textasciigrave. In DyLAN, solutions given by code writers are reviewed by code reviewers in at maximum $T=6$ rounds. At time step $t=1, 3, 4, 6$, code writers gives solutions and code reviewers review it at $t=2,5$. And \textit{agent team reformation} occurs at $t=4$. To ensure the participation of each agent, early-stopping mechanism functions at the third layer and later ($t\geq3$). 
+We use \texttt{BLEU} score in the early-stopping mechanism. We calculate \texttt{BLEU} by \textit{sacreBLEU}\footnote{The signature of \textit{sacreBLEU} is ``nrefs:1$\vert$case:mixed$\vert$eff:no$\vert$tok:13a$\vert$smooth:exp$\vert$version:2.3.1''.}~\citep{post-2018-sacrebleu}. For answer post-processing, we store all unit tests from the unit tester (if exists in the system) and randomly select the final output from the top 5 code completions from all nodes that pass most tests.
+
+\paragraph{Experiments on Decision Making Tasks}
+
+In the decision-making task, we set \texttt{temperature} to 0 for DyLAN and all baselines in \cref{tab:humaneval}. For ReAct with self-consistency (denoted by ReAct-SC in the table) \citep{wang2023selfconsistency}, we sampled three times for each response. In DyLAN, we optimized four agents from 8 candidates which are depicted in \cref{app:e}. All methods are also conducted on \texttt{gpt-35-tubo-1106}. 
+We did not select LASER~\citep{ma2023laser} as a baseline, because it requires GPT-4 for better performance and it extracts all valid actions in each page into function calls, instead of detected by agent itself, which we decide to be a different setting. 
+We divide the pages of the WebShop environment into 3 parts: the \textit{initialization} page for ``searching'' part, the \textit{item list} page for ``exploring'' part, and the \textit{item details} pages for ``item'' part. Thus, we managed to optimize teams for each part from agents in \cref{app:e}: ``Search Optimizer'', '`Budget Analyst'', ``Instruction Analyst'', ``Decision Reflector'' for ``searching'' group, ``Decision Maker'', ``Budget Analyst'', ``Product Explorer'', ``InstructionAnalyst'' for ``exploring'' group, and ``Budget Analyst'', ``Description Reader'', ``Decision Maker'', ``Result Estimater'' for ``item'' group. Agents interact for at maximum $T=4$ steps for each action. We simply concatenate observations of previous actions on each decision. For answer post-processing, we skip invalid actions from the outputs of $V_T$. 
+
+
+\subsection{Calculation of Agent Importance Score}\label{app:imp}
+
+To implement the \textit{agent selection} algorithm under DyLAN, only one sentence needs to be injected into the end of the prompt of each node in T-FFN: ``\texttt{Along with the answer, give a score ranging from 1 to 5 to the solutions of other agents. Put all $\{num_{\mathrm{p}}\}$ scores in the form like [[1, 5, 2, ...]]}'', where $num_{\mathrm{p}}$ denotes the number of predecessors of the node. The prompt functions as the $f_{t,i}^{(s)}$ in \cref{sec:role-optimize} and we extract $w_{t,i,j}$ from its response at the same time when we extract the message that passes between nodes. The scores are normalized so that their sum ($\sum_{i=1}^N w_{t,i,j}$) equals 1. To avoid positional bias, responses from agents at previous time step are shuffled when rating.
+
+In \cref{alg:evaluate}, initial contributions are distributed on nodes at the last layer. For reasoning and dicision-making tasks, we uniformly distribute contributions to agents that give consistent answers in the last layer. On code generation tasks, we uniformly distribute contributions in the final round with no syntax error in their answers.
+
+
+\section{Additional Results} \label{app:b}
+
+In this section, detailed results and additional experiments are presented. 
+
+\begin{wraptable}[15]{r}{7.5cm}
+\vspace{-1.5em}
+\begin{center}
+\resizebox{0.73\linewidth}{!}{
+\begin{tabular}{l|c|c|c}
+\toprule
+ \textbf{Indicator} & \textbf{Dataset} & \multicolumn{1}{c|}{\textbf{GR}} & \multicolumn{1}{c}{\textbf{CG}}  \\ 
+  \midrule\midrule
+  \texttt{NA}  & - &  63.5   &  76.2   \\ 
+  \textit{Random}  & - &  64.8  &  75.6   \\
+  \textit{Human Prior}  & - & 66.7 & 78.0 \\\midrule
+  \multirow{2}{*}{\textit{\textbf{Agent}}} & 1\% &68.9 & 79.3  \\
+  \multirow{2}{*}{\textit{\textbf{Imp. Score}}} & 10\%  &72.2 & 82.3 \\
+   & 100\%   &\textbf{73.6} & \textbf{82.9}\\
+  \bottomrule
+\end{tabular}}
+\end{center}
+\captionof{table}{Experimental results of different indicators used in \textit{agent selection} during team optimization in DyLAN on five subjects in the GR and CG tasks. ``Dataset'' denotes the proportion of dataset used in team optimization.  
+}\label{tab:general}
+\end{wraptable}
+
+\subsection{Data Efficiency of Team Optimization}\label{app:data-efficiency}
+
+We further demonstrate the data efficiency of \textit{agent selection} by performing it based on different amounts of data. The experiments are conducted on five subjects in the GR task (the same as \cref{tab:composition}) and the CG task.
+We sample the subsets with the proportions of 1\% and 10\% of the original dataset. \textit{Agent Importance Score} for agent selection is averaged on the subsets, and the selected team is tested on the whole dataset. We raise random selection and human prior selection as baselines. The latter is simulated by GPT-4 prompted by the task and agent descriptions (\cref{app:e}).
+As shown in \cref{tab:general}, by optimizing the team 10\% of the original dataset, DyLAN has demonstrated similar performance compared to using the whole dataset, with only \textcolor{mydarkgreen}{0.2} loss on GR and \textcolor{mydarkgreen}{0.6} loss on CG. 
+We can observe that even with only 1\% of the original dataset, DyLAN could obtain a significant improvement of \textcolor{mydarkgreen}{+3.7} over random selection on CG. From observation, agents augmented with tools are always selected during team optimization under different proportions of the dataset, indicating the effectiveness of \textit{Agent Importance Score} as an indicator. Please refer to \cref{sec:human-prior} for a detailed analysis of the human priors.
+
+
+\subsection{Robustness of different foundation models in DyLAN}
+
+\begin{wraptable}[18]{r}{6.3cm}
+\vspace{-1em}
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|cr|r}
+\toprule
+\textbf{Method} & \multicolumn{2}{c|}{\textbf{Pass@1}} & \textbf{\#API Calls} \\ \midrule
+  \multicolumn{4}{c}{\texttt{Single-Agent Methods}}\\\midrule
+   Single Execution &      88.4  & (\textcolor{mydarkgreen}{+0.0})              &        1.00          \\
+   LATS  & \uline{94.4} & (\textcolor{mydarkgreen}{+\uline{6.0}}) &  $>$40.00  \\
+   Reflexion     &      91.4  & (\textcolor{mydarkgreen}{+3.0})              &               7.32   \\ \midrule
+  \multicolumn{4}{c}{\texttt{Multi-Agent Methods}}\\\midrule
+       Meta-GPT  & 85.9  & (\textcolor{red}{-3.5}) &  $>$30.00 \\
+       AgentVerse   & 89.0  & (\textcolor{mydarkgreen}{+0.6}) &  27.00 \\
+  \textbf{DyLAN} (\textit{Ours})     &            \textbf{92.1}  &(\textcolor{mydarkgreen}{+\textbf{3.7}})       &           15.94           \\ 
+  \bottomrule
+\end{tabular}}
+    \caption{Experimental results on the CG task on \texttt{GPT-4-0613}. The number in parentheses indicates the difference relative to the single execution or direct execution. The bold font denotes the results of our method and the best results are underlined.}\label{tab:gpt-4-cg}
+\end{wraptable}
+
+Besides using GPT-3.5 for DyLAN on CG tasks in \cref{tab:humaneval}, we also experiment with GPT-4 in \cref{tab:gpt-4-cg}. Due to budget limits, we directly reuse the performance reported in the paper of baselines, including LATS~\citep{lats}, Reflexion~\citep{reflexion}, Meta-GPT~\citep{meta-gpt}, and AgentVerse~\citep{chen2023agentverse}, and estimate the cost in terms of numbers of API calls. DyLAN is also constructed by agents which are optimized based on GPT-3.5, as demonstrated in \cref{app:a}. We found that DyLAN consistently outperforms other multi-agent methods, indicating the effectiveness of dynamic agent team in T-FFN structure and the cross-model transferability of optimization results on agent teams. Although LATS outperforms DyLAN, it requires over 40 times GPT-4 calls per sample to conduct inference-time MCTS on GPT-4, which demonstrates poor efficiency. 
+
+\subsection{Human Priors and Agent Importance Scores}\label{sec:human-prior}
+
+We further investigated how these agents selected by our unsupervised metric \textit{Agent Importance Score} differ from human priors (e.g., these predefined roles). 
+To do so, 
+we calculated agent importance scores for 7 agents on each subject of the MMLU dataset. 
+As an example, we show the subjects where the agent of ``Doctor'' and ``Programmer'' has the highest \textit{agent importance score} among all agents in \cref{tab:role-subject} and \cref{tab:role-subject-app}.
+
+\begin{wraptable}[15]{r}{9cm}
+\vspace{-2em}
+\begin{center}
+% \small
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|c|c}
+\toprule
+\textbf{Role} & \textbf{Doctor} & \textbf{Programmer} \\  \midrule
+\multirow{10}{*}{\parbox{10mm}{ \textbf{Top 10 Subjects}}}  & high school computer science &   high school physics \\
+& \textcolor{mydarkgreen}{clinical} knowledge  & \textcolor{mydarkgreen}{electrical engineering}             \\
+& college \textcolor{mydarkgreen}{biology}     & high school government and politics        \\
+& professional \textcolor{mydarkgreen}{medicine}   & college \textcolor{mydarkgreen}{computer science}   \\
+& \textcolor{mydarkgreen}{nutrition}      & college chemistry                               \\
+ & high school US history  & high school \textcolor{mydarkgreen}{mathematics}       \\
+& \textcolor{mydarkgreen}{human aging}     & \textcolor{mydarkgreen}{formal logic}                   \\
+& \textcolor{mydarkgreen}{anatomy}     & abstract algebra          \\
+& high school \textcolor{mydarkgreen}{biology}  & \textcolor{mydarkgreen}{machine learning}             \\
+& high school \textcolor{mydarkgreen}{psychology}  & \textcolor{mydarkgreen}{computer security}       \\ \bottomrule
+\end{tabular}}
+\caption{Subjects on which agents have the top-ranked \textit{Agent Importance Score} in the experiment with DyLAN of 7 agents on the GR task. \textcolor{mydarkgreen}{Green annotation} denotes the fields related to the role from the human perspective, which are annotated manually.}
+\label{tab:role-subject}
+\end{center}
+\end{wraptable}
+
+Though most subjects seems to be reasonably aligned with the role of the agent based on human priors (with \textcolor{mydarkgreen}{green annotations}), there are some subjects that do not match human priors, e.g., \emph{High School Computer Science} as the subject that ``Doctor'' has the highest score. 
+It exhibits the difference between human priors and the evaluation results of agent importance scores on agents with human-made or LLM-generated prompts. 
+
+\begin{table}[H]
+    \centering
+    \small
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|c|c|c|c|c}
+\toprule
+\textbf{Role} & \textbf{Mathematician} & \textbf{Lawyer} & \textbf{Historian} & \textbf{Economist} & \textbf{Psychologist}  \\  \midrule
+\multirow{10}{*}{\parbox{10mm}{ \textbf{Top 10 Subjects}}} & college \textcolor{mydarkgreen}{physics} & high school microeconomics  &  US foreign policy  & high school computer science  & global facts \\
+& US foreign policy & medical genetics  &  econometrics  & jurisprudence  & public relations \\
+& college \textcolor{mydarkgreen}{computer science} & prehistory  &  \textcolor{mydarkgreen}{world religions}  & logical fallacies  & business \textcolor{mydarkgreen}{ethics} \\
+& econometrics & \textcolor{mydarkgreen}{sociology}  &  \textcolor{mydarkgreen}{public relations}  & professional \textcolor{mydarkgreen}{accounting}  & high school US history \\
+& marketing & human aging  &  high school government and politics  & high school \textcolor{mydarkgreen}{microeconomics}  & \textcolor{mydarkgreen}{philosophy} \\
+& high school \textcolor{mydarkgreen}{mathematics} & management  &  \textcolor{mydarkgreen}{philosophy}  & high school European history  & \textcolor{mydarkgreen}{moral disputes} \\
+& \textcolor{mydarkgreen}{abstract algebra} & formal logic  &  astronomy  & computer security  & management \\
+& international law & world religions  &  high school statistics  & moral disputes & \\
+& professional \textcolor{mydarkgreen}{accounting} & \textcolor{mydarkgreen}{jurisprudence}  &  machine learning  & professional law & \\
+& human sexuality & \textcolor{mydarkgreen}{international law}  &  \textcolor{mydarkgreen}{high school European history}  & college \textcolor{mydarkgreen}{mathematics} & \\\bottomrule
+\end{tabular}}
+    \caption{Subjects on which agents have the top-ranked \textit{Agent Importance Score} in the same experiment in \cref{tab:role-subject}. \textcolor{mydarkgreen}{Green annotation} denotes the fields highly related to the role from the human perspective.}
+    \label{tab:role-subject-app}
+\end{table}
+
+We also compare current \textit{agent selection} method that is implemented with \textit{Agent Importance Score} with the implementation with \textit{Human Prior Selection} on a few subjects in the MMLU and the HumanEval datasets. For \textit{Human Prior Selection}, we setup GPT-4 mimicking human selecting the agents for collaborations based on the description of the task and role prompts of each agent. We provide prompt templates in \cref{app:e}. As shown in \cref{tab:rebuttal-human-prior}, the implementation with \textit{Agent Importance Score} steadily outperforms Human Prior Selection. There are two major reasons: (1) Compared to posterior optimization methods, prior selection may not grasp the actual behaviors of agents, and may not understand which agents are most contributory or helpful to others in the real collaboration process. Thus, in \textit{High School Statistics}, \textit{Clinical Knowledge}, and \textit{Public Relations} subjects in the MMLU dataset, prior selection performs even worse than random selection. (2) \textit{Human Prior Selection} might struggle to understand tool augmentation without peer ratings from fellow agents. From our observation, ``Unit Tester'' and ``Syntax Checker'' were not selected for code generation tasks, which may cause lower performance.
+
+
+% \begin{wraptable}{r}{8cm}
+% \vspace{-10pt}
+% \setlength\tabcolsep{2pt}
+\begin{table}[ht]
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}{c|l|ccccc|c}
+\toprule
+  \multirow{2}{*}{\textbf{\#Agents}} & \textbf{Optimization}  & \textbf{College} & \multirow{2}{*}{\textbf{Management}} & \textbf{High School} & \textbf{Clinical} & \textbf{Public} & \multirow{2}{*}{\textbf{Overall}} \\ 
+  & \textbf{Indicator} & \textbf{Mathematics} & & \textbf{Statistics} & \textbf{Knowledge} & \textbf{Relations} \\ \midrule\midrule
+ 7 & \textit{(before optimization)} & \multirow{1}{*}{40.0} & \multirow{1}{*}{76.2} & \multirow{1}{*}{65.1} & \multirow{1}{*}{69.8} & \multirow{1}{*}{54.5} & \multirow{1}{*}{63.5 (\textcolor{gray}{+0.0})} \\ \midrule
+\multirow{3}{*}{4} & \multicolumn{1}{l|}{\textit{Random Selection}} & \multirow{1}{*}{45.0} & \multirow{1}{*}{71.4} & \multirow{1}{*}{67.4} & \multirow{1}{*}{71.7} & \multirow{1}{*}{54.5} & 64.8 (\textcolor{mydarkgreen}{+1.3}) \\
+ & \multicolumn{1}{l|}{\textit{Human Prior Selection}} & \multirow{1}{*}{60.0} & \multirow{1}{*}{80.1} & \multirow{1}{*}{65.1} & \multirow{1}{*}{69.8} & \multirow{1}{*}{54.5} & 66.7 (\textcolor{mydarkgreen}{+3.2}) \\
+  & \textit{Agent Importance Score} & \multirow{1}{*}{\textbf{65.0}} & \multirow{1}{*}{\textbf{90.5}} & \multirow{1}{*}{\textbf{74.4}} & \multirow{1}{*}{\textbf{75.5}} & \multirow{1}{*}{\textbf{59.1}} & \textbf{73.6} (\textcolor{mydarkgreen}{\textbf{+10.1}}) \\
+\bottomrule
+\end{tabular}}
+
+\resizebox{0.6\linewidth}{!}{
+\begin{tabular}{c|l|c|c}
+\toprule
+  \textbf{\#Agents} &  \textbf{Optimization Indicator}  & \textbf{Pass@1} & \textbf{\#API Calls} \\ \midrule\midrule
+ 12   & \multicolumn{1}{l|}{\textit{(before optimization)}} & 76.2 (\textcolor{gray}{+0.0}) & 23.04 \\ \midrule
+  \multirow{3}{*}{8} & \textit{Random Selection}  & 75.6 (\textcolor{red}{-0.6}) & 17.73 \\
+  &  \textit{Human Prior Selection} & 78.0 (\textcolor{mydarkgreen}{+1.8}) & 16.37 \\
+  & \textit{Agent Importance Score}  & \textbf{82.9} (\textcolor{mydarkgreen}{\textbf{+6.7}})  &  16.85\\
+\bottomrule
+\end{tabular}}
+\caption{Detailed performance of different indicators of \textit{agent selection} on five subjects in GR tasks (top) and the CG task (bottom). The five subjects in GR tasks and other settings are identical to \cref{tab:composition}. The overall accuracy in the top table denotes the accuracy across the five subjects.}\label{tab:rebuttal-human-prior}
+\end{table}
+% \end{wraptable}
+
+\subsection{Stability of DyLAN on \texttt{Temperature}}\label{app:stability}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.55\linewidth]{figs/Figure_1.pdf}
+    \hfill
+    \includegraphics[width=0.42\linewidth]{figs/Figure_2.pdf}
+    \caption{Performance of different methods under low and high temperatures on AR (left) and CG (right) tasks. DyLAN shows better robustness to different temperature and even takes advantage of higher temperature.}
+    % \yanzhe{might remove the complex COT col in the left fig if there is no comparable baselines.}
+    \label{fig:stability}
+\end{figure}
+
+We tested a few methods on the AR (with simple CoT prompts) and the CG tasks under both low and high temperatures and repeated each experiment three times when the temperature was not zero. We exhibit the experimental results in \cref{fig:stability}. From experimental results, we found that DyLAN is more stable on different hyper-parameters.
+
+
+Experiments show that \texttt{temperature} greatly influences arithmetic reasoning and code generation tasks. In \cref{fig:stability}, we found that most baseline methods have significant performance drops when temperature increases, but DyLAN shows strong robustness to various temperatures. We surprisingly found that DyLAN gets better results when temperature rises, suggesting it has benefited from diversity instead of being disturbed by low-quality answers of high-temperature agents. The agent team reformation may lead to the higher accuracy by keeping best responses when agents' replies become more diverse.
+In conclusion, the collaboration of different roles functions effectively and robustly in the dynamic architecture. Nonetheless, higher temperature requires DyLAN to take more API calls (about \textcolor{mydarkgreen}{+0.98} on average on AR tasks (\texttt{temperature}: $0.2\rightarrow 1.0$)).
+
+
+\subsection{Different Ranking Methods}\label{app:ranking-methods}
+
+\begin{wraptable}[11]{r}{6.5cm}
+    \vspace{-25pt}
+    \small
+    \resizebox{\linewidth}{!}{
+    \begin{tabular}{l|l|c|r}
+    \toprule
+       \multicolumn{2}{l|}{\textbf{Ranking}}  & \textbf{Overall} & \textbf{\#API} \\
+       \multicolumn{2}{l|}{\textbf{Method}} & \textbf{Accuracy} & \textbf{Calls} \\ \midrule\midrule
+       \multicolumn{2}{l|}{\textbf{Listwise Ranker}} & \textbf{70.5} & \textbf{4.39} \\ \midrule
+        \multirow{3}{*}{Pairwise} & LLM-Blender & 70.1 & 19.27 \\
+        & Elo Score & 70.3 & 19.55 \\
+        & Sliding Window & 70.3 & 11.40 \\ \bottomrule
+    \end{tabular}}
+    \caption{Overall accuracy (\%) of DyLAN with different ranking method in the agent team reformation on the GR task. Other settings are identical with \cref{tab:mmlu}.}
+    \label{tab:ranking-method}
+\end{wraptable}
+
+We also tested different ranking methods for agent team reformation of DyLAN on the GR task. We tested listwise ranker with our own prompts, pairwise GPT ranker from original LLM-Blender~\citep{blender}, Elo Score from TrueSkill~\citep{trueskill} also implemented with pairwise ranker, and pairwise ranker with Sliding Window algorithm~\citep{sliding-window}. In \cref{tab:ranking-method}, we show that different ranking methods have a relatively low impact on performance, probably because of strong discrimination ability of \texttt{GPT-3.5}, but pairwise ranking methods always consume higher computational cost. Thus, we chose a listwise ranker in our implementation of DyLAN.
+
+\vspace{-0.5em}
+\subsection{Does Agent Importance Score Captures Actual Contributions?}\label{app:shap}
+
+\vspace{-0.5em}
+
+\textit{Shapley Value} is a widely used supervised metric for evaluating contribution of a single agent in a multi-agent system. Though it is not suitable for unsupervised \textbf{Team Optimization}, by viewing it as a ground-truth metric for measuring individual contributions, we can use it for validating the \textit{Agent Importance Score}. We implement a simplified algorithm for LLM-powered agent collaboration systems. Given that the collaboration process is symmetric in the formulation of the temporal feed-forward network (\cref{sec:definition}), we could reduce the permutation set in the original formula~\citep{SHAP} to the combination set:
+
+\begin{equation}
+    S_i(\mathcal{R}) = \frac{1}{|\mathcal{C}||\mathcal{R}|} \sum_{\mathcal{T} \in \mathcal{C}} \frac{}{} (\mathrm{Performance}(\mathcal{T} \cup \{i\}) - \mathrm{Performance}(\mathcal{T})),
+\end{equation}
+
+
+where $\mathcal{R}$ is the set of agents in the system, $\mathcal{C}$ is the combination set of $\mathcal{R}\backslash\{i\}, i\in \mathcal{R}$, and $\mathrm{Performance}$ denotes the overall performance of the system on the current task, e.g., classification accuracy or Pass@1. The metric requires ground truth and multi-pass results of the system with different subsets of agents. We use classification accuracy for classification tasks and Pass@1 for code generation tasks. However, its computation cost is still too high when the number of agents grows larger due to its combinatorial complexity. 
+
+To examine \textit{Agent Importance Score} as an indicator of \textit{agent selection} with \textit{Shapley Value}, we also randomly chose three combinations of three agents out of all 7 candidates to assemble a T-FFN and calculated the \textit{Shapley Value} and the \textit{Agent Importance Score} on GR tasks.
+In the GR task, The roles of candidates in DyLAN match the categories of MMLU in human priors, including ``Mathematician'' and ``Programmer'' for STEM, ``Lawyer'' and ``Historian'' for Humanities, ``Economist'' and ``Psychologist'' in Social Science, and ``Doctor'' for clinical questions in the ``Other'' category. During experiment with a T-FFN with at least one agent matches the category of the question, it is called a \textbf{In-Domain} scenario; vice versa.
+
+In \cref{tab:persona-domain-corr}, we report the correlations between \textit{Shapley Values} and \textit{Agent Importance Scores}. We are curious whether \textit{Agent Importance Score} is an unsupervised substitution for \textit{Shapley Value}. So, we calculated two list-wise metrics for the similarity between distributions: the KL divergence and ListMLE~\citep{listmle}, between \textit{Agent Importance Scores} and \textit{Shapley Value}. It indeed shows a high correlation between the distributions of the two metrics during in-domain scenarios.
+
+In summary, we use \textit{Shapley Value} as a self-evident metric for measuring individual contribution, showing that \textit{Agent Importance Score} emerges as a promising, unsupervised alternative with light computational complexity.
+
+\begin{table}[H]
+\label{tab:persona-domain-corr}
+    \centering
+    \small
+%\resizebox{0.5\linewidth}{!}{
+\begin{tabular}{l|cc|cc}
+\toprule
+\multirow{2}{*}{\textbf{Metric}} & \multicolumn{2}{c|}{\textbf{In-Domain}}                        & \multicolumn{2}{c}{\textbf{Off-Domain}}                                                                                  \\ \cmidrule(lr){2-3}\cmidrule(lr){4-5}
+                        & $D_{\mathrm{KL}} $ & $\mathcal{L}_{\mathrm{ListMLE}}$ & $D_{\mathrm{KL}} $ & $\mathcal{L}_{\mathrm{ListMLE}}$ \\ \midrule\midrule % ( \cdot \Vert \cdot )
+Shapley Value           & $0$                           & \multicolumn{1}{l|}{$0.673$}                   & $0$                                                                                     & $0.674$                   \\ \midrule
+Agent Importance Score        & $\mathbf{0.229\times10^{-3}}$           & \multicolumn{1}{l|}{$\mathbf{0.686}$}          & $0.347\times10^{-3}$                                                                              & $0.693$                   \\
+Uniform Distribution    & $0.359\times10^{-3}$                    & \multicolumn{1}{l|}{$0.693$}                   & $0.327\times10^{-3}$                                                                              & $0.693$                \\ \bottomrule
+\end{tabular}
+%}
+\caption{Correlation between different metrics for quantifying agents' contributions in DyLAN on the GR task. We compute the KL divergence ($D_{\mathrm{KL}}$) and the ListMLE loss ($\mathcal{L}_{\mathrm{ListMLE}}$) between Shapley Value and other metrics on each subject and report the average value. The \textbf{In-Domain} column means at least one agent in DyLAN matches the category of the subject according to \cref{app:shap}, and \textbf{Off-Domain} means none of agents matches the subject.}
+\end{table}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{figs/fig5_2.pdf}
+    \caption{A case of DyLAN solving code generation task. Different agents are recruited to write code and give feedback. At the time steps $t=2,5$ code reviewers are asked to provide code reviews. The result grows better layer by layer regarding correctness, efficiency, and readability. Different directions of implementation are delivered forward in implicit multiple paths. We ignore the peer rating scores in multi-round responses for computing \textit{Agent Importance Scores} due to space limits.}  %\yang{Reorganize this figure. One sub-figure is used to show the overall network and another to explain each node in the network.}}
+    \label{fig:codegen-case}
+\end{figure}
+
+\subsection{Case Study}\label{app:ease-study}
+
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{figs/fig6_2.pdf}
+    \caption{A case of DyLAN solving general reasoning task. Different agents are recruited to give and refine solutions. The result is incorrect at the first time step but correct at the second time step. It includes the ratings from agents for calculating \textit{Agent Importance Scores}.}  %\yang{Reorganize this figure. One sub-figure is used to show the overall network and another to explain each node in the network.}}
+    \label{fig:mmlu-case}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{figs/stucture_mid_case_f.pdf}
+    \caption{A failed case of DyLAN solving code generation task. Optimization directions provided by Code Reflector are wrong.}  %\yang{Reorganize this figure. One sub-figure is used to show the overall network and another to explain each node in the network.}}
+    \label{fig:fail-case}
+\end{figure}
+
+In \cref{fig:codegen-case} and \cref{fig:mmlu-case}, we demonstrate the cases of DyLAN on the code generation and the general reasoning tasks, respectively. First, we notice that the communication structure is different between figures, exhibiting dynamic architecture of DyLAN on different queries. The former gives answer at $t=4$, the latter at $t=2$. We also notice that the answer is gradually growing better along the temporal axis. In \cref{fig:mmlu-case},  the ``Mathematician'' agent is selected for the arithmatic query and it gives a correct answer while convincing other agents, \textit{agent selection} method is effective. We can also observe that the distribution of \textit{Agent Importance Score} is reasonable. Also, instructing LLM agents to rate scores on predecessors hints them to reflect on predecessors' responses, which might be helpful to give better answers. Last but not least, agents with different roles lead a diverse conversation and make full use of each one, which benefits performance and robustness. 
+
+Last but not least, we provide qualitative analysis on a failure case in \cref{fig:fail-case}. 
+
+\clearpage
+
+% \section{Discussions} \label{app:disscussion}
+
+% \subsection{The Impact of Imbalance of In-Domain and Off-Domain Agents}
+
+\section{Prompt Templates} \label{app:e}
+
+% all roles (code gen +3*2)
+In DyLAN, agents are assigned roles with prompts extracted from an open-source code base\footnote{\url{https://github.com/GoGPTAI/ChatGPT-Prompt/blob/main/prompts.csv}}, relative research projects~\citep{debate1-mit, reflexion, PHPrompting}, and generation results of \texttt{GPT-4-0613}, besides manual construction. The prompt of each agent are constructed by concatenation of the role prompt and optional tool descriptions, as the system prompt, and instruction prompts. We exhibit the instruction templates of different datasets, the prompts of all agents, and their sources in \cref{tab:role-prompts}. We annotate the task where each prompt is used in the parenthesis, and the source of each prompt template. We omit the in-context examples of AR tasks from the original dataset of MATH~\citep{hendrycksmath2021} and PHP~\cite{PHPrompting}, and WebShop from ReAct~\citep{yao2023react}. 
+
+\begin{small}
+\begin{longtable}{l|p{6cm}|c}
+\toprule
+\textbf{Prompt} & \textbf{Content}& \textbf{Source} \\ \midrule
+\endhead
+ MMLU Instruction (GR) &  Here is the question: \{\verb|question|\}\newline\newline These are the solutions to the problem from other agents: \{\verb|responses|\}\newline\newline Using the reasoning from other agents as additional advice with critical thinking, can you give an updated answer? Examine your solution and that other agents step by step. Notice that their answers might be all wrong. Put your answer in the form (X) at the end of your response. (X) represents choice (A), (B), (C), or (D).  &  Manual \\ \midrule
+ MATH Instruction (AR) & Follow the given examples and answer the mathematics problem.\newline\newline\{\verb|question|\}\newline\newline These are the solutions to the problem from other agents: \{\verb|responses|\}\newline\newline Using the reasoning from other agents as additional advice with critical thinking, can you give an updated answer? Examine your solution and that other agents step by step. Notice that their answers might be all wrong.  &  Manual \\ \midrule
+ HumanEval Instruction (CG) & You must complete the python function I give you by rectifying previous implementations. Use the other information as a hint.\newline Be sure to use the same indentation I specified. Furthermore, you may only write your response in code/comments.\newline[improved impl]:\newline\textasciigrave\textasciigrave\textasciigrave\verb|python|\newline\{\verb|function signature|\}\newline\textasciigrave\textasciigrave\textasciigrave\newline
+ \newline Please follow the template by repeating the function signature and complete the new implementation in [improved impl]. If no changes are needed, simply rewrite the implementation in the Python code block. & Retrieved \\ \midrule
+ WebShop Instruction (DM) & \{\verb|history of observatons and| \verb|actions|\}\newline\newline These are the suggested next action from other agents: \{\verb|actions| \verb|from other agents|\}\newline\newline Using the solutions from other agents as additional advice with critical thinking, can you give an updated action in response to previous observations and actions? Please select the item after searching (click on the product name `B0...`). And when you buy the item (`click[Buy Now]`), please make sure you have selected an item and entered it's description page. Do not search for multiple times. Based on the example and previous actions and observations on the new instruction, give your next action in the format of ``Action: search[...]'' or ``Action: click[...]''. & 
+ Retrieved \\\midrule
+ Human Prior Selection Instruction (-) & A few agents will collaborate on the same task query. Please select the optimal composition of the candidate agents based on the description of the task and the agents' profiles.\newline\newline- Task: \{\verb|subject|\}\newline- Agents\newline\{  - \verb|Agent/Code Writer/Judge| \verb|t| (\verb|Name|): \verb|Role Prompt/Description\n|\}$_{t=1}^n$\newline\newline We want to select \verb|k| \verb|agents/code| \verb|writers/code| \verb|reviewers| among these candidates. Please write the agent IDs as the following format: [1, 2, 3, 4]. There could be multiple agents with the same ID. & Manual  \\ \midrule
+  Ranker Instruction (-) & Here is the question: \{\verb|question|\}\newline\newline These are the solutions to the problem from other agents: \{\verb|responses|\}\newline\newline Please choose the best 2 solutions and think step by step. Put your answer in the form like [1,2] or [3,4] at the end of your response.  & Manual \\ \toprule
+ Mathematician (GR) & You are a mathematician. You are good at math games, arithmetic calculation, and long-term planning.  & Retrieved \\ \midrule
+ Programmer (GR) & You are a programmer. You are good at computer science, engineering, and physics. You have experience in designing and developing computer software and hardware.  & Retrieved \\ \midrule
+ Lawyer (GR) & You are a lawyer. You are good at law, politics, and history.  & Retrieved \\ \midrule
+ Historian (GR) & You are a historian. You research and analyze cultural, economic, political, and social events in the past, collect data from primary sources and use it to develop theories about what happened during various periods of history.  & Retrieved \\ \midrule
+ Economist (GR) & You are an economist. You are good at economics, finance, and business. You have experience on understanding charts while interpreting the macroeconomic environment prevailing across world economies.  & Retrieved \\ \midrule
+ Psychologist (GR) & You are a psychologist. You are good at psychology, sociology, and philosophy. You give people scientific suggestions that will make them feel better.  & Retrieved \\ \midrule
+ Doctor (GR) & You are a doctor and come up with creative treatments for illnesses or diseases. You are able to recommend conventional medicines, herbal remedies and other natural alternatives. You also consider the patient’s age, lifestyle and medical history when providing your recommendations.   & Retrieved \\ \toprule
+ Python Assistant (CG)  & You are a Python writing assistant, an AI that only responds with python code, NOT ENGLISH. You will be given a function signature and its docstring by the user. Write your full implementation (restate the function signature).  & Retrieved \\  \midrule
+ Algorithm Developer (CG)  & You are an algorithm developer. You are good at developing and utilizing algorithms to solve problems. You must respond with python code, no free-flowing text (unless in a comment). You will be given a function signature and its docstring by the user. Write your full implementation following the format (restate the function signature).  & Retrieved \\  \midrule
+ Computer Scientist (CG) & You are a computer scientist. You are good at writing high performance code and recognizing corner cases while solve real problems. You must respond with python code, no free-flowing text (unless in a comment). You will be given a function signature and its docstring by the user. Write your full implementation following the format (restate the function signature).  & Retrieved  \\  \midrule
+ Programmer (CG)  & You are an intelligent programmer. You must complete the python function given to you by the user. And you must follow the format they present when giving your answer! You can only respond with comments and actual code, no free-flowing text (unless in a comment).   & Retrieved \\  \midrule
+ Coding Artist (CG) & You are a coding artist. You write Python code that is not only functional but also aesthetically pleasing and creative. Your goal is to make the code an art form while maintaining its utility. You will be given a function signature and its docstring by the user. Write your full implementation following the format (restate the function signature). & Generated \\  \midrule
+ Software Architect  (CG)  & You are a software architect, skilled in designing and structuring code for scalability, maintainability, and robustness. Your responses should focus on best practices in software design. You will be given a function signature and its docstring by the user. Write your full implementation following the format (restate the function signature). & Generated  \\  \toprule
+ Unit Tester (CG) & You are an AI coding assistant that can write unique, diverse, and intuitive unit tests for functions given the signature and docstring.  & Retrieved \\  \midrule
+ Syntax Checker  (CG)  &  \verb|Null| & - \\  \midrule
+ Code Reflector   (CG) & You are a Python writing assistant. You will be given a series of function implementations of the same function signature. Write a few sentences to explain whether and why the implementations are wrong. These comments will be used as a hint and your goal is to write your thoughts on the n-th previous implementation after [reflection n]. & Generated \\  \midrule
+ Debugger  (CG)  & You are a debugger, specialized in finding and fixing bugs in Python code. You will be given a function implementation with a bug in it. Your goal is to identify the bug and provide a corrected implementation. Include comments to explain what was wrong and how it was fixed.  & Generated  \\  \midrule
+ Quality Manager (CG)  & You are a quality manager, ensuring that the code meets high standards in terms of readability, efficiency, and accuracy. You will be given a function implementation and you need to provide a code review. Comment on its correctness, efficiency, and readability, and suggest improvements if needed. & Generated  \\  \midrule
+ Ranker (CG)  & You are a Python writing assistant. You will be given a series of function implementations of the same function signature. You need to choose the best 2 implementations in consideration of correctness, efficiency, and possible corner cases. & Generated  \\  \midrule
+ Search Optimizer (DM) & As a Search Optimizer, analyze a user's vague or broad instruction and suggest a more precise and effective set of keywords or filters to accurately find products that meet their specific requirements. Please focus more on searching actions when giving the next action, especially on providing informative and accurate searching words in ``search[...]''  & Generated  \\\midrule
+ Budget Analyst (DM) & As a Budget Analyst, guide a user in setting a realistic budget for their shopping needs, considering product categories, market prices, and personal financial constraints. Analyze whether the product matches the budget one by one. Please avoid searching multiple times. Please focus more on on which product to click in ``click[...]'' when giving the next action.  & Generated  \\\midrule
+ Product Explorer (DM) & As a Product Explorer, offer guidance on how to effectively compare different products based on their features, prices, and reviews. Advise on key factors to consider for making informed decisions in various product categories. You are preferred to ``click[< Prev]'' or ``click[Next >]'' to go on different pages, and click on the item name to browse its details. & Generated  \\\midrule
+Instruction Analyst (DM) & As an Instruction Analyst, evaluate a customer's stated needs and preferences, and provide a structured approach to ensure the selected product align with these instructions. Do not keep refining searching. You are preferred to check out products that might align with instruction. Otherwise, give the most reasonable action for the next step & Generated  \\\midrule
+Description Reader (DM) & As a Description Reader, detail how to read and interpret product descriptions and specifications to match them with a customer's specific needs, focusing on identifying key features, benefits, and potential drawbacks. You are preferred to click into each product and ``click[Description]'' to see product details.  & Generated  \\\midrule
+ Decision Maker (DM) & As a Decision Maker, you are more confident to purchase related products without refining searching results. If you believe a product is a suitable choice, proceed to click in the product and persuade other agents to click ``click[Buy Now]''. If not, recommend the most logical next step for rapid adaptation for the next product. & Generated  \\\midrule
+ Decision Reflector (DM) & As a Decision Reflector, provide a framework for customers to critically evaluate their potential purchases, considering their initial requirements, product features, and overall value. Guide them in reflecting on whether a choice truly meets their needs. Please avoid repeated searching. If you think it's good to buy the product, go ``click[Buy Now]''. Otherwise, give the most reasonable action for the next step. &  Manual  \\\midrule
+ Result Estimater (DM) & As a Result Estimator, describe how to predict the potential satisfaction and success of a customer's purchase decision based on their needs, product choice, and market trends. Offer insights into how these choices may meet their expectations. If you have any suggestions, print them in ``think[...]''. Otherwise, give the most reasonable action for the next step. & Generated  \\
+\bottomrule
+
+\caption{Instruction and prompting templates used in different datasets and agents.}\label{tab:role-prompts} \\
+\end{longtable}
+\end{small}
+
+\end{document}

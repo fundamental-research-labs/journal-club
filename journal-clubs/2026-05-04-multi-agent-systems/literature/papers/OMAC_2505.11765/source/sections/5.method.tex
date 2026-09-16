@@ -1,0 +1,153 @@
+
+
+\section{Methodology}
+
+
+% In this section, we'll first illustrate the general optimization objective of MOGCSL, making a comparison and discussion with the optimization methods for multi-objective learning. Then, we introduce the training process of MOGCSL on conventional offline sequential data with supervised learning. For inference stage, we first give a formal analysis of the property of achievable goals, which are demonstrated to following a distribution jointly decided by the initial state, the given goal and the action policy. Based on that, we propose a goal-generation framework and empirically explore the effectiveness of simple statistical approaches and advanced generative models to generate the inference goal.  
+
+
+In this section, we first detail the five dimensions we identified for optimizing multi-agent collaboration, covering both agent functionality and collaboration structure. Subsequently, we present our proposed algorithm for optimizing each dimension individually. Finally, we describe our algorithm for jointly optimizing multiple dimensions.
+
+
+\begin{figure*}[t]
+% \vspace{-1mm}
+\centering
+\begin{minipage}{1\linewidth}
+    \centering
+    \includegraphics[width=0.85\linewidth]{figs/example_1.pdf}
+\end{minipage}
+\caption{An example of optimization of a single dimension of OMAC.}
+\label{fig:example_1}
+\vspace{-2mm}
+\end{figure*}
+
+
+\subsection{Five Dimensions for Multi-Agent Collaboration Optimization}\label{sec:five_dim}
+
+
+As discussed in Section \ref{sec:pro_def}, agent functionality and collaboration structure are fundamental components of MAS. For the holistic optimization of such systems, we identify five key dimensions: two related to agent functionality and three concerning the collaboration structure, as detailed below:
+
+\begin{itemize}[leftmargin=*]
+
+    \item \noindent \textbf{Optimizing existing agents (Fun-1).} This dimension focuses on refining an existing agent within the current MAS. Specifically, the goal is to optimize the agent's instruction prompt and/or its associated few-shot examples (in few-shot learning settings) to enhance its task-specific performance.
+
+    \item \noindent \textbf{Optimizing construction of new agents (Fun-2).} This dimension addresses the creation of new agents. Specifically, given the task context and existing MAS configuration, the objective is to generate and optimize the instruction prompt and/or few-shot examples used to power a new LLM-based agent. This newly constructed agent will then be integrated into the existing MAS, targeting to enhance the overall collaborative capability in completing the given task.
+
+    % Specifically, given the task context and existing MAS configuration, the objective is to generate and optimize the instruction prompt and/or few-shot examples guiding the creation of a new LLM-powered agent. This optimized agent can then effectively participate in the collaboration, enhancing the MAS's capability to complete the given task.
+
+
+    \item \noindent \textbf{Optimizing candidate agent selection (Str-1).} This dimension involves selecting suitable candidate agents from all available agents given the specific task before the collaboration. %Specifically, the objective is to optimize the instruction prompt of an LLM-based controller to identify the subset of agents most beneficial for inclusion in the multi-agent collaboration process. Instructed by this prompt, this controller makes the decision based the task context and the functionality of existing agents.
+    Specifically, the objective is to optimize the instruction prompt of an LLM-based controller. This prompt directs the controller to identify the most beneficial subset of agents for the multi-agent collaboration process, a decision informed by the provided task context and functionalities of existing agents.
+
+
+    \item \noindent \textbf{Optimizing dynamic agent participation  (Str-2).} This dimension concerns the dynamic selection of agents for participation at individual steps of the multi-step collaboration. Specifically, the objective is to optimize the instruction prompt of an LLM-based controller to choose the most suitable agents from the candidate team for participation in the current collaboration step. In contrast to Str-1, this controller additionally incorporates output solutions from previous agents as contextual input, enabling the dynamic selection of agents anticipated to contribute most effectively and efficiently at the current step of multi-agent collaboration.
+
+
+    \item \noindent \textbf{Optimizing agent communication flows  (Str-3).} This dimension addresses the optimization of communication flows among agents. Specifically, the goal is to optimize the instruction prompt of an LLM-based controller to determine whether the output from one agent should serve as input context for another agent during collaboration. The controller, guided by the optimized prompt, makes these communication routing decisions based on the given task context and the involved agents' functionalities.
+    
+\end{itemize}
+
+
+These five proposed dimensions are designed to comprehensively cover the fundamental optimizable aspects of multi-step multi-agent collaboration.  We derive them by conceptualizing the collaboration process in MAS as information flow over a graph, where agents correspond to nodes and communication channels to edges.
+Thus, the two functional dimensions optimize node capabilities, either improving existing agents or constructing new ones. And the three structural dimensions define graph construction, encompassing global and dynamic local agent selection, as well as inter-agent communication routes. Together, these five dimensions comprehensively capture the essential aspects required to optimize the information-flow graph of a multi-agent system.
+More illustrations of the underlying intuition, implementation details, and examples are given in Appendix \ref{sec:dim_detail} and Appendix \ref{sec:examples}.
+
+% The rationale and definitions for these dimensions, as described above, are intended to be intuitive and clearly defined.
+
+
+
+
+
+\subsection{Optimization for a Single Dimension} \label{sec:indi_opt}
+
+We first propose a unified algorithm designed for optimizing a single dimension. This algorithm employs two core LLM-powered actors: the Semantic Initializer and the Contrastive Comparator. Notably, our algorithm is generally applicable to any of the five dimensions identified before, requiring only minor adaptations to the contextual information supplied to the Semantic Initializer and Contrastive Comparator. The overall framework is shown in Figure \ref{fig:framework_1}.
+
+
+% We first propose a unified algorithm to optimize a single dimension. It consists mainly of two components: the Semantic Initializer and Contrastive Comparator. It's worth noting that this algorithm is general to be applied to any of the five dimensions summarized above, with only minor adaptations of the context information provided for the  Semantic Initializer and Contrastive Comparator.
+
+
+
+\noindent \textbf{Initialization of Collection.} The first step involves generating an initial collection of agents or controllers corresponding to the dimension being optimized. Specifically, we utilize an LLM-powered actor named the Semantic Initializer to accomplish this. For each of the five dimensions, we instruct the Semantic Initializer by first describing essential contextual information regarding the existing MAS configuration and the given task. Next, we specify the expected functionality of the generated prompts according to the dimension being optimized: either to power an agent (Fun-1 and Fun-2) or to guide the controller managing the collaboration structure (Str-1 to Str-3).
+% Then, we provide a one-shot example illustrating the desired format and content of the generated prompt. Finally, we indicate the number of initial agents/controllers (i.e., their instruction prompts) to be generated by the Semantic Initializer. In addition to generating instruction prompts, if the optimized agents or controllers operate under a few-shot learning setting, the Semantic Initializer can also be instructed to generate few-shot examples using the same procedure.
+Then, we provide a one-shot example and indicate the number of initial agents/controllers to be generated. If the optimized agents or controllers operate under a few-shot learning setting, the Semantic Initializer can also be instructed to generate few-shot examples using the same procedure.
+
+
+% The intuition behind this design is to leverage the informational competence and reasoning capabilities of LLM to effectively explore the semantic space for instructing an agent or controller. This exploration follows a given functionality corresponding to the dimension being optimized, while varying focal points and implementation details to bring in variance and diversity.
+
+The rationale behind this design is to leverage the knowledge and reasoning capabilities of LLMs to systematically explore the semantic space for instructing an agent or controller. This exploration adheres to specified functionality corresponding to the dimension being optimized, while simultaneously introducing controlled variations in focal emphasis and implementation details. Such variations promote diversity and inject stochasticity into the initial collection, which is utilized by subsequent optimization with contrastive reasoning.
+
+
+% The first step is to generate an initial sample set of agents or controllers corresponding to the dimension being optimized. Especially, we employ an LLM-powered actor, named the Semantic Initializer, to achieve that. We construct its instruction prompt first by detailing the necessary context information of the current MAS and the given task. For all five dimensions, we'll first describe the genre of the given task, like code generation or arithmetic reasoning. Then, we'll illustrate the expected functionality of the generated prompts, which can be powering an agent (Fun1-2) or controlling the structure (Str 1-3). Then, we'll provide an example of the expected generated prompt as one-shot learning for Semantic Initializer. Last, we'll specify the number of the agents/controllers (i.e., their instruction prompts) generated by Semantic Initializer. If we consider that the agents or controllers  work in a few-shot learning setting, we can also let the Semantic Initializer generate the few-shot examples beyond the instruction prompts, following the same workflow.
+
+
+
+\noindent \textbf{Evaluation and Sampling.} After obtaining the initial collection of agents or controllers to be optimized, we first evaluate their performance by integrating each one into the MAS with other existing agents/controllers and executing the collaboration process on the training data. 
+% Performance scores are then calculated based on the final results associated with each agent/controller in the initial collection. 
+Performance scores are then calculated based on the MAS's overall performance associated with each agent/controller in the initial collection. 
+Subsequently, we sample a positive-negative pair of agents/controllers based on these performance scores. Specifically, we define two thresholds, $h$ and $l$, as upper and lower bounds for selecting the positive and negative ones.
+Given the current collection of size $n$, the top $\lfloor n \times h \rfloor$ performing ones are classified as positive, whereas the bottom $\lfloor n \times l \rfloor$ are classified as negative. A positive-negative pair is then randomly sampled from these two groups. The rationale behind sampling within thresholds is to diversify the positive-negative pairs obtained in each iteration, thereby enhancing the generality and robustness of subsequent contrastive reasoning.
+
+% After obtaining the initial set of agents or controllers, we first evaluate their performance. Specifically, we conduct the entire collaboration process with each initialized agent/controller on the training data. Then we can calculate the performance scores based on the final performance corresponding to each agent or controller. After that, we'll sample a positive-negative pair of agents/controllers corresponding to their performance scores. Specifically, we define two thresholds, $h$ and $l$ (where $1>h \geq l > 0$), which serve as the upper and lower bounds for constructing the positive-negative pair. Assume there are currently $n$ samples, the samples with the top $\lfloor n \times (1-h) \rfloor$ performance scores are taken as positive, while those with the bottom $\lfloor n \times l \rfloor$ are taken as negative. Then each time we just randomly sample from these two sets to get the pair.
+
+
+
+
+\noindent \textbf{Contrastive Reasoning for Optimization.} Once we get the positive-negative pair, we feed it into the Contrastive Comparator. This LLM-powered comparator is tasked to carefully compare this pair of agents/controllers and reason the underlying factors for their performance gap. Then, it is instructed to generate a new agent/controller (i.e., its instruction prompt and/or the few-shot examples) that is expected to perform even better than the positive example. Similarly, information regarding the given task and the dimension being optimized is provided as the context for the reasoning. After that, this newly generated agent/controller is incorporated into the initial collection and evaluated through the collaboration process. The cycle of evaluation, sampling, contrastive comparison and refinement is then repeated until reaching the predefined maximum number of iterations.
+
+The rationale here is to leverage the advanced reasoning capabilities of LLMs to analyze the performance difference by contrasting the positive-negative pair with the given task context. This performance gap constitutes a supervised signal derived from evaluations on the training data. By reasoning about this gap, the LLM can refine the corresponding instruction prompts, aiming to enhance or amplify factors correlated with positive performance while mitigating or removing factors associated with negative performance.
+
+
+
+
+\noindent \textbf{Demonstration Example.} Figure \ref{fig:example_1} illustrates an example of optimizing an existing agent functioning as a ``Programmer'' (Fun-1) using OMAC. The Semantic Initializer first generates two prompts, both designed to instruct an agent with the role as a Programmer for the code generation task. The primary difference is that the second one explicitly requires including comments throughout the code. Each agent is then evaluated by the overall performance of the MAS on the training data. Subsequently, a positive-negative pair is sampled and provided to the Contrastive Comparator. By analyzing the performance difference, the Contrastive Comparator identifies code commenting as a key factor enhancing the programmer agent’s performance. Consequently, it generates a new prompt emphasizing the importance of comments and elaborating on their purpose and proper usage. Ideally, this refined prompt can guide the programmer agent to produce more accurate and logical code, further improving the overall performance of MAS.
+
+
+
+
+
+\subsection{Optimization for Multiple Dimensions}\label{sec:multi_dim}
+
+
+Beyond the single dimension optimization, we further propose an algorithm for jointly optimizing multiple dimensions. Specifically, our method iteratively optimizes each dimension individually while keeping the other dimensions fixed. For example, to jointly optimize an existing agent (Fun-1) and the controller to select candidate agents (Str-1), we first execute the single dimension optimization described in Section \ref{sec:indi_opt} for Fun-1. After that, we retain the agent from the agent collection exhibiting the highest performance score and subsequently optimize the controller responsible for candidate selection (Str-1). After deriving the optimized controller, we repeat this iterative process until predefined termination conditions (e.g., reaching a maximum number of iterations) are satisfied. Figure \ref{fig:framework_2} illustrates this process.
+
+% The intuition of iterative optimization is to ensure the effectiveness of contrastive reasoning. That’s to say, we want to constrain the variables of a positive-negative pair within a narrow range to ensure all other factors remain consistent. In other words, for any positive-negative pair used as input for the contrastive comparator, the only variation should be centered on a single optimization dimension. This ensures that the comparator can effectively determine why the positive example is better, avoiding the challenges of identifying multiple interacting factors that simultaneously influence the overall performance.
+
+
+The motivation of iterative optimization is to maintain the effectiveness of contrastive reasoning. Specifically, by limiting variations within positive-negative pairs to a single dimension at a time, we ensure consistency across other factors. Consequently, the Contrastive Comparator can clearly identify the reasons for performance differences, thus avoiding complexities arising from multiple interacting variables simultaneously affecting overall performance.
+
+
+\begin{figure}[t]
+% \vspace{-1mm}
+\centering
+\begin{minipage}{0.95\linewidth}
+    \centering
+    \includegraphics[width=0.95\linewidth]{figs/framework_2.pdf}
+\end{minipage}
+\caption{OMAC workflow for multiple dimensions.}
+\label{fig:framework_2}
+\vspace{-3mm}
+\end{figure}
+
+\subsection{Inference and Computation Efficiency}\label{sec:inf_comp}
+
+
+\noindent \textbf{Inference.} After optimizing with either single dimension or multiple dimensions, we select the agent(s) and/or controller(s) configuration that yielded the highest performance on the training set. These optimized agents/controllers are then utilized within the MAS to conduct inference and evaluation on the test set.
+
+
+
+\noindent \textbf{Computational Efficiency.} In Section \ref{sec:multi_dim}, we introduced our algorithm for iteratively optimizing multiple dimensions jointly. However, iterative optimization may result in substantial computational demands due to the exponential growth of dimension combinations. For instance, mutually optimizing two dimensions over two iterations results in four times the computational cost compared to optimizing a single dimension. To mitigate this, we propose selectively incorporating only those dimensions that individually demonstrate the most significant performance improvements into the iterative joint optimization process. We validate the effectiveness of this strategy in our experiments (\ref{sec:multi_results}). We further discuss OMAC's overall training and inference computational efficiency in detail in Appendix~\ref{sec:computation_apd}.
+
+
+
+
+
+\endinput
+
+
+
+The first step involves generating an initial sample set of agents or controllers relevant to the dimension being optimized. Specifically, we employ an LLM-based actor, termed the Semantic Initializer, for this purpose. Its instruction prompt is constructed by incorporating relevant contextual information about the optimizing dimension and the task description. This contextual information typically includes:
+(a) the task genre (e.g., code generation, arithmetic reasoning);
+(b) a description of the expected functionality of the output (i.e., defining agent functionality for Fun-1/Fun-2 or structural control for Str-1/Str-2/Str-3);
+(c) a one-shot example demonstrating the desired output format; and
+(d) the desired number of initialized prompts (for the agents or controllers being optimized) to be generated by the Semantic Initializer.
+If the agents or controllers operate in a few-shot learning setting, the Semantic Initializer can also be tasked with generating appropriate few-shot examples in addition to the instruction prompts, using a similar prompting strategy.

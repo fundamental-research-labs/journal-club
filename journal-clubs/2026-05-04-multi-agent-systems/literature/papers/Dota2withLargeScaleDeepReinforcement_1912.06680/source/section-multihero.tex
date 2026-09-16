@@ -1,0 +1,30 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+\section{Hero Pool Size}\label{sec:multihero}
+\begin{figure}
+    \centering
+    \begin{subfigure}[t]{0.49\linewidth}
+        \vskip 0pt % this vskip is used for top-alignment
+        \includegraphics[width=\textwidth]{figures/multihero_trueskill.pdf}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \vskip 0pt % this vskip is used for top-alignment
+        \includegraphics[width=\textwidth]{figures/multihero_speedup.pdf}
+    \end{subfigure}
+    \caption{\textbf{Effect of hero pool size on training speed:} \genericcaptionsentence{varying the size of the hero pool.}  
+    Additional heroes slows down early training only slightly.
+    The severe underperformance of the 5-hero run for the first 4k versions was not investigated in detail.
+    It is likely not due to the hero count but rather some instability in that particular training run.}
+    \label{fig:multihero}
+\end{figure}
+One of the primary limitations of our agent is its inability to play all the heroes in the game.
+We compared the progress in early training from training with various numbers of heroes.
+In all cases, each training game is played using an independent random sampling of five heroes from the pool for each team.
+To ensure a fair comparison across the runs, evaluation games are played using only the smallest set of heroes.
+Because the test environment uses only five heroes, the runs which train with fewer heroes are training closer to the test distribution, and thus can be expected to perform better; the question is how much better?
+
+In \autoref{fig:multihero}, we see that training with more heroes causes only a modest slowdown. 
+Training with 80 heroes has a speedup factor of approximately 0.8, meaning early training runs 20\% slower than with the base 17 heroes.
+From this we hypothesize that an agent trained on the larger set of heroes using the full resources of compute of \cleanexpname would attain a similar high level of skill with approximately 20\% more training time.
+Of course this experiment only compares the very early stages of training; it could be that the speedup factor becomes worse later in training.
+\end{document}

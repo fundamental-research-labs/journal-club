@@ -1,0 +1,26 @@
+\begin{algorithm}
+\begin{algorithmic}
+\Require $codebase$, 
+$bugs$; $num\_bugs$, $limit\_per\_file$; $max\_combos$
+\Ensure $min\_bugs$ $\geq$ 2;
+\State $max\_bugs$ $\geq$ $min\_bugs$;
+\Procedure{CombineFileBugs}{}
+\For{each $file$ in $codebase$}
+    \State $file\_bugs$ $\gets$ bugs that apply to $file$
+    \State $combinations$ $\gets$ get\_combos($file\_bugs$, $num\_bugs$, $max\_combos$)
+    \For{each $combo$ in combinations}
+        \State Apply $combo$ to $codebase$
+        \If{success}
+            \State Save $combo$ to disk
+            \If{$limit\_per\_file$ reached}
+                \State \textbf{break}
+            \EndIf
+            \State $combinations$ $\gets$ [c for c in $combinations$ if c $\cap$ $combo$ $=\emptyset$]
+        \EndIf
+    \EndFor
+\EndFor
+\EndProcedure
+\end{algorithmic}
+\caption{Combine multiple patches from the same file.}
+\label{alg:combine_file}
+\end{algorithm}

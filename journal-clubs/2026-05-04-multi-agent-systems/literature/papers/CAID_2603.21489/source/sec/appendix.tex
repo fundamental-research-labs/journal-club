@@ -1,0 +1,23 @@
+\appendix
+% \section{Appendix}
+
+\section{Prompt Engineering for Multi-Agent Task Delegation}
+We provide the prompts of user instruction and task delegation for both Commit0 in Section \ref{app:commit0-prompt} and PaperBench in \ref{app:paperbench-prompt}.
+\input{tables/prompts}
+\section{Full Results}
+We provide the full results of Claude 4.5 Sonnet of each repository on Commit0-Lite and each paper on PaperBench across three LLMs.
+\input{tables/claude-commit0-results}
+\input{tables/glm-paperbench-results}
+
+
+\section{One-sided t-test}
+\label{app:stats-test}
+\input{tables/stats}
+We compute one-sided paired $t$-tests ($H_1$: \ourmethod $>$ Single-Agent) across all repositories or papers for each model in Table~\ref{tab:significance}. On Commit0-Lite, the improvement is significant for Claude Sonnet 4.5 ($t=2.87$, $p=0.006$) and MiniMax 2.5 ($t=2.81$, $p=0.007$), with mean gains of 6.0 and 14.7 percentage points respectively. GLM 4.7 improves by 3.6 points on average but does not reach significance ($p=0.095$), largely because the per-repository variance is high: \ourmethod brings large gains on some repositories (e.g., +30.7 on \texttt{simpy}) but regresses on others (e.g., $-10.5$ on \texttt{tinydb}), which inflates the standard error with only 16 paired samples. On PaperBench, both Claude Sonnet 4.5 ($t=1.78$, $p=0.046$) and GLM 4.7 ($t=1.93$, $p=0.034$) are significant. The only non-significant case is MiniMax 2.5 on PaperBench ($p=0.408$), where the mean gain is only 0.8 points. As discussed in Section~\ref{sec:delegation}, \ourmethod's effectiveness depends on the manager's ability to construct accurate dependency graphs and delegate tasks accordingly. A weaker base model produces less reliable task decomposition on the open-ended PaperBench tasks, limiting the gains that multi-agent coordination can deliver. 
+\section{Failure on Scaling the Parallel Execution}
+\label{app:failure-parallel}
+\input{figs/gantt-simpy}
+
+We provide an example to show why scaling the parallel execution is not always help. Figure~\ref{fig:parallel-execution-simpy} shows the execution timelines on the \texttt{simpy} repository under different numbers of engineers ($N=2,4,8$). The performance difference is not solely explained by the number of files touched, but by how the manager structures delegation across engineers. For $N=4$, delegation remains clean and non-overlapping. Each engineer is assigned distinct files (e.g., \texttt{events.py}, \texttt{core.py}, \texttt{container.py}, \texttt{resource.py}), and their implementations proceed largely without interference. The manager avoids assigning closely coupled modules to different engineers simultaneously, and no two engineers work on the same file at the same time. As a result, integration remains stable and the run reaches a pass rate of 92.1\%.
+
+For $N=8$, although more files are modified and parallel activity increases, the delegation becomes less disciplined. Multiple engineers are assigned different functions within the same file (notably \texttt{events.py}), creating overlapping write regions within a shared module. While these edits are logically separable at the function level, they introduce integration risk at the file level. The main branch receives competing updates on the same module, increasing the likelihood of merge conflicts or inconsistent intermediate states. This fragmentation of responsibility prevents clean consolidation and ultimately limits performance to 44.3\%. The degradation in $N=8$ therefore does not arise from excessive parallelism alone, but from a delegation that ignores the ownership boundaries of the file-level. When parallel execution exceeds the manager’s ability to enforce coherent task partitioning, local productivity no longer translates into stable global progress. This example illustrates that scaling the number of engineers requires disciplined delegation, not simply increasing concurrency.

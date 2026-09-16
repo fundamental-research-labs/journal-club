@@ -1,0 +1,26 @@
+
+\section{Additional Literature Review}
+\label{appendix:deferred_literature}
+\paragraph{Multi-Agent RL. }
+Multi-agent reinforcement learning (MARL) has achieved significant advancements, particularly in cooperative games and their real-world applications, such as coordinating robot swarms \citep{huttenrauch2017guided} and self-driving vehicles \citep{shalev2016safe}. (A comprehensive overview of MARL can be found in \citet{zhang2021multi}).  The primary challenge in MARL lies in the exponentially large action space, making it difficult to optimize the policy for each agent. Various approaches have been proposed to address this issue, including multi-agent Proximal Policy Optimization (PPO) \citep{yu2022surprising}, value function factorization methods (QMIX, VDN) \citep{rashid2020monotonic, sunehag2017value}, and network-based formulations for multi-agent learning \citep{park2024multi}. These methods aim to make MARL more scalable with a large number of agents, mostly focusing on the classical models of stochastic/Markov games. 
+
+
+In the context of language models and collaborative debate systems, MARL takes on a unique form. Here, each agent's state is represented by the sequence of previous responses from all agents, with each agent deciding the next token based on this history. The detailed mathematical formulation for reinforcement learning in language models can be found in several theoretical and empirical studies on reinforcement learning with human feedback (RLHF) (\textit{e.g.,} \citet{ouyang2022training, zhu2023principled, park2024principled}). LLMs provide high-quality state representations through their hidden layers, enabling the consideration of long debate histories. Moreover, the sequential nature of these interactions inherently captures non-Markovian policies due to the extended sequence of responses. 
+
+\paragraph{Teaching LLM Self-Correction.}
+As mentioned in the main paper, single-agent self-correction and multi-agent collaboration has a very interesting relationship. Single-agent self-correction and multi-agent collaboration rely on multi-turn interactions—either internally, within a single agent, or collaboratively, among multiple agents—to improve results by challenging initial outputs and refining them through iteration. In single-agent systems, self-correction functions like an internal debate. The agent evaluates its own output over multiple turns, identifying potential mistakes and proposing alternative solutions. This process mirrors human reflection, where reconsideration often leads to improved conclusions. Meanwhile, in multi-agent systems, different agents engage in a collaborative debate, questioning and refining each other’s answers. By interacting in multiple rounds, these agents combine their individual perspectives to correct errors and arrive at more accurate solutions. 
+
+There are several prior works aiming to improve LLMs' ability to self-correct. First line of work is using prompting technique, which guides LMs via prompting to iteratively correct the model outputs~\citep{madaan2024self}. However, some works use the ground-truth labels to determine when to stop the self-correction~\citep{kim2024language, shinn2024reflexion, yao2022react}, which is not applicable in the real-world scenarios where answer is not available for the tasks, and it is shown that under such scenarios the models can not do self-correct effectively~\citep{huang2023large}.
+
+Another line of works train LLMs to \textit{learn} self-correction; \citet{qu2024recursive} introduced an approach using stronger LLMs to obtain multi-turn trajectories that have better responses through the iteration, and uses this data to fine-tune LLMs to learn self-correction. Different from this work, our approach do not require stronger LLMs for demonstrations, relying solely on the reward for training. \citet{welleckgenerating} proposed supervised fine-tuning to train a corrector model that can edit the model response iteratively, but this is specified the type of collaboration in the  generate-then-refine pattern, which can be sub-optimal to learned by the models. \citet{kumar2024training} employed an RL-based approach for the self-improvement of language models.
+
+\paragraph{Multi-Agent LLMs with Game Theory.} 
+Recent work has actively explored the strategic interactions of LLM agents within game-theoretic frameworks, as demonstrated in studies such as  \citet{park2024llm,brookins2023playing, akata2023playing, lore2023strategic, fan2023can}. Our paper can be viewed as training LLMs as solvers of cooperative games such as solving mathematical problems together. 
+
+
+
+
+
+
+
+

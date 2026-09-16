@@ -1,0 +1,133 @@
+\section{\BenchmarkName{} Environment} 
+
+In order to ensure reproducibility, realism, and determinism, all websites in the \BenchmarkName{} framework are provided as standalone self-hosted web applications. The textual and visual content are acquired from real world counterparts, while the code is based off open-source infrastructure commonly used in real websites. We formally define the environment, observation space, and action space below, but encourage readers to refer to WebArena~\citep{zhou2023webarena} for more details.
+
+The environment and agent can be modeled as a partially observable Markov decision process (POMDP): $\mathcal{E} = (S, A, \Omega, T)$, where $S$ represents the set of states, $A$ represents the set of actions (Sec.~\ref{sec:action_space}), and $\Omega$ represents the set of observations (Sec.~\ref{sec:observation_space}). The transition function is defined as $T: S \times A \rightarrow S$, with deterministic transitions between states conditioned on actions. At each time step $t$, the environment is in some state $s_t$ (e.g., a particular page), with a partial observation $o_t \in \Omega$. An agent issues an action $a_t \in A$ conditioned on $o_t$, which results in a new state $s_{t+1} \in S$ and a new partial observation $o_{t+1} \in \Omega$ of the resulting page. The action $a_t$ may be an action to be executed on the webpage (Tab.~\ref{tab:actions}), or it may simply be a string output for information seeking tasks (Sec.~\ref{sec:environment_evaluation}).
+% \footnote{The specific (deterministic) transition function depends on the underlying website's implementation details.}
+
+Finally, we define the reward function $R: S \times A \rightarrow \{0, 1\}$ (Sec.~\ref{sec:environment_evaluation}) to measure the success of a task execution. In \BenchmarkName{}, the reward function returns 1 at the final step if the state transitions align with the expectations of the task objective (i.e., the goal is achieved), and 0 otherwise. 
+% For example, in the first task in Fig.~\ref{fig:task_overview}, the reward function evaluates whether the order was correctly placed to the exact address provided in the input image, and contains the correct item. %(i.e., the cheapest color photo printer).
+
+\subsection{Observation Space} \label{sec:observation_space}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figures/som_figure.pdf}
+    % \vspace{-0.15in}
+    \caption{Set-of-Marks~\citep{yang2023som} augmented webpage screenshot. Every interactable element is highlighted with a bounding box and a unique ID.}
+    % \vspace{-0.2in}
+    \label{fig:som_figure}
+\end{figure*}
+
+The observation space $\Omega$ is modeled after a realistic web browsing experience. Observations include the webpage URLs, opened tabs (possibly multiple tabs of different websites), and the webpage content of the focused tab. In 25.2\% of tasks, the intent also involves one or more input images (e.g., the first and third tasks in Fig.~\ref{fig:task_overview}). The webpage content can be represented in several ways:
+\begin{enumerate}
+\item Raw web page HTML as a Document Object Model (DOM) tree, used in previous works on autonomous web agents~\citep{shi2017world,liu2018reinforcement,deng2023mind2web}.
+\item The accessibility tree,\footnote{\url{https://developer.mozilla.org/en-US/docs/Glossary/Accessibility_tree}} which provides a structured and simplified representation of the webpage content that is optimized for assistive technologies. This is the primary representation that WebArena~\citep{zhou2023webarena} uses for its baseline LLM agents.
+\item Web screenshots as RGB arrays, which has demonstrated efficacy in prior work~\citep{gur2023real,hong2023cogagent,yan2023gpt}.
+\item We introduce a new visual representation inspired by Set-of-Marks (SoM) prompting~\citep{yang2023som}. For every interactable element on the webpage, we label it with a bounding box and an ID (Fig.~\ref{fig:som_figure}), producing a screenshot for visual agents to reference elements on the page using their unique ID. We provide more details and analysis in Sec.~\ref{sec:som_method}.
+\end{enumerate}
+
+\subsection{Action Space} \label{sec:action_space}
+\begin{table} %{r}{6cm}
+\vspace{-0.2in}
+\centering
+\resizebox{1.0\linewidth}{!}{%
+\begin{tabular}{ll}
+  \toprule
+  \textbf{Action Type $a$}\hspace{25mm} & \textbf{Description} \\
+  \midrule
+  \texttt{click [elem]} & Click on element \texttt{elem}. \\
+  \texttt{hover [elem]} & Hover on element \texttt{elem}. \\
+  \texttt{type [elem] [text]} & Type \texttt{text} on element \texttt{elem}. \\
+  \texttt{press [key\_comb]} & Press a key combination. \\
+  \texttt{new\_tab} & Open a new tab. \\
+  \texttt{tab\_focus [index]} & Focus on the i-th tab. \\
+  \texttt{tab\_close} & Close current tab. \\
+  \texttt{goto [url]} & Open \texttt{url}. \\
+  \texttt{go\_back} & Click the back button. \\
+  \texttt{go\_forward} & Click the forward button. \\
+  \texttt{scroll [up|down]} & Scroll up or down the page. \\
+  \texttt{stop [answer]} & End the task with an output. \\
+  \bottomrule
+\end{tabular}
+}
+% \vspace{-0.1in}
+\caption{Set of possible actions $A$.}   \label{tab:actions}
+% \vspace{-0.15in}
+\end{table}
+
+The full set of actions $A$ is summarized in Tab.~\ref{tab:actions}. 
+% The arguments for action $a_t$ can be the $(x, y)$ screen coordinates of an element, or a unique element ID from the current observation $o_t$. 
+The arguments for action $a_t$ is the unique element ID from the current observation $o_t$. 
+% The baselines we run (Sec.~\ref{sec:baselines}) focus on the latter, as we find that most existing VLMs cannot accurately produce $(x, y)$ coordinates. 
+An advantage of this representation (over predicting $(x, y)$ coordinates) is that it allows us to focus on high level reasoning rather than low-level control, as many SOTA VLMs and LLMs were not explicitly trained for referencing elements at such fine granularity.
+For the agents with accessibility tree representations, the argument is the element ID in the tree. For the SoM representation, we use the unique IDs assigned in the current page (see Fig.~\ref{fig:som_figure}).
+
+
+\subsection{Evaluation}   \label{sec:environment_evaluation}
+
+In order to evaluate performance on \BenchmarkName{}, we introduce new visually grounded evaluation metrics to the functional evaluation paradigm of WebArena. These allow us to comprehensively evaluate the correctness of execution traces on open ended visually grounded tasks. The rewards for each task are hand designed functions using the primitives described below.
+
+\paragraph{Information Seeking Tasks}
+Information seeking tasks (e.g., the first task in Tab.~\ref{tab:evaluation}) expect a string output $\hat{a}$ from the model. We adopt similar reward functions as WebArena for measuring text correctness against a groundtruth output $a^*$:
+\begin{itemize}
+    \item \texttt{exact\_match}: This can be defined as $\mathbf{1}_{\{\hat{a} = a^*\}}$. 
+    % (where $\mathbf{1}$ represents the indicator function).
+    Only outputs that are exactly equal to the groundtruth are given a score of 1. This is used in tasks where an exact response (e.g., a numerical answer) is expected.
+    \item \texttt{must\_include}: This reward function gives a score of 1 if all elements in $a^*$ are contained in $\hat{a}$ and 0 otherwise. For example, if $\hat{a} = \text{``\$1.99, \$2.50, \$10.00''}$ and $a^* = \{\text{``1.99''}, \text{``2.50''}, \text{``10.00''} \}$, the task is awarded a score of 1 as all expected elements are present in the output. This is primarily used in tasks where we expect an unordered list of outputs, or we expect text output to contain a particular keyword.
+    % This function is particularly useful in scenarios where certain keywords should not appear in the response to ensure compliance with specific constraints set in the task.
+    \item \texttt{fuzzy\_match}: This function queries a LLM (GPT-4-Turbo in our implementation) to evaluate whether $a^*$ and $\hat{a}$ are semantically equal. The LLM is prompted to output ``correct'', ``incorrect'', or ``partially correct'', and we assign a reward of 1 if the output is ``correct''.\footnote{We do not consider non-binary rewards in this work, but this would be a valuable direction to explore in the future towards introducing more continuous scales of performance.} This evaluation is useful for more open ended settings where we are only concerned with semantic rather than exact equivalence, such as asking the user to add a comment describing an image.
+    \item \texttt{must\_exclude}: We introduce this function, which is the converse of \texttt{must\_include}. A reward of 0 is assigned if any element from a set $a^*$ is found in $\hat{a}$ (and 1 otherwise). For instance, if $\hat{a} = \text{``\$1.99, \$2.50, \$10.00''}$ and $a^* = \{\text{``1.50''}, \text{``2.00''}\}$, the reward is 1 as none of the prohibited elements are in the output.
+\end{itemize}
+
+In addition, we also introduce several new visual functions for measuring open ended tasks:
+\begin{itemize}
+    \item \texttt{eval\_vqa}: Similar to \texttt{fuzzy\_match}, this function queries a VLM capable of performing visual question answering (VQA)~\citep{antol2015vqa}. We use BLIP-2-T5XL~\citep{li2023blip} in our implementation. We query the VLM with an image and a question. If the output of the VLM contains the groundtruth answer $a^*$, a reward of 1 is assigned. %(and 0 otherwise). 
+    This is useful for evaluating more open ended tasks, e.g., ``Buy me a green hoodie under \$10.''. There are many possible products that satisfy this objective, and it would be infeasible to enumerate all their IDs.
+    \item \texttt{eval\_fuzzy\_image\_match}: This function checks whether a query image is similar to a groundtruth image according to the structural similarity index measure (SSIM)~\citep{wang2004image}. If the SSIM between the query and groundtruth images is higher than a threshold $t \in [0, 1]$, a reward of 1 is assigned. %, and 0 otherwise.
+\end{itemize}
+
+\paragraph{Navigation and Actions} 
+
+Many tasks in \BenchmarkName{} require navigating through multiple webpages, and executing actions to change the underlying state $s$ of the environment. To accurately evaluate certain objectives, we require reward functions that examine the final webpage state to determine whether the task was successfully accomplished. %These adopt the WebArena programmatic evaluation metrics, as well as the \texttt{eval\_vqa} and \texttt{eval\_fuzzy\_image\_match} metrics for measuring performance on visual or open-ended tasks.
+Each evaluator consists of a \texttt{locator} as well as a URL. The URL can be a specific page, or a function (e.g., the last page that the agent navigated to). The \texttt{locator} describes the object on the page that should be examined (e.g., all \texttt{img} elements, or all elements with the \texttt{.product-image-photo} class). During evaluation, we use the locator to retrieve the corresponding image or text content, and reuse the functions from the information seeking tasks to check for correctness. 
+
+
+\begin{table*}[t]
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lp{.35\linewidth}l}
+  \toprule
+  \textbf{Webpage / Input Image(s)} &   \textbf{Example Intent}  & \textbf{Reward Function $r(s, a)$ Implementation}  \\
+  \midrule
+   % \raisebox{-2.5cm}{\includegraphics[width=4cm]{figures/images/buffet.png}} &  What is the ISIN of the company that occupies the largest portion in Warren Buffet's portfolio? Answer using the information from the Wikipedia site in the second tab.  & \texttt{exact\_match($\hat{a}$, "US0378331005")} \\
+   % \midrule
+  \multirow{2}{*}{\raisebox{-2cm}{\includegraphics[width=3.5cm]{figures/images/shopping_homepage.png}}}  &  \multirow{2}{*}{\begin{minipage}{.35\textwidth}Buy the least expensive red blanket from the ``Blankets \& Throws'' category.\end{minipage}} &  \texttt{url="func:shopping\_get\_latest\_order\_url"}  \\
+    &    &  \texttt{must\_include($\hat{a}$, \{ "B0983XCYK6", "Red" \})}  \\
+     &   &    \\ &   &    \\  &   &    \\ 
+  \midrule
+    % &  Make a comment in this post explaining what the picture is about. &  \texttt{fuzzy\_match($\hat{a}$, "The post is making a joke...")} \\
+  % \midrule
+  \multirow{2}{*}{\raisebox{-1cm}{\includegraphics[width=2cm,height=2cm]{figures/images/hotdog_man.jpg}}} &  \multirow{2}{*}{
+   \begin{minipage}{1.0\linewidth}
+   Add something like what the man is wearing to my wish list.
+   \end{minipage}} &  \texttt{url="/wishlist"} \\
+   &   &  \texttt{locator(".wishlist .product-image-photo")}  \\
+   &   &  \texttt{eval\_vqa($s$, "Is this a polo shirt? (yes/no)", "yes")}   \\ 
+   &   & \texttt{eval\_vqa($s$, "Is this shirt green? (yes/no)", "yes")}   \\
+  \midrule
+  \raisebox{-1.2cm}{\includegraphics[width=1.5cm,height=1.5cm]{figures/images/needle.jpg}} \raisebox{-1.2cm}{\includegraphics[width=1.5cm,height=1.5cm]{figures/images/quincy_market.jpg}}  &  Create a post for each of these images in the most related forums. &  \texttt{eval\_fuzzy\_image\_match($s$, $a^*$)}   \\
+  \midrule
+   \multirow{4}{*}{\includegraphics[width=3.5cm]{figures/images/classifieds_car.png}} &  \multirow{4}{*}{
+   \begin{minipage}{1.0\linewidth}
+   Navigate to my listing of the white car and change the price to \$25000. Update the price in the description as well.
+   \end{minipage}} &  \texttt{url="/index.php?page=item\&id=84144"} \\
+   & & \texttt{must\_include($\hat{a}$, "\$25000 |OR| \$25,000")} \\
+   & & \texttt{must\_exclude($\hat{a}$, "\$30000 |OR| \$30,000")} \\
+   & &  \\
+  \bottomrule
+\end{tabular}
+}
+% \vspace{-0.12in}
+\caption{Various evaluation metrics to assign reward $r(s, a) \in R: S \times A \rightarrow \{0, 1\}$. Our execution-based reward primitives allow us to benchmark many diverse, realistic, and open-ended tasks.} \label{tab:evaluation}
+% \vspace{-0.2in}
+\end{table*}

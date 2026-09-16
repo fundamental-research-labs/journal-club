@@ -1,0 +1,177 @@
+\section{Experiments}
+\label{sec:Experiments}
+
+\subsection{\agbench \xspace and Setup}
+\paragraph{Overview.} Agentic systems, such as \team, that interact with stateful environments, pose unique challenges for evaluation. For example, if a task requires installing a Python library, the first system to be evaluated will be disadvantaged: Its agents will have to first write Python code that fails, then debug the problem, install the library, and finally try again. Subsequent runs -- perhaps with other agents or models -- will then benefit from the library's presence, and thus may appear to perform better simply because they were executed later. Conversely, an erroneous agent could take actions (e.g. deleting files, or placing the the system in an inoperable state), that would harm all future tasks. To this end, it is crucial that any evaluation be independent across tasks, and provide safety from dangerous side effects (e.g., from agents' actions).
+
+To address this challenge, we developed \agbench for evaluating agentic systems. Given a benchmark, which consists of a set of independent tasks and associated evaluation functions, \agbench{} allows users to run these tasks in a setting with tightly controlled initial conditions: in each task, \agbench{} will start from a blank slate with freshly initialized Docker containers, providing the recommended level of consistency and safety.
+The results of each task are logged in a central location on the host machine (outside of Docker), and can be ingested for analysis by metrics scripts. Furthermore, \agbench{} allows users to launch multiple tasks in parallel to speed up evaluation, or to compute variance across repeated runs. 
+
+\paragraph{Benchmarks.} Using \agbench, we can implement and evaluate \team on a variety of benchmarks. Our criteria for selecting benchmarks is that they should involve complex multi-step tasks, with at least some tasks or steps requiring planning and tool use ( including using web browsers to act on real or simulated webpages, handling files, etc.) We consider three benchmarks in this work that satisfy this criteria: GAIA, AssistantBench, and WebArena.
+
+\emph{GAIA} \cite{mialon2023gaiabenchmarkgeneralai} is a benchmark for general AI assistants with 465 multi-modal question--answer pairs that are real-world and challenging, requiring multiple steps and multiple tools to solve (e.g., navigating the web, handling files, etc.). Despite the complexity of the tasks, GAIA questions are designed to be automatically and unambiguously verifiable, with each answer consisting of a target string that can be checked by string matching. GAIA is split into an open validation set with 165 question--answer pairs, and a test set with 300 questions (answers hidden).\footnote{Leaderboard: \url{https://gaia-benchmark-leaderboard.hf.space/}}
+An example of a GAIA task follows:
+\begin{quote}
+\textbf{Example GAIA task:} Of the cities within the United States where U.S.\ presidents were born, which two are the farthest apart from the westernmost to the easternmost going east, giving the city names only? Give them to me in alphabetical order, in a comma-separated list.
+\end{quote}
+In order to solve this task, one needs to perform multiple steps: use the web to find the birth city of each U.S.\ president, retrieve the coordinates of these cities, identify the westernmost and easternmost coordinates, then return the corresponding cities in alphabetical order. This requires web navigation, coding, and reasoning abilities, illustrating the complexity of GAIA. 
+
+The second benchmark we consider is \emph{AssistantBench} \cite{yoran2024assistantbenchwebagentssolve}. Similar in design to GAIA, \emph{AssistantBench} is a set of 214 question--answer pairs that are realistic, time-consuming (requiring a human several minutes to perform), and automatically verifiable. They require navigating real-world websites and multi-step reasoning. As with GAIA, answers are evaluated by string matching, but AssistantBench introduces an additional softer metric of accuracy that affords a degree of partial credit \cite{yoran2024assistantbenchwebagentssolve}. AssistantBench is split into an open validation set with 33 question--answer pairs and a test set with 181 questions (answers hidden).%
+\footnote{Leaderboard: \url{https://huggingface.co/spaces/AssistantBench/leaderboard}}
+An example of an AssistantBench task follows:
+\begin{quote}
+\textbf{Example AssistantBench task:} Which supermarkets within 2 blocks of Lincoln Park in Chicago have ready-to-eat salad for under \$15?
+\end{quote}
+This task requires the agent to use an online map (e.g., Bing Maps) to find supermarkets near Lincoln Park, and then, for each supermarket found, to navigate to its website and check if it has ready-to-eat salads under \$15. 
+
+The final benchmark we consider is \emph{WebArena} \cite{zhou2024webarenarealisticwebenvironment}, which involves performing complex tasks in a synthetic web environment. Each task requires multi-step planning and acting, and targets one or more fully functional synthetic websites. It contains 812 tasks across five major website categories (e.g., shopping, forums, maps, etc.), and a sixth category that requires interacting with multiple websites.
+Tasks are evaluated by running per-task evaluation scripts in the context of the running website to check that answers exactly or approximately match a target, and that the page is left in the desired state (e.g., that a comment has been posted, or an item is in a shopping cart). There is a public leaderboard for WebArena, but it is based on self-reported results.
+\footnote{Leaderboard: \url{https://docs.google.com/spreadsheets/d/1M801lEpBbKSNwP-vDBkC_pF7LdyGU1f_ufZb_NWNBZQ/edit}}
+The dataset also provides no formal validation / test split across tasks \cite{kapoor2024aiagentsmatter}. We developed our own split so that we might assess \team{}'s ability to generalize to tasks in the unseen test set --  which was evaluated only once. To split the tasks, we computed the MD5 hash of each problem's \emph{template\_id}\footnote{WebArena tasks are populated by expanding a smaller number of task templates.}, then assigned the 422 tasks with hashes starting with digits 0-7 to the validation set (the remaining 390 tasks were assigned to the test set). An example of a WebArena task, from the validation set, is as follows:
+
+\begin{quote}
+\textbf{Example WebArena task:} Tell me the count of comments that have received more downvotes than upvotes for the user who made the latest post on the Showerthoughts forum.
+\end{quote}
+To solve this task, the agents have to navigate the Showerthoughts forum, find the profile of the user with the latest post, retrieve all their comments, and finally count those with more downvotes than upvotes. This illustrates the multi-step navigation nature of WebArena tasks. 
+
+
+
+\paragraph{Implementation Details.} 
+An identical configuration of \team was used for all three benchmarks, but some additional set up code was needed for each. Namely, each benchmark used a unique final prompt to ensure answers were expressed in the benchmark-specific prescribed format. Additionally, set up code for WebArena included instructions to log in to websites, which is not considered part of the task. Finally, WebArena refers to the Postmill website as Reddit,\footnote{WebArena's Postmill website is populated from data crawled from Reddit}, causing agents to complain that they were on the wrong website. To address this, we included the following prompt text:
+
+``\emph{[This website is] a Postmill forum populated with a large sample of data crawled from Reddit. Postmill is similar to Reddit, but the UI is distinct, and 'subreddits' begin with /f/ rather than /r/}``
+
+We include similar prompts for the three other WebArena sites, and we discuss this issue more in section \ref{sec:Risks and Mitigations}.
+
+For \team, the default multimodal LLM we use for all agents (except the ComputerTerminal) is \textit{gpt-4o-2024-05-13}. In a different configuration of \team, we experiment with using OpenAI o1-preview\footnote{\url{https://openai.com/index/introducing-openai-o1-preview/}} for the outer loop of the Orchestrator and for the Coder, while other agents continue to use GPT-4o. In this case, only a subset of the agents (e.g., the WebSurfer) are multimodal since o1-preview can process only text as input. We implement \team on the multi-agent platform AutoGen version 0.4 \cite{wu2023autogen}. The code for \team is made publicly available.\footnote{\url{https://aka.ms/magentic-one}} The experiments reported here were conducted between August and October 2024. 
+
+\subsection{Results}
+\label{sec:Results}
+
+\paragraph{Results.} Table \ref{tab:all_results} shows the performance of \team  compared to relevant baselines for all three benchmarks. For GAIA and AssistantBench, we report only results for the test sets. For WebArena there is no common test set, so we report results for all 812 tasks. We separately show performance of \team when using only GPT-4o as the model for all agents, and when using a combination of GPT-4o and o1-preview.\footnote{We do not report results for \team (GPT-4o, o1) on WebArena since the o1 model refused to complete 26\% of WebArena Gitlab tasks, and 12\% of Shopping Administration tasks, making a fair comparison impossible.} We also include the highest-performing baselines in the literature, for each benchmark, according to the leaderboards as of October 21, 2024. This includes entries that are neither open-source, nor described by technical reports, making them difficult to independently validate. Finally, we also include human performance where available.
+
+We use statistical tests to compare the performance of \team to baselines and say that two methods are statistically comparable if the difference in their performance is not statistically significant ($\alpha$=0.05); details about our statistical methodology can be found in Appendix \ref{apx:stats_results}.
+
+\team (GPT-4o, o1-preview) achieves statistically comparable performance to SOTA methods on both GAIA and AssistantBench. On WebArena, only the GPT-4o variant was evaluated\footnotemark[12], and it achieved comparable performance to most SOTA methods except for WebPilot \cite{zhang2024webpilotversatileautonomousmultiagent} and Jace.AI (which achieve statistically higher scores).
+
+As noted earlier, WebArena does not have a hidden test set, thus posing some awkward challenges for fair evaluation. To investigate this, we consider the self-imposed validation/test splits that we created apriori. On the the validation set, \team{} correctly performed 35.1\% of tasks (148 of 422), falling to 30.5\% (119 of 390) for the test set. When setting up the WebArena benchmark, we used the validation set to initially validate and debug our workflow. This result suggests that extra attention paid on validation tasks has lead to at least mild over-fitting. It is unclear whether other entries on the leaderboard performed similar analyses or took similar precautions. We would encourage the WebArena authors to develop a hidden test set for future comparison purposes. 
+
+Comparing \team (GPT-4o) and \team (GPT-4o, o1), the biggest gains are observed on the GAIA benchmark. We hypothesize that this occurs because GAIA involves tasks that require more logical reasoning and puzzle-solving compared to AssistantBench. These are skills for which o1 was optimized.
+
+Together, these results establish \team as a strong agentic system for completing complex web- and file-based tasks. Moreover, achieving this level of performance across benchmarks speaks to the team's generality -- note that among the baselines in Table \ref{tab:all_results}, no prior system (other than base models) has been been evaluated across all three benchmarks. 
+
+\begin{table}[h!]
+\centering
+\caption{Performance of \team compared to relevant baselines on the test sets of GAIA, WebArena and AssistantBench. For each method we note in parenthesis the LLM used to obtain the result. The numbers reported denote exact task completion rate as a percentage. All results for baselines are obtained from the corresponding benchmark leaderboard. We do not report results for \team (GPT-4o, o1) on WebArena since the o1 model refused to complete 26\% of WebArena Gitlab tasks, and 12\% of Shopping Administration tasks, making a fair comparison impossible. An example task refused by o1 is ``\emph{create a new group "webagent" with members pandey2000, sayakpaul, sayakpaul}``. We include 95\% error bars as $\pm$ using the Wald interval method. We underline results that are statistically comparable to \team (GPT-4o, o1) according to a z-test with $\alpha=0.05$, and bold results that statistically exceed our performance (Appendix \ref{apx:stats_results}). 
+}
+
+
+\resizebox{1\textwidth}{!}{
+\begin{tabular}{p{0.32\textwidth}p{0.11\textwidth}p{0.15\textwidth}p{0.15\textwidth}p{0.12\textwidth}}
+\toprule
+Method & GAIA & AssistantBench (EM) & AssistantBench (accuracy) & WebArena \\
+\midrule
+omne v0.1 (GPT-4o, o1)  & \underline{40.53$\pm$5.6} & -- & -- & -- \\
+Trase Agent v0.2 (GPT-4o, o1, Gemini) & \underline{39.53$\pm$5.5}& -- & -- & -- \\
+Multi Agent (NA) & \underline{38.87$\pm$5.5}& -- & -- & -- \\
+das agent v0.4 (GPT-4o) & \underline{38.21$\pm$5.5}& -- & -- & -- \\
+Sibyl (GPT-4o) \cite{wang2024sibylsimpleeffectiveagent} & \underline{34.55$\pm$5.4} & -- & -- & -- \\
+HF Agents (GPT-4o)  & \underline{33.33$\pm$5.3}& -- & -- & -- \\
+FRIDAY (GPT-4T) \cite{wu2024oscopilotgeneralistcomputeragents} & 24.25$\pm$4.8 & -- & -- & -- \\
+GPT-4 + plugins \cite{mialon2023gaiabenchmarkgeneralai}  & 14.60$\pm$4.0 & -- & -- & --\\
+SPA $\rightarrow$ CB (Claude) \cite{yoran2024assistantbenchwebagentssolve}  & -- & \underline{13.8$\pm$5.0} & \underline{26.4$\pm$6.4} & -- \\
+SPA $\rightarrow$ CB (GPT-4T) \cite{yoran2024assistantbenchwebagentssolve}  & -- &\underline{ 9.9$\pm$4.3 }& \underline{25.2$\pm$6.3} & -- \\
+Infogent (GPT-4o) & -- & 5.5$\pm$3.3 & 14.5$\pm$5.1 & -- \\
+Jace.AI (NA)  & -- & -- & -- & \textbf{57.1$\pm$3.4} \\
+WebPilot (GPT-4o)  \cite{zhang2024webpilotversatileautonomousmultiagent} & -- & -- & -- &\textbf{37.2$\pm$3.3} \\
+AWM (GPT-4) \cite{wang2024agentworkflowmemory} & -- & -- & -- & \underline{35.5$\pm$3.3}\\
+SteP (GPT-4) \cite{sodhi2024stepstackedllmpolicies} & -- & -- & -- & \underline{33.5$\pm$3.2} \\
+BrowserGym  (GPT-4o) \cite{drouin2024workarenacapablewebagents} & -- & -- & -- & 23.5$\pm$2.9 \\
+
+GPT-4  & 6.67$\pm$2.8\cite{mialon2023gaiabenchmarkgeneralai} & 6.1 $\pm$3.5\cite{yoran2024assistantbenchwebagentssolve} & 16.5 $\pm$5.4\cite{yoran2024assistantbenchwebagentssolve} & 14.9$\pm$2.4\cite{zhou2024webarenarealisticwebenvironment} \\
+\midrule
+Human & 92.00$\pm$3.1 & -- & -- & 78.2$\pm$2.8 \\
+\midrule
+\textbf{\team}  (GPT-4o) & 32.33$\pm$5.3& \underline{11.0 $\pm$4.6}& \underline{25.3 $\pm$6.3}& \underline{32.8$\pm$3.2}\\
+\textbf{\team}  (GPT-4o, o1) &\underline{38.00$\pm$5.5}& \underline{13.3 $\pm$4.9}& \underline{27.7 $\pm$6.5}& * \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:all_results}
+
+\end{table}
+
+\paragraph{Performance Breakdown by Task Difficulty or Domain} Each benchmark provides some categorization of tasks by difficulty (GAIA, AssistantBench), or application domain (WebArena). In Table \ref{tab:results_by_category}, we breakdown performance by category, comparing \team{}to the best-performing baselines for GAIA and AssistantBench, and to WebPilot \cite{zhang2024webpilotversatileautonomousmultiagent}, the best performing WebArena baseline for which category-level results are available.  
+
+By breaking down performance by category, we immediately notice that \team appears to compete better on hard tasks (e.g., level 3, hard) vs. easy tasks (e.g. level 1, easy). In fact, on AssistantBench, \team outperforms the best comparable baseline on the hardest category. Similarly, on WebArena, \team differs from WebPilot mainly on the Reddit category -- again the apparent easiest category by score.
+
+We hypothesize that \team introduces some fixed overhead or complexity that disproportionately helps with long multi-step tasks, while introducing more opportunities for errors on short few-step tasks. This presents an opportunity to enhance \team for simpler tasks to achieve SOTA across all levels. 
+
+\begin{table}[h]
+\centering
+\caption{Performance comparison between \team (GPT-4o), \team (GPT-4o, o1) and the best baseline for each benchmark's test set. Analysis is split across the different categories of each benchmark. Since there is no available baseline that evaluates on all three benchmarks, we picked the best baseline with available results per benchmark. The best baseline for GAIA is omne v0.1. The best baseline for WebArena with available category wise results is WebPilot \cite{zhang2024webpilotversatileautonomousmultiagent}. The best baseline for AssistantBench is SPA $\rightarrow$ CB (Claude) \cite{yoran2024assistantbenchwebagentssolve}. For WebArena, top leaderboard methods \cite{sodhi2024stepstackedllmpolicies,zhang2024webpilotversatileautonomousmultiagent} consider the cross site tasks in WebArena as belonging to one of the 5 sites, and so the comparison with \team{} may  differ. } 
+\resizebox{1\textwidth}{!}{
+\begin{tabular}{p{0.2\textwidth}p{0.15\textwidth}p{0.2\textwidth}p{0.20\textwidth}p{0.20\textwidth}}
+\toprule
+\textbf{Dataset} & \textbf{Category} & \textbf{\team} (GPT-4o) & \textbf{\team} (GPT-4o, o1) & Best Baseline \cite{zhang2024webpilotversatileautonomousmultiagent,yoran2024assistantbenchwebagentssolve}  \\
+\midrule
+\multirow{4}{*}{GAIA \cite{mialon2023gaiabenchmarkgeneralai}} 
+ & Level 1 & 46.24 &  \textbf{54.84} & 53.76  \\
+ & Level 2 & 28.3 & 32.7 & \textbf{37.11} \\
+ & Level 3 & 18.75 &  22.92 & \textbf{26.53} \\
+
+ \midrule
+ \multirow{4}{*}{AssistantBench \cite{yoran2024assistantbenchwebagentssolve}} 
+ & Easy & 69.9 &  73.4 & \textbf{81}  \\
+ & Medium & 35.6 &  \textbf{47.1} & 44.6 \\
+ & Hard & \textbf{16.9} &  14.8 & 13.3 \\
+ \midrule
+\multirow{7}{*}{WebArena \cite{zhou2024webarenarealisticwebenvironment}} 
+ & Reddit & 53.77 &  -- & \textbf{65.1} \\
+ & Shopping & 33.16 &  -- & \textbf{36.}9 \\
+ & CMS & \textbf{29.1} &  -- & 24.7 \\
+ & Gitlab & 27.78 &  -- & \textbf{39.4} \\
+ & Maps & \textbf{34.86} &  -- & 33.9\\
+ & Cross Site & 14.6 &  -- & -- \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:results_by_category}
+\end{table}
+ 
+
+
+\subsection{Ablations}
+In this section, we examine how different agents and capabilities contribute to \team's performance through ablation experiments.
+
+\paragraph{Setup.} On the validation set of GAIA \cite{mialon2023gaiabenchmarkgeneralai}, we perform multiple ablation experiments to evaluate the impact of key \team (GPT-4o) agents and components. First, to understand the impact of \team's Orchestrator, the AutoGen\cite{wu2023autogen} library's GroupChat mechanism. This baseline orchestrator simply decides which agent should speak next during task execution, eliminating both ledgers, planning, progress tracking, loop detection, and explicit instructions to other agents. The second set of ablations we perform is to remove individual agents from the \team team to measure the impact of those agents on overall task performance.
+
+For all ablations, we report on results broken down by difficulty level and \emph{capabilities} required. For the capabilities analysis, we mapped the tools needed to complete tasks, as reported by human annotators of the GAIA dataset \cite{mialon2023gaiabenchmarkgeneralai}, to four categories: web browsing, coding, file handling, and none. These categories roughly correspond to the categories defined in \cite{mialon2023gaiabenchmarkgeneralai}, with minor adjustments to better align to the core functional-responsibilities of \team's agents. For example, the original categories in \cite{mialon2023gaiabenchmarkgeneralai} included a multi-modality category since multi-modal task handling was accomplished via a tool. However, because \team leverages multi-modal models, multi-modality is handled inherently by all agents rather than through use of a specific tool. In such cases, we noted the task as requiring no tools (i.e., 'none') to complete. Our capability mapping is described further in Appendix \ref{apx:capability_mapping}.
+
+
+
+\paragraph{Results.} In Figure \ref{fig:ablations_level}, we show the performance of different ablations of \team on the GAIA validation set broken down by difficulty level. We find that the Orchestrator's ledgers are important to \team's performance: without the full ledgers, performance drops by 31\%. 
+Likewise, we find that all four worker agents are important: removing any single agent reduces performance by between 21\% (Coder, Executor) to 39\% (FileSurfer). For instance, the FileSurfer is essential for the largest GAIA category, evel 2, where many questions include file attachments. On the other hand, the WebSurfer is most essential for level 1 tasks. 
+
+Figure \ref{fig:ablations_tool} shows ablation results broken down by required capabilities. In most cases, removing an agent from \team results in a decrease in team performance on tasks requiring corresponding capabilities. For example, \team with the FileSurfer removed shows the worst performance on tasks requiring file handling. Similarly, \team without the WebSurfer performs worst on tasks requiring web browsing.  
+
+Interestingly, through qualitative analysis of the ablation logs, we found several cases where the \team agents compensated for missing capabilities in creative ways. For example, when the Coder and ComputerTerminal agents were not available for a task that was expected to require running code, the remaining agents solved the task by having the FileSurfer read and reason over the code to predict the answer. In another example, when the FileSurfer was unavailable for a task requiring reading contents of a pdf file, the remaining agents instead attempted to find an online pdf viewer to solve the task.  
+
+\begin{figure}[h!]
+  \centering
+  \begin{subfigure}[b]{0.8\textwidth}
+    \includegraphics[width=\linewidth]{imgs/ablation_by_level.pdf}
+    \caption{Performance by Level}
+    \label{fig:ablations_level}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.8\textwidth}
+    \includegraphics[width=\linewidth]{imgs/ablation_by_tool.pdf}
+    \caption{Performance by Capabilities}
+    \label{fig:ablations_tool}
+  \end{subfigure}
+  \caption{Performance of different ablations of \team{} (GPT-4o) on the GAIA development set measuring the number of correct tasks. In the first ablation we replace the Orchestrator with a simple Orchestrator. In the following ablations we remove individual agents from \team{} denoted by ``-agent". The ablations show that all agents are essential to achieve the best performance.}
+  \label{fig:ablations}
+\end{figure}
+
+\input{sections/error_analysis.tex}

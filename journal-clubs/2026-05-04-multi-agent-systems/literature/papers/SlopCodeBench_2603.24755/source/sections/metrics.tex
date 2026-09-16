@@ -1,0 +1,20 @@
+\section{Experimental Setup}
+\label{sec:experiment-setup}
+
+Each model is evaluated through its provider's native CLI harness. For the main results, we report one predetermined harness version per model: the earliest publicly available version that supported that model and could execute the benchmark end-to-end. For older models whose launch-era harness was unavailable or incompatible, we used the nearest later compatible version. Alternative harness-version runs, where available, serve as sensitivity checks only.
+
+\subsection{Environment}\label{sec:eval-env}
+
+Each checkpoint runs in a fresh Docker container under a non-root user. The container image installs all languages required by our problem set alongside a shared tooling baseline. We derived this baseline by consolidating the problem specifications and identifying commands whose absence caused failures across \emph{all} harnesses; commands that failed on only one harness were excluded to avoid biasing the environment toward a particular agent.
+
+Between checkpoints, only the working directory carries over. Installed packages, shell history, and agent session data all reset. The agent cannot resume a prior session or rely on cached information outside the workspace, faithfully simulating the common development pattern of returning to a project after time away. The benchmark problems are language-agnostic by design, but the current experiments evaluate only the Python track.
+
+\subsection{Agent Harnesses}\label{sec:eval-agent}
+
+Frontier models are trained specifically for their provider's harness rather than for generalized agent loops, and the overwhelming majority of developers interact with agents through these CLI tools. We therefore evaluate agents in their native harnesses rather than frameworks such as MiniSWEAgent~\citep{minisweagent}. While such frameworks are useful for benchmarking raw model capabilities, they do not reflect the agentic workflows real developers use.
+
+\paragraph{Invocation.} Following Terminal Bench~\citep{tb2}, we install Claude Code~\citep{claude_code} and Codex~\citep{codex} directly, then invoke each in headless mode. \autoref{tab:agent-versions} lists the specific versions evaluated. For models with multiple available harness versions, we select a single run per model and report sensitivity across versions in \autoref{sec:harness-sensitivity}.
+
+\paragraph{Shared configuration.} Three settings are held constant across all runs: a two-hour wall-clock limit per checkpoint, no maximum turn or cost cap, and a minimal prompt. The prompt, shown in \autoref{sec:prompts}, specifies only two requirements: keeping a \texttt{requirements.txt} updated and writing a named entrypoint script. This minimal specification places the burden of good coding strategy on the agent and its harness.
+
+\paragraph{Reasoning effort.} For Codex, we set the reasoning effort parameter to \texttt{high}. For Claude Code, we configure the thinking-token budget via the environment variable following Anthropic's published mapping.

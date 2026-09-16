@@ -1,0 +1,58 @@
+\section{Experiments}
+
+\subsection{Experimental Setup}
+\label{sec:data_split}
+The diversity of \mind\ provides a unique opportunity to evaluate an agent's generalizability at different levels.
+We seek to understand how well an agent can generalize across domains, websites, and tasks:
+\textbf{Test\textsubscript{Cross-Domain}},
+for which we hold out two top-level domains, \textit{Information} and \textit{Service}, with \num{912} tasks from \num{73} websites. Here, the model is expected to generalize to an entirely new domain without having seen any websites or tasks associated with that domain during training.
+\textbf{Test\textsubscript{Cross-Website}},
+with \num{10} websites from each remaining top-level domain, containing \num{177} tasks. In this setting, the model is never exposed to the test websites during training. However, it has been trained on websites from the same domain and possibly with similar tasks. 
+This setup allows us to assess an agent's ability to adapt to entirely new websites, yet within familiar domains and task contexts.
+\textbf{Test\textsubscript{Cross-Task}},
+where we randomly split \num{20}\% of the remaining data, regardless of domains and websites, resulting in \num{252} tasks from \num{69} websites. In this setting, the model has been exposed to webpages from the same website during training and has likely encountered similar tasks.
+The rest of data is used for training, which contains \num{1009} tasks from \num{73} websites.
+
+\subsection{Data Preprocessing and Evaluation}
+\label{sec:evaluation}
+We apply simple heuristics to clean the raw HTML documents, keeping only elements that are visible and carry substantial semantic meaning, as determined by their attributes, textual content, and neighboring elements. This effectively reduces the average number of elements from \num{1135} to \num{580}, while still maintaining an overall recall of \num{94.7}\% for the target element in the training data.
+
+
+For evaluation, we first calculate \textbf{Element Accuracy} that compares the selected element with all acceptable elements, and \textbf{Operation F1} that calculates token-level F1 score for the predicted operation. This is the same as accuracy for \texttt{Click}, but considers the correctness of the input value for \texttt{Type} and \texttt{Select Option}. Each step of the task is evaluated independently with the ground truth action history provided. We then define \textbf{Step Success Rate} and \textbf{Success Rate} (for the whole task). A step is regarded as successful only if both the selected element and the predicted operation are correct. A task is regarded successful only if all steps have succeeded. It is therefore a stringent metric. For step-wise metrics, we report macro average across tasks.
+
+
+\input{tables/action_prediction_main}
+\subsection{Results}
+\noindent\textbf{Candidate Generation.}
+We fine-tune DeBERTa~\cite{deberta} as the small LM for candidate generation. As candidate generation requires high efficiency, we use the base version DeBERTa\textsubscript{B} with \num{86}M parameters. Overall, it achieves \num{88.9}\% / \num{85.3}\% / \num{85.7}\% Recall@\num{50} on  Test\textsubscript{Cross-Task}, Test\textsubscript{Cross-Website} and Test\textsubscript{Cross-Domain}, respectively. We use its top-\num{50} ranking results as the candidate pool for all subsequent experiments. 
+
+\noindent\textbf{Action Prediction.}
+We mainly compare against two baselines in Table~\ref{tab:main}.
+The first directly uses the candidate generation model (DeBERTa) for element selection, which is similar to existing work~\cite{sunMETAGUIMultimodalConversational2022, gur2023understanding} that combines an encoder with classification heads. However, such a design cannot benefit from many recent LMs that use an encoder-decoder or decoder-only architecture.
+It cannot predict actions and the element selection performance is also not competitive, as shown in Table~\ref{tab:main}.
+We use Flan-T5~\cite{flant5} as the backbone for the generation model.
+The autoregressive generation formulation (Figure~\ref{fig:template} top) does not perform well, and even underperforms the classification baseline on element selection despite the larger model size (\num{220}M for Flan-T5\textsubscript{B}).
+We observe a substantial gain with \model\ using the multi-choice QA formulation. The best model achieves \num{52.0}\% step success rate under Cross-Task setting, and \num{38.9}\% / \num{39.6}\% when generalizing to unseen websites and domains.
+However, the overall task success rate remains low for all models, as the agent often commits at least one error step in most cases.
+
+\noindent\textbf{Three Levels of Generalization.} All models perform best on the Cross-Task setting, with over \num{10}\% absolute gap (step SR) on average compared with Cross-Website and Cross-Domain settings, indicating that generalizing to unseen environments is still a major challenge.
+On the contrary, we note that the performance of Cross-Website and Cross-Domain settings are notably similar, which is also reinforced in Figure~\ref{fig:website_results}, where there is no clear distinction in performance across these settings.
+This suggests that the challenges primarily stem from the diversity in website designs and interaction logic rather than domain specifics.
+Tasks across domains tend to share common operations, and pretrained LMs may already have the capability to decompose complex tasks at a high level based on commonsense knowledge. Yet, grounding such knowledge into actionable steps in specific and varying environments remains a considerable challenge.
+\begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{figures/website_results.png}
+        \caption{Step success rate per website grouped by the three splits: Test\textsubscript{Cross-Task}, Test\textsubscript{Cross-Website} and Test\textsubscript{Cross-Domain} from left to right. Here we only show websites with more than three test tasks.}
+        \label{fig:website_results}
+        \vspace{-.5em}
+\end{figure}
+
+\noindent\textbf{In-context Learning with LLMs.}
+We also experiment with two popular LLMs, GPT-3.5-turbo and GPT-4~\cite{openai2023gpt4}, through in-context learning. We use the same multiple-choice formulation as \model, and include three demonstration examples for in-context learning.  
+We can see that both models are comparable to the two baselines with only three in-context examples.
+Note that this is not a fair comparison with the Flan-T5 models, which are fine-tuned on the full training data. We also include the zero-shot results with Flan-T5\textsubscript{XL} in Appendix~\ref{app:flan-t5_zero}, but the model fails to perform the task without fine-tuning.
+Meanwhile, GPT-3.5 only has around \num{20}\% element selection accuracy, despite the superior performance people have observed on other datasets.
+Further analysis reveals that one possible problem is the model's propensity to select the None option, asserting that the task cannot be finished on the current webpage.
+This is somewhat accurate since tasks typically necessitate navigation through multiple webpages and performing a series of actions before reaching the final result. This aspect indeed represents the primary difficulty of our task.
+On the other hand, we observe highly promising outcomes with GPT-4. The performance is on par with the tuned Flan-T5 models under Cross-Website and Cross-Domain settings for element selection, indicating a great potential for developing generalist agents using LLMs.
+Nevertheless, GPT-4's high operational cost remains a concern. Developing smaller models specialized for the web is an interesting future avenue.

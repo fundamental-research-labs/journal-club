@@ -1,0 +1,294 @@
+\documentclass{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2024
+
+
+% ready for submission
+\usepackage[final]{neurips_2024}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2024}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2024}
+
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2024}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}   
+\usepackage{etoc}
+\usepackage{titletoc}
+\usepackage{titlesec}
+\usepackage{subfig}
+\usepackage[most]{tcolorbox}
+\usepackage{tikz} % tikz包用于绘图
+\usepackage{longtable}
+\tcbuselibrary{breakable}
+\usepackage{lipsum}
+\usepackage{wrapfig}
+\usepackage{dcolumn}
+\usepackage{animate}
+\usepackage{graphicx}
+\usepackage{siunitx}
+\usepackage[normalem]{ulem}
+\usepackage{enumitem}
+
+\usepackage{makecell}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+% \usepackage{xcolor}
+\usepackage{pifont}       % \ding{xx}
+\usepackage{bbding}
+\usepackage{fontawesome}
+\usepackage{dcolumn}
+\usepackage{makecell}
+\usepackage{threeparttable}
+\usepackage[font=small]{caption}
+
+
+
+\title{AgentBoard: An Analytical Evaluation Board of Multi-turn LLM Agents }
+
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+
+\newcommand{\pr}[1]{\colorbox[rgb]{0.85, 0.93, 0.99}{\textcolor{blue}{#1}}}
+
+\definecolor{plum}{rgb}{0.93, 0.42, 0.65}
+
+\definecolor{greenlight}{rgb}{0,0.78,0.55}
+
+\renewcommand{\thesubfigure}{\alph{subfigure}}
+
+\newcommand{\tcm}[1]{\textcolor{magenta}{#1}}
+\newcommand{\tcv}[1]{\textbf{\textcolor{greenlight}{#1}}}
+\newcommand{\tco}[1]{\textbf{\textcolor{plum}{#1}}}
+
+\definecolor{bgblue}{rgb}{0.85, 0.93, 0.99}
+
+\definecolor{boxgreen}{rgb}{0.9,1.0,0.9}
+\definecolor{boxblue}{rgb}{0.9,0.9,1.0}
+\definecolor{boxred}{rgb}{1.0, 0.85, 0.95}
+
+
+\newtcbox{\stepbox}[1][red]{
+on line, arc = 0pt, outer arc = 0pt,
+   colback = bgblue, 
+   colframe = white,
+   colupper = blue, 
+   boxsep = 0pt, left = 1pt, right = 1pt, top = 1pt, bottom = 1pt,
+   boxrule = 0pt, bottomrule = 0pt, toprule = 0pt, leftrule = 0pt, rightrule = 0pt
+}
+
+\newtcbox{\prbox}[1][red]{
+on line, arc = 0pt, outer arc = 0pt,
+   colback = white, 
+   colframe = blue,
+   colupper = blue, 
+   boxsep = 0pt, left = 1pt, right = 1pt, top = 1pt, bottom = 1pt,
+   boxrule = 0pt, bottomrule = 1pt, toprule = 1pt, leftrule = 1pt, rightrule = 1pt
+}
+
+\newcolumntype{d}[1]{D{/}{/}{#1}} 
+\newcolumntype{e}[1]{D{.}{.}{#1}} 
+
+\newcommand{\BenchName}{\textsc{AgentBoard}}
+\newcommand{\junlei}[1]{\textcolor{purple}{\bf\small [#1 --junlei]}}
+
+\newcommand{\yc}[1]{\textcolor{blue}{\bf\small [#1 --yc]}}
+\newcommand{\chang}[1]{\textcolor{brown}{\bf\small [#1 --chang]}}
+\newcommand{\zzh}[1]{\textcolor{magenta}{\bf\small [#1 --ZZH]}}
+\newcommand\cmark {\textcolor{green}{\ding{52}}}
+\newcommand\xmark {\textcolor{red}{\ding{55}}}
+
+\newcommand{\jh}[1]{\textcolor{magenta}{\bf\small [#1 --JH]}}
+\newcommand{\jhc}[2]{\textcolor{magenta}{\sout{#1} #2}}
+
+\newcommand{\lpk}[1]{\textcolor{blue}{\bf\small [#1 --lpk]}}
+
+\setlist[itemize]{itemsep=0em, parsep=0pt}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+\author{Chang Ma\thanks{Equal Contribution. 
+% Work done during visit to HKUST.
+}\hspace{4pt}$^{\spadesuit}$ \quad Junlei Zhang$^{*\diamondsuit\Delta}$
+% \thanks{Work done during visit to HKUST.}$ 
+\quad Zhihao Zhu$^{*\heartsuit}$ \quad Cheng Yang$^{*\clubsuit}$ \\
+\bf{Yujiu Yang}$^\clubsuit$ \quad {\bf Yaohui Jin}$^\heartsuit$ \quad {\bf Zhenzhong Lan}$^{\Delta}$ \quad {\bf Lingpeng Kong}$^\spadesuit$ \quad 
+{\bf Junxian He}$^\bigstar$
+% \thanks{Correspondence to Junxian He $<$junxianh@cse.ust.hk$>$. }\hspace{4pt}
+ \\
+$^\spadesuit$The University of Hong Kong \quad 
+$^\diamondsuit$Zhejiang University \quad $^\heartsuit$Shanghai Jiao Tong University \\$^\clubsuit$Tsinghua University \quad $^\Delta$ Westlake University \quad 
+$^\bigstar$HKUST \\
+\texttt{llmagentboard@gmail.com}
+}
+
+
+
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+\input{paragraphs/01_abstract}
+\end{abstract}
+
+\section{Introduction}
+\input{paragraphs/02_introduction}
+
+\section{\BenchName{} -- Overview}
+\label{sec:overview}
+\input{paragraphs/04_methods}
+
+
+
+
+\input{paragraphs/05_experiments}
+
+
+
+
+\vspace{-2mm}
+\section{Related Work}
+% \jh{this section may be removed if we cite necessary related works in other parts}
+\input{paragraphs/03_relatedwork}
+
+\section{Conclusion\label{sec: limitation}}
+\input{paragraphs/06_summary}
+% \section{Limitation\label{sec: limitation}}
+\input{paragraphs/08_limitation}
+
+
+\section*{Acknowledgement}
+We thank Tao Yu, Shuyan Zhou for providing valuable comments on research questions and experimental design. 
+% We thank Shuyan Zhou for her valuable feedback on our initial draft. 
+We thank Yiheng Xu, Haiteng Zhao and Hongjin Su for early stage beta testing. 
+Zhihao Zhu and Yaohui Jin are with the MoE Key Lab of Artificial Intelligence, Al Institute, Shanghai Jiao Tong University, and Zhihao Zhu is supported by Shanghai Municipal Science and Technology  Major Project (2021SHZDZX0102) and the
+Fundamental Research Funds for the Central Universities. We
+thank wandb for free logging and backing the engine of \BenchName{}.
+
+\bibliography{ref}
+\bibliographystyle{apalike}
+
+
+%%%% Appendix
+\newpage
+\appendix
+\section*{Appendix}
+\input{paragraphs/appendix}
+
+\section*{Checklist}
+
+%%% BEGIN INSTRUCTIONS %%%
+The checklist follows the references.  Please
+read the checklist guidelines carefully for information on how to answer these
+questions.  For each question, change the default \answerTODO{} to \answerYes{},
+\answerNo{}, or \answerNA{}.  You are strongly encouraged to include a {\bf
+justification to your answer}, either by referencing the appropriate section of
+your paper or providing a brief inline description.  For example:
+\begin{itemize}
+  \item Did you include the license to the code and datasets? \answerYes{}
+  \item Did you include the license to the code and datasets? \answerNo{The code and the data are proprietary.}
+  \item Did you include the license to the code and datasets? \answerNA{}
+\end{itemize}
+Please do not modify the questions and only use the provided macros for your
+answers.  Note that the Checklist section does not count towards the page
+limit.  In your paper, please delete this instructions block and only keep the
+Checklist section heading above along with the questions/answers below.
+%%% END INSTRUCTIONS %%%
+
+\begin{enumerate}
+
+\item For all authors...
+\begin{enumerate}
+  \item Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
+    \answerYes{}
+  \item Did you describe the limitations of your work?
+     \answerYes{see \S\ref{sec: limitation} and Appendix \ref{appendix: limitation}}.
+  \item Did you discuss any potential negative societal impacts of your work?
+   \answerYes{see Appendix \ref{appendix: ethics}}.
+  \item Have you read the ethics review guidelines and ensured that your paper conforms to them?
+    \answerYes{}
+\end{enumerate}
+
+\item If you are including theoretical results...
+\begin{enumerate}
+  \item Did you state the full set of assumptions of all theoretical results?
+    \answerNA{}
+	\item Did you include complete proofs of all theoretical results?
+    \answerNA{}
+\end{enumerate}
+
+\item If you ran experiments (e.g. for benchmarks)...
+\begin{enumerate}
+  \item Did you include the code, data, and instructions needed to reproduce the main experimental results (either in the supplemental material or as a URL)?
+    \answerYes{See footnote in abstract.}
+  \item Did you specify all the training details (e.g., data splits, hyperparameters, how they were chosen)?
+    \answerYes{Data details are Appendix \ref{sec: Data Quality Control} and \ref{appendix:detail environment}, prompt in \ref{appendix:prompt}, and model details in \ref{sec:Details of Evaluated LLMs}.}
+	\item Did you report error bars (e.g., with respect to the random seed after running experiments multiple times)?
+    \answerYes{We discuss error bars in Appendix \ref{appendix: error bar} due to lack of table space. }
+	\item Did you include the total amount of compute and the type of resources used (e.g., type of GPUs, internal cluster, or cloud provider)?
+    \answerYes{See Appendix \ref{appendix: run time}.}
+\end{enumerate}
+
+\item If you are using existing assets (e.g., code, data, models) or curating/releasing new assets...
+\begin{enumerate}
+  \item If your work uses existing assets, did you cite the creators?
+    \answerYes{}
+  \item Did you mention the license of the assets?
+    \answerYes{It's in the dataset card in supplementary.}
+  \item Did you include any new assets either in the supplemental material or as a URL?
+    \answerYes{}
+  \item Did you discuss whether and how consent was obtained from people whose data you're using/curating?
+    \answerYes{See Appendix \ref{sec: Data Quality Control} and \ref{appendix:detail environment}.}
+  \item Did you discuss whether the data you are using/curating contains personally identifiable information or offensive content?
+    \answerYes{See Appendix \ref{appendix: ethics}.}
+\end{enumerate}
+
+\item If you used crowdsourcing or conducted research with human subjects...
+\begin{enumerate}
+  \item Did you include the full text of instructions given to participants and screenshots, if applicable?
+    \answerYes{}
+  \item Did you describe any potential participant risks, with links to Institutional Review Board (IRB) approvals, if applicable?
+   \answerNo{}
+  \item Did you include the estimated hourly wage paid to participants and the total amount spent on participant compensation?
+    \answerNo{}
+\end{enumerate}
+
+\end{enumerate}
+\clearpage
+\appendix
+
+%%%% Appendix
+\end{document}

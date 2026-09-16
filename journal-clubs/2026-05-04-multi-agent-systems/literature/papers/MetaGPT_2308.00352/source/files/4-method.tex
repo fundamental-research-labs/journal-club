@@ -1,0 +1,104 @@
+\section{MetaGPT: A Meta-programming Framework}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{imgs/2-message_sharing.jpg}
+    \caption{An example of the communication protocol (left) and iterative programming with executable feedback (right). \textbf{Left}: Agents use a shared message pool to publish structured messages. They can also subscribe to relevant messages based on their profiles. \textbf{Right}: After generating the initial code, the Engineer agent runs and checks for errors. If errors occur, the agent checks past messages stored in memory and compares them with the PRD, system design, and code files.} 
+    \label{fig:figure2}
+\end{figure}
+MetaGPT is a meta-programming framework for LLM-based multi-agent systems.
+%
+\Cref{sec:agents_in_sop} provides an explanation of role specialization, workflow and structured communication in this framework, and illustrates how to organize a multi-agent system within the context of SOPs.
+%
+\Cref{sec:subscription} presents a communication protocol that enhances role communication efficiency. We also implement structured communication interfaces and an effective publish-subscribe mechanism. These methods enable agents to obtain directional information from other roles and public information from the environment.
+%
+Finally, we introduce executable feedback---a self-correction mechanism for further enhancing code generation quality during run-time in \Cref{sec:feedback}.
+
+
+\subsection{Agents in Standard Operating Procedures}
+\label{sec:agents_in_sop}
+\paragraph{Specialization of Roles}
+%
+Unambiguous role specialization enables the breakdown of complex work into smaller and more specific tasks.
+Solving complex tasks or problems often requires the collaboration of agents with diverse skills and expertise, each contributing specialized outputs tailored to specific issues. 
+%
+
+In a software company, a Product Manager typically conducts business-oriented analysis and derives insights, while a software engineer is responsible for programming.
+%
+We define five roles in our software company: Product Manager,~Architect,~Project Manager,~Engineer, and QA Engineer, as shown in~\Cref{fig:SOP}. 
+%
+In MetaGPT, we specify the agent's profile, which includes their name, profile, goal, and constraints for each role.
+%
+We also initialize the specific context and skills for each role. For instance, a Product Manager can use web search tools, while an Engineer can execute code, as shown in~\Cref{fig:figure2}. 
+% 
+All agents adhere to the React-style behavior as described in~\citet{yao2022react}. 
+%
+
+Every agent monitors the environment (\emph{i.e.}, the message pool in MetaGPT) to spot important observations (\emph{e.g.,}, messages from other agents). These messages can either directly trigger actions or assist in finishing the job.
+
+
+\begin{figure}[t]
+    \centering   \includegraphics[width=\textwidth]{imgs/3-metagpt_details.jpg}
+    \caption{A diagram showing the software development process in MetaGPT, emphasizing its significant dependence on SOPs. The more detailed demonstration can be found in ~\Cref{appendix:example}.
+    }
+    \vspace{-15pt}
+    \label{fig:MGFramework}
+\end{figure}
+
+\paragraph{Workflow across Agents}
+
+By defining the agents' roles and operational skills, we can establish basic workflows. In our work, we follow SOP in software development, which enables all agents to work in a sequential manner. 
+
+Specifically, as shown in \Cref{fig:SOP}, upon obtaining user requirements, the Product Manager undertakes a thorough analysis, formulating a detailed PRD that includes User Stories and Requirement Pool. This serves as a preliminary functional breakdown. The structured PRD is then passed to the Architect, who translates the requirements into system design components, such as File Lists, Data Structures, and Interface Definitions. Once captured in the system design, the information is directed towards the Project Manager for task distribution. Engineers proceed to execute the designated classes and functions as outlined (detailed in \Cref{fig:figure2}). In the following stage, the QA Engineer formulates test cases to enforce stringent code quality. In the final step, MetaGPT produces a meticulously crafted software solution. We provide a detailed schematic (\Cref{fig:MGFramework}) and a concrete instance (\Cref{appendix:example}) of the SOP workflow in MetaGPT.
+
+\subsection{Communication Protocol}\label{sec:subscription}
+
+\paragraph{Structured Communication Interfaces}
+Most current LLM-based multi-agent frameworks~\citep{li2023camel,zhuge2023mindstorms,zhang2023building,park2023generative} utilize unconstrained natural language as a communication interface.
+%
+
+However, despite the versatility of natural language, a question arises: does pure natural language communication suffice for solving complex tasks?
+% 
+For example, in the telephone game (or Chinese whispers)\footnote{\href{https://en.wikipedia.org/wiki/Chinese\_whispers}{https://en.wikipedia.org/wiki/Chinese\_whispers}}, after several rounds of communication, the original information may be quite distorted.
+Inspired by human social structures, we propose using structured communication to formulate the communication of agents. We establish a schema and format for each role and request that individuals provide the necessary outputs based on their specific role and context.
+
+As shown in \Cref{fig:MGFramework}, the Architect agent generates two outputs: the system interface design and a sequence flow diagram. These contain system module design and interaction sequences, which serve as important deliverables for Engineers.
+%
+Unlike ChatDev \citep{zhao2023chat}, agents in MetaGPT communicate through documents and diagrams (structured outputs) rather than dialogue. These documents contain all necessary information, preventing irrelevant or missing content.
+% \label{sec:subscription}
+
+
+\paragraph{Publish-Subscribe Mechanism}
+
+Sharing information is critical in collaboration. 
+For instance, Architects and Engineers often need to reference PRDs. However, communicating this information each time in a one-to-one manner, as indicated by previous work~\citep{li2023camel,zhao2023chat,zhang2023building}, can complicate the communication topology, resulting in inefficiencies. 
+
+To address this challenge, a viable approach is to store information in a global \textit{message pool}. 
+As shown in \Cref{fig:figure2} (left), we introduce a shared message pool that allows all agents to exchange messages directly. These agents not only \textit{publish} their structured messages in the pool but also access messages from other entities transparently.
+Any agent can directly retrieve required information from the shared pool, eliminating the need to inquire about other agents and await their responses. This enhances communication efficiency.
+
+Sharing all information with every agent can lead to information overload. 
+%
+During task execution, an agent typically prefers to receive only task-related information and avoid distractions through irrelevant details.
+%
+Effective management and dissemination of this information play a crucial role.
+% 
+We offer a simple and effective solution-\textit{subscription mechanism} (in \Cref{fig:figure2} (left)). 
+%
+Instead of relying on dialogue, agents utilize role-specific interests to extract relevant information. They can select information to follow based on their role profiles.
+%
+In practical implementations, an agent activates its action only after receiving all its prerequisite dependencies.  As illustrated in \Cref{fig:MGFramework}, the Architect mainly focuses on PRDs provided by the Product Manager, while documents from roles such as the QA Engineer might be of lesser concern. 
+
+\subsection{Iterative programming with executable feedback}
+\label{sec:feedback}
+In daily programming tasks, the processes of debugging and optimization play important roles. However, existing methods often lack a self-correction mechanism, which leads to unsuccessful code generation.
+%
+Previous work introduced non-executable code review and self-reflection~\citep{zhao2023chat,yao2022react,shinn2023reflexion,dong2023self}. However, they still face challenges in ensuring code executability and runtime correctness.
+
+Our first MetaGPT implementations overlooked certain errors during the review process, due to LLM hallucinations~\citep{manakul2023selfcheckgpt}. To overcome this, after initial code generation, we introduce an executable feedback mechanism to improve the code iteratively.
+More specifically, as shown in \Cref{fig:figure2}, the Engineer is asked to write code based on the original product requirements and design.
+
+%
+This enables the Engineer to continuously improve code using its own historical execution and debugging memory.
+%
+To obtain additional information, the Engineer writes and executes the corresponding unit test cases, and subsequently receives the test results. If satisfactory, additional development tasks are initiated. Otherwise the Engineer debugs the code before resuming programming. This iterative testing process continues until the test is passed or a maximum of 3 retries is reached.

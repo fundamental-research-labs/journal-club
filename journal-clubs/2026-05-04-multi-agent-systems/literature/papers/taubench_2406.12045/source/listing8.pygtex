@@ -1,0 +1,130 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{import} \PYG{n+nn}{random}
+\PYG{k+kn}{import} \PYG{n+nn}{json}
+\PYG{k+kn}{import} \PYG{n+nn}{numpy} \PYG{k}{as} \PYG{n+nn}{np}
+
+\PYG{c+c1}{\PYGZsh{} Updated cities list with corresponding zip code ranges for realism}
+\PYG{n}{cities\PYGZus{}info} \PYG{o}{=} \PYG{p}{\PYGZob{}}
+    \PYG{l+s+s2}{\PYGZdq{}New York\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}NY\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{10001}\PYG{p}{,} \PYG{l+m+mi}{10292}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Los Angeles\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}CA\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{90001}\PYG{p}{,} \PYG{l+m+mi}{91607}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Chicago\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}IL\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{60601}\PYG{p}{,} \PYG{l+m+mi}{60657}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Houston\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}TX\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{77001}\PYG{p}{,} \PYG{l+m+mi}{77299}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Phoenix\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}AZ\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{85001}\PYG{p}{,} \PYG{l+m+mi}{85099}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Philadelphia\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}PA\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{19019}\PYG{p}{,} \PYG{l+m+mi}{19190}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}San Antonio\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}TX\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{78201}\PYG{p}{,} \PYG{l+m+mi}{78299}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}San Diego\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}CA\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{92101}\PYG{p}{,} \PYG{l+m+mi}{92199}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Dallas\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}TX\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{75201}\PYG{p}{,} \PYG{l+m+mi}{75398}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}San Jose\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}CA\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{95101}\PYG{p}{,} \PYG{l+m+mi}{95196}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Austin\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}TX\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{78701}\PYG{p}{,} \PYG{l+m+mi}{78799}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Jacksonville\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}FL\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{32099}\PYG{p}{,} \PYG{l+m+mi}{32290}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Fort Worth\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}TX\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{76101}\PYG{p}{,} \PYG{l+m+mi}{76199}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Columbus\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}OH\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{43085}\PYG{p}{,} \PYG{l+m+mi}{43299}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Charlotte\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}NC\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{28201}\PYG{p}{,} \PYG{l+m+mi}{28299}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}San Francisco\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}CA\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{94102}\PYG{p}{,} \PYG{l+m+mi}{94188}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Indianapolis\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}IN\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{46201}\PYG{p}{,} \PYG{l+m+mi}{46298}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Seattle\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}WA\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{98101}\PYG{p}{,} \PYG{l+m+mi}{98199}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Denver\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}CO\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{80201}\PYG{p}{,} \PYG{l+m+mi}{80299}\PYG{p}{]),}
+    \PYG{l+s+s2}{\PYGZdq{}Washington\PYGZdq{}}\PYG{p}{:} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}DC\PYGZdq{}}\PYG{p}{,} \PYG{p}{[}\PYG{l+m+mi}{20001}\PYG{p}{,} \PYG{l+m+mi}{20599}\PYG{p}{])}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{n}{first\PYGZus{}names} \PYG{o}{=} \PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}Emma\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Liam\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Olivia\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Noah\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Ava\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Yusuf\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Isabella\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Lucas\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Mia\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Mason\PYGZdq{}}\PYG{p}{,}
+               \PYG{l+s+s2}{\PYGZdq{}Sophia\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Ethan\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Aarav\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}James\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Amelia\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Lei\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Harper\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Sofia\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Evelyn\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Mohamed\PYGZdq{}}\PYG{p}{,}
+               \PYG{l+s+s2}{\PYGZdq{}Yara\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Raj\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Fatima\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Juan\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Daiki\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Mei\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Chen\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Ivan\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Anya\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Omar\PYGZdq{}}\PYG{p}{]}
+\PYG{n}{last\PYGZus{}names} \PYG{o}{=} \PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}Smith\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Johnson\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Patel\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Nguyen\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Garcia\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Silva\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Kim\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Santos\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Khan\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Li\PYGZdq{}}\PYG{p}{,}
+              \PYG{l+s+s2}{\PYGZdq{}Kovacs\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Muller\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Rossi\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Hernandez\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Sanchez\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Ito\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Johansson\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Lopez\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Gonzalez\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Ahmed\PYGZdq{}}\PYG{p}{,}
+              \PYG{l+s+s2}{\PYGZdq{}Brown\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Davis\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Wilson\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Anderson\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Thomas\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Taylor\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Moore\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Jackson\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Martin\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Lee\PYGZdq{}}\PYG{p}{]}
+
+\PYG{c+c1}{\PYGZsh{} Function to generate an address with a city\PYGZhy{}realistic zip code}
+\PYG{k}{def} \PYG{n+nf}{generate\PYGZus{}address}\PYG{p}{():}
+    \PYG{n}{streets} \PYG{o}{=} \PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}Maple Drive\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Oak Street\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Pine Lane\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Elm Street\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Cedar Avenue\PYGZdq{}}\PYG{p}{,}
+                \PYG{l+s+s2}{\PYGZdq{}Hillcrest Drive\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Willow Lane\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Sunset Drive\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}River Road\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Lakeview Drive\PYGZdq{}}\PYG{p}{,}
+                \PYG{l+s+s2}{\PYGZdq{}Main Street\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Park Avenue\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Broadway\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Elm Avenue\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Highland Drive\PYGZdq{}}\PYG{p}{,}
+                \PYG{l+s+s2}{\PYGZdq{}Chestnut Street\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Hickory Lane\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Spruce Street\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Cedar Street\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Laurel Lane\PYGZdq{}}\PYG{p}{]}
+
+    \PYG{n}{city}\PYG{p}{,} \PYG{p}{(}\PYG{n}{state}\PYG{p}{,} \PYG{n}{zip\PYGZus{}range}\PYG{p}{)} \PYG{o}{=} \PYG{n}{random}\PYG{o}{.}\PYG{n}{choice}\PYG{p}{(}\PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{cities\PYGZus{}info}\PYG{o}{.}\PYG{n}{items}\PYG{p}{()))}
+    \PYG{n}{address1} \PYG{o}{=} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{random}\PYG{o}{.}\PYG{n}{randint}\PYG{p}{(}\PYG{l+m+mi}{100}\PYG{p}{,} \PYG{l+m+mi}{999}\PYG{p}{)}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{random}\PYG{o}{.}\PYG{n}{choice}\PYG{p}{(}\PYG{n}{streets}\PYG{p}{)}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}
+    \PYG{n}{address2} \PYG{o}{=} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Suite }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{random}\PYG{o}{.}\PYG{n}{randint}\PYG{p}{(}\PYG{l+m+mi}{100}\PYG{p}{,} \PYG{l+m+mi}{999}\PYG{p}{)}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}
+    \PYG{n}{zip\PYGZus{}code} \PYG{o}{=} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{random}\PYG{o}{.}\PYG{n}{randint}\PYG{p}{(}\PYG{n}{zip\PYGZus{}range}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],} \PYG{n}{zip\PYGZus{}range}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]))}
+    \PYG{k}{return}  \PYG{p}{\PYGZob{}}
+            \PYG{l+s+s2}{\PYGZdq{}address1\PYGZdq{}}\PYG{p}{:} \PYG{n}{address1}\PYG{p}{,}
+            \PYG{l+s+s2}{\PYGZdq{}address2\PYGZdq{}}\PYG{p}{:} \PYG{n}{address2}\PYG{p}{,}
+            \PYG{l+s+s2}{\PYGZdq{}city\PYGZdq{}}\PYG{p}{:} \PYG{n}{city}\PYG{p}{,}
+            \PYG{l+s+s2}{\PYGZdq{}country\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}USA\PYGZdq{}}\PYG{p}{,}
+            \PYG{l+s+s2}{\PYGZdq{}province\PYGZdq{}}\PYG{p}{:} \PYG{n}{state}\PYG{p}{,}
+            \PYG{l+s+s2}{\PYGZdq{}zip\PYGZdq{}}\PYG{p}{:} \PYG{n}{zip\PYGZus{}code}
+    \PYG{p}{\PYGZcb{}}
+
+\PYG{k}{def} \PYG{n+nf}{poisson\PYGZus{}sample}\PYG{p}{(}\PYG{n}{lam}\PYG{p}{,} \PYG{n}{max\PYGZus{}val}\PYG{p}{):}
+    \PYG{n}{sample} \PYG{o}{=} \PYG{l+m+mi}{0}
+    \PYG{c+c1}{\PYGZsh{} Use rejection sampling to ensure sample is capped at max\PYGZus{}val}
+    \PYG{k}{while} \PYG{n}{sample} \PYG{o}{==} \PYG{l+m+mi}{0} \PYG{o+ow}{or} \PYG{n}{sample} \PYG{o}{\PYGZgt{}=} \PYG{n}{max\PYGZus{}val}\PYG{p}{:}
+        \PYG{n}{sample} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{random}\PYG{o}{.}\PYG{n}{poisson}\PYG{p}{(}\PYG{n}{lam}\PYG{p}{)}
+    \PYG{k}{return} \PYG{n}{sample}
+
+\PYG{k}{def} \PYG{n+nf}{generate\PYGZus{}payment\PYGZus{}method\PYGZus{}id}\PYG{p}{(}\PYG{n}{source}\PYG{p}{):}  \PYG{c+c1}{\PYGZsh{} like \PYGZdq{}card\PYGZus{}2423\PYGZdq{}/\PYGZdq{}paypal\PYGZus{}2423\PYGZdq{}/\PYGZdq{}gift\PYGZus{}card\PYGZus{}0912\PYGZdq{}}
+    \PYG{n}{random\PYGZus{}id} \PYG{o}{=} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{source}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZus{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{random}\PYG{o}{.}\PYG{n}{randint}\PYG{p}{(}\PYG{l+m+mi}{1000000}\PYG{p}{,} \PYG{l+m+mi}{9999999}\PYG{p}{)}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}
+    \PYG{n}{existing\PYGZus{}ids} \PYG{o}{=} \PYG{p}{[}\PYG{n}{method}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}id\PYGZdq{}}\PYG{p}{]} \PYG{k}{for} \PYG{n}{user} \PYG{o+ow}{in} \PYG{n}{user\PYGZus{}profiles}\PYG{o}{.}\PYG{n}{values}\PYG{p}{()} \PYG{k}{for} \PYG{n}{method} \PYG{o+ow}{in} \PYG{n}{user}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}payment\PYGZus{}methods\PYGZdq{}}\PYG{p}{]}\PYG{o}{.}\PYG{n}{values}\PYG{p}{()]}
+    \PYG{k}{if} \PYG{n}{random\PYGZus{}id} \PYG{o+ow}{not} \PYG{o+ow}{in} \PYG{n}{existing\PYGZus{}ids}\PYG{p}{:}
+        \PYG{k}{return} \PYG{n}{random\PYGZus{}id}
+    \PYG{k}{else}\PYG{p}{:}
+        \PYG{k}{return} \PYG{n}{generate\PYGZus{}payment\PYGZus{}method\PYGZus{}id}\PYG{p}{(}\PYG{n}{source}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Generate payment methods}
+\PYG{k}{def} \PYG{n+nf}{payment\PYGZus{}method}\PYG{p}{():}
+    \PYG{n}{payment\PYGZus{}types} \PYG{o}{=} \PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}credit\PYGZus{}card\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}paypal\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}gift\PYGZus{}card\PYGZdq{}}\PYG{p}{]}
+    \PYG{n}{count\PYGZus{}methods} \PYG{o}{=} \PYG{n}{poisson\PYGZus{}sample}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{5}\PYG{p}{)}
+    \PYG{n}{payment\PYGZus{}methods} \PYG{o}{=} \PYG{p}{[]}
+    \PYG{n}{existing\PYGZus{}methods} \PYG{o}{=} \PYG{n+nb}{set}\PYG{p}{()}
+    \PYG{k}{for} \PYG{n}{\PYGZus{}} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{count\PYGZus{}methods}\PYG{p}{):}
+        \PYG{n}{payment\PYGZus{}source} \PYG{o}{=} \PYG{n}{random}\PYG{o}{.}\PYG{n}{choice}\PYG{p}{(}\PYG{n}{payment\PYGZus{}types}\PYG{p}{)}
+        \PYG{k}{if} \PYG{n}{payment\PYGZus{}source} \PYG{o}{==} \PYG{l+s+s2}{\PYGZdq{}credit\PYGZus{}card\PYGZdq{}}\PYG{p}{:}
+            \PYG{n}{brand} \PYG{o}{=} \PYG{n}{random}\PYG{o}{.}\PYG{n}{choice}\PYG{p}{([}\PYG{l+s+s2}{\PYGZdq{}visa\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}mastercard\PYGZdq{}}\PYG{p}{])}
+            \PYG{k}{if} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}credit\PYGZus{}card\PYGZdq{}}\PYG{p}{,} \PYG{n}{brand}\PYG{p}{)} \PYG{o+ow}{in} \PYG{n}{existing\PYGZus{}methods}\PYG{p}{:}
+                \PYG{k}{continue}
+            \PYG{n}{payment\PYGZus{}methods}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(\PYGZob{}}
+                \PYG{l+s+s2}{\PYGZdq{}source\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}credit\PYGZus{}card\PYGZdq{}}\PYG{p}{,}
+                \PYG{l+s+s2}{\PYGZdq{}brand\PYGZdq{}}\PYG{p}{:} \PYG{n}{brand}\PYG{p}{,}
+                \PYG{l+s+s2}{\PYGZdq{}last\PYGZus{}four\PYGZdq{}}\PYG{p}{:} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{random}\PYG{o}{.}\PYG{n}{randint}\PYG{p}{(}\PYG{l+m+mi}{1000}\PYG{p}{,} \PYG{l+m+mi}{9999}\PYG{p}{)}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}
+                \PYG{l+s+s2}{\PYGZdq{}id\PYGZdq{}}\PYG{p}{:} \PYG{n}{generate\PYGZus{}payment\PYGZus{}method\PYGZus{}id}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}credit\PYGZus{}card\PYGZdq{}}\PYG{p}{)}
+            \PYG{p}{\PYGZcb{})}
+            \PYG{n}{existing\PYGZus{}methods}\PYG{o}{.}\PYG{n}{add}\PYG{p}{((}\PYG{l+s+s2}{\PYGZdq{}credit\PYGZus{}card\PYGZdq{}}\PYG{p}{,} \PYG{n}{brand}\PYG{p}{))}
+        \PYG{k}{elif} \PYG{n}{payment\PYGZus{}source} \PYG{o}{==} \PYG{l+s+s2}{\PYGZdq{}paypal\PYGZdq{}}\PYG{p}{:}
+            \PYG{k}{if} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}paypal\PYGZdq{}}\PYG{p}{,)} \PYG{o+ow}{in} \PYG{n}{existing\PYGZus{}methods}\PYG{p}{:}
+                \PYG{k}{continue}
+            \PYG{n}{payment\PYGZus{}methods}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(\PYGZob{}}
+                \PYG{l+s+s2}{\PYGZdq{}source\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}paypal\PYGZdq{}}\PYG{p}{,}
+                \PYG{l+s+s2}{\PYGZdq{}id\PYGZdq{}}\PYG{p}{:} \PYG{n}{generate\PYGZus{}payment\PYGZus{}method\PYGZus{}id}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}paypal\PYGZdq{}}\PYG{p}{)}
+            \PYG{p}{\PYGZcb{})}
+            \PYG{n}{existing\PYGZus{}methods}\PYG{o}{.}\PYG{n}{add}\PYG{p}{((}\PYG{l+s+s2}{\PYGZdq{}paypal\PYGZdq{}}\PYG{p}{,))}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{k}{if} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}gift\PYGZus{}card\PYGZdq{}}\PYG{p}{,)} \PYG{o+ow}{in} \PYG{n}{existing\PYGZus{}methods}\PYG{p}{:}
+                \PYG{k}{continue}
+            \PYG{n}{payment\PYGZus{}methods}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(\PYGZob{}}
+                \PYG{l+s+s2}{\PYGZdq{}source\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}gift\PYGZus{}card\PYGZdq{}}\PYG{p}{,}
+                \PYG{l+s+s2}{\PYGZdq{}balance\PYGZdq{}}\PYG{p}{:} \PYG{n}{random}\PYG{o}{.}\PYG{n}{randint}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{100}\PYG{p}{),}
+                \PYG{l+s+s2}{\PYGZdq{}id\PYGZdq{}}\PYG{p}{:} \PYG{n}{generate\PYGZus{}payment\PYGZus{}method\PYGZus{}id}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}gift\PYGZus{}card\PYGZdq{}}\PYG{p}{)}
+            \PYG{p}{\PYGZcb{})}
+            \PYG{n}{existing\PYGZus{}methods}\PYG{o}{.}\PYG{n}{add}\PYG{p}{((}\PYG{l+s+s2}{\PYGZdq{}gift\PYGZus{}card\PYGZdq{}}\PYG{p}{,))}
+    \PYG{k}{return} \PYG{n}{payment\PYGZus{}methods}
+
+\PYG{c+c1}{\PYGZsh{} Generate user profiles with adjusted zip codes}
+\PYG{n}{user\PYGZus{}profiles} \PYG{o}{=} \PYG{p}{\PYGZob{}\PYGZcb{}}
+\PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{500}\PYG{p}{):}
+    \PYG{n}{first\PYGZus{}name} \PYG{o}{=} \PYG{n}{random}\PYG{o}{.}\PYG{n}{choice}\PYG{p}{(}\PYG{n}{first\PYGZus{}names}\PYG{p}{)}
+    \PYG{n}{last\PYGZus{}name} \PYG{o}{=} \PYG{n}{random}\PYG{o}{.}\PYG{n}{choice}\PYG{p}{(}\PYG{n}{last\PYGZus{}names}\PYG{p}{)}
+    \PYG{n}{email\PYGZus{}suffix}\PYG{p}{,} \PYG{n}{user\PYGZus{}id\PYGZus{}suffix} \PYG{o}{=} \PYG{n}{random}\PYG{o}{.}\PYG{n}{sample}\PYG{p}{(}\PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1000}\PYG{p}{,} \PYG{l+m+mi}{10000}\PYG{p}{),} \PYG{l+m+mi}{2}\PYG{p}{)}
+    \PYG{n}{email} \PYG{o}{=} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{first\PYGZus{}name}\PYG{o}{.}\PYG{n}{lower}\PYG{p}{()}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{.}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{last\PYGZus{}name}\PYG{o}{.}\PYG{n}{lower}\PYG{p}{()}\PYG{l+s+si}{\PYGZcb{}\PYGZob{}}\PYG{n}{email\PYGZus{}suffix}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{@example.com\PYGZdq{}}
+    \PYG{n}{user\PYGZus{}id} \PYG{o}{=} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{first\PYGZus{}name}\PYG{o}{.}\PYG{n}{lower}\PYG{p}{()}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZus{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{last\PYGZus{}name}\PYG{o}{.}\PYG{n}{lower}\PYG{p}{()}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZus{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{user\PYGZus{}id\PYGZus{}suffix}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}
+    \PYG{c+c1}{\PYGZsh{} addresses = [generate\PYGZus{}address() for \PYGZus{} in range(poisson\PYGZus{}sample(1, 3))]}
+    \PYG{n}{payment\PYGZus{}methods} \PYG{o}{=} \PYG{n}{payment\PYGZus{}method}\PYG{p}{()}
+
+    \PYG{n}{user\PYGZus{}profiles}\PYG{p}{[}\PYG{n}{user\PYGZus{}id}\PYG{p}{]} \PYG{o}{=} \PYG{p}{\PYGZob{}}
+        \PYG{l+s+s2}{\PYGZdq{}name\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+            \PYG{l+s+s2}{\PYGZdq{}first\PYGZus{}name\PYGZdq{}}\PYG{p}{:} \PYG{n}{first\PYGZus{}name}\PYG{p}{,}
+            \PYG{l+s+s2}{\PYGZdq{}last\PYGZus{}name\PYGZdq{}}\PYG{p}{:} \PYG{n}{last\PYGZus{}name}
+        \PYG{p}{\PYGZcb{},}
+        \PYG{l+s+s2}{\PYGZdq{}address\PYGZdq{}}\PYG{p}{:} \PYG{n}{generate\PYGZus{}address}\PYG{p}{(),}
+        \PYG{l+s+s2}{\PYGZdq{}email\PYGZdq{}}\PYG{p}{:} \PYG{n}{email}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}payment\PYGZus{}methods\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}\PYG{n}{method}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}id\PYGZsq{}}\PYG{p}{]:} \PYG{n}{method} \PYG{k}{for} \PYG{n}{method} \PYG{o+ow}{in} \PYG{n}{payment\PYGZus{}methods}\PYG{p}{\PYGZcb{},}
+    \PYG{p}{\PYGZcb{}}
+\end{Verbatim}

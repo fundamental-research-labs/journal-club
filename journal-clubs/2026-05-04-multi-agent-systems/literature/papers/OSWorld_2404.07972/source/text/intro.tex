@@ -1,0 +1,57 @@
+\section{Introduction}
+\vspace{-5pt}
+
+Humans interact with computers to perform essential tasks in the digital realm, including web browsing, video editing, file management, data analysis, and software development.
+These task workflows often involve multiple applications through graphical user interfaces (GUI) and command line interfaces (CLI). 
+Autonomous digital agents, powered by advancements in large vision-language models (VLMs), have the potential to revolutionize how we interact with computer environments~\citep{licklider1960man, shi2017world, adept2022act1}. 
+By following high-level natural language instructions, these agents can make digital interactions more accessible and vastly increase human productivity. 
+However, a major challenge in developing such multimodal agents is the absence of a benchmark based on a real interactive environment that covers the diversity and complexity of real-world computer use across various operating systems, interfaces, and applications, consequently restricting task scope and agent scalability.
+
+Previous benchmarks provide datasets of demonstrations without executable environments~\citep{deng2023mind2web, rawles2023android, Kapoor2024OmniACTAD}.
+Their non-execution-based evaluation assumes a single solution for each task and wrongfully penalizes alternative correct solutions.
+These benchmarks also miss opportunities for essential agent development methods like interactive learning and real-world exploration.
+Building realistic interactive environments is a major challenge in developing multimodal agents.
+Prior work that introduce executable environments simplify the observation and action spaces of human-computer interaction and limit task scope within specific applications or domains, such as web navigation in a few domains~\citep{shi2017world, liu2018reinforcement, yao2022webshop, zhou2023webarena}, coding~\citep{yang2023intercode} and the combination~\citep{liu2023agentbench, TianbaoXie2023_OpenAgents, ma2024agentboard}.
+Agents developed in these restricted environments cannot comprehensively cover computer tasks, lacking the support of evaluating tasks in complex, real-world scenarios that require navigating between applications and interfaces in open domains (task examples in \textit{e.g.}, Fig.~\ref{fig:task_demonstrate}).
+
+
+To address this gap, we introduce \ours, the \textit{first-of-its-kind scalable, real computer environment} designed for the development of multimodal agents capable of executing a wide range of real computer tasks beyond isolated interfaces and applications. 
+This executable environment allows free-form raw keyboard and mouse control of real computer applications and supports initial task state configuration, execution-based evaluation, and interactive learning across mainstream operating systems (\textit{e.g.},~Ubuntu, Windows, macOS).
+As shown in Fig.~\ref{fig:task_demonstrate}, \ours enables evaluation of \textit{open-ended} computer tasks that involve arbitrary applications, ranging from image viewing to software functionality integration and programming.
+Thus, \ours can serve as a unified, real computer environment that allows users to define their agent tasks without the need to build application/domain-specific simulated environments.
+
+
+Building upon \ours, we create a benchmark with \numexamples real-world computer tasks that involve widely-used web and desktop apps in open domains, OS file I/O, and multi-app workflows through both GUI and CLI.
+Each task example is based on real-world computer use cases experienced by real users and often requires interactions with multiple applications and interfaces. 
+To ensure reliable, reproducible assessment within the \ours environment, 9 authors with computer science backgrounds carefully annotate each example with an initial state setup configuration to simulate human work in progress and a custom execution-based evaluation script to verify task completion.
+Our benchmark has a total of 134 unique evaluation functions, which are orders of magnitude larger than prior work~\citep{zhou2023webarena}, showcasing the complexity, diversity, and evaluation challenges of tasks in our benchmark.
+The human performance study indicates that task examples from \ours are more time-consuming and challenging compared to those in prior work.
+
+
+\begin{figure}[t]
+    \centering
+    \vspace{-0.8cm}
+    \includegraphics[width=5.2in]{images/task_demostration_new.pdf}
+    \caption{
+    \ours is a \textit{first-of-its-kind scalable, real computer environment} for multimodal agents, supporting task setup, execution-based evaluation, and interactive learning across operating systems.
+    It can serve as a unified environment for evaluating \textit{open-ended} computer tasks that involve arbitrary apps (e.g., task examples in the above Fig).
+    We also create a benchmark of \numexamples real-world computer tasks in \ours with reliable, reproducible setup and evaluation scripts.
+    }
+    \label{fig:task_demonstrate}
+    \vspace{-0.7cm}
+\end{figure}
+
+
+We extensively evaluate state-of-the-art LLM and VLM-based agent baselines, including the GPT-4V series~\citep{openai2023gpt}, the Gemini series~\citep{team2023gemini, reid2024gemini}, the Claude-3 Opus~\citep{claude3} and the Qwen-Max~\citep{bai2023qwen}, as well as Mixtral~\citep{jiang2024mixtral}, Llama-3~\citep{meta2024llama3} and CogAgent~\citep{hong2023cogagent} from the open-source community.
+The performance of these experiments ranges from 0.99\% to 12.24\%, with subsets of applications even reaching 0\%,
+% \tao{workflow multi-app results}
+for workflow tasks that involve cooperation from multiple apps, the highest performance of the baseline agent is only 6.57\%.
+This indicates that current LLMs and VLMs are far from capable of serving as computer assistants (\S\ref{result-analysis}).
+Results also show that while additional knowledge such as the accessibility tree and Set-of-Mark (\S\ref{baselines}) can be helpful, it can also lead to potential misguidance and varies across models.
+We also observe performance changes in these agents compared to consistent human performance across different types of computer tasks.
+Analysis reveals that VLM-based agents struggle to ground on screenshots to predict precise coordinates for actions, tend to predict repetitive actions, are unable to handle noise from unexpected application windows and exhibit limited knowledge of basic GUI interactions and domain-specific features of apps (\S\ref{sec:performance_by_mm_obs_variances}, \S\ref{qualitative_analysis}).
+Feeding higher resolution and more trajectory history can help improve the performance by even doubling while requiring longer context length and efficient modeling (\S\ref{sec:performance_by_mm_obs_variances}).
+We open-source \ours environment and benchmark, including environment initial state setup, reliable evaluation scripts, documentation, and our implementation of baseline models to promote research towards the goal of generalist capable computer agents~\footnote{\url{https://os-world.github.io}}.
+Future work can focus on enhancing VLM GUI grounding abilities, including interaction commonsense knowledge, higher-resolution support, and coordinates accuracy for more robust GUI interactions. 
+Additionally, efforts can be made to improve agent architectures to better handle complex computer tasks through exploration, memory, and reflection.
+

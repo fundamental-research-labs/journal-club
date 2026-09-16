@@ -1,0 +1,498 @@
+
+\section*{Appendix}
+
+
+\section{Experiments}\label{SUP:exp}
+Here, we provide additional details regarding our experiments.
+
+
+
+\paragraph{Datasets} Each dataset is split into a training set, a validation set, and a testing set.
+For datasets that come with an explicit partition of these sets we use the given partitions; this includes BoolQ, MMLU, SCIQ, and ARC.
+For BBH, we randomly sample roughly 25\% and 10\% of the questions from each category in BBH to create a test and validation set, respectively; this comes out to 1260 questions for the test set and 500 questions for the validation set.
+All results are reported on questions in the test set.
+
+
+\paragraph{Compute} All training was performed on a single Nvidia-H800 GPU. Inference for Llama-3 and Mistral based models is performed on a single Nvidia-v100 GPU, for Gemma-2 based models we used a single Nvidia-H800. 
+All inference is performed with the VLLM library \cite{kwon2023efficient}.
+
+
+\paragraph{Training} Training for all models was performed via the trl library, using LoRAs of size 256. When training ACC-Collab with DPO we use a negative log-likelihood (NLL) regularization term (with weight $1$) as outlined in \cite{pang2024iterative}.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\linewidth]{plots/mainMethod_v4.png}
+    \includegraphics[width=1.0\linewidth]{plots/mainMethod_critic.png}
+    \caption{ACC-Collab training pipeline, exemplified for the actor (top) and critic (bottom). The process  1) 
+    We generate data from both \textcolor{orange}{natural deliberation} as well as guided deliberation \textcolor{olive}{towards} and \textcolor{red}{away} from the ground truth answer $y$ using the actor and critic. 
+    2) We compute the relative quality of each trajectory based on the expected quality difference $\Delta_{y}, \Delta_{!y}$ w.r.t. to the natural response. 
+    3) We store all high-quality pairwise data in our database and train the actor model. 
+    4) We alternate this procedure for the actor and critic.  
+    As outline in Section \ref{sec:method} both the guidance procedure and the computation of $\Delta_{y}, \Delta_{!y}$ differ between the actor and critic.}
+    \label{fig:main_method_both_agents}
+\end{figure}
+
+
+\subsection{Correctness of Reasoning Steps}\label{Sup:reason}
+
+In addition to measuring outcome accuracy (i.e., the accuracy of the actor's final answer), we also measure process accuracy (i.e., the accuracy of the reasoning and discussion steps taken by the actor and the critic model). These results are displayed in Table \ref{tab:accuracy_comparison}. We observe that our training pipeline typically maintains or increases the accuracy of the reasoning steps.
+
+Unlike outcome accuracy, process accuracy does not have ground truth answers. Thus we utilize GPT-4o to serve as an oracle.
+We use the following steps to evaluate the correctness of the reasoning and discussion steps.
+\begin{enumerate}
+    \item For both an untrained actor-critic team and a trained actor-critic team (trained via ACC-Collab), we randomly sample 500 deliberations, which resulted in the correct answer after 5 rounds of deliberation. 
+    \item We then prompted GPT-4o to evaluate the correctness of the reasoning and discussion steps taken by the actor-critic teams in each of the 500 deliberations. 
+    \item We then compute the average accuracy of the reasoning and discussion steps as evaluated by GPT-4o.
+\end{enumerate}
+
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{l|ccc}
+        \toprule
+        Dataset & ACC-Collab+ Accuracy & ACC-Collab Accuracy & Untrained Accuracy \\
+        \midrule
+        \multicolumn{4}{c}{\textbf{Llama-3}} \\
+        \hline
+        BoolQ & $.890_{\pm .035}$ & $.894_{\pm .034}$ & $.794_{\pm .045}$ \\
+        MMLU & $.968_{\pm .020}$ & $.976_{\pm .017}$ & $.909_{\pm .032}$ \\
+        BBH & $.519_{\pm .064}$ & $.575_{\pm .055}$ & $.610_{\pm .055}$ \\
+        SCIQ & $.958_{\pm .022}$ & $.981_{\pm .015}$ & $.937_{\pm .027}$ \\
+        ARC & $.882_{\pm .046}$ & $.833_{\pm .042}$ & $.883_{\pm .036}$ \\
+        \midrule
+        \multicolumn{4}{c}{\textbf{Mistral}} \\
+        \hline
+        BoolQ & $.907_{\pm .035}$ & $.928_{\pm .029}$ & $.894_{\pm .034}$ \\
+        MMLU & $.882_{\pm .042}$ & $.884_{\pm .036}$ & $.878_{\pm .037}$ \\
+        BBH & $.766_{\pm .045}$ & $.818_{\pm .043}$ & $.538_{\pm .056}$ \\
+        SCIQ & $.973_{\pm .018}$ & $.972_{\pm .018}$ & $.933_{\pm .028}$ \\
+        ARC & $.927_{\pm .029}$ & $.952_{\pm .024}$ & $.852_{\pm .040}$ \\
+        \midrule
+        \multicolumn{4}{c}{\textbf{Gemma-2}} \\
+        \hline
+        BoolQ & $.869_{\pm .038}$ & $.872_{\pm .037}$ & $.861_{\pm .039}$ \\
+        MMLU & $.844_{\pm .041}$ & $.843_{\pm .041}$ & $.800_{\pm .045}$ \\
+        BBH & $.597_{\pm .056}$ & $.637_{\pm .054}$ & $.514_{\pm .056}$ \\
+        SCIQ & $.984_{\pm .014}$ & $.978_{\pm .016}$ & $.985_{\pm .014}$ \\
+        ARC & $.850_{\pm .040}$ & $.854_{\pm .039}$ & $.834_{\pm .042}$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{Accuracy of the actor's and critic's reasoning and discussion steps as evaluated by GPT-4o.}
+    \label{tab:accuracy_comparison}
+\end{table}
+
+
+
+
+\section{Preference Optimization}\label{SUP:preference}
+Here, we remark on how other preference optimization schemes can be used in place of DPO. 
+Broadly speaking, preference optimization schemes can broken into two categories: those which optimize reward directly (e.g., PPO) and those which optimize reward indirectly (e.g., DPO).
+In the case of the latter, the positive and negative pairs produced by our method (Algorithm \ref{alg:traj}) can be directly plugged into the preference optimizer. 
+
+In the case of explicit reward maximization, the reward function $r(z^{(t)}, x, y)$ can first be learned automatically by simply simulating deliberation. 
+The most straightforward way to do this is to first simulate one full deliberation between the actor and critic, i.e., $\langle (z_a^{(0)}, z_c^{(0)}), \ldots, (z_a^{(T)}, z_c^{(T)})\rangle$.
+Then for each $z_a^{(t)}$, $z_c^{(t)}$ the remaining $T-t$ deliberation steps can be resampled to estimate the corresponding value of $r(z_a^{(t)}, x, y)$ and $r(z_c^{(t)}, x, y)$. 
+These pairs, namely $\big(z_a^{(t)}, r(z_a^{(t)}, x, y)\big)$
+ and $\big(z_c^{(t)}, r(z_c^{(t)}, x, y)\big)$ can then be used to learn the reward function.
+This reward function can then be plugged into the desired preference optimization scheme. 
+
+
+
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\linewidth]{plots/new_perRoundconf.png}
+    \caption{Accuracy over five rounds of deliberation on BoolQ.}
+    \label{fig:perRound_1}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\linewidth]{plots/new_perRoundMMLU.png}
+    \caption{Accuracy over five rounds of deliberation on MMLU.}
+    \label{fig:perRound_2}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\linewidth]{plots/new_perRoundBBH.png}
+    \caption{Accuracy over five rounds of deliberation on BBH.}
+    \label{fig:perRound_3}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\linewidth]{plots/new_perRoundSCIQ.png}
+    \caption{Accuracy over five rounds of deliberation on SCIQ.}
+    \label{fig:perRound_4}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\linewidth]{plots/new_perRoundARC.png}
+    \caption{Accuracy over five rounds of deliberation on ARC.}
+    \label{fig:perRound_5}
+\end{figure}
+
+
+
+
+
+
+\section{Examples}\label{SUP:examples}
+
+
+
+
+
+\subsection{Prompts}
+Here, we provide examples of the prompts used in our experiments.
+For illustration, we provide prompts for the BoolQ dataset in which agents are asked a yes-no question about a passage.
+
+
+\paragraph{Single-Shot Prompt (No Deliberation)}
+\begin{verbatim}
+prompt = ('You will be given a yes-no question which is based on a passage. '
+          'You should use the passage to help you answer the question. '
+          'You should give a brief justification for your answer, '
+          'and you must provide a final answer of either Yes or No.'
+          '\nQuestion: {question}?'
+          '\nPassage: {passage}'
+          )
+\end{verbatim}
+
+\paragraph{Guided Single-Shot Prompt (No Deliberation)}
+\begin{verbatim}
+prompt = ('You will be given a yes-no question which is based on a passage. '
+          'You should use the passage to help you answer the question '
+          'with a {target_answer}. '
+          'You should give a brief justification for your answer of {target_answer}, 
+           and you must state that your final answer is {target_answer}.'
+          '\nQuestion: {question}?'
+          '\nPassage: {passage}'
+          )
+\end{verbatim}
+
+\paragraph{Deliberation Prompt for Actor}
+\begin{verbatim}
+prompt = ('Several people have provided answers to a yes-no question. '
+          'Below are their responses:'
+          '\nPerson {1} said: {responses[1]}'
+          '\nPerson {2} said: {responses[2]}'
+          .
+          .
+          .
+          '\nPerson {n} said: {responses[n]}'
+          '\n\nYou should take these answers into consideration when answering '
+          'the following yes-no question, which is based on a passage. '
+          'You should give a brief justification for your answer, and you must '
+          'provide a final answer of either Yes or No.'
+          '\nQuestion: {question}'
+          '\nPassage: {passage}'
+          )
+\end{verbatim}
+
+
+\paragraph{Guided Deliberation Prompt for Actor}
+\begin{verbatim}
+prompt = ('Several people have provided answers to a yes-no question. '
+          'Below are their responses:'
+          '\nPerson {1} said: {responses[1]}'
+          '\nPerson {2} said: {responses[2]}'
+          .
+          .
+          .
+          '\nPerson {n} said: {responses[n]}'
+          'You should take these answers and the passage into consideration when
+          'answering the following question with {target_answer}. '
+          'You should give a brief justification for your answer of {target_answer}, 'and you must state that your final answer is {target_answer}.'
+          '\nQuestion: {question}'
+          '\nPassage: {passage}'
+          )
+\end{verbatim}
+
+\paragraph{Deliberation Prompt for Critic}
+\begin{verbatim}
+prompt = ('I am answering a question based on a passage. ' 
+          'I would like you to help me improve the correctness of my response '
+          'by briefly providing some additional details my original response '
+          'may have missed. '
+          '\nQuestion: {question}'
+          '\nPassage: {passage}'
+          '\nMy Response: {actor_response}'
+          )
+\end{verbatim}
+
+
+\paragraph{Guided Deliberation Prompt for Critic}
+\begin{verbatim}
+prompt = ('I would like you to be a deliberation assistant. '
+          'You will be given a question based on a passage and my response '
+          'to the question. '
+          'You should use the passage and my response to develop additional details 
+          'for why the correct answer is {target_answer}. '
+          'Your details must be brief and must support the fact that the '
+          'correct answer is {target_answer}.'
+          '\nQuestion: {question}?'
+          '\nPassage: {passage}'
+          '\nMy Response: {actor_response}'
+          )
+\end{verbatim}
+
+
+
+
+\subsection{Critic Responses}\label{SUP:critic}
+Here, we present several examples of the critic's responses when the actor provides the wrong answer; critic responses are shown before and after training with ACC-Collab. 
+We observed a qualitative change in the critic's responses after training with our pipeline; the critic was more willing to disagree with the actor, and the critic provided more detailed feedback.
+
+
+\section*{}
+\textbf{ACTOR:} \textcolor{red}{[Wrong]}
+ Final answer, No. Non-residents cannot bring a handgun into New York for possession or carry within the state based on the passage. They can only transport it through New York to a destination outside of the state where it is legal to possess and carry.
+
+
+
+\textbf{UNTRAINED CRITIC:}
+ Your response is mostly correct. I would add that New York has strict gun control laws, so even if a non-resident is allowed to transport a firearm through the state, they should be aware that certain areas may have additional restrictions, such as prohibitions on carrying the firearm in certain public places or parks. It's always a good idea to check the specific laws of the jurisdiction they will be passing through and their final destination.
+
+
+
+\textbf{TRAINED CRITIC: }
+ Details refuting your response:
+ 
+1. The passage mentions that non-residents can transport any lawful firearm through New York, which implies that the firearm is temporarily in New York state territory during transit. This suggests that under certain circumstances, a handgun could be brought into New York for transit purposes, even if it cannot be carried within the state.
+
+2. The passage does not explicitly state that non-residents are prohibited from bringing handguns into New York. Instead, it only specifies that they cannot possess or carry handguns within the state. This ambiguity leaves room for interpretation that a handgun could be brought into New York for transit purposes as long as it is not carried within the state.
+\section*{}
+
+
+\section*{}
+
+\textbf{ACTOR:} \textcolor{red}{[Wrong]}
+ Answer: Yes, the passage states that in the Northern Atlantic Ocean, the hurricane season starts as early as June 1 and ends on November 30, with the peak of activity occurring from late August through September. However, the passage also mentions an exception where the hurricane season started as early as January 3 in 1938. Therefore, while the typical start of the hurricane season is June 1, it is possible for the season to begin earlier, as indicated by the passage.
+
+
+\textbf{UNTRAINED CRITIC:}
+ Your response is correct and provides a good justification based on the passage. However, you could add that the passage mentions that May is the least active month for tropical cyclone activity worldwide, but May is still within the Atlantic hurricane season. Therefore, while the peak of the Atlantic hurricane season is from late August through September, the season technically starts earlier.
+
+
+
+\textbf{TRAINED CRITIC:}
+ While your response is correct in stating that the typical hurricane season in the Northern Atlantic Ocean starts on June 1 and ends on November 30, with the peak of activity occurring from late August through September, the passage also emphasizes that each particular basin has its own seasonal patterns. The passage mentions the exception of the 1938 hurricane season starting as early as January 3, which is outside the typical seasonal window. This detail directly refutes your response by emphasizing that while the typical season starts in June, it is not unheard of for the season to begin earlier, as demonstrated by historical records.
+
+Another detail from the passage that supports the fact that the answer is No, is that the passage states that "worldwide, tropical cyclone activity peaks in late summer," which is contradictory to your response that the hurricane season starts in spring. The passage explicitly states that the peak of tropical cyclone activity occurs in late summer, which is later than spring.
+
+\section*{}
+
+
+\section*{}
+
+
+\textbf{ACTOR:} \textcolor{red}{[Wrong]}
+ Final Answer: (A) rated the group as less interesting and enjoyable.
+ 
+Justification: Aronson and Mills' study found that severe initiation processes negatively impact immediate attitudes towards the group due to discomfort and negative emotions. (Person 0) Additionally, severe initiation may create pressure to conform and social comparison, making the group less appealing. (Person 1)
+
+
+
+\textbf{UNTRAINED CRITIC:}
+ Your response is correct. I'd add that Aronson and Mills found that severe initiation rites can create a sense of exclusion and pain, which may negatively impact attitudes towards the group. (A)
+
+
+
+\textbf{TRAINED CRITIC:}
+ Response: While your justification supports the fact that severe initiation can negatively impact attitudes towards the group, it does not fully refute the alternative answers. Let me provide brief details to argue for the correct answer, B being "rated the group as more interesting and enjoyable":
+
+1. Counter-intuitive findings: Research suggests that negative experiences can sometimes lead to stronger group identification and commitment. The discomfort and negative emotions generated during severe initiation may create a sense of camaraderie and solidarity among group members, ultimately increasing their overall enjoyment of the group (Tajfel \& Turner, 1986).
+
+2. Long-term benefits: Although severe initiation might result in negative emotions initially, the feelings of bonding and group cohesion that develop during the initiation process can endure and even enhance members' attachment to the group over time (Sue Carter \& Branscombe, 1994). This increased commitment can lead to a heightened sense of enjoyment and engagement with the group.
+
+
+
+\section*{}
+
+
+\section*{}
+
+\textbf{ACTOR:} \textcolor{red}{[Wrong]}
+ Final Answer: (B) Catalhoyuk and Gobekli Tepe
+Justification: These sites have provided evidence for social complexity without clear agricultural surpluses. Catalhoyuk had centralized planning and hierarchical social organization but no conclusive evidence for agricultural surpluses. Gobekli Tepe was likely a religious or ceremonial center predating the agricultural revolution.
+
+
+
+\textbf{UNTRAINNED CRITIC:}
+ Your response is correct. I'd add that Catalhoyuk had a population of up to 8,000 people and was the world's first known urban settlement, while Gobekli Tepe's T-shaped pillars date back to around 9600 BCE and suggest the existence of social and religious institutions that predate agriculture.
+
+
+
+\textbf{TRAINED CRITIC:}
+ While your justification for option (B) is correct, I would like to provide additional details for option (D) to refute potential responses in favor of other options.
+
+Option (A): Stonehenge and Caral
+
+Justification: Although these sites have evidence of social complexity, there is no clear evidence that they lacked agricultural surpluses. Stonehenge, for instance, is believed to have served as a ceremonial and astronomical center, but its relationship to agriculture remains unclear. Caral, on the other hand, has evidence of irrigation systems, suggesting some agricultural production, even if not a surplus.
+
+Option (C): La Venta and Catalhoyuk
+
+Justification: La Venta is an example of a complex civilization with evidence of agricultural surpluses. While Catalhoyuk is an example of social complexity without clear agricultural surpluses, as you mentioned, La Venta challenges the idea that social complexity always required surpluses.
+
+Option (D): Gobekli Tepe and Poverty Point
+
+Justification: Gobekli Tepe is believed to be a religious or ceremonial center that predates the agricultural revolution. Poverty Point, on the other hand, is a complex society that existed around 3200 BCE and had advanced engineering skills but no clear evidence of agricultural surpluses. These sites' existence undermines the hypothesis that social complexity always required agricultural surpluses, providing further evidence for option (D) being the correct answer.
+
+
+
+
+
+
+\section*{}
+
+\section*{}
+
+
+
+\textbf{ACTOR:} \textcolor{red}{[Wrong]}
+ Final Answer: (A) psychological reactance. This is because your friend's statement suggests that they feel frustrated or resistant when external factors prevent them from going on vacation, indicating a desire to have more freedom to make their own choices. Psychological reactance is the tendency to react negatively when our freedom is threatened.
+
+
+
+\textbf{UNTRAINED CRITIC:}
+ Your response is correct. I'd add that psychological reactance often results in an exaggerated perception of the importance or severity of the obstacles, leading your friend to believe that there's always a crisis preventing them from vacationing when in reality, the obstacles may not be as significant as they seem.
+
+
+
+\textbf{TRAINED CRITIC:}
+ While your response is plausible and accurately describes psychological reactance, let me provide two brief reasons why the correct answer is still (C) illusory correlation:
+
+1. Illusory correlation refers to the perception of a relationship between variables when none or only a weak relationship actually exists. In this case, your friend might perceive a strong correlation between planning a vacation and experiencing crises at home or work, leading them to believe that their vacations are consistently disrupted, even if the actual correlation is weak or non-existent.
+
+2. Psychological reactance is primarily concerned with an individual's desire to react negatively when their freedom is restricted or threatened, not necessarily a misperception of causal relationships. However, the friend's statement does imply a belief that external factors are consistently preventing them from going on vacations, which could be a manifestation of illusory correlation.
+
+
+
+\section*{}
+
+\section*{}
+
+\textbf{ACTOR:} \textcolor{red}{[Wrong]}
+ Final Answer: (D) a zygote. Justification: A zygote is the first cell formed when two gametes merge, marking the beginning of organismic development.
+
+
+
+\textbf{UNTRAINED CRITIC:}
+ Your response is correct. Just to add, a zygote is formed by the fusion of an sperm (male gamete) and an egg (female gamete), resulting in a diploid cell containing genetic material from both parents. This is the initial stage of an organism's development.
+
+
+
+\textbf{TRAINED CRITIC:}
+ I agree with your response that the answer is (D) a zygote. However, to further support why (A) a gamete and (C) a nucleus are incorrect, let me provide brief details:
+
+(A) A gamete is a reproductive cell that fuses with another gamete during fertilization to form a zygote. Therefore, it is not an organism in the earliest stages of development but rather a part of the process leading to the formation of an organism.
+
+(C) A nucleus is an organelle within a cell that contains genetic material. It is not an organism but rather a component of a cell, and it is present in the zygote after fertilization has occurred.
+
+So, both (A) and (C) can be ruled out as they do not represent the organism in the earliest stages of development, and the correct answer is (D) a zygote.
+
+
+
+\section*{}
+
+\section*{}
+
+
+\textbf{ACTOR:} \textcolor{red}{[Wrong]}
+ Final Answer: (A) metamorphic rocks and (B) any types of rocks (specifically igneous rocks when they undergo metamorphosis).
+
+
+
+\textbf{UNTRAINED CRITIC:}
+ Your response is mostly correct, but it would be more precise to clarify that options B and C also include metamorphic rocks when they mention "any types of rocks" and "igneous rocks," respectively. Metamorphic rocks form from the alteration of pre-existing rocks under heat, pressure, or chemical conditions. Thus, all three options (A, B, and C) are correct, but option A is the most explicit about the transformation process involved.
+
+
+
+\textbf{TRAINED CRITIC:}
+ Sure! Here are two brief details supporting the correct answer (A) metamorphic rocks and (B) any types of rocks (specifically igneous rocks when they undergo metamorphosis):
+
+1. Metamorphic rocks result from the transformation of pre-existing rocks under high pressure and temperature conditions. This process causes the minerals in the rocks to change, resulting in a new type of rock. For example, sedimentary rocks like shale or limestone can be transformed into metamorphic rocks like slate or marble, respectively.
+
+2. Igneous rocks can also undergo metamorphosis when they are exposed to high pressure and temperature conditions. This process results in the recrystallization of minerals and the formation of new textures. For example, granite can be transformed into gneiss or schist when subjected to metamorphic conditions. Therefore, any type of rock, including igneous rocks, can change and become new types of rocks through metamorphosis.
+
+
+
+
+
+
+
+
+\section*{}
+
+\section*{}
+
+
+
+\textbf{ACTOR:} \textcolor{red}{[Wrong]}
+ Final Answer: (C) white present
+
+Justification: Gertrude initially had a yellow present, but she swapped it with Alice, who had a white present. Therefore, Gertrude now has the white present.
+
+
+
+\textbf{UNTRAINED CRITIC:}
+ Your response is correct. I'd add that after Gertrude swaps with Alice, none of the following swaps involve Gertrude giving away or receiving the white present.
+
+
+
+\textbf{TRAINED CRITIC:}
+ While your justification is correct that Gertrude initially had a yellow present and swapped it with Alice's white present, I would like to add two additional details that refute your response and support option D, brown present.
+
+First, prior to swapping with Alice, Gertrude swapped her yellow present with Dave's brown present.
+
+Second, in the final round of swaps, Fred and Eve swap their presents, and Gertrude's white present (which she received from Alice) is not mentioned in the swap between Fred and Eve.
+
+Therefore, based on the information provided, Gertrude could still have the brown present that she received from Dave earlier in the game.
+
+
+
+\section*{}
+
+\section*{}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\textbf{ACTOR:} \textcolor{red}{[Wrong]}
+ Final Answer: None of the given options are correct. The construction site was closed during the hours Thomas was engaged in the mentioned activities, and there is no information indicating that Thomas visited the construction site before 6am.
+
+
+
+\textbf{UNTRAINED CRITIC:}
+ Your response is correct. I would add that Thomas' activities from 6am to 8am (gym, yoga studio, and movie theater) all occurred before the construction site opened. Therefore, option (D) can be eliminated as well.
+
+
+
+\textbf{TRAINED CRITIC:}
+ While it's true that none of the given options are correct, I'd like to provide some brief additional details to support the fact that the correct answer is D (6am to 8am), if that was an option. Here's why:
+
+1. Thomas was seen at the gym from 8am to 11am, and at the yoga studio from 11am to 3pm, meaning he was engaged in those activities between those hours. There's no information indicating that he left those places earlier or returned later.
+
+2. He was seen at the movie theater from 3pm to 6pm, and at the Leaning Tower of Pisa from 6pm to 7pm. Again, there's no information indicating that he left the movie theater earlier or arrived at the Leaning Tower of Pisa later.
+
+3. The construction site was closed after 7pm. However, the options don't include any time before 7pm. If Thomas could have gone to the construction site before 7pm, the correct answer would be one of the options A, B, or C.
+
+4. Since none of the options include the time before 7pm, and Thomas was engaged in activities during the entire day, the only time left for him to visit the construction site, assuming he did, would be before 7am. However, the options don't include that time frame. Therefore, if we had the option D (6am to 8am), it would be the correct answer, as it's the only time frame that fits the given information.
+
+In conclusion, while the given options are not correct, if option D (6am to 8am) was an option, it would be the correct answer based on the information provided.

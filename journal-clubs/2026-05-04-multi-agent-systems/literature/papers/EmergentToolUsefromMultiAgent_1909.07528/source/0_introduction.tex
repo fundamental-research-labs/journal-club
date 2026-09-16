@@ -1,0 +1,43 @@
+\begin{figure}[t]
+\begin{center}
+\hbox{\includegraphics[width=\linewidth]{assets/emergence_big_v2_small.pdf}}
+\end{center}
+\caption{Emergent Skill Progression From Multi-Agent Autocurricula.
+Through the reward signal of hide-and-seek (shown on the y-axis), agents go through 6 distinct stages of emergence. (a) Seekers (red) learn to chase hiders, and hiders learn to crudely run away. (b) Hiders (blue) learn basic tool use, using boxes and sometimes existing walls to construct forts. (c) Seekers learn to use ramps to jump into the hiders' shelter. (d) Hiders quickly learn to move ramps to the edge of the play area, far from where they will build their fort, and lock them in place. (e) Seekers learn that they can jump from locked ramps to unlocked boxes and then \textit{surf} the box to the hiders' shelter, which is possible because the environment allows agents to move together with the box regardless of whether they are on the ground or not. 
+(f) Hiders learn to lock all the unused boxes before constructing their fort. We plot the mean over 3 independent training runs with each individual seed shown with a dotted line. Please see \small{\href{\videourlclick}{\texttt{\videourl}}} for example videos.
+}
+\label{fig:emergence_big}
+\end{figure}
+
+Creating intelligent artificial agents that can solve a wide variety of complex human-relevant tasks has been a long-standing challenge in the artificial intelligence community.
+Of particular relevance to humans will be agents that can sense and interact with objects in a physical world.
+One approach to creating these agents is to explicitly specify desired tasks and train a reinforcement learning (RL) agent to solve them.
+On this front, there has been much recent progress in solving physically grounded tasks, e.g. dexterous in-hand manipulation \citep{rajeswaran2017learning, andrychowicz2018learning} or locomotion of complex bodies \citep{schulman2015high, heess2017}. 
+However, specifying reward functions or collecting demonstrations in order to supervise these tasks can be time consuming and costly.
+Furthermore, the learned skills in these single-agent RL settings are inherently bounded by the task description; once the agent has learned to solve the task, there is little room to improve.
+
+Due to the high likelihood that direct supervision will not scale to unboundedly complex tasks, many have worked on unsupervised exploration and skill acquisition methods such as intrinsic motivation.
+However, current undirected exploration methods scale poorly with environment complexity and are drastically different from the way organisms evolve on Earth.  
+The vast amount of complexity and diversity on Earth evolved due to co-evolution and competition between organisms, directed by natural selection \citep{dawkins1979}.
+When a new successful strategy or mutation emerges, it changes the implicit task distribution neighboring agents need to solve and creates a new pressure for adaptation.
+These evolutionary arms races create implicit \textit{autocurricula} \citep{leibo2019autocurricula} whereby competing agents continually create new tasks for each other.
+There has been much success in leveraging multi-agent autocurricula to solve multi-player games, both in classic discrete games such as Backgammon \citep{tesauro1995} and Go \citep{silver2017mastering}, as well as in continuous real-time domains such as Dota \citep{openai2018} and Starcraft \citep{vinyals2019}.
+Despite the impressive emergent complexity in these environments, the learned behavior is quite abstract and disembodied from the physical world.
+Our work sees itself in the tradition of previous studies that showcase emergent complexity in simple physically grounded environments \citep{sims1994a, bansal2017, Jaderberg859, liu2019emergent}; the success in these settings inspires confidence that inducing autocurricula in physically grounded and open-ended environments could eventually enable agents to acquire an unbounded number of human-relevant skills.
+
+We introduce a new mixed competitive and cooperative physics-based environment in which agents compete in a simple game of hide-and-seek.
+Through only a visibility-based reward function and competition, agents learn many emergent skills and strategies including collaborative tool use, where agents intentionally change their environment to suit their needs.
+For example, hiders learn to create shelter from the seekers by barricading doors or constructing multi-object forts, and as a counter strategy seekers learn to use ramps to jump into hiders' shelter.
+Moreover, we observe signs of dynamic and growing complexity resulting from multi-agent competition and standard reinforcement learning algorithms; we find that agents go through as many as six distinct adaptations of strategy and counter-strategy, which are depicted in Figure~\ref{fig:emergence_big}.
+We further present evidence that multi-agent co-adaptation may scale better with environment complexity and qualitatively centers around more human-interpretable behavior than intrinsically motivated agents.
+
+However, as environments increase in scale and multi-agent autocurricula become more open-ended, evaluating progress by qualitative observation will become intractable.
+We therefore propose a suite of targeted intelligence tests to measure capabilities in our environment that we believe our agents may eventually learn, e.g. object permanence \citep{baillargeon2012}, navigation, and construction.
+We find that for a number of the tests, agents pretrained in hide-and-seek learn faster or achieve higher final performance than agents trained from scratch or pretrained with intrinsic motivation; however, we find that the performance differences are not drastic, indicating that much of the skill and feature representations learned in hide-and-seek are entangled and hard to fine-tune.
+
+The main contributions of this work are:
+1) clear evidence that multi-agent self-play can lead to emergent autocurricula with many distinct and compounding phase shifts in agent strategy,
+2) evidence that when induced in a physically grounded environment, multi-agent autocurricula can lead to human-relevant skills such as tool use,
+3) a proposal to use transfer as a framework for evaluating agents in open-ended environments as well as a suite of targeted intelligence tests for our domain, and
+4) open-sourced environments and code\footnote{Code can be found at \href{\codeurlclick}{\texttt{\codeurl}}.}
+for environment construction to encourage further research in physically grounded multi-agent autocurricula.

@@ -1,0 +1,109 @@
+
+\section{Introduction}\label{sec:intro}
+
+
+Autonomous agents leveraging advanced large language models (LLMs) have shown significant potential in addressing complex problems and executing diverse tasks \cite{shinn2023reflexion}. 
+Recently, employing multiple collaborating agents has emerged as a prominent research direction for overcoming the inherent limitations of single-agent approaches in handling tasks within sophisticated environments (\cite{li2023camel, multi-persona}).
+% To overcome the inherent limitations of single-agent approaches in handling tasks within sophisticated environments, employing multiple collaborating agents has emerged as a prominent research direction \cite{li2023camel, debate1-mit, multi-persona, blender, reflexion, chen2023agentverse, autogen}. 
+An advanced collaborative paradigm also involves a multi-step process wherein agents sequentially resolve tasks by utilizing outputs from preceding steps.
+This Multi-Agent Systems (MAS) approach has already yielded substantial advancements in various applications, such as code generation \cite{shinn2023reflexion}, reasoning \cite{debate1-mit}, and decision making \cite{sun2024llm}.
+
+
+
+
+
+
+% However, most existing works use an entirely hand-crafted strategy for the design of MAS. For the construction of agents, most previous studies either decide based on human/expert prior or use an LLM to generate them. While some research explored how to optimize the functionality of a single agent through fine-tuning or prompt-tuning, they don't explicitly consider optimizing agents in a MAS with a multi-step collaboration process.
+% For the collaboration structure, most existing approaches define specific structures for different application scenarios, such as cooperation tasks like code generation and decision making, and competition tasks like debate. However, their design is mostly based on human prior and/or certain empirical experimental results. This leads to a lack of generality and flexibility in autonomous optimization for a superior structure. 
+
+
+However, the design of existing MAS predominantly relies on hand-crafted strategies. Regarding agent construction, prior studies typically employ methods based either on human expertise \cite{agentbench} or LLM generation \cite{multi-persona}. Although some research has explored optimizing the functionality of a single agent via techniques such as fine-tuning \cite{metatool} or prompt-tuning \cite{prompt_agent}, these efforts don't explicitly address agent optimization within the context of MAS involving multi-step collaborative processes.
+Concerning collaboration structures, existing approaches typically define fixed architectures tailored to specific application scenarios, encompassing cooperative tasks (e.g., code generation \cite{self-collab-codegen}, decision-making \cite{software-dev}) and competitive tasks (e.g., debate \cite{debate1-mit}). However, the design of these structures predominantly relies on human prior knowledge or particular empirical findings, thereby limiting their generality and the flexibility required for autonomous optimization towards more effective structural configurations.
+A recent study, DyLAN \cite{dylan}, represents a promising effort toward optimizing collaboration structures in MAS. However, its approach centers solely on the unsupervised optimization of agent team composition, employing metrics derived from preliminary trials and LLM-based judgments, rather than utilizing supervised signals for validation and optimization. Similarly,  other recent works
+such as G-Designer \cite{zhang2025g} and MaAS \cite{zhang2025multi} focus on architectural search for identifying
+effective multi-agent structures, thereby only addressing the structural optimization dimension of MAS.
+% for both agent functionality and fine-grained collaboration structure. 
+% In contrast, our OMAC firstly integrates the optimization of agent functionalities and fine-grained agent interaction architecture
+
+% Furthermore, DyLAN does not address the optimization of agent functionalities and fine-grained agent interaction architecture beyond team selection.
+
+
+
+
+
+To address these challenges, we introduce \textbf{OMAC}, a comprehensive framework designed for the integrated optimization of MAS. Specifically, we identify and summarize \textbf{five key optimization dimensions} pertaining to both agent functionality and collaboration structure. The functional dimensions include optimizing existing agents and constructing new agents tailored for collaboration. Regarding the structural aspect, we optimize\footnote{\scriptsize{Note that we use the word ``optimize'' in a colloquial way to signify improvement instead of mathematical guarantee of an optimal solution.}} 
+LLM-based controllers to manage collaboration structures, encompassing decisions on the overall candidate agent teams, dynamic agent selection for individual collaboration steps, and the mechanisms governing inter-agent communication.
+
+% Building upon these dimensions, we propose a general algorithm, utilizing two actors termed the semantic initializer and the contrastive comparator, to optimize any single dimension. Especially, the semantic initializer generates a set of new agents/controllers with a given role by exploring the semantic space powered by LLM's knowledge and reasoning abilities. After that, we'll conduct the multi-agent collaboration process with each initialized agent/controller and acquire the performance scores. Based on that, we'll sample a positive-negative pair of agents/controllers. The contrastive comparator will generate a new agent/controller by contrasting and reasoning about the underlying factors for the performance gap. Then we'll conduct the multi-agent collaboration process with this new agent/controller and repeat the sampling and contrasting step. Apart from optimization for single dimension, we also present an algorithm for the iterative, joint optimization of multiple dimensions, which help to further enhance MAS by mutually optimizing the agents and controllers.
+
+
+\begin{figure}[t]
+% \vspace{-1mm}
+\centering
+\begin{minipage}{0.99\linewidth}
+    \centering
+    \includegraphics[width=0.99\linewidth]{figs/framework_1.pdf}
+\end{minipage}
+\caption{OMAC workflow for a single dimension.}
+% It comprises two LLM-powered actors: the Semantic Initializer and the Constrastive Comparator. Initially, the Semantic Initializer generates a candidate set of agents/controllers tailored to the target dimension. Candidates are evaluated through collaboration for performance scores. Subsequently, the Contrastive Comparator analyzes a selected high-performing (positive) and low-performing (negative) candidate pair, generating a refined agent/controller that is added to the set. Then the process of evaluation, contrastive comparison, and refinement iterates.}
+\vspace{-2mm}
+\label{fig:framework_1}
+\end{figure}
+
+
+Then we first propose a general algorithm employing two LLM-powered actors, the \textbf{Semantic Initializer} and the \textbf{Contrastive Comparator}, to optimize any individual dimension. Specifically, the Semantic Initializer leverages the knowledge and reasoning capabilities of LLMs to generate an initial collection of agents or controllers corresponding to the dimension being optimized by exploring the relevant semantic space. Subsequently, each initialized agent or controller undergoes evaluation within the multi-agent collaboration process on the training set to determine its performance score. 
+A positive-negative pair (high-performing and low-performing) is then sampled based on these scores. 
+The Contrastive Comparator then performs contrastive reasoning on this pair to identify factors underlying the performance gap, subsequently generating a refined agent or controller. This refined agent/controller is then re-evaluated via the collaboration process, and the cycle of sampling, contrastive comparison, and refinement is iterated. Beyond single-dimension optimization, we further propose an algorithm for iterative, joint optimization across multiple dimensions, enabling further MAS enhancement through synergistic optimization of agents and controllers. More implementation details of the actors and optimization algorithm are illustrated in Section \ref{sec:indi_opt}.
+
+% Based on these scores, a positive-negative pair consisting of one high-performing and one low-performing sample is selected.
+
+% We conduct extensive experiments on various tasks, including code generation, arithmetic reasoning, and general reasoning. The results demonstrate that OMAC outperforms strong baselines by optimizating either of the five single dimension in most cases. Also, the mutual optimization of multiple dimensions is shown to help further improve the performance.
+
+We conduct extensive experiments across diverse tasks, including general reasoning, code generation, and arithmetic reasoning. The results demonstrate that OMAC consistently outperforms strong baselines when optimizing each of the five individual dimensions. Furthermore, joint optimization across multiple dimensions is shown to further significantly enhance MAS's performance.
+
+
+
+
+Our key contributions can be summarized as follows:
+
+\begin{itemize}[leftmargin=*]
+    \item We introduce OMAC, a general supervised framework for optimizing multi-agent systems engaged in multi-step collaboration. To achieve this, we identify five key optimization dimensions covering both agent functionality and collaboration structure.
+    % As far as we know, this is the first work that comprehensively analyzes and identifies optimizable dimensions within MAS.
+
+    \item We propose a general algorithm, utilizing two actors termed the Semantic Initializer and the Contrastive Comparator, for optimizing each of the five dimensions. Furthermore, we present an algorithm enabling iterative, joint optimization across multiple dimensions.
+    % We design two actors for optimization, named the semantic initializer and contrastive comparator, both powered by LLM. Semantic initializer helps to explore the semantic space for determination of agents, and the contrastive comparator is employed to produce refined agents based on sampled positive-negative pairs.
+
+
+    \item We evaluate OMAC on benchmark tasks including general reasoning, code generation, and arithmetic reasoning. Empirical results demonstrate that OMAC significantly outperforms existing approaches through the automated optimization of functional and structural MAS designs.
+
+\end{itemize}
+
+
+
+\endinput
+
+
+Our contributions can be summarized as follows:
+
+\begin{itemize}[leftmargin=*]
+    \item We introduce a general Multi-Objective Goal-Conditioned Reinforcement Learning (MOGCRL) framework, enabling end-to-end multi-objective learning recommendations. By representing goals as vectors, where each dimension corresponds to cumulative rewards for a specific objective, our model can be trained using standard supervised learning techniques and conventional architectures (e.g., transformers) without needing any special design of model structure or learning constraints. 
+    
+    \item We conduct a formal analysis of goal properties for inference of GCRL. Based on this analysis, we propose a goal-generation algorithm that produces feasible and desired goals for inference stage. We empirically evaluate both simple statistical strategies in previous research and our goal-generation approach, yielding valuable insights.
+
+    \item We implement MOGCRL with a attention-based sequential recommendation model by simply relabeling the offline data with vectorized goals. Empirical experimental on real-world e-commerce datasets demonstrate the superior efficacy and efficiency of our model. All codes and data will be released if being accepted to facilitate further research.
+\end{itemize}
+
+
+
+
+
+\begin{figure*}[t]
+    \centering
+	\includegraphics[width=.95\linewidth]{figs/VPMCR_exa.pdf}
+	%\vspace{-5pt}
+    \caption{A realistic user simulation example}
+    \label{fig:intro-exa}
+\end{figure*}
+
+\section{Introduction}
+\label{sec:introduction}

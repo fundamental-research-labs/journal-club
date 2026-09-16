@@ -1,0 +1,80 @@
+\section{Composition of \model: A Brief Look}
+In this section, we briefly introduce the datasets and environments that compose the \model.
+Compared to previous agent evaluation benchmarks~\citep{cote2019textworld,fan2022minedojo}, \model concentrates on the practical evaluation of LLMs via Chain-of-Thought (CoT)~\citep{wei2022chain,yao2023react} prompting, including code-grounded, game-grounded, and web-grounded scenarios.
+They pinpoint promising directions for the application of LLMs with autonomous mission completion, and their versatility avoids task-specific models' (e.g., code-specific LLMs) overperformance on \model.
+\textit{Due to page limit, for details of construction, evaluation, and prompt examples, please refer to Appendix.}
+
+\subsection{Code-grounded Environments}
+Since LLMs can generate high-quality codes~\citep{chen2021evaluating}, a very practical mission for LLM agents is to assist human interaction with computer interfaces.
+Here, we introduce three environments depending on coding and reasoning abilities as representatives in \model.
+
+\vpara{Operating System (OS).}
+Allowing LLMs to access and manipulate OS in the terminal is a fascinating but challenging mission.
+Despite attempts to translate natural language to Shell commands~\citep{lin2018nl2bash}, few prior efforts evaluate models in executable environments. 
+We aim to evaluate LLMs in genuine interactive bash environments (i.e., Ubuntu Docker~\citep{merkel2014docker}) on human questions with deterministic answers (e.g., \textit{number of users with non-\texttt{/home} directories in an OS.}) or series of operations for practical goals (e.g., \textit{recursively set all directory files to read-only, excluding mine}).
+We adopt the \textit{success rate (SR)} as the evaluation metric. (Cf. Appendix~\ref{app:os} for more details)
+
+\vpara{Database (DB).}
+As database analysis is crucial but also difficult in many daily affairs, it is paramount to examine LLMs' abilities to operate on real databases via SQL. 
+Prior research has a significant emphasis on individual procedures, such as translation between SQL and natural language~\citep{zhongSeq2SQL2017, gao2023text, pourreza2023din, ruan2023tptu}, or answering questions given individual small tables~\citep{nan2021fetaqa,iyyer-etal-2017-search-sqa}.
+However, few consider evaluating models on the complete pipeline as a whole.
+Therefore, \model evaluates LLMs on authentic SQL interfaces, databases, and different types of queries, as found in real-world scenarios.
+We adopt the \textit{SR} as the main evaluation metric. (Cf. Appendix~\ref{app:db} for more details)
+
+\vpara{Knowledge Graph (KG~\citep{kgtool}).}
+Engagement with contemporary KGs, which are often vast in size (e.g., \textsc{Freebase}~\citep{freebase} has over 45M entities and 3B facts), demands a broad range of skills from an intelligent agent~\citep{gu-etal-2023-dont}.
+Operating in such environments, which are only partially observable, requires the agent to make decisions with incomplete information and manage inherent uncertainties with various skills, including language understanding (e.g., intricacies and subtleties), planning (e.g., breaking down instructions into more manageable components), 
+and tool using (e.g., interact with KG interfaces). 
+As a result, we propose KG as a representative testing ground to assess the decision-making abilities of AI agents.
+We adopt question answering as the basic task formulation and consequently the answer \textit{F1} as the metric. (Cf. Appendix~\ref{app:kg} for more details)
+
+
+\subsection{Game-grounded Environments}
+Playing games usually requires strong capabilities in designing strategies, following instructions, and reasoning.
+Unlike code-grounded tasks, those in game-grounded environments do not require coding expertise but rather a more comprehensive understanding of common sense and world knowledge.
+
+\vpara{Digital Card Game (DCG).}
+Games usually could serve as simulated environments for intelligent agent development.
+And DCG (e.g., \textit{Hearthstone}~\citep{hoover2020many}) is an ideal option for text-only LLMs.
+It usually involves abundant text descriptions for cards, requiring thoughtful playing strategies to win, testing a model's understanding of game rules, operating logic, and abilities to form strategic decisions based on current situation in the game.
+In \model, we adopt a simplified DCG system \textit{Aquawar}\footnote{\url{https://www.saiblo.net/}} from the 2021 THU Agent Competition (THUAC) for evaluating LLMs as Agent.
+In Aquawar, the agent acts as a player controlling a team of fishes with different talents to battle against another algorithm-based team in a turn-based form.
+We report LLMs' \textit{win rate} as the evaluation metric. (Cf. Appendix~\ref{app:dcg} for more details)
+
+
+\vpara{Lateral Thinking Puzzles (LTP).}
+Lateral thinking puzzles~\citep{sloane1992lateral, de1970lateral}, also known as situation puzzles or \begin{CJK}{UTF8}{gbsn}海龟汤\end{CJK}, are globally popular group games that propelling participants to solve riddles from unconventional perspectives.
+Typically, one person hosts and others guess the mystery through strategic questioning, with responses limited to "yes", "no", or "irrelevant".
+In this dataset, we first set up an LTP host system for automatic judging.
+And we gathered a diverse set of web-based puzzles of varying difficulty levels and simplifying the plot into several points (i.e., \textit{game progress}).
+Through this assessment, we aim to gain insights into the depth and agility of LLMs' lateral reasoning abilities.
+(Cf. Appendix~\ref{app:ltp} for more details)
+
+
+
+\vpara{House Holding (HH, ALFWorld~\citep{shridhar2020alfworld}).}
+Embodied game environments such as house-holding, which require strong commonsense grounding, have been well-established for language agent evaluation~\citep{cote2019textworld}.
+In \model, we assess the model's capability in accomplishing tasks in physical house-holding environments on the classical ALFWorld~\citep{shridhar2020alfworld} derived from the well-established text-game toolkit TextWorld~\citep{cote2019textworld}.
+The agent needs to accomplish house-holding tasks such as ``\textit{Put a pan on the dining table}''.
+We adopt the \textit{SR} as the evaluation metric. (Cf. Appendix~\ref{app:hh} for more details)
+
+
+\subsection{Web-grounded Environments}
+Web pages have been the primary interfaces for people to interact in the real world.
+Therefore, assessing the behavior of LLM agents in complex web environments is critical and valuable for future development.
+Here, we adapt two existing web browsing datasets for practical evaluation over LLMs.
+
+\vpara{Web Shopping (WS, WebShop~\citep{yao2022webshop}).}
+Online shopping is a very practical and important part of modern life.
+Its trajectory, which comprises searching, viewing, and choosing desirable items on a real e-commerce website, requires autonomous agents' strong reasoning and decision-making abilities. 
+Webshop~\citep{yao2022webshop}, a simulated online shopping environment, exactly serves such a purpose for evaluating language agents. 
+While it is originally evaluated on specifically trained models, we propose assessing LLMs with mere prompting. (Cf. Appendix~\ref{app:ws} for more details)
+
+\vpara{Web Browsing (WB, Mind2Web~\citep{deng2023mind2web}).}
+A General web environment is an ideal sandbox for training and evaluating intelligent agents.
+Mind2Web~\citep{deng2023mind2web} is a very recently released general benchmark for developing and assessing web agents capable of executing intricate tasks across various website domains, given high-level user instructions. 
+It designs feasible actions for website interactions, such as clicking, selecting, and typing, thereby facilitating a holistic evaluation of LLMs as web agents.
+Compared to Mind2Web's original setting, we make adaptations to allow its evaluation on prompted LLMs without additional fine-tuning.
+(Cf. Appendix~\ref{app:wb} for more details)
+
+

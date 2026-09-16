@@ -1,0 +1,97 @@
+\section{Experiments}
+\label{sec:exp}
+\subsection{Experimental setting}
+
+\paragraph{Datasets} % locked
+We use two public benchmarks, HumanEval~\citep{chen2021evaluating} and MBPP~\citep{austin2021program}, and a self-generated, more challenging software development benchmark named SoftwareDev: (1) HumanEval includes 164 handwritten programming tasks. These tasks encompass function specifications, descriptions, reference codes, and tests.  (2) MBPP consists of 427 Python tasks. These tasks cover core concepts and standard library features and include descriptions, reference codes, and automated tests. 
+%
+(3) Our SoftwareDev dataset is a collection of 70 representative examples of software development tasks, each with its own task prompt (see \Cref{tab:task_details}). These tasks have diverse scopes (See \Cref{fig:rich_software}), such as mini-games, image processing algorithms, data visualization. 
+%
+They offer a robust testbed for authentic development tasks. Contrary to previous datasets~\citep{chen2021evaluating,austin2021program}, SoftwareDev focuses on the engineering aspects. In the comparisons, we randomly select seven representative tasks for evaluation. 
+
+\paragraph{Evaluation Metrics}
+For HuamnEval and MBPP, we follow the unbiased version of $\operatorname{Pass} @ k$ as presented by~\citep{chen2021evaluating,dong2023self}, to evaluate the functional accuracy of the top-k generated codes:  \(
+\operatorname{Pass} @ k = {\mathbb{E}}_{\text{Problems}}\left[1 - \frac{{\binom{n-c}{k}}}{{\binom{n}{k}}}\right]
+\). 
+
+For SoftwareDev, we prioritize practical use and evaluate performance through human evaluations (A, E) or statistical analysis (B, C, D): 
+\textbf{(A)}~Executability: this metric rates code from 1 (failure/non-functional) to 4 (flawless). 
+%
+`1' is for non-functional, `2' for runnable but imperfect, `3' for nearly perfect, and `4' for flawless code.
+%
+\textbf{(B)}~Cost: the cost evaluations here include the (1) running time, (2) token usage, and (3) expenses. 
+%
+\textbf{(C)}~Code Statistics: this includes (1) code files, (2) lines of code per file, and (3) total code lines. 
+%
+\textbf{(D)}~Productivity: basically, it is defined as the number of token usage divided by the number of lines of code, which refers to the consumption of tokens per code line.
+%
+\textbf{(E)}~Human Revision Cost: 
+% quantified by the number of rounds of revision needed to ensure the smooth running of the code, this indicates the frequency of human interventions, such as debugging or importing packages. 
+refers to times of manual code corrections, which tackle problems like package import errors, incorrect class names, or incomplete reference paths. Typically, each correction involves up to 3 lines of code.
+
+\paragraph{Baselines}
+We compare our method with recent domain-specific LLMs in the code generation field, including AlphaCode~\citep{li2022competition}, Incoder~\citep{fried2022incoder}, CodeGeeX~\citep{zheng2023codegeex}, CodeGen~\citep{nijkamp2023codegen}, CodeX~\citep{chen2021evaluating}, and CodeT~\citep{chen2022codet} and general domain LLMs such as PaLM~\citep{chowdhery2022palm}, and GPT-4~\citep{openai2023gpt4}. Several results of baselines (such as Incoder, CodeGeeX) are provided by \citet{dong2023self}. 
+%
+% We modify certain role-based prompts in MetaGPT to generate code suitable for the target problem (e.g., generate functions instead of classes for HumanEval and MBPP).
+In HumanEval and MBPP, we slightly modified the prompts to align with response format requirements. These modifications aim to address format-specific issues (i.e., Python problems).
+With the SoftwareDev benchmark, we provide a comprehensive comparison between MetaGPT, AutoGPT~\citep{autogpt_github}, LangChain~\citep{Chase_LangChain_2022} with Python Read-Eval-Print Loop (REPL) tool\footnote{\href{https://en.wikipedia.org/wiki/Read–eval–print\_loop}{https://en.wikipedia.org/wiki/Read–eval–print\_loop}}, AgentVerse~\citep{agentverse_github}, and ChatDev~\citep{qian2023communicative}. 
+
+\subsection{Main Result}
+
+\begin{figure}[th]
+    \centering
+        \includegraphics[width=\textwidth]{imgs/4-mbpp_humaneval.pdf}
+        % \vspace{-20pt}
+    \caption{Pass rates on the MBPP and HumanEval with a single attempt.
+    }
+    \label{fig:mdpp_humaneval}
+\end{figure}
+
+\begin{figure}[th]
+    \centering
+        \includegraphics[width=\textwidth]{imgs/5-softwaredev_tasks.jpg}
+        % \vspace{-20pt}
+    \caption{Demo softwares developed by MetaGPT.}
+    \label{fig:rich_software}
+\end{figure}
+\paragraph{Performance}
+\Cref{fig:mdpp_humaneval} demonstrates that MetaGPT outperforms all preceding approaches in both HumanEval and MBPP benchmarks. When MetaGPT collaborates with GPT-4, it significantly improves the $\operatorname{Pass} @ k$  in the HumanEval benchmark compared to GPT-4. It achieves 85.9\% and 87.7\% in these two public benchmarks. Moreover, as shown in \Cref{tab:statistics}, MetaGPT outperforms ChatDev on the challenging SoftwareDev dataset in nearly all metrics. 
+%
+For example, considering the executability, MetaGPT achieves a score of 3.75, which is very close to 4 (flawless). 
+%
+Besides, it takes less time (503 seconds), clearly less than ChatDev.
+%
+Considering the code statistic and the cost of human revision, it also significantly outperforms ChatDev.
+%
+Although MetaGPT requires more tokens (24,613 or 31,255 compared to 19,292), it needs only 126.5/124.3 tokens to generate one line of code. In contrast, ChatDev uses 248.9 tokens.
+%
+These results highlight the benefits of SOPs in collaborations between multiple agents. Additionally, we demonstrate the autonomous software generation capabilities of MetaGPT through visualization samples (\Cref{fig:rich_software}). For additional experiments and analysis, please refer to \Cref{appendix: exp}.
+\input{tables/1-softdev}
+\input{tables/2-capability}
+\input{tables/3-role}
+
+\subsection{Capabilities Analysis}
+Compared to open-source baseline methods such as AutoGPT and autonomous agents such as AgentVerse and ChatDev, MetaGPT offers functions for software engineering tasks.
+%
+As presented in \Cref{tab:capabilities}, our framework encompasses a wide range of abilities to handle complex and specialized development tasks efficiently.
+% 
+Incorporating SOPs (e.g., role-play expertise, structured communication, streamlined workflow) can significantly improve code generation. Other baseline methods can easily integrate SOP-like designs to improve their performance, similar to injecting chain-of-thought~\citep{wei2022chain} in LLMs.
+
+\subsection{Ablation study}
+\paragraph{The Effectiveness of Roles}
+
+To understand the impact of different roles on the final results, we perform two tasks that involve generating effective code and calculating average statistics. When we exclude certain roles, unworkable codes are generated. 
+%
+As indicated by \Cref{tab:ablation}, the addition of roles different from just the Engineer consistently improves both revisions and executability. 
+%
+While more roles slightly increase the expenses, the overall performance improves noticeably, demonstrating the effectiveness of the various roles.
+%
+
+\paragraph{The Effectiveness of Executable Feedback Mechanism}
+As shown in \Cref{fig:mdpp_humaneval}, adding executable feedback into MetaGPT leads to a significant improvement of 4.2\% and 5.4\% in  $\operatorname{Pass} @ 1$ on HumanEval and MBPP, respectively.
+%
+Besides, Table \ref{tab:statistics} shows that the feedback mechanism improves feasibility (3.67 to 3.75) and reduces the cost of human revisions (2.25 to 0.83).
+%
+These results illustrate how our designed feedback mechanism can produce higher-quality code.
+% 
+Additional quantitative results of MetaGPT and MetaGPT without executable feedback are shown in ~\Cref{tab:task_executability} and ~\Cref{tab:result_details}.

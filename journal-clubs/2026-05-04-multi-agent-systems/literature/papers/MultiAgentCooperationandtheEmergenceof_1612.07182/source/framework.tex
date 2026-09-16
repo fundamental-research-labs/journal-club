@@ -1,0 +1,152 @@
+\section{General Framework}
+\label{sec:general-framework}
+
+Our general framework includes K players, each parametrized by $\theta_k$, a collection of tasks/games that the players have to perform, a communication protocol $V$ that enables the players to communicate with each other, and payoffs assigned to the players as a deterministic function of a well-defined goal. In this paper we focus on a particular version of this: \textit{referential games}. These games are structured as follows.
+
+\begin{enumerate}
+\item There is a set of images represented by vectors $\lbrace i_1, \dots, i_N \rbrace$, two images are drawn at random from this set, call them $(i_L, i_R)$, one of them is chosen to be the ``target'' $t \in \lbrace L, R \rbrace$
+\item There are two players, a sender and a receiver, each seeing the images - the sender receives input $\theta_S (i_L, i_R, t)$
+\item There is a \textit{vocabulary} $V$ of size $K$ and the sender chooses one symbol to send to the receiver, we call this the sender's policy $s(\theta_S (i_L, i_R, t))\in V$
+\item The receiver does not know the target, but sees the sender's symbol and tries to guess the target image. We call this the receiver's policy $r(i_L, i_R, s(\theta_S (i_L, i_R, t))) \in \lbrace L, R \rbrace$ 
+\item If $r(i_L, i_R, s(\theta_S (i_L, i_R, t)) = t$, that is, if the receiver guesses the target, both players receive a payoff of 1 (win), otherwise they receive a payoff of 0 (lose).
+\end{enumerate}
+
+Many extensions to the basic referential game explored here are possible. There can be more images, or a more sophisticated communication protocol (e.g., communication of a sequence of symbols or multi-step communication requiring back-and-forth interaction\footnote{For example, \cite{Jorge:etal:2016} explore agents playing a ``Guess Who'' game to learn about the emergence of question-asking and answering in language.}),  rotation of the sender and receiver roles, having a human occasionally playing one of the roles, etc.
+
+\section{Experimental Setup}
+\label{sec:experimental-setup}
+%We instantiate our referential game as follows.
+
+\paragraph{Images} We use the McRae et al.'s
+(\citeyear{McRae:etal:2005}) set of 463 base-level concrete concepts
+(e.g., \emph{cat, apple, car}\ldots) spanning across 20 general
+categories (e.g., \emph{animal}, \emph{fruit/vegetable},
+\emph{vehicle}\ldots). We randomly sample 100 images of each concept
+from ImageNet~\citep{Deng:etal:2009}. To create target/distractor
+pairs, we randomly sample two concepts, one image for each concept and
+whether the first or second image will serve as target. We apply to
+each image a forward-pass through the pre-trained VGG
+ConvNet~\citep{Simonyan:Zisserman:2014}, and represent it with the
+activations from either the top 1000-D softmax layer (\emph{sm}) or the
+second-to-last 4096-D fully connected layer (\emph{fc}). %\COMMENT{add
+%  dimensions of the two layers}%
+%
+% We start with a set of concepts studied by ~\cite{McRae:etal:2005}, in the context of property norm generation. This set contains 541 base-level concrete concepts (e.g., cat, apple, car etc.) that span across 20 general and broad categories (e.g., animal, fruit/vegetable, vehicle etc). For the purposes of the current experiments, \textbf{X} McRae concepts were excluded (either because of high ambiguity or for technical reasons), resulting in \textbf{Y} concepts.
+% For each concept, we randomly sample 100 images from its respective ImageNet~\cite{Deng:etal:2009}  entry.  
+%\COMMENT{This would be a good place to describe how the images are
+%  represented by passing them through pre-trained CNNs, using one of
+%  two layers}
+
+\paragraph{Agent Players} Both sender and receiver are simple
+feed-forward networks.  For the sender, we experiment with the two
+architectures depicted in Figure \ref{fig:players_new}. Both  sender architectures take as input
+the target (marked with a green square in Figure \ref{fig:players_new}) and distractor representations, always in this order, so that they are implicitly informed of which image is the target (the receiver, instead, sees the two images in random order). 
+
+The \emph{agnostic} sender is a generic neural network that maps the
+original image vectors onto a ``game-specific'' embedding space (in
+the sense that the embedding is learned while playing the game)
+followed by a sigmoid nonlinearity.   Fully-connected
+weights are applied to the embedding concatenation to produce scores over vocabulary
+symbols.
+
+The \emph{informed} sender also first embeds
+the images into a ``game-specific'' space. It then applies 1-D
+convolutions (``filters'') on the image embeddings by treating them as
+different channels. The informed sender uses convolutions with 
+kernel size 2x1
+applied dimension-by-dimension to the two image embeddings (in
+Figure~\ref{fig:players_new}, there are 4 such filters). This is followed
+by the sigmoid nonlinearity. The resulting feature maps are combined through
+another filter (kernel size $f$x1, where $f$ is the number of filters
+on the image embeddings), to produce scores for the vocabulary
+symbols.  Intuitively, the informed sender has an inductive bias towards combining the two images dimension-by-dimension whereas the agnostic sender does not (though we note the agnostic architecture nests the informed one).
+
+For both senders, motivated by the
+discrete nature of language, we enforce a strong communication
+bottleneck that discretizes the communication protocol. Activations on
+the top (vocabulary) layer
+%is normalized by
+%the softmax transform
+are converted to a Gibbs distribution 
+(with temperature parameter $\tau$), and then a
+single symbol $s$ is sampled from the resulting probability
+distribution.
+
+The receiver takes as input the target and distractor image vectors in
+random order, as well as the symbol produced by the sender (as a one-hot
+vector over the vocabulary).  It embeds the images and
+the symbol into its own ``game-specific'' space. It then computes dot
+products between the symbol and image embeddings. Ideally, dot similarity should be higher for the image that is better denoted by the symbol. %
+% Intuitively, the dot similarity will be higher for the image for which
+% the symbol embedding is most active. 
+The two dot products are %softmax-transformed
+converted to a  Gibbs distribution 
+ (with temperature $\tau$) and the
+receiver ``points'' to an image by sampling from the resulting
+distribution.
+
+% We note that images are presented in a potentially different random order to each player so they cannot simply coordinate on `left' vs. `right'.
+%\COMMENT{I changed the descriptions of
+ % sampling of both sender and receiver to avoid a notation that is
+%  different from the one used in the General Framework. If you want to
+ % re-instated the notation, please make it compatible with the
+ % notation in that section (original chunks commented out but still in
+ % the source).}
+% Finally, the receiver performs the action of ``pointing'' to
+% an image $i$ by sampling from a Gibbs distribution
+% $p_{\theta_R}(o|i_L,i_R,s)$ (with temperature $\tau$) parametrized
+% by the scores over the two images $o_1$ and $o_2$ produced by the
+% receiver.
+% from a Gibbs distribution $p_{\theta_S}
+% (s|o_t,o_d)$ (with temperature $\tau$) parametrized by the symbol
+% scores produced by the sender. This produced symbol is the message
+% that the sender sends over to the receiver.
+
+
+%\COMMENT{Have you tried different depths for FULLYCONNECTED?} AL: Probably??
+% I see I repeat myself :)
+
+%\COMMENT{A bit more details: how are the networks trained, and vocabulary size}
+
+\begin{figure}
+\includegraphics[scale=0.65]{figures/players_new}
+\caption{Architectures of agent players.%\textbf{Any comments on there or they look ok? Put a frame around the target for the sender architectures. You can perhaps also grey out the 3d symbol of the senders, to clarify the link with the third input to the receiver.}
+}
+\label{fig:players_new}
+\end{figure}
+
+\paragraph{General Training Details} We set the following
+hyperparameters without tuning: embedding dimensionality: 50, number of filters applied to embeddings by
+  informed sender: 20, temperature of Gibbs distributions: 10. We explore two vocabulary sizes: 10 and 100 symbols. 
+  
+The sender and receiver parameters $\theta=\langle
+\theta_{R}, \theta_{S}\rangle$ are learned while playing the
+game. No weights are shared and the only supervision used is communication success, i.e.,
+whether the receiver pointed at the right referent. 
+
+This setup is naturally
+modeled with Reinforcement Learning \citep{Sutton:Barto:1998}. As
+outlined in Section \ref{sec:general-framework}, the sender follows policy $s(\theta_S (i_L, i_R, t))\in V$ and the receiver policy $r(i_L, i_R, s(\theta_S (i_L, i_R, t))) \in \lbrace L, R \rbrace$. The loss function that the two agents must minimize is  $-\Expect_{\tilde{r}} [R(\tilde{r})]$ where $R$ is the reward function returning 1 iff $r(i_L, i_R, s(\theta_S (i_L, i_R, t)) = t$. %
+%  The agent parameters implement a
+% \emph{policy}. By executing it, the agents perform
+% \emph{actions}, i.e., the sender picks a symbol from the distribution
+% $p_{\theta_S} (s|o_t,o_d)$ and the receiver points to an image by
+% sampling from the distribution $p_{\theta_R} (o|o_1,o_2,s)$. The loss
+% function that the two agents are minimizing is
+% $-\Expect_{\tilde{o}\sim p(o|o_1,o_2,s)}[R(\tilde{o})]$, where $R$ is
+% the reward function which returns 1 iff $\tilde{o} =$ target. 
+Parameters are updated through the Reinforce
+rule~\citep{Williams:1992}.  We apply mini-batch updates, with a batch
+size of 32 and for a total of 50k iterations (games).  At test time,
+we compile a set of 10k games using the same method as for the training games.
+
+We now turn to our main questions. The first is whether the agents can
+learn to successfully coordinate in a reasonable amount of time. The second is whether the agents' language can be thought of as ``natural language'',  i.e., symbols are assigned to meanings that make intuitive sense in terms of our conceptualization of the world.
+
+
+
+
+
+
+
+

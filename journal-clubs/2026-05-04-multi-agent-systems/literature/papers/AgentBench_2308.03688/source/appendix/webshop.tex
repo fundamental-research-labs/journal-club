@@ -1,0 +1,142 @@
+\section{Web Shopping} \label{app:ws}
+\subsection{Dataset Details}
+\vpara{Construction Detail.} 
+The environment displays the text observation of the webpage and available actions to agents. 
+Agent may freely explore the website and browse through items with clickable buttons just as in the real world. 
+About a million products are scraped from \texttt{amazon.com} to form the database of website. 
+Then each of them is annotated with labels representing its own attribute. 
+12,087 human instructions are collected and linked with goals along with expected attributes.
+Please refer to~\citep{yao2022webshop} for more dataset construction details.
+
+\vpara{Evaluation Setup.} 
+We adopt the first 500 entries of 12,087 instructions as test set (following ~\citep{yao2022webshop}'s official implementation). Each round of interaction can be decomposed as following steps:
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt,parsep=0.2em,topsep=0.0em,partopsep=0.0em]
+    \item \textbf{Instructing.} After the initial prompt that tells environment information and the format in which LLMs should response, we give instructions about what kind of product we wish to buy.
+    \item \textbf{Interacting.} Agent respond in given format, as prompted, containing their thoughts and the action they wish to take. The actions can be categorized into two types: search and click, corresponding with the actual actions of using search engine and clicking buttons in real world. The environment answers agent's action with a simplified text version of webpage and a list of available buttons. This process repeats until the agent click "buy now" button or round limit is exceeded.  
+    \item \textbf{Calculating reward.} We use the reward function in the paper as the metric. The reward is mapping from the similarity of the attributes we are expecting and the attributes that the bought product actually have to a number between 0 and 1.
+\end{itemize}
+
+\vpara{Metrics.}
+As there might be more than one suitable item for a given query, Webshop adopts a matching reward as its evaluation metric:
+\begin{equation}
+    \textbf{Reward} = \frac{|U_{att} \cap Y_{att}| + |U_{opt} \cap Y_{opt}| + \mathbb{I} [y_{price} \leq u_{price}]}{|U_{att}| + |U_{opt}| + 1} \cdot r_{type}
+\end{equation}
+where
+\begin{equation}
+    r_{\text{type}} = 
+    \begin{cases}
+        0, & \text{if } \text{TextMatch} = 0\\
+        0.1, & \text{if } \text{TextMatch} < 0.1\\
+        0.5, & \text{if } \text{TextMatch} \leq 0.2 \text{ and } \text{query not match} \text{ and } \text{category not match}\\
+        1, & \text{otherwise}
+    \end{cases}
+\end{equation}
+
+$U$ and $Y$ stand for goal and chosen product, $att$ and $opt$ stand for attributes and options. $\text{TextMatch}$ is a text match of pronoun, noun, and proper noun between chosen and goal product title.
+
+\subsection{Prompt Example}
+We use the following format of the prompt:
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,244},
+    breaklines=true,
+    basicstyle=\ttfamily\small
+}\begin{lstlisting}
+User:
+You are web shopping.
+I will give you instructions about what to do.
+You have to follow the instructions.
+Every round I will give you an observation and a list of available actions, you have to respond an action based on the state and instruction.
+You can use search action if search is available.
+You can click one of the buttons in clickables.
+An action should be of the following structure:
+search[keywords]
+click[value]
+If the action is not valid, perform nothing.
+Keywords in search are up to you, but the value in click must be a value in the list of available actions.
+Remember that your keywords in search should be carefully designed.
+Your response should use the following format:
+
+Thought:
+I think ...
+
+Action:
+click[something]}
+\end{lstlisting}
+
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,244},
+    breaklines=true,
+    basicstyle=\ttfamily\small
+}\begin{lstlisting}
+User:
+Observation:
+{observation}
+
+
+Available Actions:
+{available_actions}
+\end{lstlisting}
+
+We use an one-shot example.
+
+\lstset{
+    backgroundcolor=\color[RGB]{245,245,244},
+    breaklines=true,
+    basicstyle=\ttfamily\small
+}\begin{lstlisting}
+User:
+Observation:
+"WebShop [SEP] Instruction: [SEP] i need a long lasting 6.76 fl oz bottle of l'eau d'issey, and price lower than 100.00 dollars [SEP] Search"
+
+Available Actions:
+{"has_search_bar": true, "clickables": ["..."]}
+
+Agent:
+Thought:
+I think I should use the search bar to look for the product I need.
+
+Action:
+search[l'eau d'issey 6.76 fl oz bottle price < 100.00]
+
+User:
+Observation:
+"Instruction: [SEP] i need a long lasting 6.76 fl oz bottle of l'eau d'issey, and price lower than 100.00 dollars [SEP] Back to Search [SEP] Page 1 (Total results: 50) [SEP] Next > [SEP] B000VOHH8I [SEP] L'eau D'issey By Issey Miyake for MenEau De Toilette Spray, 6.7 Fl Oz Bottle [SEP] $64.98 [SEP] B000MJZOPK [SEP] L'eau d'Issey by Issey Miyake for Women 3.3 oz Eau de Toilette Spray [SEP] $49.98 [SEP] B0012S249E [SEP] L'eau D'issey By Issey Miyake For Women. Shower Cream 6.7-Ounces [SEP] $31.36 [SEP] B01H8PGKZS [SEP] L'eau D'Issey FOR MEN by Issey Miyake - 6.7 oz EDT Spray [SEP] $67.97 [SEP] B00G3C8FHE [SEP] L'Eau d'Issey pour Homme - Eau de Toilette 4.2 fl oz [SEP] $51.25 [SEP] B000R94HRG [SEP] Issey Miyake L'Eau D'Issey Pour Homme Eau De Toilette Natural Spray [SEP] $44.99 [SEP] B000C214CO [SEP] Issey Miyake L'eau D'issey Eau de Toilette Spray for Men, 4.2 Fl Oz [SEP] $53.99 [SEP] B0018SBRDC [SEP] Issey Miyake L'eau d'Issey for Women EDT, White, 0.84 Fl Oz [SEP] $27.04 [SEP] B000XEAZ9Y [SEP] L'eau De Issey By Issey Miyake For Men. Eau De Toilette Spray 6.7 Fl Oz [SEP] $67.08 [SEP] B079HZR2RX [SEP] L'eau d'Issey Pure by Issey Miyake for Women 3.0 oz Nectar de Parfum Spray [SEP] $71.49"
+
+Available Actions:
+{"has_search_bar": false, "clickables": ["...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "..."]}
+
+Agent:
+Thought:
+I think I should click on the product I need, which is B000VOHH8I.
+
+Action:
+click[B000VOHH8I]
+
+User:
+Observation:
+"Instruction: [SEP] i need a long lasting 6.76 fl oz bottle of l'eau d'issey, and price lower than 100.00 dollars [SEP] Back to Search [SEP] < Prev [SEP] size [SEP] 2.5 fl oz [SEP] 6.76 fl oz (pack of 1) [SEP] L'eau D'issey By Issey Miyake for MenEau De Toilette Spray, 6.7 Fl Oz Bottle [SEP] Price: $64.98 [SEP] Rating: N.A. [SEP] Description [SEP] Features [SEP] Reviews [SEP] Buy Now"
+
+Available Actions:
+{"has_search_bar": false, "clickables": ["...", "...", "...", "...", "...", "...", "...", "..."]}
+
+Agent:
+Thought:
+I think I should click on the '6.76 fl oz (pack of 1)' option to select the size I need.
+
+Action:
+click[6.76 fl oz (pack of 1)]
+
+User:
+Observation:
+"Instruction: [SEP] i need a long lasting 6.76 fl oz bottle of l'eau d'issey, and price lower than 100.00 dollars [SEP] Back to Search [SEP] < Prev [SEP] size [SEP] 2.5 fl oz [SEP] 6.76 fl oz (pack of 1) [SEP] L'eau D'issey By Issey Miyake for MenEau De Toilette Spray, 6.7 Fl Oz Bottle [SEP] Price: $64.98 [SEP] Rating: N.A. [SEP] Description [SEP] Features [SEP] Reviews [SEP] Buy Now"
+
+Available Actions:
+{"has_search_bar": false, "clickables": ["...", "...", "...", "...", "...", "...", "...", "..."]}
+
+Agent:
+Thought:
+I think I should click on the 'Buy Now' button to purchase the product.
+
+Action:
+click[Buy Now]
+\end{lstlisting}

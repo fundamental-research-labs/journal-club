@@ -1,0 +1,21 @@
+\section{Ablation Study of Agent Framework\label{sec: ablation study}}
+
+In this part we discuss  alternations of framework design for testing LLM agents. Our principal goal is to test the \textbf{basic} agentic abilities of LLM, which calls for a simplistic framework to avoid introducing confounders. Currently there are many modular-based agent frameworks~\citep{wang2023voyager, hong2023metagpt, wu2024copilot} that could improve performances of agents. However, these frameworks often involve intricate design and not applicable to all LLMs. Therefore, we choose Act~\citep{yao2022react} as our framework, which requires minimal design and is applicable to most instruction-following LLMs.
+
+\input{tables/ablation_react}
+
+One popular alternative for our framework is to use ReAct~\citep{yao2022react} rather than Act, which uses interleaved thoughts in addition to actions to boost planning. However, our experiments on GPT-3.5-Turbo show inconsistent improvement of ReAct over performance of Act, as shown in Table \ref{tab: compare react}. We hypothesized that this is due to we test long-term interactions of LLM Agents up to 30 interactions, and adding thoughts would pressure context length, thus leading to performance drop. Therefore, we use Act rather than ReAct in our benchmark.
+
+Another major alternation is how to handle out of context length prompts during agent prompting. Here we provide ablation study on alternatives to our \textit{sliding window} approach: 
+
+\begin{itemize}
+    \item \emph{Sliding Window }(Current Approach): We keep record of most recent interaction history within the prompt. 
+    \item \emph{Cutoff}: This approach has been used in AgentBench~\citep{liu2023agentbench}. It removes the sliding window and stops the interaction when the prompt (including history) overflows the maximum context length. 
+    \item \emph{Summary}: This approach has been used in ~\citet{xu2023gentopia, Chase_LangChain_2022}. It uses the LLM to generate a summary of history to replace the interaction history when the prompt overflows maximum context length. 
+\end{itemize}
+
+\input{tables/ablation_history}
+
+We benchmark on \texttt{GPT-3.5-Turbo} with only 4k context length and \texttt{Mistral} with 32k context length. The results are shown in Table \ref{tab: ablation history}. First, the memory component design barely affects models with long context length (\texttt{Mistral}), while greatly affects \texttt{GPT-3.5-Turbo}. The Summary method depends on the summarization ability of the LLM, therefore its performance varies between tasks. The cutoff method generally performs worse than sliding windows, though it is more stable than summary. 
+
+This shows that sliding window enables LLMs to make use of its limited context length. Its simple design also avoids introducing confounders into our benchmark, e.g. summarization abilities of LLM.

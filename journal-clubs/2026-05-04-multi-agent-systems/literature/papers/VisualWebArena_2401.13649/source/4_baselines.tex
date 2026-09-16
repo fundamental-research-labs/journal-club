@@ -1,0 +1,72 @@
+\section{Baselines}  \label{sec:baselines}
+
+We run several baselines to benchmark the performance of state-of-the-art LLM and VLM agents. All models are prompt-based and provided with 3 in-context examples (one from each environment), which share no overlap with the benchmark tasks. The prompts we use are provided in the appendix. We summarize the results in Tab.~\ref{tab:results} and describe the baselines in detail in the following sections.
+
+\subsection{Text-based LLM Agents}
+
+Several prior works developed autonomous agents by prompting text-based LLMs~\citep{zhou2023webarena,kim2023language,liu2023bolaa}. We benchmark several text-based LLM agents with Chain-of-Thought prompting~\cite{wei2022chain} over the accessibility tree representations of the websites as input, and leave more advanced prompting strategies for future work. We test API-based LLMs, including GPT-4 Turbo (\texttt{gpt-4-1106-preview}), GPT-3.5 Turbo (\texttt{gpt-3.5-turbo-1106}), and Gemini-Pro, as well as open sourced LLMs (LLaMA-2-70B, Mixtral-8x7B).
+
+
+\begin{table*}[t]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+\multirow{2}{*}{\textbf{Model Type}} & \multirow{2}{*}{\textbf{LLM Backbone}} & \multirow{2}{*}{\textbf{Visual Backbone}} & \multirow{2}{*}{\textbf{Inputs}} & \multicolumn{4}{c}{\textbf{Success Rate ($\uparrow$)}} \\
+\cmidrule(lr){5-8}
+& & & & \textbf{Classifieds} & \textbf{Reddit} & \textbf{Shopping} & \textbf{Overall} \\
+\midrule
+\multirow{5}{*}{Text-only} & LLaMA-2-70B & \multirow{5}{*}{-} & \multirow{5}{*}{Acc. Tree} & 0.43\% & 1.43\% & 1.29\% & 1.10\% \\
+                        & Mixtral-8x7B &  &  & 1.71\% & 2.86\% & 1.29\% & 1.76\% \\
+                        & Gemini-Pro &  &  & 0.85\% & 0.95\% & 3.43\% &  2.20\% \\
+                        & GPT-3.5 &  &  & 0.43\% & 0.95\% & 3.65\% &  2.20\% \\
+                        & GPT-4 &  &  & 5.56\% & 4.76\% & 9.23\% & 7.25\% \\
+\midrule
+\multirow{6}{*}{Caption-augmented} & LLaMA-2-70B & BLIP-2-T5XL & \multirow{6}{*}{Acc. Tree + Caps} & 0.00\%  &  0.95\%  & 0.86\% & 0.66\% \\
+                        & Mixtral-8x7B & BLIP-2-T5XL &  & 1.28\% & 0.48\% & 2.79\% & 1.87\% \\
+                        & GPT-3.5 & LLaVA-7B &  & 1.28\% & 1.43\% & 4.08\% & 2.75\% \\
+                        & GPT-3.5 & BLIP-2-T5XL &  & 0.85\%  & 1.43\% & 4.72\% & 2.97\% \\
+                        & Gemini-Pro & BLIP-2-T5XL &  & 1.71\%  & 1.43\% & 6.01\% & 3.85\% \\
+                        & GPT-4 & BLIP-2-T5XL &   & 8.55\% &  8.57\% &  16.74\% & 12.75\% \\
+\midrule
+\multirow{4}{*}{Multimodal} & \multicolumn{2}{c}{IDEFICS-80B-Instruct} & \multirow{4}{*}{Image + Caps + Acc. Tree} &  0.43\% & 0.95\% & 0.86\% & 0.77\% \\ 
+                        & \multicolumn{2}{c}{CogVLM} &  & 0.00\% & 0.48\% & 0.43\% &  0.33\% \\ 
+                        % & \multicolumn{2}{c}{Qwen-VL} &  & \color{blue}{XX\%} &  \color{blue}{XX\%} & \color{blue}{XX\%}  &  \color{blue}{XX\%} \\ 
+                        & \multicolumn{2}{c}{Gemini-Pro} &  & 3.42\% & 4.29\% & 8.15\% &  6.04\% \\ 
+                        & \multicolumn{2}{c}{GPT-4V} &  & 8.12\%   &  12.38\% &  \textbf{19.74\%} & 15.05\% \\
+\midrule
+\multirow{4}{*}{Multimodal (SoM)} &  \multicolumn{2}{c}{IDEFICS-80B-Instruct} & \multirow{4}{*}{Image + Caps + SoM} & 0.85\% & 0.95\% & 1.07\% & 0.99\% \\ 
+                        & \multicolumn{2}{c}{CogVLM} &  & 0.00\% & 0.48\% & 0.43\% &  0.33\% \\ 
+                        % & \multicolumn{2}{c}{Qwen-VL} &  & \color{blue}{XX\%} & \color{blue}{XX\%} & \color{blue}{XX\%} &  \color{blue}{XX\%} \\ 
+                        & \multicolumn{2}{c}{Gemini-Pro} &  & 3.42\% & 3.81\% & 7.73\% & 5.71\% \\ 
+                        % & \multicolumn{2}{c}{Gemini-Flash-1.5} &  & 3.85\% & 4.76\% & 8.80\% &  6.59\% \\ 
+                        % & \multicolumn{2}{c}{Gemini-Pro-1.5} &  & 5.98\% & 12.86\% & 14.59\% &  11.98\% \\ 
+                        & \multicolumn{2}{c}{GPT-4V} &  &  \textbf{9.83\%} &  \textbf{17.14\%} & 19.31\% & \textbf{16.37\%}  \\ 
+                        % & \multicolumn{2}{c}{GPT-4o} &  &  \textbf{17.95\%} &  \textbf{17.14\%} & \textbf{21.24\%} & \textbf{19.45\%}  \\ 
+\midrule
+\multirow{1}{*}{Human Performance} &   - & - & \multirow{1}{*}{Webpage} & 91.07\% &  87.10\% & 88.39\% &  88.70\% \\ 
+\bottomrule
+\end{tabular}
+}
+% \vspace{-0.12in}
+\caption{Success rates of baseline LLM and VLM agents on \BenchmarkName{}.}  \label{tab:results}
+% \vspace{-0.15in}
+\end{table*}
+
+
+\subsection{Image Caption Augmented LLM Agents}
+
+\BenchmarkName{} is a visually grounded benchmark, and we expect that leveraging complementary visual information would improve performance. Hence, we run pretrained image captioning models on every \texttt{img} element on the HTML page, and augment the accessibility tree with this information as the image alt-text before passing this as input to the LLM agents. If a task contains input images, we also caption them and include the captions as part of the prompt. We run experiments on GPT-3.5 with two recent image captioning models, BLIP-2-T5XL~\citep{li2023blip} and LLaVA-v1.5-7B~\citep{liu2023improved}. Our results with GPT-3.5 as the LLM backbone (``Caption-augmented'' section of Tab.~\ref{tab:results}) suggest that the LLaVA and BLIP-2 captioning models achieve comparable performance. Since BLIP-2 achieves a slightly higher success rate, is a smaller model, and requires less GPU VRAM, we use it as the captioning backbone for the remaining experiments.
+
+\subsection{Multimodal Agents} \label{sec:som_method}
+
+
+Finally, we benchmark strong API-based and open-source VLMs as agents. 
+% Unlike the previous text-based models, these multimodal models are trained on large datasets of paired text and images, allowing them to learn joint representations between vision and language. 
+We evaluate several models capable of processing multiple interleaved image-and-text inputs: GPT-4V~\citep{openai2023gpt4}, Gemini-Pro~\citep{team2023gemini}, \href{https://huggingface.co/HuggingFaceM4/idefics-80b-instruct}{IDEFICS-80B-Instruct} (a reimplementation of Flamingo~\citep{alayrac2022flamingo}), and CogVLM~\citep{wang2023cogvlm}. 
+We experiment with two settings:
+
+\paragraph{Image Screenshot + Captions + Accessibility Tree:} This approach provides the accessibility tree representation augmented with image captions as accessibility tree alt-text from BLIP-2-T5XL (similar to the caption-augmented agent), as well as the screenshot of the current webpage as inputs. This provides the model with both the structural information and the visual context of the website.
+
+\paragraph{Image Screenshot + Captions + SoM:} Inspired by Set-of-Marks prompting~\cite{yang2023som}, we perform an initial preprocessing step by using JavaScript to automatically annotate every interactable element on the webpage with a bounding box and a unique ID. The annotated screenshot containing bounding boxes and IDs, are provided as input to the multimodal model along with a text representation of the SoM (see Fig.~\ref{fig:som_figure}). Similar to the baselines above, we also provide the captions from BLIP-2-T5XL for all \texttt{img} elements on the page. There have been several projects\footnote{\href{https://github.com/ddupont808/GPT-4V-Act}{GPT-4V-ACT} and \href{https://github.com/ishan0102/vimGPT}{vimGPT} propose similar interfaces.} that propose similar representations. Most have been proof-of-concept demos, and to the best of our knowledge, we are the first to systematically benchmark this on a realistic and interactive web environment. % such as \BenchmarkName{}.
+

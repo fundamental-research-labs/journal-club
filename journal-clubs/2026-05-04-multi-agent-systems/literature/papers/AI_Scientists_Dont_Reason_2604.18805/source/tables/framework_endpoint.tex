@@ -1,0 +1,50 @@
+
+\begin{longtable}{p{0.1\linewidth} p{0.3\linewidth} p{0.5\linewidth}}
+\caption{\textbf{Benchmark Server API Endpoints}. The table specifies all the endpoints that the server hosting the environments admits.}
+\label{tab:api-endpoints} \\
+\toprule
+\textbf{Method} & \textbf{Path} & \textbf{Description} \\
+\midrule
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\bfseries Table \thetable\ continued from previous page}} \\
+\toprule
+\textbf{Method} & \textbf{Path} & \textbf{Description} \\
+\midrule
+\endhead
+
+\bottomrule
+\endfoot
+
+\multicolumn{3}{c}{\textbf{Task and Environment Discovery}} \\
+\midrule
+GET & \path{/tasks} & Retrieves a list of all available task IDs in the benchmark. \\
+\midrule
+GET & \path{/dependency_chain} & Indicates whether any tasks in the benchmark are part of a dependency chain. \\
+\midrule
+GET & \path{/tasks/{task_id}/prompt} & Fetches the specific prompt for a given task. The \verb|{task_id}| is a path parameter representing the unique identifier for the task. \\
+\midrule
+GET & \path{/tasks/{task_id}/guide} & Returns the complete environment guide for a task, including the prompt and a detailed description of the available tools. Accepts an optional \verb|verbosity| query parameter (e.g., \verb|MINIMAL| or \verb|WORKFLOW|) to control the level of detail in the tool descriptions. \\
+\midrule
+\multicolumn{3}{c}{\textbf{Tool Interaction and Introspection}} \\
+\midrule
+GET & \path{/tasks/{task_id}/tools} & Returns a structured JSON object detailing the available tools for a task, compatible with function-calling APIs. The level of detail in the argument descriptions is controlled by the optional \verb|verbosity| query parameter. \\
+\midrule
+GET & \path{/tasks/{task_id}/tools/guide} & Provides a guide to the tools available for a specific task. Also accepts the optional \verb|verbosity| query parameter. \\
+\midrule
+POST & \path{/tasks/{task_id}/tools/execute} & Executes a specified tool with the provided arguments within the task's environment. The tool name and arguments are sent in the request body. \\
+\midrule
+\multicolumn{3}{c}{\textbf{State Management and Task Submission}} \\
+\midrule
+GET & \path{/tasks/{task_id}/state} & Retrieves the current state of the specified task environment. \\
+\midrule
+POST & \path{/tasks/{task_id}/submit} & Submits a final answer for the task. The submitted answer is in the request body. The response includes the score and the final state of the trial. \\
+\midrule
+GET & \path{/tasks/{task_id}/status} & Gets the completion status of a task, including whether it is completed, the final score, the submitted answer, and tool usage statistics. \\
+\midrule
+GET & \path{/tasks/{task_id}/trials} & Retrieves the states of all trials that have been run for a specific task. \\
+\midrule
+GET & \path{/tasks/{task_id}/trials/{trial_id}} & Fetches the state of a specific trial for a given task, identified by its unique \verb|{trial_id}|. \\
+
+\end{longtable}

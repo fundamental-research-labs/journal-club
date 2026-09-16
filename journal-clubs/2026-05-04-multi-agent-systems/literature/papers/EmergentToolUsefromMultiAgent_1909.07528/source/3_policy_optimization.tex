@@ -1,0 +1,19 @@
+Agents are trained using self-play, which acts as a natural curriculum as agents always play opponents of an appropriate level.
+
+Agent policies are composed of two separate networks with different parameters -- a policy network which produces an action distribution and a critic network which predicts the discounted future returns. Policies are optimized using Proximal Policy Optimization (PPO) \citep{schulman2017proximal} and Generalized Advantage Estimation (GAE) \citep{schulman2015high}, and training is performed using \textit{rapid} \citep{openai2018}, a large-scale distributed RL framework. 
+We utilize decentralized execution and centralized training.
+At execution time, each agent acts given only its own observations and memory state. 
+At optimization time, we use a centralized omniscient value function for each agent, which has access to the full environment state without any information masked due to visibility, similar to \cite{pinto2017asymmetric,lowe2017,foerster2018counterfactual}. 
+
+In all reported experiments, agents share the same policy parameters but act and observe independently; however, we found using separate policy parameters per agent also achieved all six stages of emergence but at reduced sample efficiency.
+% \footnote{Training with shared weights can be simpler to implement and more data efficient. However, we've also run experiments where each agent has independent policy parameters and observed comparable results to those presented in this paper.}. During each episode, players have a 5\% chance of using a policy uniformly sampled from past versions, which is commonly used to improve policy robustness \citep{rosin1997, ficici2003, bansal2017}.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=.8\linewidth]{assets/policy-architecture_anonymous_9-12a.pdf}
+\end{center}
+\caption{Agent Policy Architecture. All entities are embedded with fully connected layers with shared weights across entity types, e.g. all box entities are encoded with the same function. The policy is ego-centric so there is only one embedding of ``self'' and $(\# \text{agents} - 1)$ embeddings of other agents. Embeddings are then concatenated and processed with masked residual self-attention and pooled into a fixed sized vector (all of which admits a variable number of entities). $x$ and $v$ stand for state (position and orientation) and velocity.}
+\label{fig:policyarchitecture}
+\end{figure}
+
+We utilize entity-centric observations~\citep{dvzeroski2001relational,diuk2008object} and use attention mechanisms to capture object-level information~\citep{duan2017one,zambaldi2018relational}. As shown in  Figure~\ref{fig:policyarchitecture} we use a self-attention \citep{vaswani2017attention} based policy architecture over entities, which is permutation invariant and generalizes to varying number of entities. More details can be found in Appendix~\ref{appendix:optimization_hps}.

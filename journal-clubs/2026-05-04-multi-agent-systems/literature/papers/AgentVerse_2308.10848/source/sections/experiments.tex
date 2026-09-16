@@ -1,0 +1,119 @@
+\section{Experiments}
+\label{sec:experiments}
+
+
+
+To validate the superiority of \framework in facilitating agent collaboration over standalone agents, we design four experimental tasks. Each task is designed to assess distinct aspects of an agent group: general understanding and reasoning capabilities, coding capabilities, tool utilization capabilities, and their potential in Embodied AI. Our findings, which are detailed in this section, consistently highlight the superior performance of \framework across these varied and multi-faceted tasks. Of particular interest is the emergence of unique collaborative behaviors within agent groups. While this section focuses on the advantages of multi-agent setups, a deeper exploration of these emergent behaviors will be presented in~\cref{ssec:emerging_behaviors}.
+
+\textbf{Setups.}
+In all the experiments, we evaluate the performance of agents driven by GPT-3.5-Turbo-0613 and GPT-4-0613 across various tasks. All the experiments are done in \textbf{zero-shot} setting. For all the quantitative experiments in this section, we compare three settings: (1) \textbf{CoT}: The CoT(chain-of-thought) agent; (2) \textbf{Solo}: Using \framework with a single agent in the decision-making stage. Compared with CoT, Solo additionally incorporates the expert recruitment, action execution, and evaluation modules; (3) \textbf{Group}: Implementing \framework with multiple agents collaborating during the decision-making. More detailed experimental setups for each task can be found in~\cref{sec:appendix-quant-config}. 
+
+\subsection{General Understanding and Reasoning Capabilities}
+\label{ssec:experiment-generation-abilities}
+\begin{table}[!t]
+\begin{center} 
+\caption{The results on different tasks that evaluate the agents' general capabilities.}
+\vspace{-0.5em}
+% \resizebox{\linewidth}{!}{
+\begin{tabular}{l c c c c c c}
+\toprule
+& \multicolumn{3}{c}{\textbf{GPT-3.5-Turbo}} & \multicolumn{3}{c}{\textbf{GPT-4}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+\textbf{Task} & CoT & Solo & Group & CoT & Solo & Group \\
+\midrule
+Conversation (FED)  & 81.6 & 81.1 & \textbf{85.1} & 95.4 & 95.8 & \textbf{96.8} \\
+Creative Writing (Commongen-Challenge) & 76.6 & \textbf{93.6} & 92.3 & 95.9 & 99.0 & \textbf{99.1} \\
+Mathematical Reasoning (MGSM)  & 80.4 & \textbf{82.4} & 80.8 & 95.2 & \textbf{96.0} & 95.2 \\
+Logical Reasoning (Logic Grid Puzzles) & - & - & - & 59.5 & 64.0 & \textbf{66.5} \\
+% Coding (Humaneval) & 73.8 & 74.4 & \textbf{75.6} & 83.5 & 87.2 & \textbf{89.0} \\
+\bottomrule
+\end{tabular}
+\label{table:general-ability-experiment}
+\vspace{-1.5em}
+\end{center} 
+\end{table}
+To assess the agents' general understanding and reasoning capabilities, we use four datasets: FED~\citep{DBLP:conf/sigdial/MehriE20}, Commongen Challenge~\citep{DBLP:journals/corr/abs-2303-17651}, MGSM~\citep{DBLP:conf/iclr/ShiSF0SVCTRZ0W23}, and Logic Grid Puzzles~\citep{DBLP:journals/corr/abs-2206-04615}. Detailed descriptions of these datasets and metrics can be found in~\cref{sec:appendix-quant-config}. The first two datasets are used to measure the agents' text understanding and creative writing abilities, while the latter two focus on examining the agents' reasoning abilities, including mathematical and logical reasoning.
+
+\textbf{Experimental Results.}
+The results in \cref{table:general-ability-experiment} show that agents assembled by \framework (Solo and Group setups) consistently outperform the standalone CoT agent, irrespective of the LLM used. In our preliminary evaluations, GPT-3.5-Turbo struggles with accurately handling the logic grid puzzles dataset; therefore, we omit the result of GPT-3.5-Turbo on logical reasoning.
+
+Interestingly, for GPT-3.5-Turbo, the Group setup underperforms the Solo setup in two of three tasks, indicating that the discussion in decision-making might adversely impact performance for agents based on GPT-3.5-Turbo in certain contexts. Delving deeper into this observation, one predominant factor surfaces: the susceptibility to erroneous feedback. A recurring pattern observed in the Group setup is that: sometimes Agent A, despite starting with a correct answer, would be easily swayed by Agent B's incorrect feedback. Roughly 10\% of errors in the MGSM dataset can be traced to this dynamic. Notably, this phenomenon is absent in GPT-4-based agents, highlighting the importance of agents' resilience to conflicting information during collaborative discussions. 
+
+Overall, the results show that \framework effectively enhances the general understanding and reasoning capabilities of agents. Moreover, agents driven by advanced LLMs demonstrate better performance when engaged in collaborative decision-making. The nuanced challenges observed with GPT-3.5-Turbo indicate the need to improve LLMs' robustness on incorrect information so that the collaboration can amplify individual strengths without introducing new vulnerabilities. 
+
+
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\textwidth]{figs/files/brainstorming.pdf}
+    \vspace{-1.5em}
+    \caption{The illustration of an example process of consulting. The task is to \textit{give some suggestions on building a compressed hydrogen storage station in Ohio}.}
+    \label{fig:project_consulting}
+    \vspace{-1em}
+\end{figure}
+\textbf{Case Study: Consulting.}
+\label{sssec:experiment-general-ability-case}
+In~\cref{table:general-ability-experiment}, the Group setup does not show a clear advantage over the Solo setup for both LLMs. This is mainly because the evaluation metrics for each benchmark have a limited scope. In the following case, we highlight the benefits of the group formed by GPT-4 agents by focusing on a consulting scenario where the group acts as a consultancy, responding to inquiries as shown in \cref{fig:project_consulting}. The goal is to offer suggestions for a hydrogen storage station in Ohio.
+
+At first glance, the Solo setup seems to cover a broader scope than the Group setup at round 0. However, the Group setup offers more depth thanks to the recruited experts. For instance, while the Solo setup might suggest something basic like "Find an optimal location", the Group setup provides detailed advice, such as "evaluating site soil properties to ensure storage tank stability." By the second round, different experts offer new insights in the Group setup. As a result, the Group setup not only covers a broader range (highlighted in red in the referenced figure) but also gives more detailed advice. For a detailed look at agent interactions, see~\cref{sec:appendix-examples}.
+
+
+\subsection{Coding Capabilities}
+\label{ssec:experiment-coding}
+
+In this section, we first assess the agents' coding capabilities using the Humaneval code completion dataset. Next, through a case study, we illustrate how collaboration among multiple agents improves output quality, highlighting its superiority over software development by just one agent.
+
+
+\textbf{Experimental Results.}
+In~\cref{table:humaneval}, we see a clear performance improvement moving from CoT to Solo and then to Group setup. This trend is especially pronounced with GPT-4, which sees a performance boost from 83.5 to 89.0. These results highlight \framework's effectiveness in managing a skilled group of agents for coding. For GPT-3.5-Turbo, although we have observed a drop 
+\begin{wraptable}{r}{16em}
+    \centering
+    % \vspace{-1.3em}
+    \caption{The pass@1 on Humaneval.}
+    \vspace{-0.5em}
+    \begin{tabular}{l c c}
+        \toprule
+        \textbf{Setting} & \textbf{GPT-3.5-Turbo} & \textbf{GPT-4} \\
+        \midrule
+        CoT & 73.8 & 83.5 \\
+        Solo & 74.4 & 87.2 \\
+        Group & \textbf{75.6} & \textbf{89.0} \\
+        \bottomrule
+    \end{tabular}
+    \label{table:humaneval}
+    \vspace{-1em}
+\end{wraptable}
+in performance with Group setup in~\cref{ssec:experiment-generation-abilities} due to incorrect agent feedback in math reasoning, the coding evaluations show benefits. We posit that this might be attributed to LLMs' extensive pre-training on codes, potentially rendering them more adept at coding than mathematical reasoning and, consequently, more resilient to erroneous information in coding.
+
+\textbf{Case Study: Software Development.}
+\label{sssec:experiment-coding-case}
+Our examination of the code generated for Humaneval by the Group setup in \framework offers benefits beyond mere correctness. The agent group refines solutions, yielding more efficient, robust, and secure algorithms that are not covered by simple pass@1 metric. To better elucidate these advantages, we present a case study with GPT-4 on software development, a domain requiring multifaceted collaboration and refinement.
+
+\input{figs/codes/calculator}
+We present an example where \framework creates a Python-based calculator GUI by bringing together diverse expert agents. A concise development process overview is visualized in~\cref{fig:calculator}. 
+Comparing the applications from the Group and Solo setups reveals notable distinctions. Both achieve core functionality, but the Group-created calculator boasts a user-friendly interface with features like color distinctions and keyboard input. This improved design resulted from the diverse feedback of the multi-agent group. Suggestions from UI designer and evaluators enhance the user experience, while software tester enhances code robustness. A deeper examination of the code confirms that the multi-agent group's output excels in exception handling compared to that of a solo agent. The codes generated by the two setups and the complete progress can be seen at~\cref{sec:appendix-examples}.
+
+
+
+
+
+
+
+
+\subsection{Tool Utilization Capabilities}
+\label{sec:experiment-tool}
+\input{figs/codes/process-tool}
+The capability of LLMs to use real-world tools has been emphasized in many recent studies~\citep{DBLP:journals/corr/abs-2302-04761,qin2023tool}. By equipping the LLMs with different tools such as a calculator, a web browser, and a code interpreter, the capabilities of LLMs can be significantly improved. In this section, we demonstrate that \framework enables a group of agents to address intricate and multi-faceted tasks that require interaction with multiple tools, thereby enhancing work efficiency.
+
+\textbf{Experimental Results.}
+\label{sec:experiment-tool-result}
+We design a set of 10 intricate tasks, each requiring the use of at least two distinct tools to accomplish. By providing agents access to several tools, including Bing search API, a web browser, a code interpreter, and task-related APIs, we explore how \framework facilitates agent collaboration, dissects the overarching task into manageable sub-tasks, and effectively deploys the available tools to address realistic user queries.
+Of the \textbf{10} challenging tasks provided, an agent group orchestrated by \framework adeptly accomplishes \textbf{9} tasks. On the other hand, a standalone ReAct agent~\citep{yao2023react}, which is a prevalent agent designed for tool using, can only fulfill \textbf{3} tasks. In 6 out of 7 tasks where the single ReAct agent fails, the agent does not adhere to one or more criteria detailed in the task, and exit earlier than expected. We refer interested readers to~\cref{sec:appendix-tool-instruction} for a comprehensive comparison of the solutions given by \framework and a single ReAct agent.
+
+\textbf{Case Study: Solving 24-Point Game and Providing Similar Games.}
+\label{sec:experiment-tool-case}
+Here, we present an example in~\cref{fig:process-tool}, illustrating how \framework searches for the rules of 24-point game, implements the code along with test cases, and explores similar games. The task is multifaceted; thus, during decision-making stage, the agents split the task into two sub-tasks in their discussion, and each assigned to a certain agent. While agent Charlie overlooks the sub-task of identifying games similar to the 24-point game in round 0, feedback from the evaluation module rectifies this in the subsequent iteration. Ultimately, the agent group provides not only the 24-point game rules and a solving code with test cases, but also a summary of a similar game. In contrast, a standalone ReAct agent merely provides the game's definition along with a code and omits the query for similar games.
+
+
+
+

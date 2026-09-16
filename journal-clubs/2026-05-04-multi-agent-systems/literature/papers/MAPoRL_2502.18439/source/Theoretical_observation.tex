@@ -1,0 +1,91 @@
+\safevspace{-2.2mm}
+\safevspace{-1.5mm}
+
+\section{Analytical Insights: Collaborate  to Solve Hard Questions}
+\safevspace{-2.2mm}
+\label{sec:theory}
+In this section, we present a simplified model of multi-LLM collaboration and explain (a) why {\it co-training}  multiple LLMs is necessary compared to training a single agent,  and (b) the role of incentives to further enhance collaboration during training. We validate both aspects through experiments in \Cref{sec:exp}.
+\safevspace{-2.2mm}
+\safevspace{-1.5mm}
+
+
+\subsection{Problem Setup}
+\safevspace{-2.2mm}
+
+We consider questions that inherently require collaboration for a successful solution. For instance, solving complex mathematical problems often requires  collaboration  among  multiple agents \citep{liang2023encouraging, du2023improving}. Beyond mathematics, collaboration can also enhance the performance on tasks related to privacy, factuality, and reliability \citep{feng2025llmdroolsmultillmcollaboration}.
+{We model the interaction among LLMs as a repeated game with $T$ turns}. 
+For simplicity, we assume that in each turn, each agent chooses between two actions: \textit{Collaborate} ($a_0$) or \textit{Act Independently} ($a_1$). For a given question $q$, we define \(C(q)\) as a non-negative integer representing the \textit{collaboration threshold}. The agents achieve \textit{collaborative synergy} if, over the course of the $T$-turn interactions, the total number of collaborative actions (\(a_0\)) of all the agents meets or exceeds \(C(q)\).
+When collaborative synergy is achieved, each agent receives a reward \(R_{\text{syn}}(q) = 1\), representing a (near-)guaranteed correct solution. Prior to achieving synergy, agents receive rewards based on their chosen actions: a reward of \(R_{\text{col}}(q)\) for choosing to collaborate \((a_0)\) and \(R_{\text{ind}}(q)\) for acting independently \((a_1)\), where \(R_{\text{col}}(q) < R_{\text{ind}}(q)\) (see \Cref{rmk:rationale} for a detailed  justification on the setup). This reward structure creates a tradeoff between short-term accuracy and long-term collaborative success. {This  setup is related to the classical Coordination Games  \cite{cooper1999coordination} in game theory if $R_{\text{syn}}$ is large}. We introduce a new collaboration threshold and synergy mechanism that shapes the transition from independent actions to collaborative behavior {in {\it multiple turns}}, to better model the collaboration procedure among multiple LLMs. 
+
+\vspace{-3mm}
+\begin{remark}[Rationale Behind the Setup]
+\label{rmk:rationale}
+\upshape
+This formalization captures several key aspects of complex problem-solving dynamics. Choosing to collaborate ($a_0$) represents contributing \textit{exploratory ideas} or \textit{partial solutions}. While these contributions have a lower immediate probability of correctness \(R_{\text{col}}(q)\), they are essential building blocks towards the complete solution. Acting independently $(a_1)$ represents using conventional approaches that may yield a higher \textit{immediate probability} of correctness \(R_{\text{ind}}(q)\), but may contribute less to solving particularly challenging problems. The collaboration threshold \(C(q)\) represents the minimum amount of collaboration efforts and idea generation needed to solve complex problems. Once this threshold is reached (i.e., achieving collaborative synergy), the agents can combine their insights to solve the challenging problem, with a higher  reward \(R_{\text{syn}}(q)\).
+\end{remark}
+\vspace{-3mm}
+
+\safevspace{-3mm}
+
+\subsection{Analytical Observations}
+\safevspace{-1.5mm}
+
+To provide intuition for why co-training is necessary and single-agent training may be inadequate, 
+we analyze the simplest case with $T=2$ and $C(q) = 1$ to illustrate the fundamental differences between single and multi-agent training. We provide formal statements and proofs in \Cref{appendix_defproof}.
+
+ 
+
+\begin{restatable}{observation}{claimsingle}
+\label{claim:1}
+Suppose that the opponent selects action \( a_0 \) with probability \( \pi(q) \) for each question \( q \). Then, the optimal strategy for the agent is as follows: if  $(R_{\text{syn}}(q) - R_{\text{ind}}(q))\pi(q) \geq R_{\text{ind}}(q) - R_{\text{col}}(q)$, then the optimal strategy for question \( q \) is to collaborate (\( a_0 \)). Otherwise, the optimal strategy is to act independently (\( a_1 \)).
+\end{restatable}
+
+\safevspace{-2mm}
+
+This shows the dependence of the agent's strategy on the opponent's behavior. If the opponent is {\it not collaborative} enough  and {\it non-strategic}, then \( \pi(q) \) will be small, leading the trained model to behave in a  \textit{non-collaborative} way. 
+
+
+\begin{observation}[Informal]  
+\label{claim:2}
+If both agents are trained to maximize their individual cumulative rewards with an entropy regularization term scaled by $\tau$, then as $\tau \to 0$, they will collaborate if:
+
+
+\vspace{-6.2mm}
+{\small
+\[
+R_{\text{syn}}(q) > \max( 3R_{\text{col}}(q) - 2R_{\text{ind}}(q), 2R_{\text{ind}}(q) - R_{\text{col}}(q)).
+\]
+}
+\end{observation}  
+
+
+\safevspace{-1.9mm}
+{\Cref{claim:2} can be proved by adapting the results of \citet{zhang2016quantal}, and transforming our setup with \(T=2\) into a matrix game.} This observation implies that when both agents optimize their own {cumulative} reward, they will naturally choose collaboration when \( R_{\text{syn}}(q) \) is high enough, which emphasizes the importance of additional incentives to promote collaborative synergy. Due to this observation, in \Cref{sec:incentive-coll}, we incentivize collaboration by providing a higher \( R_{\text{syn}}(q) \).  
+
+
+\safevspace{-2mm}
+
+
+\subsection{Toy Experiments with \(T=10, 20\) Turns}
+\label{ssec:exp-toy}
+We illustrate the benefit of \textit{jointly optimized} (multi-agent) policies over {those obtained from a} \textit{single-agent} approach in our setting, with longer \(T=10, 20\) turns.  Each question \(q\) is associated with the  rewards \(R_{\text{col}}(q)\), \(R_{\text{ind}}(q)\), and \(R_{\text{syn}}(q)\), along with a collaboration threshold \(C(q)\).  Further details on the choices of these quantities be found in \Cref{appendix:toy}.
+
+{We first consider a \textit{single} agent interacting with a fixed opponent whose probability of collaborating, \(\pi(q)\), is set at \(\{0.5,\,0.6,\,0.7\}\). Despite the relatively high likelihood of collaboration from the opponent, the single-agent policy, which optimizes its response to the fixed opponent, does not result in effective collaboration (\Cref{figs:collaboration_probability}). Instead of learning to strategically engage with the opponent’s behavior, the single-agent policy, which follows a best-response strategy to the fixed opponent, tends to \textit{avoid} collaboration, highlighting the limitations of a single-agent framework when facing a \emph{fixed}, \emph{non-strategic} opponent.}
+
+Next, we consider two \textit{jointly optimizing} (multi-agent) learners who adapt their policy based on the other's actions. Concretely, we compute an  entropy-regularized Nash equilibrium for \(\tau=0.1\) via backward induction. 
+As shown in \Cref{figs:collaboration_probability} (solid red curves), the \textit{jointly} optimized agents coordinate with significantly higher collaboration rates. Intuitively, this is because their learning process, which fosters high collaboration at larger $t$, shapes their strategic behavior from the very beginning, leading to increased cooperation even at the first turn. 
+These toy results underscore the importance of \textit{strategic interactions}: when both agents adapt their policies simultaneously, they learn to be more collaborative,  despite the temptation of short-term independent rewards. 
+\vspace{-2mm}
+
+
+
+
+
+
+
+
+
+
+
+
+

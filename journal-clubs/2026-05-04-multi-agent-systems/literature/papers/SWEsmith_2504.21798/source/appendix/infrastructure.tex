@@ -1,0 +1,82 @@
+\section{Infrastructure}
+\label{appx:infra}
+We cover additional details about how \bugs{} works, specifically
+\begin{itemize}
+    \item The form factor of a \bugs{} task instance.
+    \item How we identify repositories and the SWE-agent configuration we use to automatically install them.
+    \item How the task validation and evaluation harnesses work.
+\end{itemize}
+
+\subsection{\bugs{} Task Instance}
+\label{appx:infra:anatomy}
+We briefly review the format of a \bugs{} task instance, highlight how it is different from a SWE-bench task instance, and discuss why \bugs{}'s relatively simple infrastructure compared to SWE-bench allows us scale task collection much more efficiently.
+
+A \bugs{} task instance is very similar to the form factor of a SWE-bench task instance, with several minor differences.
+A \bugs{} task instance includes the following fields:
+\begin{itemize}
+    \item \texttt{repo}: The repository the task instance is from.
+    \item \texttt{instance\_id}: A unique identifier (usually \texttt{(repo).(bug\_type).(hash)})
+    \item \texttt{base\_commit}: Hash of the GitHub branch that points to the repository with the bug \texttt{patch} applied.
+    \item \texttt{patch}: The \texttt{diff} that causes the bug. It is applied to the original codebase to create the bug. Reverting this patch is effectively the solution.
+    \item \texttt{problem\_statement}: The generated issue text that conveys the bug.
+    It is provided to a model or system before it begins attempting a fix.
+    \item \texttt{created\_at}: A timestamp matching when the bug was successfully validated and pushed to the mirror repository as a branch.
+    \item \texttt{FAIL\_TO\_PASS}: The unit tests that break when the test suite is run with the bug \texttt{patch} applied.
+    \item \texttt{PASS\_TO\_PASS}: The unit tests that do not break.
+    These correspond to the set of all tests minus the \texttt{FAIL\_TO\_PASS} tests.
+\end{itemize}
+
+We summarize the key distinctions between a \bugs{} and SWE-bench task instance:
+\begin{itemize}
+    \item \bugs{} task instances do not include the \texttt{version} or \texttt{environment\_setup\_commit} fields, which SWE-bench requires as additional identifiers for specifying repository-specific installation instructions across time.
+    In \bugs{}, unique installation instructions are specified for each (repository, commit).
+    \item The \texttt{hints\_text} field is not included. In SWE-bench, this refers to the issue and PR thread comments written after the first commit of the corresponding PR.
+    \item The \texttt{created\_at} field is assigned the timestamp reflecting when the bug was successfully validated.
+    Originally, \texttt{created\_at} refers to when a PR was created.
+    \item There is no \texttt{test\_patch} field, as the \bugs{} collection pipeline does not create or synthesize any hidden tests.
+    All \texttt{FAIL\_TO\_PASS} bugs are visible and runnable in the repository at inference time.
+\end{itemize}
+
+\subsection{Repository Selection}
+\label{appx:infra:repo_selection}
+In addition to the criteria discussed in Section~\ref{sec:swesmith:collection}, we also ensure that a repository has a license that allows non-proprietary use.
+The majority of software licenses are permissive (BSD, MIT, Apache), while the remainder are largely protective licenses (GPL) that still allow for non-commercial use.
+We inspected the repositories with custom licenses and confirmed they allowed for the use cases exercised in our work.
+The licenses for each repository are fully listed in Table~\ref{tab:licenses}.
+
+\input{tables/licenses}
+
+We deliberately limit the search scope for repositories to those predominantly written in Python.
+Following precedents, focusing on Python repositories allowed us to form assumptions about installation and testing procedures (e.g. repository is organized as a PyPI package, \texttt{pytest} is the testing framework) that made scaling up automatic repository setup with SWE-agent more tractable.
+A worthwhile direction to consider for future work is expanding the coverage of repositories to be more comprehensive of codebases written in different programming languages, as ~\citet{yang_swe-bench_2024} does, extending SWE-bench style evaluation to JavaScript repositories with multimodal inputs.
+
+\textbf{Automated repository installation.}
+The goal of this step is to first, get the installation and testing instructions for a repository, and second, create a Docker image containing the repository with the development environment set up.
+
+We provide the system prompt given to SWE-agent that asks it to install a repository in Figure~\ref{fig:prompt_install_repo}.
+Each repository installation task is initialized with a clone of the original repository.
+No additional steps (e.g. \texttt{pypi} package downloads, \texttt{conda} environment setup) are performed.
+
+We run SWE-agent with \texttt{claude-3-5-sonnet-20241022} with a maximum cost limit of \$$2$ and a maximum call limit of $150$.
+The installation run terminates whenever one of these conditions is met.
+For every run, we record the interactions.
+We then manually review the trajectory, identifying the appropriate installation and testing specifications.
+
+Each run incurs an average cost of \$$0.72$ and an average of $17$ steps before SWE-agent issues the \texttt{submit} command.
+The runs typically finish within two minutes.
+The majority of Python repositories require fewer steps --- typically, SWE-agent will view the \texttt{CONTRIBUTING.md}, run the installation command provided verbatim in the text, and then runs \texttt{pytest}, showing all tests passing.
+A minority of repositories will require several steps because additional dependencies must be installed with \texttt{apt-get}.
+The manual review process following this requires $3$ to $20$ minutes.
+One author carried out this effort for $128$ repositories, taking an estimated $18$ human hours to accomplish.
+In the process of reaching $128$ repositories, the author gave up on $17$ repositories at the manual review stage.
+
+\input{figures/prompt_install_repo}
+
+\subsection{Validation, Evaluation Harnesses}
+\label{appx:infra:harnesses}
+We adapt SWE-bench's validation script to convert each bug patch into a SWE-bench style task instance.
+This step ensures \bugs{} can be run by existing SWE-bench solutions.
+The conversion involves two steps.
+First, the bug patch is applied and pushed as a branch to a mirror clone of the repository.
+Second, we create a SWE-bench style task instance from the bug patch, populating important fields such as Fail-to-Pass and Pass-to-Pass tests with information from the validation logs.
+

@@ -1,0 +1,58 @@
+\section{Analysis}
+\label{sec:analysis}
+\subsection{\texttt{Git worktree} Isolation}
+\input{tables/ablation-isolation}
+In Table \ref{tab:isolation}, we study whether ``worktree isolation'' is necessary. 
+% \gncomment{it's not really ``physical'', what about ``worktree isolation'' or ``directory isolation''}
+We study worktree isolation not as an isolated engineering choice, but as the primitive that realizes the branch side of branch-and-merge coordination. In Table \ref{tab:main-results}, we compare the results of single-agent, multi-agent (\ourmethod) with ``worktree isolation'' (git worktree), and multi-agent with soft isolation with the same configuration. In the soft isolation setup, all engineers share one workspace, and the central manager attempts to prevent conflicts through instruction-level constraints, such as assigning non-overlapping files and explicitly warning against interference. The ``worktree isolation'' creates separate git worktrees for each engineer, so concurrent edits are physically separated and only interact through explicit \texttt{git merge}. On Commit0-Lite, soft isolation improves over single-agent from 53.1\% to 56.1\%, showing that central manager-driven delegation alone already helps when repository structure and file dependencies are explicit. ``worktree isolation'' further increases performance to 59.1\%, indicating that instruction-level separation is not sufficient to fully eliminate interference over longer trajectories. On PaperBench, the pattern differs. Soft isolation drops to 55.5\%, below the single-agent score of 57.2\%, while ``worktree isolation'' reaches 63.3\%. Unlike Commit0, PaperBench does not provide explicit file structure or dependency graphs, and the manager must first infer the global implementation plan from the paper itself. When this decomposition is imperfect, sharing a workspace amplifies miscoordination, whereas ``worktree isolation'' stabilizes parallel execution. Our ablation experiments suggest that isolation and delegation are complementary: soft managerial separation can help when dependencies are explicit, but for open-ended long-horizon tasks, ``worktree isolation'' becomes necessary to prevent execution instability.
+
+% \jy{\cite{khatua2026cooperbench} also has a physical isolation but no central manager to control the overall implementation progress -- failed}
+
+\subsection{Choosing the Degree of Parallel Execution}
+\input{figs/nsubagents}
+We analyze how the number of asynchronous engineer agents affects the performance in Figure \ref{fig:num-subagents}. We find that increasing the number of engineers does not monotonically improve the performance, which align with the results in \citep{yang2026understanding}. The optimal degree of parallelism depends on two factors: the intrinsic parallel structure of the task and the delegation capacity of the central manager. First, tasks differ in how many components can be implemented independently. In Commit0-Lite, performance improves when increasing engineers from 2 to 4 (53.1\% single-agent to 59.1\%), but decreases when expanding to 8 engineers. Although more agents increase theoretical parallelism, overly fine-grained task delegation introduces integration overhead and conflict resolution cost, especially when multiple engineers modify closely related modules. However, too few engineers can exploit the independent files available in clear-structured repositories, limiting progress within a fixed iteration budget. Second, scalability is constrained by the manager's coordination ability. The central manager must track dependency states, monitor the progress of the engineers, and dynamically assign tasks. When the number of engineers increases, delegation errors or delayed synchronization can propagate and destabilize the overall trajectory. This effect is visible in Commit0-Lite at 8 engineers, where performance declines despite higher computation cost. On PaperBench, where task decomposition is less structurally explicit, increasing engineers beyond 2 yields minimal gain in score while runtime and cost increase steadily. These results show that the number of subagents should be matched to both the inherent modularity of the task and the effective delegation capacity of the manager. Excess parallelism without reliable coordination degrades stability, rather than improving performance. We provide examples of failure in the Appendix \ref{app:failure-parallel}. 
+
+\subsection{Delegation Shapes Execution Trajectory}
+\label{sec:delegation}
+\input{figs/gantt_multi}
+In Figure \ref{fig:parallel-execution}, we show two \ourmethod runs and one single-agent run in the \texttt{Commit0-Lite minitorch} repository under different prompts to study how task delegation affects execution outcomes. We find that the performance difference between \ourmethod Run 1 (8.7\% pass rate) and \ourmethod Run 2 (34.3\%) is not simply due to the number of modules implemented, but to which modules are assigned and actively pursued. In Run 2, the manager assigns an engineer to \texttt{autodiff.py}, a file that is critical for passing tests, and sustained effort on this file is followed by broader progress across dependent components. In contrast, Run 1 assigns engineers to several other files, but never assigns work to \texttt{autodiff.py}. Although multiple engineers are active, the absence of this key dependency limits the overall pass rate. We observe that the single-agent run touches \texttt{autodiff.py} during exploration and implements part of the logic, but the file remains incomplete and the final pass rate reaches only 17.4\%. This example shows that the manager's delegation ability, particularly the ability to identify and assign high-impact dependencies, is critical for the success of long-horizon SWE tasks.
+
+\subsection{Scaling Asynchronous Parallelism}
+\input{figs/trade-off}
+During our exploration of the multi-agent design, we experimented with different prompt engineering strategies that emphasize distinct objectives, such as prioritizing correctness or efficiency. Figure \ref{fig:task-delegation} shows the results on a subset of nine repositories (i.e., \emph{babel, chardet, cookiecutter, imapclient, jinja, minitorch, simply, tinydb}) of Commit0-Lite. In \textit{Round-Manager Review}, the manager explicitly reviews code quality at every implementation round before integration for each engineer, placing stronger emphasis on correctness. In \textit{Engineer Self-Verification}, engineers conduct self-review without repeated managerial inspection, which is closest to the main results we report in Section \ref{sec:main-results}. In \textit{Efficiency-Prioritized}, both manager and engineer agents are explicitly instructed to prioritize runtime efficiency and are reminded that execution time will be evaluated, thereby assigning higher weight to the runtime of implementation in the user instruction. We observe a clear pattern: \textit{Round-Manager Review} achieves the highest pass rate (60.2\%) but also incurs the longest runtime (3689.1s), \textit{Self-Verification} yields intermediate performance (55.1\%) with moderate runtime (2243.9s), and \textit{Efficiency-Prioritized} runs fastest (1908.6s) but achieves the lowest pass rate (54.0\%). This development-stage result suggests a trade-off between verification intensity and execution efficiency: emphasizing efficiency can shorten runtime but may reduce integration robustness, while stricter review improves stability at additional computational cost.
+
+% \subsection{How SWE-primitive multi-agent works?}
+% \input{figs/multi-agent-gantt}
+
+% \jy{Multi-agent vs. Single-agent from gantt visualization}
+
+
+% \subsection{How many subagents do we need}
+% \label{sec:analysis-need-multi}
+% \jy{ Different between these two SWE-benchmark
+% \begin{enumerate}
+%     \item Paperbench -- 2 agents, from NL to code
+%     \item Commit0 -- 4 agents, from code + NL to code
+% \end{enumerate}
+
+% \jy{\begin{enumerate}
+%     \item Number of independent tasks
+%     \item Task delegation capabilities of the manager
+% \end{enumerate}
+% }
+% }
+% % \jy{When single agent is plateau}
+% % \jy{Example of deprecated -- if the task is too simple or dependent -- multi-agent will not work}
+
+% \subsection{The Brittle of Central Manager's Delegation}
+% \jy{
+% SWE-Primitives MAS works when central manager delegate the correct task to  
+% }
+
+% % \subsection{Does more capable LM lead to a better test delegation?}
+% % \jy{\begin{enumerate}
+% %     \item Claude as delegator and minimax as engineers
+% % \end{enumerate}}
+
+% \subsection{Task Delegation Mechanisms is Curial for Multi-agent System}
+

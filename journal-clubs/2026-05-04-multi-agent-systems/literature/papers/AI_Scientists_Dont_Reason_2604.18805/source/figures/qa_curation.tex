@@ -1,0 +1,105 @@
+\definecolor{boxfill}{HTML}{F1EFE8}
+\definecolor{boxstroke}{HTML}{888780}
+\definecolor{phasetext}{HTML}{A3A29C}
+\definecolor{subtitletext}{HTML}{73726C}
+
+\tikzset{
+  process/.style={
+    rectangle, rounded corners=4pt,
+    draw=boxstroke, fill=boxfill,
+    minimum width=4.8cm, minimum height=1.1cm,
+    align=center, font=\sffamily\small,
+    line width=0.4pt,
+  },
+  smallprocess/.style={
+    rectangle, rounded corners=4pt,
+    draw=boxstroke, fill=boxfill,
+    minimum width=3.4cm, minimum height=0.8cm,
+    align=center, font=\sffamily\small,
+    line width=0.4pt,
+  },
+  decision/.style={
+    diamond, aspect=2.2,
+    draw=boxstroke, fill=boxfill,
+    minimum width=2.6cm, minimum height=1.2cm,
+    align=center, font=\sffamily\small\bfseries,
+    line width=0.4pt, inner sep=1pt,
+  },
+  terminal/.style={
+    rectangle, rounded corners=10pt,
+    draw=boxstroke, fill=boxfill,
+    minimum width=3.4cm, minimum height=0.8cm,
+    align=center, font=\sffamily\small\bfseries,
+    line width=0.4pt,
+  },
+  arr/.style={
+    -{Stealth[length=5pt, width=4pt]},
+    draw=boxstroke, line width=0.6pt,
+  },
+  phaselabel/.style={
+    font=\sffamily\scriptsize, text=phasetext,
+  },
+  subtitle/.style={
+    font=\sffamily\scriptsize, text=subtitletext,
+  },
+  dashedsep/.style={
+    draw=phasetext, line width=0.3pt, dashed, dash pattern=on 3pt off 3pt,
+  },
+}
+
+\begin{tikzpicture}[node distance=0.9cm]
+\label{fig:item-generation-protocol}
+
+% --- Main column nodes ---
+\node[process] (draft)
+  {\textbf{Expert drafts QA items}\\[1pt]
+   {\scriptsize\color{subtitletext} Knowledge + reasoning questions}};
+
+\node[smallprocess, below=of draft] (pr)
+  {\textbf{PR created}};
+
+\node[process, below=of pr] (review)
+  {\textbf{Two expert reviewers}\\[1pt]
+   {\scriptsize\color{subtitletext} Assess against rubric}};
+
+\node[decision, below=1.0cm of review] (decide)
+  {Approved?};
+
+\node[process, below=1.0cm of decide] (merge)
+  {\textbf{Final review + merge}\\[1pt]
+   {\scriptsize\color{subtitletext} Items added to benchmark}};
+
+\node[terminal, below=0.8cm of merge] (done)
+  {Benchmark updated};
+
+% --- Changes requested (left, same level as diamond) ---
+\node[process, left=2.8cm of decide] (changes)
+  {\textbf{Changes requested}\\[1pt]
+   {\scriptsize\color{subtitletext} Author revises items}};
+
+% --- Main flow arrows ---
+\draw[arr] (draft) -- (pr);
+\draw[arr] (pr) -- (review);
+\draw[arr] (review) -- (decide);
+\draw[arr] (decide) -- node[right, subtitle, xshift=2pt] {Yes} (merge);
+\draw[arr] (merge) -- (done);
+
+% --- No path: decision -> changes -> loop back to review ---
+\draw[arr] (decide.west) -- node[above, subtitle] {No} (changes.east);
+\draw[arr] (changes.north) |- (review.west);
+
+% --- Phase labels and separators ---
+\coordinate (leftedge) at ([xshift=-0.6cm]changes.west);
+\coordinate (rightedge) at ([xshift=0.6cm]draft.east);
+
+\node[phaselabel, anchor=east] at (leftedge |- draft) {Item generation};
+
+\coordinate (sep1) at ($(pr.south)!0.5!(review.north)$);
+\draw[dashedsep] (leftedge |- sep1) -- (rightedge |- sep1);
+\node[phaselabel, anchor=east] at (leftedge |- review) {Quality assessment};
+
+\coordinate (sep2) at ($(decide.south)!0.5!(merge.north)$);
+\draw[dashedsep] (leftedge |- sep2) -- (rightedge |- sep2);
+\node[phaselabel, anchor=east] at (leftedge |- merge) {Acceptance};
+
+\end{tikzpicture}

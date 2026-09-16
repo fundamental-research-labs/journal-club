@@ -1,0 +1,189 @@
+\section{Preliminaries and notation}
+In this section, we formalize multi-agent collaboration between an Actor (an agent that provides answers) and a Critic (an agent that provides feedback to the actor) while also introducing the notation that will be used throughout the remainder of the paper.
+
+Let $(x, y)\sim \mathcal{D}$ be a task-answer pair source from a distribution of tasks and answers $\mathcal{D}$. 
+For a given task $x$, two agents -- an actor agent responsible for providing answers and a critic agent responsible for providing feedback and assistance to the actor agent -- engage in an iterative discussion over $T$ rounds, to correctly infer the answer $y$.
+Let $\theta_a$ and $\theta_c$ be the parameters of actor and critic agent, respectively.
+The iterative discussion between these two agents is as follows:
+\begin{enumerate}
+    \item At round $t=0$ a task $x$ is given to the actor $\theta_a$ who provides an initial response $z_a^{(0)}$. 
+    \item Next, still at round $t=0$, the critic $\theta_c$ views task $x$ and $z_a^{(0)}$, then provides feedback $z_c^{(0)}$.
+    \item For each round $t>0$, the actor views the task $x$, its own previous response $z_a^{(t-1)}$ and the critic's feedback $z_c^{(t-1)}$, then provides an updated response $z_a^{(t)}$. 
+    \item After the actor's new response $z_a^{(t)}$, the critic provides the feedback $z_c^{(t)}$ based on $z_a^{(t)}$.
+\end{enumerate}
+
+The accuracy of this procedure is measured via the correctness of the actor's final response, i.e., $\mathbb{I}\big[\zeta(z_a^{(T)})=y\big]$. Where $\zeta$ is a function that extracts \emph{answers} from text-based responses. For example if $z_a^{(T)} = $ ``The sky is blue", then $\zeta(z_a^{(T)})=$``blue". 
+With this notation and formalization of multi-agent collaboration, we introduce our framework for training actor-critic teams.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\linewidth]{plots/mainMethod_v4.png}
+    \caption{ACC-Collab training pipeline, exemplified for the actor. 1) 
+    We generate data from both \textcolor{orange}{natural deliberation} as well as guided deliberation \textcolor{olive}{towards} and \textcolor{red}{away} from the ground truth answer $y$ using the actor and critic. 
+    2) We compute the relative quality of each trajectory based on the expected quality difference $\Delta_{y}, \Delta_{!y}$ w.r.t. to the natural response. 
+    3) We store all high-quality pairwise data in our database and train the actor agent. 
+    4) We alternate this procedure for the actor and critic. See Figure \ref{fig:main_method_both_agents} of the supplement for the corresponding procedure applied to the critic.}
+    \label{fig:main_method}
+\end{figure}
+
+\section{Methodology}\label{sec:method}
+In this section, we outline our procedure for training a two-agent team, consisting of an actor agent \(f_{\theta_a}\) (responsible for providing answers to a given task \(x\)) and a critic agent \(f_{\theta_c}\) (responsible for providing feedback and assistance to the actor).
+At inference time, the two trained agents engage in iterative discussion to solve a given task \(x\), generating the final response $z_a^{(T)}$.
+
+
+\subsection{An Actor-Critic Collaboration Framework}
+Building upon our established notation from the previous section and the general actor-critic framework, we formally define our optimization objective as follows \footnote{For clarity, we note that the term $\arg\max\limits_{\theta_a}\max\limits_{\theta_b}$ captures the solution for \emph{both} parameters $\theta_a, \theta_c$ in the corresponding bi-level max-max optimization. Here $\theta_c$ is in $z_c^{(T-1)} = f_{\theta_c}\big(x, z_a^{(T-1)}\big)$}:
+\begin{align}\label{eq:main_max_max}
+\theta_a^*,\, \theta_c^* = \arg \max_{\theta_a} \max_{\theta_c} \mathbb{E}_{(x, y)\sim D}\bigg[ \zeta\bigg( \underbrace{f_{\theta_a}\big(x, z_a^{(T-1)}, z_c^{(T-1)}\big)}_{\text{actor's final response}~z_a^{(T)}} \bigg) = y \bigg]
+\end{align}
+Intuitively, Eq. \ref{eq:main_max_max} aims to simultaneously optimize the actor's parameters $\theta_a$ and the critic's parameters $\theta_c$, ensuring that the actor's final output at iteration $T$ matches the correct answer $y$. 
+In other words, we optimize the accuracy of the actor's response at time $T$, namely 
+\[
+z_a^{(T)} = f_{\theta_a}\left(x, z_a^{(T-1)}, z_c^{(T-1)}\right),
+\]
+ where accuracy is measured as $\mathbb{E}\big[\zeta\big(z_a^{(T)} \big)=y \big]$.
+
+It is important to note that the recursive nature of multi-agent deliberation introduces significant complexity to the optimization process. Each response \( z_a^{(t)} \) depends not only on the actor's previous output \( z_a^{(t-1)} \) but also on the critic's previous output \( z_c^{(t-1)} \). 
+This interaction closely resembles a \emph{cooperative dynamic Stackelberg game} \citep{li2017review}, where two players engage in hierarchical decision-making over time, leading us to adopt an \emph{iterative best-response} approach \citep{fiez2019convergence}. 
+In other words, we first train the critic agent, followed by training the actor to best respond to the critic's output.
+We can then update the critic to adapt to the newly trained actor, and so on. 
+More formally, this process works by first fixing $\theta_a$, and solving,
+\begin{align}\label{eq:critic}
+\theta_c^* = \arg\max_{\theta_c} \mathbb{E}_{(x, y)\sim D}\bigg[ \zeta\bigg( f_{\theta_a}\bigg(x, z_a^{(T-1)}, ~\underbrace{f_{\theta_c}\big(x, z_a^{(T-1)}\big)}_{\text{critic's response}~z_c^{(T-1)}} \bigg) \bigg) = y \bigg]
+\end{align}
+then fixing $\theta_c^*$ from above, we solve
+\begin{align}\label{eq:actor}
+\theta_a^* = \arg\max_{\theta_a}\mathbb{E}_{(x, y)\sim D}\bigg[ \zeta\bigg( f_{\theta_a}\bigg(x, z_a^{(T-1)}, ~f_{\theta_c^*}\big(x, z_a^{(T-1)}\big) \bigg) \bigg) = y \bigg]
+\end{align}
+this process then repeats until a desired stopping criteria is reached. 
+In practice, we find that a single iteration is sufficient to produce a high-quality collaborative team.
+
+While this alternating scheme allows us to optimize the actor and critic separately, the objectives of each agent still cannot be optimized directly due to the recursive nature of agent responses in this objective; responses at round $T$ depend on those given by the agent at round $t-1$ which themselves depend on the response given at round $t-2$ and so on.  
+To deal with this temporal dependency, we next introduce the concept of Partial Trajectory rewards,
+which will allow us to capture the signal of each response $z^{(t)}$ for each $t\leq T$.
+
+
+\subsection{Partial Trajectory Reward}
+To address the inter-round dependencies of the above optimization, we proposed a scheme that allows us to determine the ``goodness" of a given response $z^{(t)}$ (from either the actor or the critic) for any $t\leq T$. Consider a conversation between the actor and the critic that was paused at time $t$, i.e., the most recent response is $z^{(t)}$. 
+To assess the goodness of $z^{(t)}$, one might ask \emph{how likely the deliberation procedure will converge to the correct answer $y$ at round $T$}, given that the procedure is already at response $z^{(t)}$. 
+Formally, we can define this as
+\begin{align}
+    r(z^{(t)}, x, y) = \mathbb{E}\bigg[\zeta(z_a^{(T)})=y|~x, z^{(t)} \bigg]
+\end{align}
+Intuitively, the partial reward captures the expectation of arriving at the correct answer $y$ through deliberation starting at round $t$ with generation $z^{(t)}$. In practice, $r(z^{(t)}, x, y)$ can be estimated by learning the reward $r$ or by using heuristics such as one-step roll-out, i.e., Monte Carlo estimation. 
+
+In our experiments, we use one-step roll-out heuristics, i.e. simulating an additional deliberation round multiple times from response \( z^{(t)} \). The reward \( r(z^{(t)}, x, y) \) is set as the average accuracy of these simulations. Empirically, we find this approach effective for generating high-quality training data. We leave learning-based reward functions for future work.
+
+Our objective will then be to optimize the parameters of the actor and critic, $\theta_a, \theta_c$, so that the responses produced by these agents at each timestep $t$, namely $z^{(t)}$, maximize $r(z^{(t)}, x, y)$. 
+That is, we optimize the actor and the critic so that at each timestep $t$, they give a response $z^{(t)}$ which has a high probability of leading the deliberation to converge to the correct answer at time $T$. 
+
+To optimize the objective in Eq. \ref{eq:main_max_max}, we will utilize preference optimization, a standard technique in LLM training. 
+Using the iterative maximization scheme described above, we first have to gather pairwise preference data for both the actor and the critic. In the following sections, we first detail our process for generating this preference data before delving into the optimization procedure. 
+\begin{algorithm}[thb]
+\caption{Trajectory generation and selection}\label{alg:traj}
+\KwData{Actor and critic: $\theta_a, \theta_c$, Distribution of tasks $\mathcal{D}$ , Reward threshold $\varepsilon$} 
+
+\KwResult{A dataset of trajectories $D$}
+$D \gets \emptyset$ \textcolor{blue}{/* Set of trajectories to use */} \\
+\For{$(x, y)\sim \mathcal{D}$}{
+     $\mathbf{z}^{(0)} \gets $ OneDeliberationRound$(x)$ ~ \textcolor{blue}{/* actor and critic responses, i.e. $\mathbf{z} = \langle z_a^{(0)}, z_c^{(0)}\rangle $ */}\\
+    \For{$t$ in $[1, T]$}{
+        $\mathbf{z}^{(t)} \gets $ OneDeliberationRound$(x, \mathbf{z}^{(t-1)})$ ~ \textcolor{blue}{/* updated \emph{natural} responses*/}\\
+
+         \textcolor{blue}{/* guided-deliberation towards, and away from, correct answer $y$ */}\\
+         $\mathbf{z}_+^{(t)} \gets $ OneGuidedDeliberationRound$(x, \mathbf{z}^{(t-1)}, y)$ \\
+         $\mathbf{z}_-^{(t)} \gets $ OneGuidedDeliberationRound$(x, \mathbf{z}^{(t-1)}, !y)$ \\
+
+         \textcolor{blue}{/* Estimate final round accuracy if deliberation continue from response $z^{(t)}$, \\i.e. $r(z^{(t)}, x, y), ~r(z_+^{(t)}, x, y), ~r(z_-^{(t)}, x, y)$ */}\\
+         $v \gets $ EstimateFinalAccuracy$(\mathbf{z}^{t})$ \\
+         $v_+ \gets $ EstimateFinalAccuracy$(\mathbf{z}_+^{t})$ \\
+         $v_- \gets $ EstimateFinalAccuracy$(\mathbf{z}_-^{t})$ \\
+
+         \textcolor{blue}{/* Compute the expected improvement for each trajectory */}\\
+         \textcolor{blue}{/* Save trajectory pairs that result in sufficient accuracy improvement */}\\
+        \If{$v_+ - v \geq \varepsilon$}{
+             $D$.add$\big(\text{pos=}\mathbf{z}_+^{(t)}, \text{neg=}\mathbf{z}^{(t)} \big)$\\
+        }\ElseIf{$v - v_- \geq \varepsilon$}{
+        $D$.add$\big(\text{pos=}\mathbf{z}^{(t)}, \text{neg=}\mathbf{z}_-^{(t)} \big)$\\
+        }
+    }
+}
+\end{algorithm}
+
+
+
+
+\subsection{Off-Policy Trajectory Generation}\label{sec:off_policy}
+
+In this section, we describe how to generate the preference data needed to optimize the objective in Eq.~\ref{eq:main_max_max}. 
+The classification of a sample as positive or negative is determined by the deliberation trajectory it follows. 
+Specifically, a positive sample for training the actor corresponds to a trajectory likely to lead to the correct answer at round $T$, while a negative sample corresponds to one that leads to an incorrect answer at round $T$. 
+Intuitively, we aim to push the actor agent to generate responses that lead to correct answers while reducing responses that are unlikely to do so, thus optimizing for Eq.~\ref{eq:actor}.
+The same principle applies to the critic when optimizing Eq.~\ref{eq:critic}.
+
+With this intuition in mind, we now describe how such data is generated. A deliberation trajectory can be defined as a sequence of responses $\langle z_a^{(0)}, z_c^{(0)}, z_a^{(1)}, z_c^{(1)}, \ldots, z_a^{(T)}, z_c^{(T)} \rangle$ for a given task $x$. A straightforward way to generate preference data would be to generate multiple rollouts at each round and select the trajectories with the highest $r(z^{(t)}, x, y)$ as positive samples and those with the lowest $r(z^{(t)}, x, y)$ as negative samples. This approach could enforce the desired behavior for both the actor and the critic if enough samples are collected.
+
+However, this approach is not without its limitations. In particular, if the agent performs poorly on a given dataset, it may be difficult to collect enough positive samples, resulting in low training signals. 
+Additionally, even if the agent performs adequately, generating sufficient responses for both the actor and critic requires significant computational resources, especially to ensure that high $r(z^{(t)}, x, y)$ values are used for positive samples and low values for negative samples.
+
+\subsection{Guided Collaborative Trajectories}
+To address these limitations and improve efficiency, we propose \emph{Guided-Collaborative Trajectories}, which steer the deliberation procedure in two opposing directions: one towards, and another away from, the correct. By comparing these guided trajectories with the natural deliberation trajectory, we can assess the relative \emph{goodness} of each trajectory using an estimation of the reward structure $r$.
+
+
+
+Specifically, for task $x$ with answer $y$, let $\mathbf{z}^{(t-1)} = (z_a^{(t-1)}, z_c^{(t-1)})$ be the agents' responses at time $t-1$. 
+Let $(z_a^{(t)}, z_c^{(t)})$ be the agents' \emph{natural} responses (i.e., without guidance), let $(z_{y,a}^{(t)}, z_{y,c}^{(t)})$ and $(z_{!y,a}^{(t)}, z_{!y,c}^{(t)})$ be the agents responses when guided towards, and away from, supporting answer $y$ respectively.
+Thus, each guided response is an off-policy generation.
+In practice, we want guided responses to be different enough from natural responses so that learning the guided responses results in consequential changes to the agent, but not so different that they are challenging to learn;  we find that prompt modification is an effective tool for striking this balance. 
+To guide the generations of $(z_{y,a}^{(t)}, z_{y,c}^{(t)})$ and $(z_{!y,a}^{(t)}, z_{!y,c}^{(t)})$, we will simply provide a correct and wrong target answer in the prompt, respectively -  see ``Guided Collaborative Trajectory Prompts'' in  Section \ref{SUP:examples} for further details. 
+
+
+For each guided response, we consider how influential this response was in altering the accuracy of the final response, i.e., in the case of the actor, we define
+\begin{align*}
+    \Delta_{y} = r(z_{y,a}^{(t)}, x, y) - r(z_{a}^{(t)}, x, y)         \qquad \text{and} \qquad \Delta_{!y} = r(z_{a}^{(t)}, x, y) - r(z_{!y,a}^{(t)}, x, y)
+\end{align*}
+The terms $\Delta_{y}$ and $\Delta_{!y}$ give the expected accuracy difference if at round $t$ the actor \emph{had} given response $z_{y,a}^{(t)}$ (or $z_{!y,a}^{(t)}$) instead of response $z_a^{(t)}$.
+Large $\Delta_{y}$ indicates that a one-response difference during the deliberation was sufficient to push the procedure toward the correct answer. 
+Such responses would be desirable for the agent to learn.
+On the other hand, large values of $\Delta_{!y}$ indicate that a one-response difference easily causes the agents to converge to the incorrect answer; this indicates that the deliberation procedure is particularly fragile at timestep $t$.
+
+With these observations in hand, we use $\Delta_{y}$ and $\Delta_{!y}$ to define positive an negative examples, in particular for a threshold $\varepsilon$,
+\begin{align}\label{eq:pos_neg}
+    (z_{+}^{(t)}, z_-^{(t)}) = \begin{cases}
+        (z_{y}^{(t)}, z^{(t)})  & \text{if}\quad \varepsilon \leq \Delta_{y} = r(z_{y,a}^{(t)}, x, y) - r(z_{a}^{(t)}, x, y) \\
+        (z^{(t)}, z_{!y}^{(t)}) & \text{if}\quad \varepsilon \leq \Delta_{!y} = r(z_{a}^{(t)}, x, y) - r(z_{!y,a}^{(t)}, x, y) 
+    \end{cases}
+\end{align}
+if neither value is above the threshold, then the example is thrown out. 
+\begin{remark}
+    Under Eq. \ref{eq:pos_neg}, a positive example $z_+^{(t)}$ can be interpreted as a guided response $z_y^{(t)}$ which \emph{increased} the probability of deliberation converging to the correct answer by at least $\varepsilon$, when compared with the natural response $z^{(t)}$. 
+    Similarly, a negative example $z_-^{(t)}$ is a guided response $z_{y!}^{(t)}$ which \emph{decreased} the probability of deliberation converging to the answer by at least $\varepsilon$.
+\end{remark}
+
+
+Now that we have a procedure for generating high-quality training examples consisting of positive and negative pairs, we next discuss how to use those positive and negative pairs to train both agents.
+
+\subsection{Learning on Guided Trajectories}
+In order to optimize each objective (Eq. \ref{eq:critic} and \ref{eq:actor}), we use standard preference optimization Direct Preference Optimization (DPO) \cite{rafailov2024direct}. 
+We choose DPO for its efficiency, but any preference optimization scheme could be used (see section \ref{SUP:preference} of the supplement for details on how other preference optimization schemes may be incorporated).
+
+
+Hence, given a preference dataset of positive and negative examples for both the actor and critic agent, of the from $z_-^{(t)}, z_+^{(t)}$, the DPO loss is defined as,
+\begin{align}
+\mathcal{L}_{\text{DPO}}=\sum_{t=0}^T\mathbb{E}_{(x, y, z_-^{(t)}, z_+^{(t)})\sim D}\bigg[ \log\sigma\bigg(
+\frac{\pi_{\theta}\big(z_{+}^{(t)}|x,\mathbf{z}^{(t-1)}\big)}{\pi_{\text{ref}}\big(z_{+}^{(t)}|x,\mathbf{z}^{(t-1)}\big)}
+-
+\frac{\pi_{\theta}\big(z_{-}^{(t)}|x,\mathbf{z}^{(t-1)}\big)}{\pi_{\text{ref}}\big(z_{-}^{(t)}|x,\mathbf{z}^{(t-1)}\big)}
+\bigg)\bigg]
+\end{align}
+Where $\pi_{\theta}$ is the policy induced by parameters $\theta_a$ or $\theta_c$ and $\mathbf{z}^{(t-1)}$ are the agent's responses at the previous round (i.e., the responses prior to giving either response $z_-^{(t)}$ or $z_+^{(t)}$).
+
+\begin{remark}
+    Recall, given our generated preference data, this loss implicitly optimizes the reward $r(z^t, x, y)$ which itself is equivalent to final accuracy (i.e., the quantity being maximized by Eq. \ref{eq:main_max_max}). By summing across all rounds, we implicitly maximize the probability that \emph{each} round $t$ yields a response $z^t$ which causes deliberation to converge to the correct answer at time $T$.
+\end{remark}
+
+
+
+
+

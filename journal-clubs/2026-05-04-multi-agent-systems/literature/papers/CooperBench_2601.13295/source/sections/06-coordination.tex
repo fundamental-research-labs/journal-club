@@ -1,0 +1,100 @@
+\section{What are the coordination failures that the agents exhibit?}\label{sec:coordination_failures}
+
+\definecolor{info}{RGB}{220,235,255}
+\definecolor{integ}{RGB}{255,235,220}
+\definecolor{struct}{RGB}{220,255,220}
+\definecolor{comm}{RGB}{245,220,245}
+
+\newcommand{\emojiicon}[1]{%
+  \raisebox{-0.05em}{\includegraphics[height=1.15em]{#1}}%
+}
+
+\newcommand{\rootcell}[3]{%
+  \parbox[t]{0.23\textwidth}{%
+    \raggedright%
+    \hspace{0.6pt}\strut%
+    \textbf{\emojiicon{#1}\,#2}\par%
+    \if\relax\detokenize{#3}\relax\else
+      {\scriptsize\textit{#3}}\par%
+    \fi
+    \strut%
+  }%
+}
+
+Section~\ref{sec:role_of_communication} showed that communication alone does not improve coordination. Why not? We find that even when agents communicate their plans, they struggle to honor commitments and anticipate partner actions. Coordination failures stem from three capability gaps: \emph{communication} (failing to exchange key information), \emph{commitment} (not following through on promises), and \emph{expectation} (failing to model what partners are doing). We first categorize failures by their observable \emph{symptoms} (\S\ref{sec:failure_syptoms}), then identify these underlying \emph{causes} (\S\ref{sec:failure_reasons}).
+
+
+\input{sections/06-symptoms_table}
+
+\subsection{Failure Symptoms}
+\label{sec:failure_syptoms}
+We analyze all failed Coop trajectories across all five models on the full dataset. Through iterative qualitative coding, we develop the failure symptom taxonomy shown in Tab.~\ref{tab:failure_symptoms}. We then use \texttt{GPT-5} as an LLM-as-a-Judge to categorize trajectories at scale, yielding the frequency distribution in Tab.~\ref{tab:failure_symptoms}. The resulting vocabulary provides a structured way to diagnose coordination breakdowns. See App.~\ref{app:symptom_annotation} for the annotation procedure and human validation.
+
+
+\subsection{Failure Reasons}
+\label{sec:failure_reasons}
+
+\input{sections/06-causes_table}
+
+Symptoms describe \emph{what} went wrong; causes explain \emph{why}. To identify the underlying capability gaps, we manually reviewed 50 failed Coop traces. For each trace, we examined the symptom labels, conversation logs, and merged artifacts to determine why coordination broke down. We grouped root causes into three categories shown in Tab.~\ref{tab:failure_causes}. Unlike symptoms, which can be reliably detected by an LLM annotator, causes require deeper interpretation of the coordination dynamics and are therefore manually assigned.
+
+
+\input{sections/06-coordination-cards}
+
+\medskip
+The examples above reveal why coordination, rather than raw coding ability, is often the limiting factor. The common thread is \emph{partial observability}. Each agent acts while holding an uncertain model of its partner's state, edits, and commitments. A merge can be conflict-free yet still embed incompatible assumptions.
+
+These causes manifest through the symptoms in Tab.~\ref{tab:failure_symptoms}. Expectation failures produce work overlap and silent overwrites, commitment failures lead to unverifiable claims and broken promises, and communication failures result in unresponsiveness and repetition.
+
+These failures suggest current models lack reliable representations for (i) \emph{partner state} (what the other agent has actually changed), (ii) \emph{checkable commitments} (contracts verifiable after merge), and (iii) \emph{cross-branch integration reasoning} (anticipating how independent patches interact). Coordination requires more than plausible code. It requires \emph{verifiable} and \emph{actionable} constraints for a partner operating under isolation. This explains why prompt optimization yields only marginal improvements (App.~\ref{app:prompt_optimization}). Most errors stem from coordination challenges, not prompt wording.
+
+\noindent\textbf{The trust paradox.} We hypothesize that a deeper tension underlies expectation failures. Models are trained to be cautious, requiring observable evidence and resisting unverifiable assertions. This is a sensible default for single-agent interactions, where users may attempt to mislead the model. However, collaboration under workspace isolation requires the opposite. Agents must trust partner claims about states they cannot observe. When Agent~A reports ``I added the handler at line~50,'' Agent~B's instinct is to verify, but verification fails because they are on separate branches. This mismatch between \emph{verification-first} training and \emph{trust-requiring} collaboration may partly explain why agents consistently fail to update their model of partner state despite explicit communication.
+
+
+Effective collaboration likely requires lightweight mechanisms that turn conversation into verifiable shared state, such as pasted signatures, explicit insertion-point contracts, and integration checks before declaring safety. We now turn to successful cases to see what these mechanisms look like in practice.
+
+\subsection{Emergent Coordination Behavior}
+\label{sec:emergent-coordination-behavior}
+Among successful runs, we observe coordination patterns that are largely absent from failures. These behaviors are not prompted or scaffolded; they emerge when agents successfully navigate partial observability. What they share is a shift from vague intentions to specific commitments that a partner can verify even without seeing the underlying work. We identify three such patterns.
+\vspace{-1em}
+\paragraph{Role division.}
+Agents agree on who handles which part of the task and establish clear boundaries around their scope.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figs/emergent/Role_Division.pdf}
+\end{figure}
+
+What distinguishes successful role division is mutual confirmation.
+Under partial observability, a unilateral declaration can easily be missed or misunderstood.
+When both agents explicitly acknowledge the split, they create verified shared understanding that both sides can rely on during independent work.
+\vspace{-1em}
+\paragraph{Resource division.}
+Agents avoid collisions by partitioning shared resources, most commonly specific files, code ranges, or \textit{ownership blocks}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figs/emergent/Resource_Division.pdf}
+\end{figure}
+
+What makes resource division effective is specificity.
+Vague commitments cannot be verified and thus require trust.
+Line-level boundaries, by contrast, create safe zones where conflict is impossible by construction.
+\vspace{-1em}
+\paragraph{Negotiation.}
+Agents resolve conflicting approaches by proposing alternatives and converging on a single plan before acting.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figs/emergent/Debate.pdf}
+\end{figure}
+
+Effective negotiation does cognitive work for both parties.
+By proposing mutually exclusive options that fully specify what each agent will do, one agent reduces a complex coordination problem to a simple choice.
+The result is not just agreement on intent but complete action specifications that leave nothing to interpret.
+
+These coordination patterns are rare in our traces but their presence in successful cases suggests that the underlying capability exists.
+The challenge is not teaching agents new coordination skills but making existing ones reliable.
+
+
+

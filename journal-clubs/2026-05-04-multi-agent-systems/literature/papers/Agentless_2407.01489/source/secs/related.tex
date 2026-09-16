@@ -1,0 +1,74 @@
+\section{Background and Related Work}
+
+
+\subsection{Agent-based Software Engineering}
+
+With the emergence and popularity of agent-based frameworks~\cite{xi2023rise}, recently researchers and industry practitioners have begun developing agent-based approaches to solve software engineering tasks. 
+Devin~\cite{devinwebpage} (and OpenDevin~\cite{opendevin}, open-source alternative), is one of the first end-to-end \llm agent-based framework.
+Devin uses agents to first perform planning based on user requirement, then allows the agent to use file editor, terminal, and web search engine tools to iteratively perform the task.
+\sweagent~\cite{sweagent} designs a custom agent-computer interface (ACI) that allows the \llm agent to interact with the repository environment with actions such as reading, editing files, and running bash commands. 
+\aider~\cite{aidar} first provides a detailed repository map constructed with static and call graph analysis to the \llm to localize the files that require editing; then it generates a simple diff format as the editing patch and uses regression testing to verify if the patch is plausible.
+\moatless~\cite{moatless} is another open-source agent tool that obtains relevant code locations by providing the agent with both code search tools as well as retrieval methods using \llm-constructed queries. 
+Similar to \aider, \moatless also generates a simple diff format as the final submitted patch. 
+\autocoderover~\cite{autocoderover} further provides the \llm agent with specific code search APIs (\eg searching methods in a certain class) to iteratively retrieve code context and {locate the bug locations}. 
+\specrover~\cite{specrover} later improves over \autocoderover and targets specifications (i.e., inferring the intended program behavior) by generating function summaries and also feedback messages during specific agent steps. 
+Furthermore, \specrover also attempts to generate \reproduction tests to reproduce the original issue used to select the final patch. 
+In addition to these highlighted examples, there has been a plethora of other agent-based approaches developed in both open-source~\cite{aidar, repograph, appmapnavie, zhang2024diversity} and close-source/commercial products~\cite{bouzenia2024repairagent, coder, repounderstander, lingma, factorydroid, ibmagent, opencsgstarship, marscode, amazonqdeveloper, supercoder, gru, isoform, mentatbot, honeycomb, codestoryaide}.
+
+Compared to these agent-based techniques, \tech offers a simplistic, interpretable, and {cost-effective} solution to tackle real-world software engineering issues. 
+Different from agent-based tools, \tech contains well-defined stages of localization, repair, and patch validation without letting the \llm agent decide future actions or use complex tools.
+%
+\tech demonstrates for the first time that an \emph{agentless} approach can achieve very competitive performance, without the additional baggage of having to provide excessive tools or model complex environment behavior/feedback.
+
+\subsection{Fault Localization and Program Repair}
+
+Fault localization (FL)~\cite{wong2016survey} techniques aim to identify the suspicious locations (e.g., statements or methods) in source code related to bugs.
+% 
+Dynamic FL techniques mainly include spectrum-based FL (SBFL)~\cite{jones2005empirical, abreu2007accuracy, abreu2009practical} and mutation-based FL (MBFL)~\cite{papadakis2015metallaxis, moon2014ask, lou2020can}. SBFL typically computes source code locations primarily covered by failing tests as more suspicious than locations primarily covered by passing tests. MBFL further improves upon that to additionally consider the impact of each source code location on the test outcomes (measured using mutation testing~\cite{papadakis2019mutation}). Besides dynamic techniques, researchers have also proposed to directly leverage information retrieval (IR) techniques~\cite{singhal2001modern} for static FL. 
+Such IR-based techniques~\cite{wang2015evaluating, saha2013improving, wang2014version} formulate FL as a search problem and compare the textual similarity between code elements and the bug report (i.e., query).
+Moreover, learning-based techniques have also been proposed to leverage machine learning to combine multiple sources of dynamic/static information, including DeepFL~\cite{li2019deepfl}, FLUCCS~\cite{sohn2017fluccs}, and TRANSFER~\cite{meng2022improvingfl}. 
+Recently, researchers have proposed \llm-based FL~\cite{yang2024llmao, wu2023large, qin2024agentfl, kang2024quantitative}, which leverages the powerful code and natural language understanding of modern \llm{s} to directly localize bugs. Meanwhile, most such \llm-based techniques either cannot perform repository-level FL due to the limited context window of \llm{s}~\cite{yang2024llmao}, or rely on complicated/costly agentic design to navigate through the codebase~\cite{kang2024quantitative, qin2024agentfl}. 
+In contrast, \tech employs a simplistic hierarchical FL process (based on both \llm{s} and IR) to efficiently compute the fine-grained edit locations.
+
+
+%
+
+After localizing the bug, the next step is to perform repair. 
+Automated program repair~\cite{gazzola2019aprsurvey} (APR) has been widely studied to automatically generate patches for bugs. 
+Traditional APR techniques can be categorized as template-based~\cite{liu2019tbar, ghanbari2019prapr}, heuristic-based~\cite{legoues2012genprog, le2016hdrepair}, and constraint-based~\cite{mechtaev2016angelix, long2015spr} tools. 
+While effective, traditional \apr tools suffer from scalability issues and are limited by their patch variety.
+As such, researchers have proposed learning-based \apr tools either by training NMT (neural machine translation) models~\cite{jiang2021cure, li2020dlfix, chen2018sequencer, zhu2021recoder} or using pre-trained \llm{s} to perform repair~\cite{alpharepair, xia2023repairstudy, kolak2022patch, zhang2024systematicapr}.
+Specifically, \llm-based APR tools, which sample multiple candidate patches per bug, have been shown to be the state-of-the-art due to the powerful coding capability of modern \llm{s}~\cite{xia2023repairstudy}. More recently, agent-based \apr techniques have also been proposed~\cite{chatrepair, bouzenia2024repairagent, hidvegi2024cigar, chen2024flakiness, zhang2024acfix}. 
+Inspired by existing \llm-based \apr tools, \tech samples multiple candidate patches per issue to maximize the chance of generating a correct fix. Different from most \llm-based \apr techniques, \tech generates patches using a simple diff format~\cite{aidar} to avoid generating the complete code and instead focus on producing cost-efficient small edits, increasing the reliability and accuracy of patch generation (less chances for hallucination).
+Furthermore, different from the simplistic bugs studied in most prior work~\cite{xia2023repairstudy}, \tech targets complex repository-level issues spanning multiple locations. 
+%
+
+%
+
+\subsection{\llm-based Test Generation}
+
+In addition to localizing and repairing bugs, another research area that has been adopting \llm is test generation. 
+One area of test generation is fuzz testing~\cite{zeller2019fuzzing}, also known as fuzzing, to generate large amounts of inputs in order to expose bugs in systems. 
+Researchers have applied \llm{s} to perform fuzzing in domains such as DL libraries~\cite{titanfuzz, deng2023fuzzgpt}, OS Kernel~\cite{yang2023kernelgpt, oliinyk2024fuzzing}, compilers~\cite{fuzz4all,yang2023whitebox, ou2024mutators}, network protocols~\cite{meng2024large}, and mobile applications~\cite{liu2024make}. 
+%
+\llm-based fuzzers have demonstrated their impact by detecting many bugs not found by traditional fuzzers as well as unlocking new fuzzing domains.
+Besides fuzzing, researchers have also proposed to leverage \llm{s} for unit test generation to test individual software units (e.g., methods/classes)~\cite{liu2024largesurvey}, such as CodeMosa~\cite{lemieux2023codamosa}, ChatTester~\cite{yuan2024evaluating}, TestPilot~\cite{schafer2023testpilot}, and CoverUp~\cite{pizzorno2024coverup}.
+
+
+
+Bug reproduction is a critical step in investigating bug reports~\cite{jin2012bugredux}, and is integrated into many recent software engineering agents~\cite{opendevin,specrover,honeycomb,mentatbot,factorydroid,sweagent,masai}.
+For example, \specrover~\cite{specrover} begins by generating a test to reproduce the issue described in the bug report; the test then guides the context retrieval and patching process.% 
+Unlike such agent-based approaches, which generate a reproduction test and rely on an LLM agent to decide whether the test is correct, \tech { simply executes multiple sampled tests} and verifies if the execution results indicate the issue has been reproduced.
+
+
+
+
+
+
+
+
+
+
+
+
+

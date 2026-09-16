@@ -1,0 +1,29 @@
+\subsection{Evaluation Datasets}
+\label{appx:experiments:eval_datasets}
+\textbf{SWE-bench.} SWE-bench is a widely used benchmark that evaluates AI systems on their ability to resolve GitHub issues~\citep{jimenez_swe-bench_2024}.
+Given a codebase along with a description of a bug or feature, the AI system is asked to modify the codebase in such a way that the issue presented in the description is resolved.
+SWE-bench consists of $2294$ such task instances, collected from real world pull requests (PRs) and issues in $12$ GitHub repositories that are predominantly Python.
+As discussed in Section~\ref{sec:experiments}, the Lite and Verified subsets are curated from the main SWE-bench repository with the goal of making evaluation either more efficent or more reliable.
+Since evaluation on the entirety of SWE-bench is fairly costly and does not have as many comparable references, we do not evaluate \texttt{SWE-agent-LM-32B} on the entire SWE-bench test set.
+
+\textbf{SWE-bench Multimodal.} SWE-bench Multimodal applies SWE-bench collection strategy to $12$ additional predominantly JavaScript and TypeScript GitHub repositories, where task instances are associated with issues that have visual asset(s) in them~\citep{yang_swe-bench_2024}.
+The evaluation dataset consists of $510$ task instances.
+While the original work evaluates vision language models (VLMs) specifically, we do not evaluate \texttt{SWE-agent-LM-32B} which, as it is based on Qwen $2.5$ Coder Instruct, does not have the ability to process images as inputs.
+
+\input{tables/swebml_dataset}
+
+\textbf{SWE-bench Multilingual.} SWE-bench Multilingual is an evaluation dataset consisting of 300 task instances that we introduce with this work.
+A single author carried out SWE-bench's collection strategy for $42$ additional GitHub repositories, covering the following $9$ programming languages: JavaScript, TypeScript, C, C++, Go, Java, PHP, Ruby, and Rust. These repositories span a wide range of application domains, including web frameworks, data storage and processing tools, core utilities, and widely used libraries. A brief summary of the dataset is presented in Table~\ref{tab:swebml_dataset}.
+
+Like SWE-bench Verified, we curate the dataset by excluding task instances deemed by a team of three authors to have ambiguous or underspecified issue text. 
+Each task instance edits (meaning additions and removals) on average $48$ lines of code.
+Similar to SWE-bench and \bugs{}, the median number of Fail-to-Pass tests is one.
+
+We introduce SWE-bench Multilingual to:
+\begin{enumerate}
+\item Provide a benchmark to evaluate model and agent performance across a variety of programming languages and application domains. Existing agent systems often rely on Python-specific tooling, effectively overfitting to the original SWE-bench~\citep{yang_swe-bench_2024}. Although SWE-bench Multimodal addresses this to some degree, its focus on visual inputs is a confounding factor for text-only evaluation of software engineering capabilities.
+\item Remain fully compatible with SWE-bench, so current users can adopt it without changing infrastructure.
+\item Keep the dataset small enough to run quickly. While concurrent work like \citet{zan2025multiswebenchmultilingualbenchmarkissue} provides more task instances in multiple languages, we purposely constrain the number of task instances so that the dataset is easy to run quickly.
+\end{enumerate}
+
+In \S\ref{appx:experiments:training_analyses}, we briefly discuss how performance by existing state of the art methods for SWE-bench is markedly worse on SWE-bench Multilingual, then offer some clear directions for potential next steps to build better agentic coding models that would involve extending \bugs{}.

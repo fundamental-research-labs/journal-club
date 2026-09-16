@@ -1,0 +1,223 @@
+\section{Results}
+\label{sec:results}
+Table~\ref{tab:main_results} compares the performance of Qwen~2.5 Coder Instruct models (7B and 32B), fine-tuned on $5{,}016$ \bugs{} trajectories.
+We refer to them as {\tt SWE-agent-LM-7B} and {\tt SWE-agent-LM-32B}; the latter achieves state-of-the-art performance.
+
+\input{tables/main_results}
+
+The final dataset of $5{,}016$ training points was curated as follows.
+We start by collecting a large pool of expert trajectories.
+First, we carried out each of the ablations in Section~\ref{sec:results:ablations}, giving us an initial set of $5{,}105$ trajectories.
+Next, based on our observation that PR Mirror and LM Rewrite task instances yield the most effective expert trajectories (discussed below), we run the expert model on all task instances of these types, bumping up the total number to $6{,}457$ task instances.
+Ultimately, we attempt to generate expert trajectories for $8{,}686$ unique task instances, or $17.3$\% of the \bugs{} dataset.
+Reinforcing the difficulty rating findings from Section~\ref{sec:swesmith:features}, we observe that \bugs{} task instances are non-trivial for the top agent systems today.
+The final pool of $6{,}457$ represents a $36$\% resolve rate of all $17{,}906$ attempts to solve one of the $8{,}686$ task instances.
+
+Next, we perform minor filtering of this collection.
+As reported in~\citet{pan_training_2024}, we also observe that ``easier" trajectories -- task instances that are repeatedly solved across multiple runs --- degrade model performance.
+Therefore, we limit the number of times any \bugs{} task instance is represented in the training set to $3$ trajectories.
+This leads to the final $5{,}016$ training set.
+More details in \S\ref{appx:experiments:data_breakdown}.
+
+\textbf{Performance improves with more data points.}
+Extending similar graphs from ~\citet{jain2025r2e-gym,pan_training_2024}, Figure~\ref{fig:scaling_teaser} shows increasing performance with more trajectories.
+
+% \textbf{Training on \bugs{} transfers to other code settings.} We run \texttt{SWE-agent-LM-32B} on non-Python software engineering benchmarks.
+% On SWE-bench Multimodal, we achieve a state-of-the-art resolve rate of $xx.x$\%, a $21$ percentage point improvement post-fine-tuning.
+% On SWE-bench Multilingual, we reach $xx.x$\% resolved ($+17$\%).
+
+\textbf{Comparison at the same training set size.}
+To compare with prior works~\citep{jain2025r2e-gym,pan_training_2024}, we run expert trajectory generation on $1000$ random \bugs{} task instances with SWE-agent + Claude 3.5 Sonnet ($800$) or GPT-4o ($200$).
+We then fine-tune the $32$B model on $500$ successful trajectories, a training set size both works report on.
+Our model achieves a $28.2$\% resolve rate on SWE-bench Verified, a relative difference of $+8.2$\% with \citet{pan_training_2024} and $+0.7$\% with \citet{jain2025r2e-gym}.
+
+\subsection{Ablations of \bugs{}}
+\label{sec:results:ablations}
+We perform several ablations of how \bugs{}'s bug and problem statement generation strategies impact the quality of training data.
+We use Claude 3.7 Sonnet as the expert for fine-tuning Qwen $2.5$ $7$B Coder Instruct, and report the performance on SWE-bench Verified.
+
+\textbf{LM Rewrite and Procedural bugs are comparable to PR mirrors.}
+We randomly sample $1000$ instances per bug generation strategy (LM Modify, LM Rewrite, Procedural Modifications, PR Mirrors).
+Per instance, we generate issue text with an LM and run expert trajectory generation.
+We then fine-tune a student model per strategy, capping training points to the minimum number of successful trajectories from any strategy ($507$) for fair comparison.
+
+Table~\ref{tab:ablation_bug} summarizes the results.
+Trajectories generated from PR mirrors are empirically the most effective training data --- this is expected, since they are most reflective of SWE-bench.
+What's noteworthy is that trajectories from Procedural Modification and LM Rewrite instances lead to competitive models.
+There is a steep drop-off with LM Modify bugs.
+
+\textbf{LM generated issues are comparable to real issues.}
+We randomly sample $600$ PR Mirror task instances.
+We compare LM generated issues with three alternatives --- fixed issue templates, the source code + test logs of a random Fail-to-Pass test, and the original issue text associated with the PR.
+We again cap training points to the minimum number of successful trajectories ($259$) for fairness.
+
+As shown in Table~\ref{tab:ablation_issue}, training on task instances with LM generated issues is empirically comparable to using the original issue text.
+Using fixed issue templates not only leads to the fewest successful trajectories, but also results in relatively homogeneous problem solving sequences.
+The expert trajectories from fixed issue templates have $31$\% fewer unique actions compared to LM generated text ($379$ vs. $550$).
+While providing a Fail-to-Pass test case leads to more successful expert trajectories, leaking the evaluation criteria causes the model to skip over writing a reproduction script, which accounts for the performance drop.
+Of $500$ SWE-bench Verified instances, the student model trained on LM-generated issues attempts to reproduce the bug for $379$ of the runs.
+The model trained on test-based issues only does so for $127$ cases, a $66$\% decrease.
+
+\begin{table}[t]
+\centering
+\begin{minipage}[t]{0.52\textwidth}
+    \input{tables/ablation_bug}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+    \input{tables/ablation_issue}
+\end{minipage}
+\end{table}
+
+\textbf{Task difficulty correlates with solvability but not with effectiveness as training data.}
+First, we run our difficulty rating model on $10$k randomly selected \bugs{} task instances.
+From this pool, we curate subsets of $1000$ instances corresponding to the three difficulty levels, then run expert trajectory generation per subset $3$ times.
+For the \texttt{easy}/\texttt{medium}/\texttt{hard} subsets, the resolve rate by the expert model are $58.6$\%, $41.0$\%, and $17.0$\% respectively.
+
+Next, from all successful trajectories, we create four fine-tuning datasets of $500$ trajectories each corresponding to difficulty scores of $2$, $4$, $6$, and $8$.
+As mentioned in Section~\ref{sec:swesmith:features}, the corresponding scores for \texttt{easy}/\texttt{medium}/\texttt{hard} are $1$/$5$/$9$.
+Therefore, the SFT dataset for score $2$ is made up of trajectories corresponding to $375$ \texttt{easy} and $125$ \texttt{medium} instances, and so on.
+Somewhat surprisingly, we do not observe strong correlation between increased difficulty and downstream performance.
+For the student models trained on the $2$/$4$/$6$/$8$ difficulty SFT datasets, we get pass@1 scores of $12.4$\%, $10.8$\%, $13.6$\%, and $12.2$\% on SWE-bench Verified.
+
+\begin{figure}[b]
+    \centering
+    \begin{minipage}[t]{0.56\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/specialized_ablation.pdf}
+        \caption{
+        We fine-tune a $7$B base and our $32$B models on $700$ trajectories for SymPy.
+        Specialization boosts performance with minor generalization loss.
+        }
+        \vspace{0.3em}
+        \label{fig:specialized_ablation}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.42\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/repo_diversity_ablation.pdf}
+        \caption{
+        At $700$ training samples, we observe performance increases logarithmically with repositories.
+        }
+        \label{fig:repo_diversity_ablation}
+    \end{minipage}
+\end{figure}
+
+\textbf{Training on more repositories improves general performance.}
+% We measure the impact of training repository diversity on model performance.
+We train models in four settings by sampling $700$ expert trajectories on Procedural Modification tasks from pools of $4$, $25$, $50$, and $100$ repositories.
+Echoing similar findings for code generation tasks~\citep{xie2025repostscalablerepositorylevelcoding}, we find that increasing repositories represented in the training set improves performance, as shown in Figure~\ref{fig:repo_diversity_ablation}, with an approximately logarithmic relation between model performance and number of repositories.
+
+\textbf{Repository-specialized models excel on the target repository with minor generalization loss.}
+We experiment with training models to be specialists on one particular repository.
+To assess performance, we evaluate models on a subset of SWE-bench Verified tasks that are (1) from SymPy, and (2) created after January 1st, 2022, a total of $22$ instances.
+To create SymPy specific training data, we first select a base commit of SymPy just before the cutoff date.
+Next, we create $1276$ Procedural Modification task instances, then generate $700$ expert trajectories.
+We evaluate specialization in two settings: (1) single-repository fine-tuning, and (2) specialist stage fine-tuning, both shown in Figure~\ref{fig:specialized_ablation}.
+For single-repository tuning, we compare a model initialized with \texttt{Qwen-2.5-Coder-Instruct 7B} and trained on $700$ instances sampled from $100$ repositories, to the same Qwen base model but fine-tuned on the $700$ SymPy instances only.
+For specialist stage fine-tuning, we simply compare \texttt{SWE-agent-LM-32B} to the same model further fine-tuned on the $700$ SymPy instances.
+
+Specialization significantly boosts performance for the target repository with only slight drops in general performance in both the single-repository fine-tuning ($21.2$\% vs. $13.6$\%) and specialist stage fine-tuning ($42.4$\% vs. $33.3$\%) settings.
+
+\subsection{Analysis of Agent Behavior}
+\label{sec:results:agent_behavior}
+
+\begin{figure}[t]
+    \centering
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        {\includegraphics[scale=0.48]{figures/agent_actions/step_count_overlap.pdf}}
+        \caption{
+        \texttt{SWE-agent-LM-32B} takes fewer steps to submit compared to Claude 3.7 Sonnet for instances resolved by both models.
+        }
+        \label{fig:step_counts_overlap}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        {\includegraphics[scale=0.48]{figures/agent_actions/repetitive_actions.pdf}}
+        \caption{
+For unsuccessfully resolved tasks, a frequent failure mode is that \texttt{SWE-agent-LM-32B} will repeat actions.
+        }
+        \label{fig:repetitive_actions}
+    \end{minipage}
+\end{figure}
+
+This section analyzes the behavior, failure modes, and efficiency of SWE-agent when run with \texttt{SWE-agent-LM-32B} or Claude 3.7 Sonnet on SWE-bench verified.
+
+\textbf{SWE-agent-LM-32B can solve tasks efficiently.} \texttt{SWE-agent-LM-32B} resolves tasks in fewer steps on average (24.9) than Claude 3.7 Sonnet (29.1), though the difference becomes marginal when accounting for different average difficulties of the resolved tasks: On the overlap of tasks that are resolved by both LMs, \texttt{SWE-agent-LM-32B} uses 24.8 steps compared to 25.6 used by Claude 3.7 Sonnet (see Fig.~\ref{fig:step_counts_overlap}).
+While shorter trajectories are not always preferred (additional actions can be used for additional validation purposes, for example), this shows that \texttt{SWE-agent-LM-32B} solves tasks very efficiently.
+At the same time \texttt{SWE-agent-LM-32B} also demonstrates that it can remain focused throughout long trajectories, with 31 instances being resolved after 40 steps or more.  
+We further highlight that the accuracy of naturally terminating
+\footnote{i.e., excluding agent runs that are terminated due to errors or cost/step count limits. Note that SWE-agent still extracts and submits any changes performed by the agent in these cases and some of them can be successful (for example if the agent is terminated due to cost while testing already performed edits).}
+agent submissions with \texttt{SWE-agent-LM-32B} achieve an accuracy nearly matching that of Claude 3.7 Sonnet (60\% vs 63\%), showing that \texttt{SWE-agent-LM-32B} is adept at determining whether an instance has been resolved.
+As the overall cost and turn count averages scale strongly with the cost and turn limits, we reserve a more thorough analysis for \S\ref{appendix:experiments:agentbehavior:turncounts}.
+
+% \textbf{Finetuning effectively shapes the agent action space} The simplest way to characterize the behavior of the agent and to demonstrate the effects of fine tuning is to analyze the action distribution of the agent.
+% The agent computer interface CITEME used with SWE-agent consists of 
+% \begin{itemize}
+% \item The \strreplace{} tool with \texttt{view}, \texttt{create}, \texttt{str\_replace} subcommands to view directory/file contents, create new files, and perform search and replace edit operations on them.
+% \item The ability to execute arbitrary bash commands.
+% \item The submit tool for the agent to break the agentic loop and submit a solution.
+% \end{itemize}
+% More details on the ACI setup are found in Appendix~\ref{appendix:experiments:agentbehavior}.
+% The distribution of actions taken by SWE-agent with Claude 3.7 Sonnet is dominated by the use of the \strreplace{} tool, \texttt{find} and \texttt{grep}, and the \texttt{python} tool. 
+% In contrast, SWE-agent with Qwen before fine tuning is considerably less focused and displays a much flatter distribution.
+
+% Already after few rounds of finetuning, the distribution of the most frequent actions starts to approach that of Claude 3.7 Sonnet (Figure~\ref{fig:action_freqs}). 
+% However, we still observe a much higher percentage of read actions.
+% This is explained by \emph{repetitive actions}.
+
+% \begin{figure}
+%     \centering
+%     \begin{minipage}[t]{0.55\textwidth}
+%         \centering
+%         \fbox{\includegraphics[scale=0.5]{figures/agent_actions/action_freqs.pdf}}
+%         \label{fig:action_freqs}
+%         \caption{Most frequent actions taken by SWE-agent-LM-32B on SWE-Bench Verified before and after finetuning.\ofir{why do we have this seperation between res/unresolved? do we only train on resolved? if so, we should probably only show resolved here and call it 'Teacher'. we gotta be as simple as possible} \kilian{Currently, this is all the FTd qwen model (just stratified by resolved/unresolved/all), there will be separate bars for the non-FTd/teacher. The reason that resolved/unresolved distribution diverge is because unresolved correlates highly with repeat actions and repeat actions are usually view actions. This is/will be explained in text. I don't think it makes sense to only show resolved even for the teacher, because this is evaluating the model on the test set, not on the training data to see how well FTing assimilated the action distributions}\ofir{we want simple. this sounds very complex. try to make it as simmmmmple as possible plz.}}
+%     \end{minipage}    
+%     \hfill
+%     \begin{minipage}[t]{0.45\textwidth}
+%         \centering
+%         \fbox{\includegraphics[scale=0.5]{figures/agent_actions/repetitive_actions.pdf}}
+%         \label{fig:repetitive_actions}
+%         \caption{SWE-agent-LM-32B shows long sequences of repetitive actions on SWE-Bench Verified. These sequences strongly correlated with unresolved instances and rarely occur with Claude 3.7 Sonnet.}
+%         %\caption{Repetitive actions \ofir{survival func? whats that? please explain in simple words. caption should also have the takeaway from this analysis}}
+%     \end{minipage}    
+% \end{figure}
+
+\textbf{Repetitive actions are a key problem.}
+% On the other hand, particularly for unresolved instances,
+We observe a tendency for \texttt{SWE-agent-LM-32B} to get stuck in long sequences of repetitive actions, in particular long sequences of calls that display different portions of a file instead of using search commands.
+\footnote{In fact, these \strreplaceview{} commands make up $73$\% of the longest repetitive sequences. For this analysis, we look at repetitions of the base command, i.e., without any arguments. See \S\ref{appendix:experiments:agentbehavior} for more.}
+More than 25\% of \texttt{SWE-agent-LM-32B} trajectories have a repetitive sequence of at least length 10, compared to less than 4\% for Claude 3.7 Sonnet (see Figure~\ref{fig:repetitive_actions}). 
+The occurrence of long repetitive sequences correlates strongly with the agent's ability to solve the corresponding task instance, largely because the LM continues issuing similar commands until either the agent cost or turn limit is reached, at which point the run is terminated.
+For example, repetitive sequences of length 10 correspond to an 89\% failure probability.
+Simple interventions from the agent scaffold can mitigate repetitive actions, but do not seem to improve resolve rates (see~\S\ref{appendix:experiments:agentbehavior}).
+%On the other hand, when only comparing successful instances, the distributions of longest repetitive sequence length are similar between \texttt{SWE-agent-LM-32B} and Claude 3.7 Sonnet (see Figure~\ref{fig:repetitive_actions}).
+
+\begin{figure}[t]
+\centering
+    \includegraphics[width=\textwidth]{figures/agent_actions/failure_reasons_vertical.pdf}
+    \caption{
+    More than half of the unresolved instances of \texttt{SWE-agent-LM-32B} correspond to runs terminated by cost/step limits, and these limits are frequently reached before source code has been modified. See \S\ref{appendix:experiments:agentbehavior} for more.
+    % details on how failures are attributed.
+    }
+    \label{fig:failure_modes}
+\end{figure}
+
+\textbf{Localization is the dominant failure mode.}
+Guided by a short plan in the system prompt, SWE-agent typically starts by \emph{localizing} (search and read actions), \emph{reproducing} (test file creation and execution), before modifying source files and validating the fixes.
+If the agent gets stuck at any of these stages or keeps on iterating, the agent loop is eventually interrupted by runtime limits (cost, number of LM calls, runtime).
+While this rarely happens with Claude 3.7 Sonnet, 53\% of \texttt{SWE-agent-LM-32b}'s failures are associated with such limits (Figure~\ref{fig:failure_modes}).
+The agent often already gets stuck during localization or initial efforts to reproduce a bug, with endlessly repeated actions being a persistent issue.
+More on failure modes in \S\ref{appendix:experiments:agentbehavior}. 
+% In many cases, the agent gets stuck during localization or the initial reproduction.
+% Especially the former can be directly connected to repetitive actions discussed above.
+
+% \begin{figure}[h]
+% \centering
+%     \includegraphics[width=\textwidth]{figures/agent_actions/failure_reasons.pdf}
+%     \caption{More than half of the unresolved instances of \texttt{SWE-agent-LM-32B} correspond to runs terminated by cost/turn limits (left), and these limits are frequently reached during the localization or reproduction stage (right). Percentages are relative to the number of failed instances (left) and the number of failed instances that exceeded cost/turn limits (right).}
+%     \label{fig:failure_modes}
+% \end{figure}

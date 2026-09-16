@@ -1,0 +1,180 @@
+\setlist[itemize]{leftmargin=15pt}
+\section{Details of Progress Rate Metrics\label{sec: Annotation of Subgoals}}
+
+\subsection{Explanation and Adaptations for ``Unique'' Subgoal Sequence \label{sec: explanation for adaptation}}
+
+We manually edit problems for a simpler progress rate calculation setup where each final goal aligns with a unique subgoal sequence. Here we emphasize two attributes of our adaptation. 
+
+\paragraph{Agentboard allows for multi-trajectory inference paths:} Note that a single sequence of subgoals is not equivalent to a single inference path trajectory – in fact, our progress rate can be applied to tasks with multiple inference paths. We only restrict examples that have multiple different sets of subgoals to fulfill the same final goal. However, a single set of subgoals allows for very diverse inference paths. For example, in BabyAI, a problem is ``go to a red ball,'' where the agent needs to find a red ball behind it and then go to the red ball. It could either finish the task with the golden path ``turn right -> go to red ball 1'' or take detours while eventually finishing the task, such as ``move forward -> go to grey box 1 -> move forward -> turn right -> go to red ball 1''. Both trajectories fulfill subgoals ``find a red ball” and “go to the red ball”.
+
+\paragraph{Our adaptations for single-set subgoals only affect less than 5\% of all problems:} We only limit situations where a model has many diverse sets of subgoals, such as in ScienceWorld, where an agent could use either a stove or a blast furnace to vaporize liquid. We simplify it by specifying a single method and clarifying the goal ``vaporize liquid'' as ``vaporize liquid with a stove.'' This kind of adaptation only applies to tasks in BabyAI and ScienceWorld, constituting less than 5\% of all problems in AgentBoard. Most of the existing samples already satisfy this requirement, and our modifications do not change the task difficulty; they are solely for the purpose of annotation convenience. A full list of adaptations and their examples is detailed in Table \ref{tab: ration of environments with adaptations}.
+
+\input{tables/adaptation_subgoal}
+
+\subsection{Alfworld\label{sec: Annotation of alfworld}}
+ We identify and annotate the necessary subgoals using regular expressions. For instance, for the task ``put a pencil on the desk'', we annotate one necessary observation as ``You pick up the pencil \d +''. This expression would match observations like ''You pick up the pencil 1''. When the goal of an environment is achieved, the environment emits a task success flag. Specifically, for each environment, we labeled N-1 necessary subgoals as N-1 subgoals. The final success flag combined with the N-1 annotated subgoals constitutes the set of N subgoals.
+
+
+
+\subsection{ScienceWorld\label{sec: Re-annotation of Scienceworld}}
+\begin{table*}[t!]
+\resizebox{\textwidth}{!}{\begin{tabular}[t]{@{}lp{8cm}p{8cm}@{}}
+\toprule
+& \textbf{Original Labels} & \textbf{Ours} \\ \midrule
+\textbf{Task Description} & Your task is to freeze orange juice. First, focus on the substance. Then, take actions that will cause it to change its state of matter. &  Your task is to freeze orange juice \textcolor[rgb]{0,0,1}{\textbf{in the kitchen}}. \textcolor[rgb]{0,0,1}{\textbf{The objects you can use are a metal pot, a freezer, a thermometer, and a fridge.}} Take actions that will cause it to change its state of matter to a solid state. \textcolor[rgb]{0,0,1}{\textbf{Finally, examine its altered state. You should wait and monitor the temperature of the water until it changes its state.}} \\ \midrule
+
+
+
+\textbf{Subgoals} & \textbf{Sequential Subgoals:} 
+\begin{itemize}
+
+    \item[1.] focus on substance
+    \item[2.] substance is in a liquid state 
+    \item[3.] substance is in a solid state
+\end{itemize} \textbf{Unordered and Optional Subgoals:} 
+\begin{itemize}
+    \item[1.] be in same location as orange juice
+    \item[2.] have substance alone in a single container
+    \item[3.] have object in cooler (fridge)
+    \item[4.] have object in cooler (freezer)
+    \item[5.] cool object by at least 5C
+\end{itemize}
+&  
+\textbf{Necessary Observations:} 
+\begin{itemize}
+
+\item[1.] You move to the kitchen.
+\item[2.] The freezer is now open. 
+\item[3.] The fridge is now open.
+\item[4.] the thermometer measures a temperature of (-?[0-9]\texttt{|-}
+?[1-9][0-9]\texttt{|-}
+?[1-9][0-9]{2}) degrees celsius
+\item[5.] solid orange juice
+\end{itemize}
+ \\
+\bottomrule
+\end{tabular}}
+\caption{Comparison between the original task description and subgoals of ScienceWorld and our labeled subgoals(Best viewed in color).}
+\label{tab: rennotation_sw}
+\end{table*}
+
+We compare our modified task descriptions and subgoals with the original ones in Table \ref{tab: rennotation_sw}. In the original scheme, subgoals are categorized as ``sequential subgoals'' and ``unordered and optional subgoals''. For the former, achieving sequential subgoals alone is sufficient to receive full rewards (100 points). However, under the ``unordered and optional subgoals'', each completed task is only awarded low point (e.g. 1 point). %\jh{I still feel this is not a very convincing argument. SW gives it a low point because it is ``optional'', here we just say ``it is important'' subjectively, can we have specific examples here as objective evidence?}
+These tasks are also important and necessary for accomplishing the given task. For instance, the ``optional subgoals'' outlined in Table \ref{tab: rennotation_sw}, such as ``be in the same location as the orange juice'' and ``have the substance alone in a single container'' are necessary for the task and can help to evaluate a model's navigation and common sense abilities. It is inappropriate to assign such tasks a low score. Furthermore, the uneven distribution of ``Sequential Subgoals'' throughout the entire task process can lead to a disproportionately low score, which does not accurately reflect the model's progress. For example, if the model fails to complete the initial subgoals within the ``Sequential Subgoals'' category, which could be considerably distant from the start state, it can only achieve a very low score. This scoring method does not align with our motivation, which is to ensure that the progress rate adequately reflects the model's performance. Therefore, we have re-annotated the subgoals. Specifically, we label necessary observations as part of the subgoals.
+
+In the original task descriptions, the possibility of multiple necessary tools being present in multiple rooms (e.g., a thermometer) creates multiple viable gold paths for task completion. Consequently, a single state may exhibit different progress levels across various gold paths. This disparity makes it challenging to assign a definitive progress rate to any given state. Therefore, in our task descriptions, we have restricted the locations and tools used for tasks to ensure the uniqueness of our goal paths and the necessity of observations. For  the necessary observations, our initial observation is more close to the initial state and but still challenging.
+
+we design an interactive UI framework (Figure \ref{fig: sub-goal annotations 2}). We ask one graduate student to interact with the environment and record the necessary observations to achieve the given goal. As a result, we revise the task descriptions to include sufficient information for achieving the subgoals and to ensure the gold path is unique. .
+
+
+\subsection{BabyAI\label{sec: Annotation of babyai}}
+
+The origin implementation of babyai provides a reward score. Different from the original reward, our progress rate is more dense and the agent does not need to accomplish many steps before getting a increase in score. Here we compare the difference between our progress rate and the original reward score, as shown in Table~\ref{tab:babyai progress rate comparison}. We can see from this case that our progress rate better measures intermediate progress for agents.
+
+The progress rate is labelled via an interactive UI framework (Figure \ref{fig: sub-goal annotations 2}). A graduate student interact with the environments and record the observations corresponding to subgoals needed to finish the problem.
+
+\begin{table*}[h!]
+  \centering
+  \resizebox{\textwidth}{!}{
+  \begin{tabular}{m{0.3\textwidth}m{0.35\textwidth}m{0.35\textwidth}}
+    \hline
+    \centering Problem: Unlock to Unlock & \centering Steps with Score Increase (Original) & \centering\arraybackslash Steps with Score Increase (Ours)\\ 
+    \hline 
+    \centering\arraybackslash \includegraphics[width=0.3\textwidth]{figures/babyai_unlock_to_unlock.pdf} & \centering\arraybackslash 1. Pickup purple ball & \centering\arraybackslash 1. Pickup blue key; 2.Enter \textit{room 3}; 3. Pickup grey key; 4. Enter \textit{room 2}; 5. Enter \textit{room 1}; 6. Pickup purple ball \\
+    \hline
+  \end{tabular}
+  }
+  
+  \caption{Comparison between our progress rate for BabyAI and original reward score.}
+  \label{tab:babyai progress rate comparison}
+\end{table*}
+\subsection{Jericho\label{sec: Annotation of jericho}}
+The original Jericho games are free-exploration text-based games, where the player is not given a tangent goal but allowed to explore around the environment as adventureres. For uniformity with other tasks, we first write a new goal for each problem, and we carefully select the goal so that the game could be accomplished within 15 subgoals. In contrast, the original environments requires around 50-300 interactions to get the maximum rewards. The annotation of goal and subgoals are also performed by a graduate student in the interactive UI framework.
+
+\subsection{PDDL\label{sec: Annotation of pddl}}
+
+In the PDDL environment, each state is discribed by a conjunction of properties $p_1\land p_2, \dots, \land p_m$, each property is a simple predicate describing the property of an object, e.g. ``Block a is on the table''. Given the goal state $g_1\land g_2, \dots, \land g_n$ and any state $p_1\land p_2, \dots, \land p_m$, the matching score formula is defined as:
+\begin{equation}
+    f = \frac{|\mathcal{G}\cap \mathcal{P}|}{|\mathcal{G}|}, \mathcal{G}=\{g_1,g_2,\dots, g_n\}, \mathcal{P}=\{p_1,p_2,\dots, p_m\}
+\end{equation}
+
+The matching score is 1 if and only if the properties of goal state is satisfied in current state. 
+
+\subsection{WebShop\label{sec: Re-annotation of WebShop}}
+In the webshop environment, we expanded the product scoring rules from \citep{yao2022webshop} to derive the score at different web pages. We can calculate the score of any product (the distance from the target product) using the original scoring formula as follows:
+\begin{equation}
+\label{eq:r}
+    f = f_{\text{type}} \cdot \frac{|\mathcal{U}_{\text{att}} \cap \mathcal{Y}_{\text{att}}| + |\mathcal{U}_{\text{opt}} \cap \mathcal{Y}_{\text{opt}}| + \mathbf{1}[\text{y}_{\text{price}} \le \text{u}_{\text{price}}]}{|\mathcal{U}_{\text{att}}| + |\mathcal{U}_{\text{opt}}| + 1},
+\end{equation}
+% \jh{the notations in the equation are not explained -- readers cannot understand this equation without reading the webshop paper. Our paper should be self-contained, plz explain the equations better.}
+Each natural language instruction, denoted as $\text{u} \in \mathcal{U}$,  encompasses a non-empty set of attributes, $\mathcal{U}_{\text{att}}$, a set of options, $\mathcal{U}_{\text{opt}}$, and a specified price, $\text{u}_{\text{price}}$. Meanwhile, $\mathcal{Y}$ represents the product chosen by the agent. The function $f_{\text{type}}=\text { TextMatch }\left(\bar{y}, \bar{y}^*\right)$ is based on text matching heuristics to assign low reward when $y$ and $y^*$ have similar attributes and options but are obviously different types of products.
+ 
+Typically, completing a web shopping task involves three continuous stages: search, product selection, and finalizing the product style before placing an order. Therefore, to measure the distance between the current state and the target state, we primarily calculate scores for three pages (states): search result page, product description page, and order confirmation page. On the search result page, we calculate the score of each product on the page and take the highest score as the score for this page. On the product description page, we compute the highest score for the product under various options as the page score. On the order confirmation page, the score of the finally selected product is considered as the score for that page. In our method, the progress rate is the average of the scores from these three pages
+
+\subsection{WebArena\label{sec: Re-annotation of WebArena}}
+
+In our method, we effectively utilize the annotation data, treating URLs as indicators of the web browsing trajectory and required contents as integral scoring points.The progress rate is formulated as follows: 
+\begin{equation}
+    r^{\text{match}} = \frac{n}{m+n}(r_{d}(r_{q}+r_{p})) + \frac{m}{n+m}r_{c} \quad (n=3; m=0,1,2,\ldots) 
+\end{equation}
+Initially, we dissect the URL into its constituent elements: domain, query, and parameters by using \texttt{util.parse}. For domain verification, a binary value, $r_{d}$, is assigned, with a score of 1 indicating a correct domain match, and 0 otherwise. Subsequently, the matching score for the query, $r_{q}$, is determined through the application of the Longest Common Subsequence (LCS) algorithm, which assesses the similarity between the current and target queries based on their sequential nature.
+% \jh{how is matching score computed?}
+In contrast, the alignment between the current and target parameters is evaluated using the F1 score, denoted as $r_{p}$, which is particularly suited for unordered sets.
+
+In parallel, the content matching score, $r_{c}$, emerges from the analysis of required content presence at each stage, calculated as the ratio of detected essential contents to the total required contents.
+
+The overall progress rate integrates these two aspects, calculated as a weighted sum of the URL matching scores (incorporating domain, query, and parameter scores) and the content matching score. Here, $n$ represents the number of target URL components, and $m$ denotes the count of target required contents.
+
+\subsection{Tool-Query\label{sec: Annotation of tool query}}
+In Tool-Query Environments, we employ $r_{t}^{\text{subgoal}}$ as a metric to measure progress rate.
+Therefore, it is necessary to annotate subgoals for these envrionments.
+In Figure~\ref{fig:tool_query_subgoals}, we present an illustration of the process of subgoal annotation for Academia Environment.
+Specifically,
+when designing actions for these environments, we ensure that each action's functionality is indecomposable~(i.e., the functionality and outcome of one action can not be achieved through other actions).
+This design choice results in a deterministic set of required golden actions to achieve our annotated goal.
+Furthermore,
+we ask human annotators to identify golden actions for each goal.
+Every output returned by executing golden actions is then processed as a subgoal.
+\begin{figure}[t!]
+\centering 
+\includegraphics[width=0.8\linewidth]{figures/tool_query_subgoals.pdf} 
+\caption{An illustration of the process of subgoal annotation for Academia Environment.}
+\label{fig:tool_query_subgoals} 
+\end{figure}
+
+
+\subsection{Tool-Operation\label{sec: Annotation of tool operation}}
+For Todo Environment, we adopt $r_{t}^{\text{subgoal}}$ as progress rate metric.
+Subgoals are annotated following the same process as Tool-Query Environments.
+In Sheet Environment, progress rate is assessed with $r_{t}^{\text{match}}$.
+Specifically,
+we first ask human annotators to annotate the golden spreadsheet for each goal.
+During the evaluation process,
+we calculate the matching score after each interaction round.
+The matching score is determined by the proportion of cells in current spreadsheet that align~\footnote{A cell is aligned if and only if its value is the same as the cell in the same position on the golden spreadsheet.} with the golden spreadsheet.
+
+% \begin{lstlisting}
+% def get_match_score(self, sheet1, sheet2): # only check content
+%     if sheet1 == 'Please open a sheet before operating it':
+%         return 0.0
+
+%     # Get minimum number of rows and columns for both sheets
+%     min_rows = min(len(sheet1), len(sheet2))
+%     min_cols = min(len(sheet1[0]) if sheet1 else 0, len(sheet2[0]) if sheet2 else 0)
+
+%     # Count of matching cells
+%     matching_count = 0
+%     total_cells = 0
+
+%     for i in range(min_rows):
+%         for j in range(min_cols):
+%             total_cells += 1
+%             if sheet1[i][j] == sheet2[i][j]:
+%                 matching_count += 1
+
+%     matching_degree = matching_count / total_cells if total_cells else 0
+
+%     logger.info(''count: {}''.format(matching_count))
+%     logger.info(f''Matching Degree: {matching_degree * 100:.2f}%'')
+
+%     return matching_degree
+% \end{lstlisting}

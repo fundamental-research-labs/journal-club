@@ -1,0 +1,45 @@
+\section{How well are agents able to cooperate with each other?}\label{sec:cooperation_performance}
+
+In \dataset, each of the two agents are assigned a feature to implement, which will be called the Coop setting to distinguish from the Solo baseline. In the Solo baseline, the two tasks are assigned to one agent. For humans, teams should perform better or faster than individuals, which is the bottom line for cooperation to be considered as functional. We hypothesize for agents, the advantage of cooperation is overwhelmed by their incapability to coordination. This should lead to a ``coordination gap'': two agents perform worse than one agent for the same workload. 
+
+  \begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{figs/cooperation_results/main_results.pdf}
+    \caption{
+    %\hao{@Arpan can you add numbers for blue and black dots?} \arpan{@Hao it gets really crowded.}
+    \textbf{Left:} Under Coop setting, agents with different foundation models perform significantly worse than how they perform under Solo setting, except for \texttt{Qwen3-30B-A3B-Instruct-2507}, which performs bad under both settings. This Solo-Coop gap is what we call the ``coordination gap''. \textbf{Right:} The relationship between tasks' \emph{technical} difficulties and Solo-Coop gap. The shaded area has a large middle section which shows that the coordination gap is larger for middle-level tasks than for tasks which are extremely easy or difficult.}\label{fig:main_results}
+  \end{figure}
+
+
+
+\paragraph{The curse of coordination.} As shown in Fig.~\ref{fig:main_results} (Left), 
+across all models, success rates under the Coop setting is consistently lower than those under Solo settings, which means when two agents need to coordinate between them, they perform even worse than one agent ``solo''ing the two features. 
+This coordination gap is as large as 50\% in the leading models: \texttt{GPT-5}, \texttt{Claude Sonnet 4.5}, and \texttt{Minimax M2}. Qwen models have smaller gaps, but their Solo setting score is much lower as well. All error bars in Fig.~\ref{fig:main_results} are 95\% \emph{Wilson} confidence intervals computed over task sets (App.~\ref{app:ci}).
+
+\paragraph{Mid-difficulty crisis.}
+As shown in Fig.~\ref{fig:main_results} (Right), the gap between the two settings is larger and more significant on the tasks with middle-level technical difficulty than on the ones which are too easy or too hard. 
+Here we stratify tasks by \textit{relative difficulty}.
+For each task pair \(t\), we define a raw difficulty score
+\(d(t) = 1 - \frac{1}{|\mathcal{M}|}\sum_{m \in \mathcal{M}} \mathrm{Solo}_m(t)\), where \(\mathrm{Solo}_m(t)\) denotes model \(m\)'s Solo success on \(t\).
+For visualization, we linearly rescale \(d(t)\) to \(\tilde d(t) \in [0,1]\) using the minimum and maximum \(d(t)\) values in the benchmark.
+We bucket tasks by \(\tilde d(t)\) and report success rates as a function of \(\tilde d(t)\) for both Solo and Coop.
+This result points out that agents struggle to balance the two pressures for technical difficulty and cooperation difficulty. 
+When tasks are too easy, agents could spare more effort for coordination, but when tasks are getting harder, agents cannot effectively coordinate.
+
+
+\paragraph{Scaling the number of cooperating agents.}
+Our hypothesis is that increasing the number of agents in the same cooperative workspace exacerbates coordination overhead (e.g., more context to track and more opportunities for inconsistent plans), leading to lower end-to-end success.
+To probe this directly, we run a small scale experiment using 46 tasks from 3 separate task sets where we scale the number of concurrently cooperating agents from 2 to 4 while keeping the cooperative setting fixed.
+We observe a monotonic decline in success as the number of agents increases. Specifically, performance drops from \(68.6\%\) with 2 agents to \(46.5\%\) with 3 agents and further to \(30.0\%\) with 4 agents on the tasks, reinforcing the ``curse of coordination'' beyond the 2-agent setting.
+
+
+
+% \begin{figure}[!t]
+%   \centering
+%   \includegraphics[width=0.72\linewidth]{}
+%   \caption{\textbf{Scaling cooperative team size hurts performance.} Aggregated success rate as a function of the number of concurrently cooperating agents on a pilot set of \(n=46\) tasks, with 95\% \emph{Wilson} confidence intervals.}
+%   \label{fig:agent_scaling}
+% \end{figure}
+
+
+

@@ -1,0 +1,18 @@
+\section{Multi-Agent Reinforcement Learning}
+
+In SMAC, we focus on tasks where a team of agents needs to work together to achieve a common goal. We briefly review the formalism of such \textit{fully cooperative multi-agent tasks} as \textit{Dec-POMDPs} but refer readers to \citet{oliehoek_concise_2016} for a more complete picture.
+\paragraph*{Dec-POMDPs} Formally, a Dec-POMDP $G$ is given by a tuple 
+$G=\left\langle S,U,P,r,Z,O,n,\gamma\right\rangle$, where  $s \in S$ is the true state of the environment. At each time step, each agent $a \in A \equiv \{1,...,n\}$ chooses an action $u^a\in U$, forming a joint action $\mathbf{u}\in\mathbf{U}\equiv U^n$. 
+This causes a transition of the environment according to the state transition function $P(s'|s,\mathbf{u}):S\times\mathbf{U}\times S\rightarrow [0,1]$. 
+
+In contrast to partially-observable stochastic games, all agents in a Dec-POMDP share the same team reward function $r(s,\mathbf{u}):S\times\mathbf{U}\rightarrow\mathbb{R}$, where $\gamma\in[0,1)$ is the discount factor. 
+Dec-POMDPs consider \textit{partially observable} scenarios in which an observation function $O(s,a):S\times A\rightarrow Z$ determines the observations $z^a\in Z$ that each agent draws individually at each time step. 
+Each agent has an action-observation history $\tau^a\in T\equiv(Z\times U)^*$, on which it conditions a stochastic policy $\pi^a(u^a|\tau^a):T\times U\rightarrow [0,1]$. The joint policy $\pi$ admits a joint \textit{action-value function}: $Q^\pi(s_t, \mathbf{u}_t)=\mathbb{E}_{s_{t+1:\infty},\mathbf{u}_{t+1:\infty}} \left[R_t|s_t,\mathbf{u}_t\right],$ where $R_t=\sum^{\infty}_{i=0}\gamma^ir_{t+i}$ is the \textit{discounted return}.
+
+\paragraph*{Centralised training with decentralised execution}
+If learning proceeds in simulation, as is done in StarCraft II, or in a laboratory, then it can usually be conducted in a centralised fashion. This gives rise to the paradigm of \textit{centralised training with decentralised execution}, which has been well-studied in the planning community \cite{oliehoek_optimal_2008,kraemer_multi-agent_2016}. Although training is centralised, execution is decentralised, i.e., the 
+learning algorithm has access to all local action-observation histories 
+$\boldsymbol{\tau}$ and global state $s$, but each agent's learnt policy can 
+condition only on its own action-observation history $\tau^a$. 
+
+A number of recent state-of-the-art algorithms use extra state information available in centralised training to speed up the learning of decentralised policies. Among these, COMA \cite{foerster_counterfactual_2017} is an actor-critic algorithm with a special multi-agent critic baseline, and QMIX \cite{rashid_qmix:_2018} belongs to the $Q$-learning family.

@@ -1,0 +1,194 @@
+\section{Understanding the Performance Gains}
+\label{sec:analysis}
+
+Table \ref{table:tab1} shows that the efficacy of our method varies with the difficulty of the task. In this section, we aim to understand the underlying properties through controlled experiments. 
+
+To start the analysis, we select two datasets with increasing difficulty, i.e., GSM8K and MATH, to calculate the relative performance gain. 
+The relative performance gain $\eta$ is given by: $\eta = \frac{P_{\text{m}} - P_{\text{s}}}{P_{\text{s}}}$ where $P_{\text{m}}$ and $P_{\text{s}}$ are the performances (accuracy) with our method and a single LLM query, respectively. 
+The results are shown in Table \ref{table:analysis_exp}.
+
+\begin{table}[ht!]
+\caption{The relative performance gain ($\%$) becomes more significant when the relative difficulty between the LLM and the task increases. It is calculated based on Table \ref{table:tab1}.}
+\label{table:analysis_exp}
+\begin{center}
+\begin{small}
+\begin{adjustbox}{width=0.7\linewidth}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Task}      & \textbf{Llama2-13B} & \textbf{Llama2-70B} & \textbf{GPT-3.5-Turbo}   \\
+\midrule
+GSM8K (easy)     & 69  & 37  & 16         \\
+MATH (hard)      & 200         & 120  & 34      \\
+
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{small}
+\end{center}
+\end{table}
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.8\linewidth]{fig/analysis_exp.png}
+%     \caption{The performance gain is calculated based on the results in Table \ref{table:tab1} and the x-axis shows different tasks across various difficulty. The performances gains become more significant when the relative difficulty between the LLM and task increased.}
+%     \label{fig:analysis_exp}
+% \end{figure}
+
+It is noteworthy that the relative performance gain is more substantial with increasing task difficulty. Specifically, we observe that within the same task, the smaller model, Llama2-13B, gains ranging from $28\%$-$200\%$, but only $8\%$-$16\%$ over GPT-3.5-Turbo. Moreover, the more challenging task MATH yields gains of $34\%$-$200\%$, in contrast to only $16\%$-$69\%$ on the easier task GSM8K. 
+
+To further analyze this correlation in detail, we categorize the difficulty of a given task into three orthogonal dimensions: 1) the inherent difficulty of the task; 2) the number of steps required to solve the task; 3) the prior probability of the correct answer. 
+To investigate these dimensions, we conduct experiments that can isolate each dimension. And then, we delve into each dimension in detail.  
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.6\linewidth]{fig/analysis_fig.pdf}
+    \caption{Illustration of three dimensions for a given task. Nodes represent steps, while dashed lines indicate alternative potential steps. The depth of nodes represents the number of steps, and the color intensity represents the level of inherent difficulty.}
+    \label{fig:analysis_fig}
+\end{figure}
+
+
+% The controlled setting of the experiment allows us to examine the individual impact of each dimension while minimizing interference from the others.
+% In the following sections, we further analyze the relationship between these dimensions and final performance, and the properties are summarized as follows.
+% \begin{itemize}
+% \item As the \textbf{inherent difficulty} of the task increases, the performance gain increases, albeit with diminishing returns.
+% \item As the number of \textbf{reasoning steps} required to solve the task increases, there is a corresponding increase in performance gain.
+% \item As the \textbf{probability of the correct answer} is greater, the absolute performance is higher.
+% \end{itemize}
+% To investigate these properties, we conduct an experiment that isolates each dimension. The controlled setting of the experiment allows us to examine the individual impact of each dimension while minimizing interference from the others. Subsequently, we explore each dimension in detail, analyzing its properties and using the properties to extend our method. 
+
+\subsection{Isolation}
+
+To explicitly explore the impact of these dimensions, we conduct a mathematical task designed to isolate each one. Consider the task detailed below:
+\begin{equation}
+    \text{Find the interval } \Delta_k \text{ such that } \sum_{i=1}^{S} a_i \cdot b_i \in \Delta_k,
+\end{equation}
+where:
+\begin{itemize}
+    \item \(a_i, b_i\) are randomly chosen integers from the closed interval \([-I, I]\). \(I \in \mathbb{Z}^+\) defines the range of integers. $I$ represents the \textbf{inherent difficulty} of the question. A larger value of $I$ indicates a more challenging task.
+    \item \(S \in \mathbb{Z}^+\) is the number of terms in the summation. $S$ represents the \textbf{number of steps} required to solve the problem. A larger value of $S$ indicates a more challenging task.
+    \item The result space is partitioned into \(K\) intervals \(\Delta_1, \Delta_2, \ldots, \Delta_K\) of equal probability. \(K \in \mathbb{Z}^+\) denotes the number of these intervals. $1/K$ represents the \textbf{prior probability} of the correct answer. A lower prior probability indicates a more challenging task.
+\end{itemize}
+% The task is to determine the interval \(\Delta_k\) that contains the summation result. The three dimensions can be tuned independently by:
+% \begin{itemize}
+%     \item $I$: This parameter represents the \textbf{inherent difficulty} of the question, a larger $I$ indicates a more challenging question.
+%     \item $S$: This parameter represents the \textbf{number of reasoning steps} required to solve the problem, with a larger $S$ denoting a more challenging question.
+%     \item $K$: This parameter is inversely proportional to the \textbf{prior probability of the correct answer}, denoted as $1/K$. A larger $K$ corresponds to a low probability, signifying a more challenging question.
+% \end{itemize}
+In the following experiments, we analyze each dimension respectively based on GPT-3.5-Turbo. 
+Note that we use GPT-3.5-Turbo for a case study, it can also be changed to other backbone models. 
+The relative performance gains are measured by the difference between the maximum accuracy our method can achieve (sampling 40 times) and the accuracy of a single LLM query (sample once). Results are averaged over 10 runs.
+
+\subsection{Inherent Difficulty}
+\texttt{Property 1}: \textit{Gains increase then decrease by rising the inherent difficulty.} We investigate the inherent difficulty by varying $I$ from $10$ to $400$, while keeping the values of $S$ and $K$ constant across four groups of different values, from small to large, respectively. Figure \ref{fig:analysis_main} (left) shows an initial uptick in performance gains with increases in $I$, indicating that our method can significantly enhance performance in line with rising inherent difficulty. The most notable gains are seen at $I=100$ and $I=200$, consistent across all $S$ and $K$ settings. Yet, at $I=400$, gains taper off, implying that excessive complexity may exceed the model’s reasoning capabilities, leading to diminishing returns for our method under extreme task difficulty.
+
+
+% We assess task difficulty by varying the inherent difficulty parameter $I$ from $10$ to $400$, holding $S$ and $K$ constant in four distinct groups spanning small to large values. As depicted in Figure \ref{fig:analysis_main} (left), there's an initial uptick in performance gains with increases in $I$, indicating that our approach can significantly enhance performance in line with rising task complexity. The most notable gains are seen at $I=100$ and $I=200$, consistent across all $S$ and $K$ settings. Yet, at $I=400$, gains taper off, implying that excessive complexity may exceed the model’s reasoning capabilities, leading to diminishing returns for our method under extreme task difficulty.
+
+\begin{figure*}[ht!]
+    \centering
+    \includegraphics[width=1.0\linewidth]{fig/analysis_main_1_rebuttal.pdf}
+    \caption{(Left) The relative performance gains increase and then decrease with rising inherent difficulty. (Middle) The relative performance gains increase with the number of steps. (Right) The absolute performance increases with the prior probability. We analyze each dimension by fixing the other two dimensions. The error bars represent the standard error.}
+    \label{fig:analysis_main}
+\end{figure*}
+
+
+
+\subsection{Number of Steps}
+% \textbf{Experimental Settings}
+% \textbf{Results and Analysis}
+\texttt{Property 2.1}: \textit{Gains increase with the number of steps.} 
+We analyze the number of steps by isolating $S$. We tune $S$ from $1$ to $8$, while keeping the values of $I$ and $K$ constant across four groups of different values, ranging from small to large, respectively. Figure \ref{fig:analysis_main} (middle) shows that as the number of steps increases, there is a corresponding increase in performance gain. Additionally, we find that when $I$ and $K$ are increased (which indicates a higher difficulty), the performance gains are more significant, e.g., $4\%$-$18\%$ gains over $\{I=10, K=2\}$ compared to $16\%$-$48\%$ over $\{I=100, K=4\}$.
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.8\linewidth]{icml2024/fig/analysis_2.png}
+%     \caption{Results of performance gains of increasing the number of reasoning steps with $4$ groups of fixed $I$ and $K$. As the number of reasoning steps increased, there is a corresponding increase in performance gain.}
+%     \label{fig:analysis_2}
+% \end{figure}
+
+\texttt{Property 2.2}: \textit{Agent Forest increases the performance for each step.} We conduct a fine-grained analysis for each step of a given task. We explicitly prompt the language model to output the result of each step. Subsequently, we utilize Agent Forest at each step to derive the answer for that step. Figure \ref{fig:analysis_extension} (left) shows that although each step has equal inherent difficulty, the accumulation of errors from previous steps lead to a decrease in accuracy as the number of steps increases. However, our method mitigates the performance decrease encountered with increasing steps.
+
+% \textbf{Our method mitigates the performance decrease encountered with increasing steps.} We conduct a fine-grained analysis for each reasoning step over various depths. The depth of a step is determined by its topological order; that is, if the step depends on the result of the previous step, then the depth of the step increases. We explicitly prompt the language model to output the result of each reasoning step by calculating the multiplication first and then the addition from left to right. Subsequently, we utilize sampling-and-voting at each step to derive the answer for that step. Figure \ref{fig:analysis_extension} (left) shows that although each step has equal inherent difficulty, the accumulation of errors from previous steps leads to a decrease in accuracy as the depth increases. However, sampling-and-voting mitigates the performance decrease associated with increased depth; the deeper the reasoning, the more significant the enhancement.
+
+\begin{figure*}[ht!]
+    \centering
+    \includegraphics[width=1.0\linewidth]{fig/analysis_extension_1.png}
+    \caption{(Left) Our method increases the performance for each step. Blue bars show the accuracy of various steps for a single sample, and orange bars show the gains for 40 samples. (Middle) Step-wise Agent Forest can further enhance the performance across different levels of inherent difficulty. (Right) Hierarchical Agent Forest can further enhance the performance with homogeneous and heterogeneous model combinations.}
+    \label{fig:analysis_extension}
+\end{figure*}
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.6\linewidth]{icml2024/fig/analysis_2_1.png}
+%     \caption{The accuracy of various depth steps for one sample (blue), and the gains for 40 samples (red). Sampling and voting enhances performance to mitigate the diminishing returns associated with increased step depth.}
+%     \label{fig:analysis_2_1}
+% \end{figure}
+
+\texttt{Derivation.} 
+%We discuss the derivation that derived from Property 2. 
+Based on Property 2, we propose Step-wise Agent Forest, which can further enhance the performance. 
+
+Step-wise Agent Forest initially prompts the LLM to decompose the task into multiple steps. It then proceeds with multi-round iterations to produce the final result. In each round, the process begins by selecting a current unprocessed step and using Agent Forest to determine the result of that step. Subsequently, it uses the result to update the task. This iterative process is repeated multiple times until the last step is processed. To evaluate the performance of Step-wise Agent Forest, we fix $S=8$ and $K=4$, and tune $I$ from $100$ to $400$. Figure \ref{fig:analysis_extension} (middle) shows that compared to Agent Forest, Step-wise Agent Forest yields greater improvements. e.g., we see $15\%$-$42\%$ gains, which increase with inherent difficulty.
+
+% Specifically, we prompt language model to decompose the task into steps and utilize sampling-and-voting at each step to generate intermediate step-wise answers, using the current answer to update the problem iteratively until the final answer is produced at the last step. We fixed the $S=8$ and $K=4$, tune $I$ from $100$ to $400$. Figure \ref{fig:analysis_extension} (middle) shows that compared to sampling-and-voting, step-wise sampling-and-voting yields greater improvements; e.g, we see $15\%$-$42\%$ gains, which increase with inherent difficulty.
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.6\linewidth]{icml2024/fig/analysis_2_2.png}
+%     \caption{Performance gains of sampling and voting and step-wise sampling and voting. Step-wise sampling and voting gains more ranging from $15\%$-$42\%$, which increase with $I$.}
+%     \label{fig:analysis_2_2}
+% \end{figure}
+
+
+\subsection{Prior Probability}
+
+\texttt{Property 3}: \textit{The performance increases with the prior probability.} We investigate the influence of prior probability on performance by tuning the parameter $K$, while maintaining constant values for $I$ and $K$. As $K$ represents the number of intervals, the prior probability is defined as $1/K$. We vary $K$ from $4$ to $32$, which equivalently alters the prior probability from $1/4$ to $1/32$. Through four experimental groups illustrated in Figure \ref{fig:analysis_main} (right), each characterized by different configurations of $I$ and $S$, we find that as the prior probability increases, so does the performance.
+
+%We analyze the impact of the prior probability by manipulating the parameter $K$ with fixed $I$ and $S$. As $K$ is the number of intervals, the prior probability is denoted as $1/K$. We vary $K$ from $4$ to $32$, which corresponds to the prior probability from $1/4$ to $1/32$. We conduct four groups of experiments with different $I$ and $S$. Figure \ref{fig:analysis_main} (right) shows that there is a correlation between the prior probability and the performance: as the prior probability increases, so does the performance.
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.8\linewidth]{icml2024/fig/analysis_5_4_1.png}
+%     \caption{}
+%     \label{fig:analysis_5_4_1}
+% \end{figure}
+
+\texttt{Derivation.}
+Based on Property 3, we propose Hierarchical Agent Forest can further enhance the performance. 
+% We discuss the applications that derived from Property 3. We find that 
+% hierarchical Agent Forest can further enhance the performance. 
+
+As the performance is related to the prior probability, decomposing low-probability tasks into multiple high-probability subtasks and addressing them hierarchically can boost performance. Moreover, subtasks with varying prior probabilities can be addressed using different models. Additionally, cost savings can be achieved by using simpler, less expensive models for the easier, higher-probability subtasks.
+
+% We find that performance enhancement through sampling-and-voting is more pronounced when there is a higher prior probability. Based on this, we propose a hierarchical sampling-and-voting method to enhance the performance further. This hierarchical method initially solves the problem at a high level by sampling-and-voting method and obtains an intermediate answer with a smaller $K$, which corresponds to a higher prior probability. Subsequently, it solves the problem at a low level by sampling-and-voting method where only the options included in the intermediate answer are considered. With this method, different LLMs can be deployed at different levels. We conduct the homogeneous and heterogeneous LLMs combination experiments to evaluate this method. 
+
+
+% with higher prior probability of the correct answer by merging options and obtain a coarse answer. Subsequently, solve the problem with higher prior probability of the correct answer by excluding options which are not included in the coarse answer and obtain the fine answer. %Finally, solve the problem    For example, in our task to solve a problem with $K_{large}$ which signifies a challenging problem. We first find the answer $A_{\text{coarse}}$ from intervals with $K_{small}$, then find the answer $A_{\text{fine}}$ with $K=32$ from intervals which are only included in $A_{\text{coarse}}$. Initially, a lower value of $K$ is selected to generate a coarse-grained answer, which statistically has a higher likelihood of being correct. This initial answer then directs the process of narrowing down the choices, ultimately guiding the selection of the final answer with an increased likelihood of accuracy since less probable options have been excluded.
+
+In our experiments, the task is to solve the problem with $K=32$. GPT-3.5-Turbo is used in homogeneous combination experiment and GPT-3.5-Turbo and GPT-4 are used in heterogeneous combination experiment. The results are presented in Figure \ref{fig:analysis_extension} (right). %The direct application of the sampling-and-voting method is denoted in blue, while the performance of the hierarchical sampling-and-voting method is illustrated in orange. 
+
+In homogeneous combination experiment, by employing the hierarchical method, we start with $K=8$ to obtain an intermediate answer and then find the solution with $K=32$, focusing on intervals identified by the intermediate answer. This method enhances the performance from $21\%$ to $31\%$, demonstrating that the hierarchical method can further enhance the performance.
+
+In heterogeneous combination experiment, GPT-3.5-Turbo is used for generating the intermediate answer with $K=8$, and GPT-4 is then employed to solve for the final answer with $K=32$. In Figure \ref{fig:analysis_extension} (right), compared with the result of GPT-4 with $K=32$, the hierarchical method improves performance from $35\%$ to $47\%$, suggesting the deployment of different LLMs at the corresponding level of problem-solving can improve the performance in a cost-effective manner.
+
+% To sum up, the properties we find along the 3 dimensions mentioned above, and ways to utilize these properties are as follows. 
+% \begin{itemize}
+% \item As the \textbf{inherent difficulty} of the task increases, the relative performance gain increases, albeit with diminishing returns. 
+% \item As the \textbf{number of steps} required to solve the task increases, there is a corresponding increase in relative performance gain. Upon conducting a fine-grained analysis, we find that our method increases the performance for each step. We proposed a step-wise sampling-and-voting method to further improve the performance.
+% \item As the \textbf{prior probability} of the correct answer is larger, the absolute performance is higher. By applying this property, we propose the hierarchical sampling-and-voting method to further improve the performance.
+% \end{itemize}
+
+% The direct application of the sampling-and-voting method is denoted in blue, while the performance of the hierarchical method is illustrated in orange.  In homogeneous combination experiment, comparing the performance with $K=32$ using the direct sampling-and-voting method against that of the hierarchical sampling-and-voting method. The direct application of the sampling-and-voting method is denoted in blue, while the performance of tiered trick is illustrated in orange. By employing the tiered trick, we start with $K=8$ to obtain a coarse answer and then refine the solution with $K=32$, focusing on intervals identified by the initial coarse answer. This trick enhances the accuracy performance from $21\%$ to $31\%$, demonstrating that the tiered trick segments the problem-solving process and enhance the performance by leveraging the varying prior probabilities of correct answer retrieval.
+
+% To further this exploration, we conducted experiments with different LLMs. GPT-3.5 is used for generating the coarse answer with $K=8$, and GPT-4 is then employed to solve for the final answer with $K=32$. In Figure \ref{fig:analysis_extension} (right), the right bins contrasts the direct application of GPT-4 with $K=32$, shown in blue, against the performance of the tiered trick depicted in orange. The tiered trick with different LLMs improves performance from $35\%$ to $47\%$. These findings suggest that the deployment of different LLMs at corresponding stages of problem-solving, in alignment with the prior probabilities of obtaining the correct answer, can lead to performance improvements in a cost-effective manner.
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.8\linewidth]{icml2024/fig/analysis_5_4_2.png}
+%     \caption{Absolute performance of sampling and voting and coarse-to-fine sampling and voting. (a) By first employing sampling and voting with $K=8$ using GPT-3.5, we generated an initial answer. Subsequently, we refined the answer by focusing on the remaining options with $K=128$ using GPT-3.5. (b) First use GPT-3.5 with $K=32$, then with $K=128$ by GPT-3.5. (c) Use GPT-3.5 with $K=32$ firstly, then GPT-4 with $K=128$.}
+%     \label{fig:analysis_5_4_2}
+% \end{figure}
+
+% \textbf{Experimental Settings}
+
+% \textbf{Results and Analysis}

@@ -1,0 +1,43 @@
+In this section, we elaborate on the principal components in ChatEval including \textit{debater agents}, \textit{diverse role specification}, \textit{communication strategy}, and provide a detailed overview of each component's role and functionality\footnote{our code repository is built on top of~\url{https://github.com/OpenBMB/AgentVerse}.}.
+
+\textbf{Debater Agents}. Debater agents are one of the most significant components in our framework. We treat each individual LLM as an agent and ask them to generate their response from the given prompt\footnote{The full prompt template can be found in Appendix~\ref{appendix:prompt_template}.}. Responses from other agents are served as chat history which will be replaced in the prompt template. After configuring the agents, we then start the group debate where each agent autonomously receives responses from the others and, in turn, delivers its own responses to them. It should be noted that the whole process does not require human intervention.
+
+\textbf{Diverse Role Specification}. As presented in Section~\ref{sec:introduction}, diverse role specification is necessary for the framework as well. Although all the agents share a common prompt template, we substitute the \textit{role\_description} slot with diverse role prompts, specifying distinct personalities for different agents. We take inspiration from~\cite{wu2023large} and formulate an analogous role description. 
+
+
+\textbf{Communication Strategy}.  How to maintain the chat history is another significant issue in ChatEval. In our work, we use a more intuitive term to illustrate the maintenance of the chat history called \textit{communication strategy}. In a nutshell, different communication strategies can be seen as different approaches to maintaining and manipulating their chat history. As is shown in Figure~\ref{fig:3group_structure}, We primarily design three different communication strategies and illustrate them as follows:
+
+\begin{enumerate}
+    \item \textbf{One-By-One}. 
+    During each round of the debate, the debater agents take turns in a set order to generate their response based on the current observation. When it's time for a debater agent to respond, we directly concatenate what previous other agents have said into its chat history slot.
+    \item \textbf{Simultaneous-Talk}. Unlike the one-by-one strategy, we carry out an alternative communication strategy called simultaneous-talk, where debater agents are prompted to asynchronously generate responses in each iteration of the discussion to nullify the impact of the speaking order.
+    \item \textbf{Simultaneous-Talk-with-Summarizer}. The main difference between this strategy and simultaneous-talk is that we additionally employ another LLM as a summarizer. At the end of each iteration of the debate, we prompt this extra LLM to summarize the messages conveyed so far and concatenate this summarization into all debater agents' chat history slots.
+
+    
+\end{enumerate}
+
+Unlike previous work like~\cite{du2023improving}, we do not explicitly ask the debater agents to reach a consensus at the end of the debate. In situations where the response format relies on direct comparison, we derive the final results from the \textbf{majority vote} among various annotators. Conversely, if the response format requires a direct score, we calculate the \textbf{average} score obtained from multiple annotators. This methodological approach ensures the impartiality and balance of our evaluation process.
+
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}{0.3\textwidth}
+        \includegraphics[width=\textwidth]{figs/one_by_one.pdf}
+        \caption{One-by-One}
+        \label{fig:suba}
+    \end{subfigure}
+    \vspace{\fill}
+    \begin{subfigure}{0.3\textwidth}
+        \includegraphics[width=\textwidth]{figs/simultaneous.pdf}
+        \caption{Simultaneous-Talk}
+        \label{fig:subb}
+    \end{subfigure}
+    \vspace{\fill}
+    \begin{subfigure}{0.37\textwidth}
+        \includegraphics[width=0.9\textwidth]{figs/summarizer.pdf}
+        \caption{Simultaneous-Talk-with-Summarizer}
+        \label{fig:subc}
+    \end{subfigure}
+\caption{The overall schematic diagram of our proposed three different kinds of communication strategy. The direction of the arrows represents the flow of information, meaning that what this person says will be appended to the chat history  of the person pointed to by the arrow. Full algorithm description of the above communication strategies can be found in Appendix~\ref{appendix:algorithm}.}
+\label{fig:3group_structure}
+\end{figure}

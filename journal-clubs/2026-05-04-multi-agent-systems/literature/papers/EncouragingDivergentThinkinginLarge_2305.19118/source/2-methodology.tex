@@ -1,0 +1,79 @@
+\section{Multi-Agent Debate Framework}
+\label{sec:method}
+
+Figure~\ref{fig:method} illustrates the general framework of MAD, where two debaters and a judge are involved in a debate to resolve a math problem while self-reflection descends into the trap of DoT. Generally, our MAD framework is composed of three components which are elaborated as follows:
+
+
+\begin{figure*}[t!]
+    \centering
+    \includegraphics[width=\textwidth]{imgs/framework.pdf}
+    \vspace{-20pt}
+    \caption{Framework of Multi-Agent Debate. Here we designate the devil (\begin{minipage}[b]{0.06\columnwidth}
+    \centering
+    \raisebox{-.3\linewidth}{\includegraphics[width=\linewidth]{imgs/emojis/devil.png}}
+\end{minipage}) as the affirmative side while the angel (\begin{minipage}[b]{0.06\columnwidth}
+    \centering
+    \raisebox{-.3\linewidth}{\includegraphics[width=\linewidth]{imgs/emojis/angel.png}} 
+\end{minipage}) as the negative side. We want the angel to correct the devil's mistakes.
+}
+    \label{fig:method}
+    \vspace{-10pt}
+\end{figure*}
+
+
+\paragraph{Meta Prompts.}
+We use meta prompts to introduce the topic to be solved, the number of debaters, the iteration limit, and other requirements. An exampe of meta prompts for the arithmetic reasoning task in Figure~\ref{fig:method} is:
+\begin{quote}
+    \it
+    \setlength{\leftskip}{-1em}
+     You are a debater. Hello and welcome to the debate competition. \ul{It's not necessary to fully agree with each other's perspectives, as our objective is to find the correct answer.} The debate topic is stated as follows: <debate topic>.
+\end{quote}
+As seen, we require the agents to ``tit for tat'' (e.g. contents underlined in meta prompts above) so as to create an atmosphere of debate. 
+
+\paragraph{Debaters.}
+There are $N$ debaters $D = \{D_i\}_{i=1}^N$ involved in the framework. 
+In each debate iteration, the debaters $D_i$ speak one by one in a fixed order and express their arguments based on the previous debate history $H$, i.e., $D_i(H) = h$.  An example of a debater prompt appears below:
+
+\begin{itemize}[leftmargin=1em]
+    \item {Prompt for Affirmative Debater (\begin{minipage}[b]{0.06\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/devil.png}}
+\end{minipage})}
+
+\begin{quote}
+    \it
+    \setlength{\leftskip}{-1em}
+     You are affirmative side. Please express your viewpoints.
+\end{quote}
+
+    \item {Prompt for Negative Debater (\begin{minipage}[b]{0.06\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/angel.png}}
+\end{minipage})}
+
+\begin{quote}
+    \it
+    \setlength{\leftskip}{-1em}
+     You are negative side. You disagree with the affirmative side's points. Provide your reasons and answer. 
+\end{quote}
+\end{itemize}
+
+\paragraph{Judge.}
+We also design a judge $J$ to manage and monitor the whole debate process. 
+The judge contains two different modes: (a) \textit{Discrinative Mode}, in which the judge $J$ decides whether the correct solution can be obtained after all the debaters finish their arguments in the current iteration:
+\begin{equation}
+    J_d(H)= \begin{cases}
+        \texttt{True},~~ & \textrm{solution obtained} \\
+        \texttt{False},~~ & \textrm{otherwise}
+    \end{cases}
+\end{equation}
+If it is \texttt{True}, the debate is over. Otherwise, the debate continues. (b) \textit{Extractive Mode}, in which the judge $J$ needs to extract the final solution based on the whole debate history: $J_e(H) = a$, since no correct solution is identified within the iteration limit of debate. An example of a judge prompt (\begin{minipage}[b]{0.06\columnwidth}
+    \centering
+    \raisebox{-.3\height}{\includegraphics[width=\linewidth]{imgs/emojis/judge.png}}
+\end{minipage}) appears below:
+\begin{quote}
+    \it
+    \setlength{\leftskip}{-1em}
+    You are a moderator. There will be two debaters involved in a debate competition. They will present their answers and discuss their perspectives on the <debate topic>. At the end of each round, you will evaluate both sides' answers and decide which one is correct.
+\end{quote}
+

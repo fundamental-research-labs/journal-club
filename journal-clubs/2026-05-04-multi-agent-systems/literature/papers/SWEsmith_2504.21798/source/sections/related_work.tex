@@ -1,0 +1,22 @@
+\section{Related Work}
+\label{sec:related}
+\textbf{LMs for Software Engineering.} As contemporary LMs have saturated traditional code generation tasks~\citep{austin_program_2021,chen_evaluating_2021}, software engineering benchmarks~\citep{jain2024r2e,jimenez_swe-bench_2024,yang_swe-bench_2024,zhao_commit0_2024,zan2025multiswebenchmultilingualbenchmarkissue}, notably SWE-bench, have become a new de facto evaluation setting due to their diverse, complex, real-world programming challenges.
+The most significant source of open source progress on SWE-bench has been the development of LM-based workflows~\citep{orwall2024moatless,xia_agentless_2024,zhang_autocoderover_2024} and agents~\citep{antoniades_swe-search_2024,wang_openhands_2024,yang_swe-agent_2024,zhang_diversity_2024}.
+Workflow-based systems are typically human-engineered decompositions of a task into a sequence of sub-goals.
+\citet{yang_swe-bench_2024} suggests such pipelines may not generalize effectively to non-Python repositories, requiring additional human intervention to re-adapt.
+We therefore elect to focus on generating trajectories with and for LM agent systems~\citep{sumers2024cognitivearchitectureslanguageagents,yang_intercode_2023,yao_react_2023}.
+Because no workflow is imposed, agent systems inherently rely more on the LM to plan and refine its actions, putting more focus on an LM's capabilities, not inference scaffolds.
+
+\textbf{Training Datasets for Coding.}
+Prior work around training data has focused on instruction following ~\citep{luo2023wizardcoderempoweringcodelarge,muennighoff_octopack_2024,shypula2024learningperformanceimprovingcodeedits,wei_selfcodealign_2024,wei2024magicoderempoweringcodegeneration,yu2024wavecoderwidespreadversatileenhancement} and preference learning~\citep{liu2024learningcodepreferencesynthetic,liu_dstc_2024} for code completion tasks.
+Several recent works introduce training sets for retrieval augmented generation~\citep{jimenez_swe-bench_2024,xie2025swefixertrainingopensourcellms}, workflows~\citep{wei2025swerladvancingllmreasoning}, and agent~\citep{badertdinov2024scaling,ma2024lingmaswegptopendevelopmentprocesscentric,pan_training_2024,jain2025r2e-gym} approaches to SWE-bench.
+Our work applies~\citet{haluptzok2023languagemodelsteachprogram} at a repository level: by having an LM break a codebase, we drastically reduce the human effort needed to define a task and build its environment.
+Concurrent to our work, \citet{xie2025repostscalablerepositorylevelcoding} (RePOST) also constructs execution environments for repository functions, but differs significantly in methodology and evaluation.
+RePOST sandboxes a function and its dependencies to a separate script, then generates tests with an LM, removing the original codebase as context.
+The tasks' source is repository-level; the environments and tasks are not.
+RePOST evaluates solely on code generation (e.g., HumanEval~\citep{chen_evaluating_2021}).
+\citet{jain2025r2e-gym} (R2E-Gym) improves open source LMs' performance on SWE-bench with inference time scaling and verifiers.
+R2E-gym's $51$\% resolve rate is not comparable to Table~\ref{tab:main_results} results, as each instance is attempted $26$ times.
+R2E-gym's $4.6$k training instances are collected using SWE-bench's pipeline, with some augmentations around using LMs to synthesize issue text and tests.
+To our knowledge, we are the first to address the limited scalability
+of previous approaches.

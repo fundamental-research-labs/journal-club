@@ -1,0 +1,1377 @@
+\pdfoutput=1
+\documentclass{article}
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{booktabs} % for professional tables
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2025} with \usepackage[nohyperref]{icml2025} above.
+\usepackage{hyperref}
+
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+\PassOptionsToPackage{table,xcdraw}{xcolor}
+% Use the following line for the initial blind version submitted for review:
+% \usepackage{icml2025}
+
+% If accepted, instead use the following line for the camera-ready submission:
+\usepackage[accepted]{icml2025}
+
+% For theorems and such
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+
+%shuotang
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{array}
+
+%ruige
+\usepackage{subcaption}
+
+% if you use cleveref..
+\usepackage[capitalize,noabbrev]{cleveref}
+% \usepackage[table,xcdraw]{xcolor}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THEOREMS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% maybe for prompt
+\usepackage{tcolorbox}
+\newtcolorbox{response}[1][]{
+  colback=gray!5,
+  colframe=black,
+  fonttitle=\bfseries,
+  coltitle=black,
+  % title=Table~\thetcbcounter: #1
+  }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Todonotes is useful during development; simply uncomment the next line
+%    and comment out the line below the next line to turn off comments
+%\usepackage[disable,textsize=tiny]{todonotes}
+\usepackage[textsize=tiny]{todonotes}
+
+\usepackage{enumitem}
+\usepackage{pifont}
+\usepackage{bbding}
+\usepackage{listings}
+\usepackage{array}
+
+\lstset{
+    language=Python,              % 选择语言 (C++, Java, Python, etc.)
+    basicstyle=\ttfamily\small,   % 代码字体
+    keywordstyle=\color{blue},    % 关键字颜色
+    stringstyle=\color{red},      % 字符串颜色
+    commentstyle=\color{gray},    % 注释颜色
+    numbers=left,                 % 显示行号
+    numberstyle=\tiny\color{gray},% 行号颜色
+    breaklines=true,              % 代码换行
+    frame=single,                  % 添加边框
+    xleftmargin=15pt,              % 左侧边距
+    xrightmargin=3pt,              % 右侧边距
+    literate={"}{{\char`"}}1 % 处理双引号，防止解析错误
+}
+
+% The \icmltitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+\icmltitlerunning{MAS-GPT: Training LLMs to Build LLM-based Multi-Agent Systems}
+
+\begin{document}
+
+\twocolumn[
+\icmltitle{MAS-GPT: Training LLMs to Build LLM-based Multi-Agent Systems}
+
+% It is OKAY to include author information, even for blind
+% submissions: the style file will automatically remove it for you
+% unless you've provided the [accepted] option to the icml2025
+% package.
+
+% List of affiliations: The first argument should be a (short)
+% identifier you will use later to specify author affiliations
+% Academic affiliations should list Department, University, City, Region, Country
+% Industry affiliations should list Company, City, Region, Country
+
+% You can specify symbols, otherwise they are numbered in order.
+% Ideally, you should not use this facility. Affiliations will be numbered
+% in order of appearance and this is the preferred way.
+% \icmlsetsymbol{equal}{*}
+\icmlsetsymbol{primary}{*}
+\icmlsetsymbol{corr}{\#}
+
+\begin{icmlauthorlist}
+\icmlauthor{Rui Ye}{sjtu,shanghaiai,primary}
+\icmlauthor{Shuo Tang}{sjtu,primary}
+\icmlauthor{Rui Ge}{sjtu}
+\icmlauthor{Yaxin Du}{sjtu}
+\icmlauthor{Zhenfei Yin}{oxford,sydney}
+\icmlauthor{Siheng Chen}{sjtu,corr}
+\icmlauthor{Jing Shao}{shanghaiai,corr}
+%\icmlauthor{}{sch}
+% \icmlauthor{Firstname8 Lastname8}{sch}
+% \icmlauthor{Firstname8 Lastname8}{yyy,comp}
+%\icmlauthor{}{sch}
+%\icmlauthor{}{sch}
+\end{icmlauthorlist}
+
+\icmlaffiliation{sjtu}{Shanghai Jiao Tong University}
+\icmlaffiliation{oxford}{University of Oxford}
+\icmlaffiliation{sydney}{The University of Sydney}
+\icmlaffiliation{shanghaiai}{Shanghai AI Laboratory}
+% \icmlaffiliation{sch}{School of ZZZ, Institute of WWW, Location, Country}
+
+\icmlcorrespondingauthor{Siheng Chen}{sihengc@sjtu.edu.cn}
+\icmlcorrespondingauthor{Jing Shao}{shaojing@pjlab.org.cn}
+
+% You may provide any keywords that you
+% find helpful for describing your paper; these are used to populate
+% the "keywords" metadata in the PDF but will not be shown in the document
+\icmlkeywords{Machine Learning, ICML}
+
+\vskip 0.3in
+]
+
+% this must go after the closing bracket ] following \twocolumn[ ...
+
+% This command actually creates the footnote in the first column
+% listing the affiliations and the copyright notice.
+% The command takes one argument, which is text to display at the start of the footnote.
+% The \icmlEqualContribution command is standard text for equal contribution.
+% Remove it (just {}) if you do not need this facility.
+
+% \printAffiliationsAndNotice{}  % leave blank if no need to mention equal contribution
+% \printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
+\printAffiliationsAndNotice{\icmlPrimaryContributor}
+
+
+\begin{abstract}
+LLM-based multi-agent systems (MAS) have shown significant potential in tackling diverse tasks.
+However, to design effective MAS, existing approaches heavily rely on manual configurations or multiple calls of advanced LLMs, resulting in inadaptability and high inference costs.
+In this paper, we simplify the process of building an MAS by reframing it as a generative language task, where the input is a user query and the output is a corresponding MAS.
+To address this novel task, we unify the representation of MAS as executable code and propose a consistency-oriented data construction pipeline to create a high-quality dataset comprising coherent and consistent query-MAS pairs.
+Using this dataset, we train MAS-GPT, an open-source medium-sized LLM that is capable of generating query-adaptive MAS within a single LLM inference. The generated MAS can be seamlessly applied to process user queries and deliver high-quality responses. Extensive experiments on 9 benchmarks and 5 LLMs show that the proposed MAS-GPT consistently outperforms 10+ baseline MAS methods on diverse settings, indicating MAS-GPT's high effectiveness, efficiency and strong generalization ability.
+Code will be available at \href{https://github.com/rui-ye/MAS-GPT}{https://github.com/rui-ye/MAS-GPT}.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Large language models (LLMs) such as ChatGPT~\cite{ouyang2022training,openai2023gpt4} have achieved significant success on a wide range of tasks.
+However, a single LLM often struggles to handle the diverse and complex range of tasks (e.g., varying difficulties and domains) encountered in practice~\cite{hongmetagpt,chen2023agentverse}.
+
+Such limitation has driven recent research towards building LLM-based multi-agent systems (MAS)~\cite{qian2024chatdev,chen2023agentverse,liu2024dynamic}, where multiple LLMs (agents) with specialized capabilities work collaboratively to achieve more effective solutions.
+For example, MetaGPT~\cite{hongmetagpt} and ChatDev~\cite{qian2024chatdev} build multi-LLM teams with expertise roles (e.g., programmer, tester, and product manager) to solve complex coding tasks in a predefined pipeline; while AgentVerse~\cite{chen2023agentverse} involves recruiters, executors, and evaluators for iterative task solving.
+These methods have shown superior performance over single LLM inference.
+
+\begin{figure}[t]
+    \centering
+    \vspace{-4mm}
+    \includegraphics[width=1.0\linewidth]{figs/intro.pdf}
+    \caption{Introduction of our proposed new paradigm for building MAS. During inference, MAS-GPT adaptively generates a query-specific MAS with one LLM inference.}
+    \vspace{-5mm}
+    \label{fig:intro}
+\end{figure}
+
+Despite achieving promising task performance, there are two fundamental issues that hinder the broad applications of MAS: inadaptability and high costs.
+(i) \underline{Inadaptability} \& \underline{high human effort}: MAS in MetaGPT~\cite{hongmetagpt}, ChatDev~\cite{qian2024chatdev}, and AgentVerse~\cite{chen2023agentverse} are all manually crafted (e.g., for coding tasks).
+That is, the collaboration structure and agents' prompts are predetermined and static, lacking in the generality to adapt towards any given tasks.
+(ii) \underline{High inference costs}: Although there have been efforts to design adaptive MAS, they essentially shift the human cost onto the computational cost.
+For example, both GPTSwarm~\cite{zhugegptswarm} and DyLAN~\cite{liu2024dynamic} rely on LLMs to replace human involvement, iteratively adjusting the collaboration structure or agents' prompts in the MAS for each specific task.
+However, this process often requires multiple LLM inferences.
+
+Focusing on these key issues, this paper explores how to \underline{adaptively} build a query-specific MAS at a \underline{minimal cost}.
+Our core idea is to reframe the process of building an executable MAS for each query as a generative language task, making building MAS as simple and efficient as querying ChatGPT~\cite{ouyang2022training}.
+Given the generated MAS, the query can then be seamlessly processed to produce the final response, significantly simplifying the whole pipeline.
+
+Under this context, we introduce \textbf{MAS-GPT}, an LLM specifically trained to \underline{adaptively} generate executable MAS based on any given user query in \underline{one single inference}.
+% Inspired by the fact that recent breakthroughs in large models are mostly data-driven, our focus is on constructing a suitable dataset that enables LLMs to learn this brand-new task.
+While the concept is straightforward, the challenge lies in the limited knowledge of LLMs on the task of MAS generation and the lack of corresponding training data. These limitations raise two key technical challenges: \textit{how to represent the MAS} and \textit{how to construct the dataset.}
+(1) To ensure the generated MAS is readily executable, we unify the representation of MAS by describing it as a Python code snippet (i.e., a forward function), with each agent’s prompt as a variable, LLM calls as functions, and agent relationships as string concatenation.
+(2) Building on this foundation, we propose a consistency-oriented data construction pipeline to facilitate the model in learning generalizable patterns and logical correlations, which includes the construction, evaluation, selection, and refinement of query-MAS pairs.
+During selection, we design an inter-consistency-oriented selection approach to ensure that similar queries are paired with similar high-performing MAS, facilitating the model to learn generalizable patterns.
+During refinement, we propose a intra-consistency-oriented refinement method to strengthen the relatedness between query and MAS, enabling the model to learn the reasonable correlation.
+Finally, the resulting pairs are used to train open-source LLMs via supervised fine-tuning, where the instruction is the user query and the response is the MAS represented by code.
+This will equip the model with the ability to generate query-specific MAS, and also, generalize to unseen queries.
+
+With the introduction of MAS-GPT, inference for a query becomes significantly simplified.
+Instead of relying on manual crafting~\cite{hongmetagpt,qian2024chatdev,chen2023agentverse} or multiple LLM inference costs~\cite{liu2024dynamic,zhugegptswarm} to obtain an MAS for each query, the user simply inputs a query into MAS-GPT to get a corresponding executable MAS.
+Such MAS can be directly applied to process the query, where multiple MAS-GPT-generated agents collaborate with an MAS-GPT-generated structure to deliver the final solution.
+With advantages of adaptability, low cost, and generalization, this approach could facilitate the application of MAS at scale.
+
+We conduct extensive experiments to compare MAS-GPT with 10+ baseline methods on 9 benchmarks (various domains) using 5 state-of-the-art (open-source and proprietary) LLMs.
+Our results show that MAS-GPT consistently outperforms baseline methods on average, indicating its high generality and effectiveness.
+Meanwhile, MAS-GPT has the potential to further push the boundary of strong reasoning capability of o1~\cite{o1-preview} and DeepSeek-R1~\cite{guo2025deepseek}, bringing $13.3\%$ and $10.0\%$ gain on AIME-2024 (a challenging mathematical benchmark), respectively.
+We also verify that our MAS-GPT can generalize to unfamiliar queries and generate novel MAS via case studies.
+
+Our contributions are as follows:
+\begin{enumerate}[left=0pt, itemsep=1pt]
+    \item We reframe building MAS for each query as a generative language task. We unify the representation of MAS as executable code and propose a consistency-oriented query-MAS data construction pipeline for LLM training.
+    \item We introduce MAS-GPT, an LLM specifically trained to generate query-specific executable MAS. All code, data and models will be open-sourced.
+    \item Experiments on 9 benchmarks and 5 LLMs show that MAS-GPT consistently outperforms 10+ baselines, indicating its effectiveness, efficiency and generalization ability.
+\end{enumerate}
+
+\section{Related Work}
+\label{sec:related_work}
+
+\textbf{LLM-based Multi-Agent Systems.}
+Since a single LLM may struggle to handle the diverse and complex range of tasks in practice~\cite{li2023camel,qian2024scaling}, such limitation has driven recent research towards building LLM-based multi-agent systems (MAS)~\cite{wang2024unleashing,wu2023autogen}.
+MetaGPT~\cite{hongmetagpt} and ChatDev~\cite{qian2024chatdev} introduce manually designed multi-agent teams for solving coding tasks; while MedAgents is designed for medical tasks~\cite{tang-etal-2024-medagents}.
+AgentVerse~\cite{chen2023agentverse} proposes an iterative collaboration structure where agents are recruited to discuss, execute, and evaluate.
+Multi-Agent Debate~\cite{duimproving,liang-etal-2024-encouraging} designs multiple expertise LLM-agents to debate and reason over multiple rounds to get final answers.
+The MAS in these methods are all fixed regardless of the given query, lacking in the generality to adapt accordingly.
+
+DyLAN~\cite{liu2024dynamic} leverages LLMs to evaluate agents' values and dynamically select the best agents, GPTSwarm~\cite{zhugegptswarm} manually initializes an agent team, adjusts the collaboration structure and agents' prompts by prompting LLMs.
+Given queries with ground-truth answers from one task and several available MAS as context, ADAS~\cite{hu2024automated} and AFlow~\cite{zhang2024aflow} leverages the strong capabilities of LLMs such as Claude-3.5-sonnet~\cite{claude3.5} and GPT-4~\cite{openai2023gpt4} to iteratively generate task-oriented MAS for the specific task.
+All these methods require multiple times of LLM calls (e.g., over 10 calls of API with lengthy context) to obtain an MAS for each specific query, which is time-consuming and compute-expensive in practice.
+
+Instead of manually designing a fixed MAS~\cite{qian2024chatdev,chen2023agentverse,duimproving} or requiring multiple LLM inference costs to obtain an MAS~\cite{liu2024dynamic,zhugegptswarm} for each query, our MAS-GPT significantly simplifies the process of building an MAS, which can flexibly generate query-specific MAS within one LLM inference.
+Specifically, we design a data-construction pipeline to generate a series of query-MAS pairs, which are used for training MAS-GPT based on open-source LLMs.
+
+\textbf{LLM Post-Training.}
+Modern state-of-the-art LLMs are usually post-trained via two main stages: supervised fine-tuning (SFT) and preference learning~\cite{ouyang2022training,dubey2024llama,yang2024qwen2,fancombatting}, where SFT is the basic technique to teach LLM a defined tasks~\cite{zhou2023lima,longpre2023flan}.
+Focusing on SFT, a series of researches are conducted on the construction of datasets for training chatbot-type LLMs.
+For example, LIMA~\cite{zhou2023lima} manually annotates high-quality language data for SFT, emphasizing the importance of quality of SFT datasets.
+WizardLM~\cite{xu2024wizardlm}, TULU 3~\cite{lambert2024t}, and Persona Hub~\cite{ge2024scaling} synthesize SFT data by prompting GPT models, indicating the potential of synthetic data for LLM training.
+
+For MAS-GPT, the training process leverages SFT, with a primary focus on data construction.
+While previous approaches focus on training LLMs to directly answer user queries, the challenge of training LLMs to generate MAS from user queries introduces a novel difficulty.
+Unlike real-world dialogue data, LLMs have limited (if any) knowledge of MAS generation.
+Using our proposed data construction pipeline, we create the first query-MAS-paired dataset, which will be made open-source in future.
+
+\section{Methodology}
+\label{sec:method}
+
+This section first outlines the overall system integrated with MAS-GPT when processing user queries during inference.
+Next, we delve into the specifics of training MAS-GPT, with a particular focus on the dataset construction process.
+
+\subsection{Overall System Integrated with MAS-GPT}
+\label{sec:method_overall}
+
+We follow a standard workflow: given a user query, a multi-agent system (MAS) is constructed, with multiple agents working collaboratively to generate the final answer.
+Unlike previous approaches that either manually design the MAS, rely on fixed and query-agnostic MAS, or incur significant computational costs to determine the appropriate MAS, our approach streamlines the entire process of building MAS by reducing it to a single LLM inference.
+
+The core of our system is MAS-GPT, an LLM that is trained to generate MAS tailored specifically to the input query.
+Instead of relying on pre-built agent configurations, MAS-GPT dynamically creates an MAS for each query, ensuring that the system adapts to a wide range of tasks.
+This approach not only minimizes the time and computational resources traditionally required to build the right MAS but also enhances the system’s flexibility by generating task-specific solutions in real-time.
+Finally, the MAS generated by MAS-GPT can be seamlessly integrated to process the query and deliver the final answer (bottom right in Figure~\ref{fig:MAS-GPT_core}).
+
+\subsection{MAS-GPT: Dataset Construction and Training}
+\label{sec:method_masgpt}
+
+To achieve the above goal, we reframe building MAS as a generative language task, where the input is a user query and the output is an executable MAS capable of processing that query.
+This shift to a generative paradigm introduces a new challenge since there is few (if any) knowledge within LLMs on MAS generation.
+To make this approach viable, the key focus lies in constructing an appropriate dataset to teach the LLMs such brand-new task.
+To achieve this, we propose a consistency-oriented data construction process, which involves four key steps:
+(1) construction of query and MAS pools,
+(2) inference and evaluation of query-MAS pairs,
+(3) inter-consistency-oriented pair selection,
+(4) intra-consistency-oriented pair refinement.
+
+\textbf{Data - Construction of Query and MAS Pools (Representing MAS as Executable Code).}
+To construct the dataset for supervised fine-tuning (SFT), we adopt the following data format: \textit{(system prompt, instruction, response)}.
+Here, the system prompt briefly describes the MAS generation task, the instruction corresponds to the user query, and the response includes the MAS, which can be extracted by string matching.
+Therefore, training the LLM requires the collection of a series of query-MAS pairs.
+Firstly, to enable MAS-GPT to handle diverse queries, we build a query pool from open-source queries across various domains, such as general QA, mathematics, and coding.
+Each query is carefully selected to be verifiable, ensuring the presence of a ground-truth answer or test cases (e.g., for coding tasks).
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/MAS_representation.pdf}
+    \caption{Our unified code representation of an executable MAS (i.e., a forward function). Each color denotes an agent. Agents defined by variables, LLM calls denoted by function calls, and interactions represented by string concatenations.}
+    \label{fig:MAS_representation}
+    \vskip -0.1in
+\end{figure}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/MAS-GPT_core.pdf}
+    \vspace{-4mm}
+    \caption{Illustrations of dataset construction, training, and inference of our proposed MAS-GPT.}
+    \vspace{-4mm}
+    \label{fig:MAS-GPT_core}
+\end{figure*}
+
+While the collection of queries is relatively straightforward, constructing the MAS pool presents a fundamental challenge: \textit{how to represent an executable MAS}.
+To address this, we propose unifying the representation of MAS by formalizing it as executable Python code snippets.
+This unified representation is motivated by the observation that all existing LLM-based MAS methods are ultimately implemented as code, encompassing the definition of agents' prompts, LLM calls, and inter-agent interactions~\cite{qian2024chatdev,hu2024automated,zhang2024aflow}.
+Specifically, we define an MAS as a forward function that takes a user query as input and returns the final answer generated by the MAS.
+Within the forward function, agent prompts are defined as variables, agent inferences are implemented as function calls, and interactions between agents are represented through string concatenation; see an example in Figure~\ref{fig:MAS_representation}.
+
+Following this framework, we first re-implement several existing MAS methods (e.g., Multi-Agent Debate~\cite{duimproving}, Self-Consistency~\cite{wangself}, Self-Refine~\cite{madaan2024self}) to align with our unified code representation.
+To further expand the diversity of MAS candidates, we also manually design some MAS systems, resulting in a base MAS pool comprising over 40 unique MAS designs (Figure~\ref{fig:mas_pool}).
+Importantly, these 40+ MAS do not directly correspond to the exact number of MAS in the training dataset;
+rather, they serve as foundations that evolve during the query-MAS pair refinement process. 
+
+
+\textbf{Data - Evaluation of Query-MAS Pairs.}
+After constructing the query and MAS pools, it is crucial to evaluate the query-MAS compatibility since not all MAS designs are equally suitable for every query.
+To achieve this, we pair each query and MAS in the pool by inferring the query to the MAS and evaluating the generated final answer.
+
+Specifically, given the query pool $\mathbf{Q}=\{(Q_i, Y_i)\}_{i=1}^{N}$ and the base MAS pool $\mathbf{M}=\{MAS^{\text{base}}_j\}_{j=1}^M$, where $Q_i$ is the query, $Y_i$ is the information for verification, $N$ and $M$ denotes the pool size, we obtain $N \times M$ pairs.
+Then, a query-dependent evaluation function $f_{\text{eval}}(\cdot)$ will be applied to evaluate the effectiveness of the query-MAS pair: $score_{i,j}=f_{\text{eval}}(MAS^{\text{base}}_j(Q_i), Y_i)$, where $MAS^{\text{base}}_j(Q_i)$ denotes the answer generated by $MAS^{\text{base}}_j$ given the query $Q_i$, $1$ and $0$ denotes correct and wrong respectively.
+Overall, we get $M$ MAS scores for each query $Q_i$, which are denoted by $\mathbf{s}_i=[score_{i,1}, ..., score_{i,M}]$, laying the foundation for subsequent steps for selecting appropriate query-MAS pairs and further refinement.
+
+\textbf{Data - Inter-Consistency-Oriented Pair Selection.}
+With the query-MAS pair results obtained from the evaluation step, the next critical task is to select and construct high-quality query-MAS pairs for training.
+The first selection criterion is intuitive: \textit{effectiveness}.
+Specifically, we retain only the query-MAS pairs where the MAS produces a correct answer (evaluation score is 1), as MAS designs that generate correct answers are more likely to be suitable for their respective queries compared to those that fail.
+
+While using all the remaining effective query-MAS pairs for training is straightforward, this approach introduces a significant problem of low \textit{inter-consistency}: the same or similar queries may correspond to multiple different MAS designs.
+This lack of consistency makes it difficult for the model to learn a clear optimization objective, hindering its ability to understand and perform the task effectively.
+
+To address this issue, we propose an inter-consistency-oriented pair selection method that optimizes both \textit{effectiveness} and \textit{inter-consistency}.
+The core idea is to group similar queries and assign them a single, high-performing MAS to maintain consistency across the dataset.
+Specifically, we cluster queries based on their metadata or embeddings.
+For a group of $S$ queries $\mathbb{S} = \{Q_i\}_{i=1}^{S}$, we calculate a cumulative score for each MAS by summing its effectiveness scores across all queries in the group: $\mathbf{s} = \sum_{i=1}^S{\mathbf{s}_i}$.
+The MAS with the highest cumulative score is then selected as the representative MAS for all queries in the group: $MAS^{\text{base}}_*=\arg \max_{MAS \in \mathbf{M}}{\mathbf{s}}$.
+Through this, we pair each specific query with a specific base MAS: $(Q_i, MAS^{\text{base}}_i)$.
+
+By aligning similar queries with the same high-performing MAS, this method improves the inter-consistency of the query-MAS pairs, facilitating the model in learning to recognize generalizable patterns and generalize across similar queries.
+For example, queries requiring divergent thinking may be consistently paired with MAS structures where multiple agents independently generate ideas and then discuss.
+
+\textbf{Data - Intra-Consistency-Oriented Pair Refinement.}
+While the inter-consistency-oriented pair selection process effectively ensures consistency across query-MAS pairs, there remains a critical issue within individual pairs: \textit{intra-consistency}. 
+Specifically, the alignment between a query and its associated MAS may still be suboptimal, making it challenging for the model to learn meaningful associations.
+For instance, a query about physics may be paired with an MAS involving experts from multiple domains (e.g., physics and biology), where the presence of non-relevant agents like biology experts can confuse the model.
+
+To address this, we propose an \textit{intra-consistency}-oriented pair refinement method.
+This approach aims to improve the query-MAS alignment through two key strategies: (1) adjusting MAS to make it query-dependent,
+and (2) introducing a reasoning process to strengthen the connection between the query and MAS.
+We employ an LLM-based data synthesis method, where an advanced LLM adjusts agents' definitions within the MAS based on the query and the previously selected MAS.
+The LLM is also instructed to generate a reasoning statement that explains the relationship between the query and the refined MAS, improving the interpretability of the query-MAS pair; please refer to prompt in Table~\ref{tab:prompt_refinement}.
+This process enables the model to better understand the context and logic behind each decision, which in turn facilitates model training and improves generalization.
+
+Next, we infer and evaluate the refined MAS on the corresponding query, as advanced LLMs could generate inappropriate or non-executable MAS.
+Specifically, for each base pair $(Q_i,MAS_i^{\text{base}})$, the refined $MAS_i^{\text{refine}}$ is tested and accepted only if it achieves a not-worse score.
+Formally:
+\[
+MAS_i = 
+\begin{cases} 
+MAS_i^{\text{refine}}, & \text{if } s^{\text{refine}} \geq s^{\text{base}} \\
+MAS_i^{\text{base}}, & \text{otherwise}
+\end{cases},
+\]
+where $s^{\text{refine}}=f_{\text{eval}}(MAS_i^{\text{refine}}(Q_i), Y_i)$ and $s^{\text{base}}=f_{\text{eval}}(MAS_i^{\text{base}}(Q_i), Y_i)$ are evaluation scores by comparing the MAS-generated and ground-truth answer $Y_i$.
+
+Through this process, each query $Q_i$ is ultimately associated with a tuple $(Q_i, R_i, MAS_i)$, where $R_i$ denotes the reasoning statement, and $MAS_i$ is the final MAS.
+This refined dataset ensures both inter- and intra-consistency, providing high-quality training data for subsequent model fine-tuning.
+
+\textbf{Training - Supervised Fine-Tuning of MAS-GPT}
+Our dataset follows the format \textit{(system prompt, instruction, response)}.
+The system prompt briefly describes the task of generating a query-specific MAS and the instruction corresponds to the user query $Q_i$.
+The response is constructed as the concatenation of the reasoning process and the final MAS, which is represented as executable code in text form.
+
+Building upon this dataset, we perform supervised fine-tuning of MAS-GPT on the open-source medium-sized LLM, Qwen2.5-Coder-32B-Instruct~\cite{yang2024qwen2}, leveraging its capabilities of code generation and instruction-following.
+During inference, when a user query is received, MAS-GPT generates an executable MAS tailored to that specific query $Q_i$: $MAS^{\text{gen}}_i=\text{MAS-GPT}(Q_i)$.
+The generated MAS is directly usable for processing the query $Q_i$ and delivering the final answer: $A_i=MAS^{\text{gen}}_i(Q_i)$, significantly simplifying the task handling process.
+
+\subsection{Discussions}
+
+Overall, our system integrated with MAS-GPT offers the following key advantages: simplicity, cost-efficiency, and adaptability (generality).
+Instead of manually designing an MAS for each specific query, relying on a fixed MAS for all queries, or requiring multiple LLM inference costs to obtain an MAS for a query, our MAS-GPT significantly simplifies the process of building an MAS by reducing into one single LLM inference.
+Given a user query, MAS-GPT will efficiently return a query-specific MAS, which is executable and can be seamlessly applied to process the query to deliver the final answer.
+Although training incurs some cost, it is a one-time expense, whereas inference is potentially endless in practical applications.
+We believe that MAS-GPT has the potential to further advance the real-world application of MAS due to its simplicity, cost-efficiency, and adaptability.
+
+\section{Experiments}
+
+\subsection{Experimental Setups}
+
+\begin{table}[t]
+\caption{Statistics of MAS-GPT's training dataset. We show the number of samples $N_{data}$; the averaged instruction $L_{ins}$; the averaged response $L_{res}$, reasoning $L_{rsn}$, and MAS length $L_{MAS}$; and the number of unique MAS $N_{MAS}$.}
+\setlength\tabcolsep{5pt}
+\label{tab:data_stats}
+\vspace{-4mm}
+\begin{center}
+\begin{small}
+\begin{sc}
+% \resizebox{\textwidth}{!}{
+\begin{tabular}{c|c|ccc|c}
+\toprule
+$N_{data}$ & $L_{ins}$ & $L_{res}$ & $L_{rsn}$ & $L_{MAS}$ & $N_{MAS}$\\
+\midrule
+$11442$ & $\sim 75.0$ & $\sim 1062.3$ & $\sim 262.5$ & $\sim 784.8$ & $7580$\\
+\bottomrule
+\end{tabular}
+% }
+\end{sc}
+\end{small}
+\end{center}
+\vspace{-4mm}
+\end{table}
+
+\begin{table*}[t]
+\caption{Comparing MAS-GPT with 10 baselines across 8 benchmarks using Llama-3-70B-Instruct, MAS-GPT performs the best on average, verifying its generality in handling diverse queries. Benchmarks with $^*$ are out-of-domain for MAS-GPT.}
+\setlength\tabcolsep{5pt}
+\label{tab:main}
+\vspace{-4mm}
+\begin{center}
+\begin{small}
+\begin{sc}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|cccccccc|>{\columncolor{red!10}}c}
+\toprule
+Method & {MATH} & {GSM8K} & {GSM-H} & {H-Eval$^*$} & {H-Eval+$^*$} & {MMLU} & {GPQA$^*$} & {SciBench$^*$} & {Avg.} \\
+\midrule
+Single~\cite{dubey2024llama} & 50.55 & 92.38 & 45.80 & 79.01 & 75.78 & 77.37 & 36.68 & 21.05 & 59.83 \\
+Chain-of-Thought~\cite{wei2022chain} & 53.20 & 92.79 & 46.20 & 77.16 & 77.02 & 75.56 & 35.28 & 17.68 & 59.36\\
+Self-Consistency~\cite{wangself} & 61.59 & 94.99 & 47.20 & 77.78 & 75.78 & 78.18 & 37.15 & 20.00 & 61.58\\
+LLM-Debate~\cite{duimproving} & 61.37 & 91.58 & 44.60 & 74.69 & 74.53 & 77.78 & 34.35 & 19.79 & 59.84\\
+Self-Refine~\cite{madaan2024self} & 58.50 & 90.78 & 37.80 & 67.90 & 62.73 & 74.75 & 38.32 & 20.00 & 56.35 \\
+Quality-Diversity~\cite{luintelligent} & 60.49 & 92.99 & 45.60 & 70.99 & 70.19 & 75.76 & 33.64 & 20.63 & 58.79 \\
+SPP~\cite{wang2024unleashing} & 51.66 & 92.79 & 44.80 & 76.54 & 73.29 & 77.37 & 35.05 & 20.84 & 59.04 \\
+AgentVerse~\cite{chen2023agentverse} & 55.63 & 93.39 & 41.40 & 77.78 & 73.91 & 76.57 & 40.19 & 16.00 & 59.36 \\
+GPTSwarm~\cite{zhugegptswarm} & 55.41 & 93.19 & 43.20 & 69.14 & 73.91 & 75.15 & 36.45 & 14.11 & 57.57 \\
+DyLAN~\cite{liu2024dynamic} & 59.60 & 91.18 & 44.80 & 79.01 & 75.78 & 78.18 & 35.98 & 19.79 & 60.54\\
+\textbf{MAS-GPT (Ours)} & 68.65 & 93.39 & 62.40 & 80.25 & 78.88 & 78.38 & 37.62 & 24.21 & \textbf{65.47}\\
+\bottomrule
+\end{tabular}
+}
+\end{sc}
+\end{small}
+\end{center}
+\vspace{-4mm}
+\end{table*}
+
+\textbf{Training.}
+Our training queries are sampled from the training splits available in MATH~\cite{hendrycksmath2021}, GSM8K~\cite{cobbe2021gsm8k}, MBPP~\cite{mbpp}, MMLU~\cite{mmlu}, and SciQ~\cite{sciq}, covering domains of math, coding, and general QA.
+Llama-3-70B-Instruct is used during dataset construction.
+The number of training samples (i.e., query-MAS pairs) is approximately 11k; see the statistics of our dataset in Table~\ref{tab:data_stats}.
+Our MAS-GPT is trained over Qwen2.5-Coder-32B-Instruct~\cite{yang2024qwen2}, leveraging its instruction-following and coding capabilities.
+We train the LLM using 16 A100s with an effective batch size of 32 for 3 epochs at a learning rate of 1e-5~\cite{zheng-etal-2024-llamafactory}.
+
+\textbf{Testing.}
+To verify that our MAS-GPT can handle diverse queries in practice, we consider multiple benchmarks from diverse domains.
+These include MATH~\cite{hendrycksmath2021}, GSM8K~\cite{cobbe2021gsm8k}, and GSM-Hard~\cite{gsm-hard} for math domains; HumanEval~\cite{humaneval} and HumanEval+~\cite{evalplus} for coding tasks; MMLU~\cite{mmlu} for general QA tasks; GPQA~\cite{rein2023gpqa} and SciBench~\cite{wangscibench} for science topics.
+Please refer to Table~\ref{tab:description_of_benchmarks} for details about datasets and Section~\ref{app:eval} for details about evaluation.
+For all baselines, the LLMs that drive the MAS to process user queries are kept the same, where we consider five state-of-the-art LLMs including Llama-3-70B-Instruct~\cite{dubey2024llama}, Qwen2.5-72B-Instruct~\cite{yang2024qwen2}, GPT-4o-mini-2024-07-18~\cite{gpt-4o-mini}, o1-preview-2024-09-12~\cite{o1-preview}, and Deepseek-R1~\cite{guo2025deepseek}.
+
+\textbf{Baselines.}
+For fair comparisons, we consider 10 baselines that are suitable for handling diverse tasks.
+We include single agent and agent with chain-of-thought~\cite{wei2022chain} as two basic baselines,
+Self-Consistency~\cite{wangself} and Quality-Diversity~\cite{luintelligent} that select the best from multiple answers,
+LLM-Debate~\cite{duimproving} that involves multiple experts for debating,
+Self-Refine~\cite{madaan2024self} that iteratively refines last agent's answer, SPP~\cite{wang2024unleashing} that stimulates conversations among multiple roles,
+AgentVerse~\cite{chen2023agentverse} and DyLAN~\cite{liu2024dynamic} that dynamically adjust multi-agent team during inference,
+GPTSwarm~\cite{zhugegptswarm} that relies on a graph collaboration structure.
+
+\subsection{Main Results}
+
+Since our proposed MAS-GPT aims to facilitate the multi-agent systems in flexibly handling diverse queries, our results focus on the keyword of generality.
+Here, we show the generality of MAS-GPT by comparing performance averaged on various benchmarks and performance using different LLMs to drive the MAS.
+
+\textbf{MAS-GPT's generality in handling diverse queries.}
+We compare MAS-GPT with 10 baselines on 8 benchmarks using Llama-3-70B-Instruct~\cite{dubey2024llama} to drive the MAS, with results reported in Table~\ref{tab:main}.
+GPQA and SciBench are two benchmarks that are out-of-domain for our MAS-GPT.
+From the table, we see that (1) our MAS-GPT significantly outperforms the baseline methods on average, outperforming the second-best method by $3.89\%$.
+(2) Our MAS-GPT simultaneously achieves promising performance in both in-domain and out-of-domain (i.e., queries that are significantly different from those in the training data) benchmarks, indicating MAS-GPT's generality.
+
+\begin{figure*}[t]
+% \vskip 0.2in
+	\centering
+	\subfigure[MAS-GPT-Assisted Reasoning]{
+		\includegraphics[width=0.31\linewidth]{figs/o1_r1.pdf}
+        \label{fig:o1_r1}
+	}
+	\subfigure[Comparison with Task-Specific Method]{
+		\includegraphics[width=0.31\linewidth]{figs/aflow.pdf}
+        \label{fig:aflow}
+	}
+	\subfigure[Performance v.s. Inference Times]{
+		\includegraphics[width=0.31\linewidth]{figs/cost.pdf}
+        \label{fig:cost}
+	}
+    \vskip -0.1in
+	\caption{(a) Different methods empowered with strong reasoning LLM: o1-preview. We see that our MAS-GPT significantly enhance the reasoning performance over single LLM, indicating its potential in further augmenting LLM reasoning. (b) Comparisons with AFlow (optimized on MATH). MAS-GPT even outperforms AFlow on its in-domain benchmarks; while AFlow fails on out-of-domain benchmarks. (c) MAS-GPT achieves the best performance with low inference cost.}
+	% \label{fig:scaling}	
+\vskip -0.2in
+\end{figure*}
+
+\begin{table}[t]
+\caption{MAS-GPT consistently performs the best across MAS-driving LLMs, indicating its strong compatibility.}
+\setlength\tabcolsep{5pt}
+\label{tab:main_other_llms}
+\vspace{-4mm}
+\begin{center}
+\begin{small}
+\begin{sc}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|ccccc|>{\columncolor{red!10}}c}
+\toprule
+Method & {MATH} & {GSM-H} & H-Eval+ & {MMLU} & {GPQA} & {Avg.} \\
+\midrule
+\multicolumn{7}{c}{\textbf{Qwen2.5-72B-Instruct}} \\
+Single & 85.86 & 64.91 & 85.37 & 82.60 & 44.39 & 72.63\\
+COT & 86.90 & 62.27 & 84.15 & 83.20 & 47.86 & 72.88\\
+Self-Con. & 87.32 & 61.46 & 87.20 & 83.40 & 50.00 & 73.88\\
+LLM-Debate & 85.24 & 63.49 & 68.90 & 86.20 & 47.86 & 70.34\\
+Self-Refine & 83.58 & 59.03 & 78.66 & 85.40 & 43.32 & 70.00 \\
+Q-D & 85.65 & 63.08 & 76.83 & 82.80 & 48.66 & 71.40\\
+SPP & 85.65 & 62.88 & 82.32 & 83.40 & 48.40 & 72.53\\
+AgentVerse & 84.82 & 59.43 & 81.10 & 83.20 & 44.65 & 70.64\\
+GPTSwarm & 83.16 & 63.89 & 83.54 & 84.60 & 44.92 & 72.02\\
+DyLAN & 87.73 & 63.08 & 85.37 & 84.40 & 51.07 & 74.33\\
+\textbf{MAS-GPT} & 87.53 & 66.33 & 85.98 & 83.80 & 48.66 & \textbf{74.46}\\
+\midrule
+\multicolumn{7}{c}{\textbf{GPT-4o-mini-2024-07-18}} \\
+Single & 78.18 & 58.03 & 86.25 & 78.56 & 38.03 & 67.81\\
+COT & 78.79 & 60.84 & 85.62 & 79.16 & 39.60 & 68.80\\
+Self-Con. & 81.62 & 59.04 & 85.00 & 80.96 & 39.82 & 69.29\\
+LLM-Debate & 79.60 & 60.84 & 86.25 & 80.76 & 37.81 & 69.05\\
+Self-Refine & 74.55 & 54.62 & 76.88 & 79.16 & 33.33 & 63.71\\
+Q-D & 79.80 & 59.64 & 84.38 & 79.76 & 37.58 & 68.23\\
+SPP & 77.58 & 57.63 & 86.25 & 77.96 & 37.58 & 67.40\\
+AgentVerse & 75.15 & 55.62 & 79.38 & 78.36 & 36.24 & 64.95\\
+GPTSwarm & 75.15 & 55.62 & 79.38 & 78.36 & 36.32 & 64.97\\
+DyLAN & 81.21 & 59.24 & 80.62 & 79.96 & 40.94 & 68.39\\
+\textbf{MAS-GPT} & 81.21 & 61.45 & 86.88 & 80.36 & 42.60 & \textbf{70.50} \\
+\bottomrule
+\end{tabular}
+}
+\end{sc}
+\end{small}
+\end{center}
+\vspace{-4mm}
+\end{table}
+
+\textbf{Generality in using diverse LLM backbones for MAS.}
+Llama-3-70B-Instruct was utilized to drive MAS during the dataset construction phase for training MAS-GPT, a 32B-sized LLM.
+As shown in Table~\ref{tab:main}, this approach proves effective when employing the same LLM to drive MAS during test time.
+To further validate the versatility of MAS-GPT, we assess its performance under different MAS-driving LLMs, including Qwen2.5-72B-Instruct and GPT-4o-mini-2024-07-18, in Table~\ref{tab:main_other_llms}.
+The results demonstrate that MAS-GPT consistently achieves superior performance, regardless of the LLM used to drive MAS, highlighting its strong compatibility and adaptability across various MAS-driving LLMs.
+
+\textbf{MAS-GPT's potential in further augmenting the reasoning performance of strong reasoning LLMs such as o1.}
+In recent developments, the AI community has introduced several state-of-the-art reasoning LLMs~\cite{o1-preview,QWQ}, which have demonstrated remarkable reasoning capabilities by scaling inference-time computations~\cite{snell2024scaling}.
+In this context, we aim to explore whether our proposed MAS-GPT can take the reasoning power of these already advanced models even further.
+To test this, we conduct experiments using OpenAI's o1-preview~\cite{o1-preview} and Deepseek-R1~\cite{guo2025deepseek}, evaluating them on the highly challenging AIME-2024 mathematical benchmark\footnote{\href{https://huggingface.co/datasets/Maxwell-Jia/AIME_2024}{https://huggingface.co/datasets/Maxwell-Jia/AIME\_2024}}.
+The results, as shown in Figure~\ref{fig:o1_r1}, show that our proposed MAS-GPT significantly outperforms the baseline methods on this challenging task.
+Specifically, it can improve over the single LLM by a large margin: $\mathbf{13.34}\%$.
+This result not only verifies the generality of our proposed MAS-GPT, but also indicates its promising potential in pushing the boundaries of LLM reasoning.
+
+\textbf{Comparisons with task-specific methods, AFlow.}
+To further demonstrate the generality and effectiveness of our MAS-GPT during inference time, we compare with AFlow~\cite{zhang2024aflow}, a latest task-specific method for MAS optimization that has been specifically optimized on MATH~\cite{hendrycksmath2021} dataset.
+We evaluate on two AFlow's in-domain (MATH and GSM8K) and two AFlow's out-domain (MMLU and HumanEval+) benchmarks.
+Results in Figure~\ref{fig:aflow} show surprisingly good performance of our proposed MAS-GPT.
+As a general method, our \textit{MAS-GPT even outperforms math-specific AFlow on the MATH} dataset by $3.53\%$!
+Meanwhile, the MAS optimized on MATH by AFlow fails to generalize to other domains, achieving worse performance than a single LLM.
+In contrast, our MAS-GPT consistently performs the best across these benchmarks.
+It is also worth mentioning that our MAS-GPT only requires \textit{one-time inference of a 32B-sized LLM} to build the MAS; while AFlow needs to call the APIs of powerful proprietary LLMs, such as Claude-3.5-Sonnet~\cite{claude3.5}, 10 times per query and depends on a hold-out validation set.
+
+\textbf{Cost comparisons.}
+Here, we compare the inference cost of various methods from the moment a user query is received to the generation of the final answer, as illustrated in Figure~\ref{fig:cost}.
+We quantify the inference cost in terms of the number of LLM inference calls~\cite{liu2024dynamic}, interpreting the inference of MAS-GPT as 0.5 times, given that its model size is approximately half that of the MAS-driving LLM (32B v.s. 70B).
+From the figure, we observe that, among the four methods compared, MAS-GPT achieves the best performance while requiring the fewest inference calls, demonstrating its efficiency and effectiveness.
+
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=0.8\linewidth]{figs/o1_preview.pdf}
+%     \caption{Comparisons of different methods empowered by strong reasoning LLM: o1-preview. We see that our MAS-GPT can significantly enhance the reasoning performance of reasoning LLMs.}
+%     \label{fig:o1_r1}
+% \end{figure}
+
+
+
+% \textbf{MAS-GPT achieves the best overall performance, demonstrating its generality in handling diverse queries.}
+
+
+% \textbf{MAS-GPT consistently delivers the best performance across various LLM backbones, demonstrating its effectiveness in enhancing multi-agent collaboration regardless of the underlying model.}
+
+\subsection{Analysis of MAS-GPT}
+
+\begin{table}[t]
+\caption{Ablation studies on the designs of dataset construction: (1) our inter-consistency-oriented pair selection, (2) the adjustment of MAS in our intra-consistency-oriented pair refinement: Refine-A, (3) the introduction of reasoning process in our intra-consistency-oriented pair refinement: Refine-R. The table shows that these three designs all play critical roles in achieving high task performance.}
+\setlength\tabcolsep{2.5pt}
+\label{tab:ablation_data}
+\vspace{-4mm}
+\begin{center}
+\begin{small}
+\begin{sc}
+% \resizebox{\textwidth}{!}{
+\begin{tabular}{cccc|ccc}
+\toprule
+&Select & Refine-A & Refine-R & MATH & MMLU & GPQA \\
+\midrule
+\ding{192} & \ding{55} & \checkmark & \checkmark & 60.26 & 77.58 & 36.68 \\
+\ding{193} & \checkmark & \ding{55} & \checkmark & 66.23 & 77.78 & 36.45 \\
+\ding{194} & \checkmark & \checkmark & \ding{55} & 64.90 & 75.96 & 37.15 \\
+\ding{195} & \checkmark & \checkmark & \checkmark & \textbf{68.65} & \textbf{78.38} & \textbf{37.62}\\
+\bottomrule
+\end{tabular}
+% }
+\end{sc}
+\end{small}
+\end{center}
+\vspace{-4mm}
+\end{table}
+
+\begin{figure*}[t]
+% \vskip 0.2in
+	\centering
+	\subfigure[Data Scale v.s. Failure]{
+		\includegraphics[width=0.31\textwidth]{figs/success_rate.pdf}
+        \label{fig:data_size_failure}
+	}
+	\subfigure[Data Scale v.s. Performance]{
+		\includegraphics[width=0.31\textwidth]{figs/data_scale.pdf}
+        \label{fig:data_size_performance}
+	}
+	\subfigure[Model Scale v.s. Performance]{
+		\includegraphics[width=0.31\textwidth]{figs/model_scale.pdf}
+        \label{fig:model_size_performance}
+	}
+    \vskip -0.1in
+	\caption{Explorations of scaling in training MAS-GPT. (a) More data leads to fewer execution failures. (b) More data contributes to better performance of MAS-GPT in facilitating MAS application. Without training (N=0), the model fails, highlighting that MAS generation is a non-trivial task requiring specific training. (c) Larger model generally contributes to better performance. These findings demonstrate the promising potential of MAS-GPT, suggesting that it can be further improved with more diverse, high-quality data and stronger models as the community continues to advance.}
+	\label{fig:scaling}	
+\vskip -0.2in
+\end{figure*}
+
+\textbf{Effectiveness of inter-consistency-oriented pair selection.}
+During data construction, to facilitate the model in recognizing generalizable patterns between queries and MAS, we propose an inter-consistency-oriented query-MAS pair selection method, which maps similar queries with consistent high-performing MAS.
+To examine its effectiveness, we replace this mapping with a random mapping approach, which randomly selects one out of those MAS with correct answers.
+From Table~\ref{tab:ablation_data}, by comparing \ding{192} and \ding{195}, we see that our proposed method brings significant performance gain, with an absolute improvement of $8.39\%$ on MATH.
+
+\textbf{Effectiveness of intra-consistency-oriented pair refinement.}
+During data construction, to help the model learn the associations between query and MAS, we propose an intra-consistency-oriented query-MAS pair refinement method.
+This method enhances the alignment between query and MAS by adjusting MAS to make it query-dependent and introducing a reasoning process to strengthen the logical connection.
+To examine their effects, we conduct two experiments with one without adjustment of MAS and one without reasoning process.
+From Table~\ref{tab:ablation_data}, by comparing \ding{193} and \ding{195}, \ding{194} and \ding{195}, we see that our designs in adjusting MAS and introducing reasoning process both contribute to performance improvement, indicating the effectiveness of our proposed intra-consistency-oriented pair refinement.
+
+\textbf{Scaling effects of data size.}
+To explore the scaling effects of data size for training MAS-GPT, we adjust the size from 0 to 11k using the same 32B-sized model and compare the extractability (i.e., the Python code can be extracted), executability (i.e., the code is executable), task performance.
+Results in Figure~\ref{fig:data_size_failure} show that except for the extractability under 0 data sample (the base model knows that it needs to generate Python code, but do not know what codes are needed), the extractability and executability generally improves with the data scale.
+Results in Figure~\ref{fig:data_size_performance} show (1) the base model is unable to generate an effective MAS in zero-shot setting, indicating the necessity for training MAS-GPT.
+Overall, we observe a promising scaling trend of training MAS-GPT: more data leads to better performance.
+
+\textbf{Scaling effects of model size.}
+Here, we compare the performance of MAS-GPT trained based on 7B, 14B, and 32B models.
+Results in Figure~\ref{fig:model_size_performance} show that the performance of MAS-GPT improves steadily with the growing model size.
+Overall, these findings demonstrate the promising potential of MAS-GPT, suggesting that it can be further improved with more diverse, high-quality data and stronger models as the community continues to advance.
+
+\textbf{Case study.}
+To offer an intuitive understanding, we present several examples in Appendix showcasing the query, the MAS-GPT-generated reasoning process, and the MAS-GPT-generated MAS.
+These show that MAS-GPT can generate query-specific MAS (Section~\ref{app:case1}), generalize to unseen queries (Section~\ref{app:case2}), generate novel MAS (Section~\ref{app:case3}).
+
+\section{Conclusion}
+Building MAS was time-consuming and resource-intensive.
+This paper aims to streamline this process into a single LLM inference, making MAS creation as effortless as querying ChatGPT.
+To this end, we introduce MAS-GPT, an LLM specifically trained to generate executable MAS from arbitrary user queries.
+Our approach follows a data-driven spirit, leveraging a consistency-oriented data construction pipeline to enhance the coherence and consistency of data pairs.
+We conduct extensive experiments, comparing MAS-GPT against 10+ baseline methods across 9 benchmarks, using 5 different LLMs as MAS drivers.
+The results consistently demonstrate that MAS-GPT outperforms all baselines, strongly validating its effectiveness and generalizability.
+Additionally, we observe MAS-GPT's potential to further enhance state-of-the-art reasoning capabilities, as well as its scalability for continued improvements.
+We believe MAS-GPT can accelerate the adoption of MAS, inspiring future research and real-world applications.
+
+% In the unusual situation where you want a paper to appear in the
+% references without citing it in the main text, use \nocite
+% \nocite{langley00}
+
+\newpage
+
+\section*{Impact Statements}
+
+This paper presents an advancement in simplifying the application of LLM-based multi-agent systems (MAS).
+Our MAS-GPT significantly reduces the complexity of designing and deploying MAS for a wide range of tasks.
+Our approach not only makes MAS development more accessible and efficient but also improves scalability, enabling its broader application in real-world scenarios.
+While the potential negative impacts of our approach are similar to those associated with large language models, such as ethical concerns and misuse, these are inherent to the use of LLMs in general and do not require further elaboration in this context.
+
+\bibliography{example_paper}
+\bibliographystyle{icml2025}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% APPENDIX
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\appendix
+\onecolumn
+
+\begin{table}[t]
+    \centering
+    \caption{Case 1: user query and the reasoning process generated by our MAS-GPT. MAS-GPT firstly analyzes the domain, difficulty, and required knowledge, then propose the idea of what multi-agent system is appropriate.}
+    \begin{tabular}{p{1.8cm}|p{14cm}}
+    \toprule
+        Query & The following is a multiple-choice question:
+Which of the following statements about any two events A and B is true? \newline \newline The following choices are provided: \newline(A) $P(A \cup B)$ implies events A and B are independent. \newline
+(B) $P(A \cup B) = 0$ implies events A and B are mutually exclusive.\newline(C) $P(A \cap B)$ implies events A and B are independent.\newline
+(D) $P(A \cup B)$ implies events A and B are mutually exclusive.\newline
+(E) $P(A \cap B) = 0$ implies events A and B are mutually exclusive.\newline
+(F) $P(A \cap B) = 1$ implies events A and B are independent.\newline
+(G) $P(A \cup B) = 1$ implies events A and B are independent.\newline
+(H) $P(A \cap B) = 1$ implies events A and B are mutually exclusive.\newline
+(I) $P(A \cup B) = 1$ implies events A and B are mutually exclusive.\newline
+(J) $P(A \cap B) = 0$ implies events A and B are independent.\newline \newline
+Please finish your answer with "the answer is (X)" where X is the correct letter choice. \\
+    \midrule
+        Reasoning generated by MAS-GPT & The question is a multiple-choice problem in the \textcolor{blue}{domain of probability theory}, specifically focusing on the relationships between events, such as independence and mutual exclusivity. The \textcolor{blue}{difficulty lies in} the need for precise understanding of probability concepts and their implications, as well as the ability to analyze and evaluate multiple statements to identify the correct one. This \textcolor{blue}{requires both theoretical knowledge and logical reasoning}. \newline \newline
+        To address this question effectively, \textcolor{blue}{a multi-agent system should include agents that specialize in analyzing the relationships between events in probability theory}. Each agent should focus on a specific aspect of the problem, such as independence, mutual exclusivity, or the implications of specific probability values (e.g., $P(A \cap B) = 0$ or $P(A \cup B) = 1)$. By dividing the task into these focused analyses, the system ensures comprehensive coverage of the problem space. Additionally, a final decision-making agent is necessary to synthesize the insights from all agents and provide a well-reasoned final answer. This structure ensures that the system can handle the complexity of the question while leveraging the strengths of specialized reasoning agents. The system is designed to align with the specific requirements of the question, ensuring that each agent contributes relevant and precise insights to the solution process.
+\\
+    \bottomrule
+    \end{tabular}
+    \label{tab:case1_query_specific}
+\end{table}
+
+\section{Case Study}
+\begin{figure*}[t]
+% \vskip 0.2in
+	\centering
+	\subfigure[Visualization of Case 1]{
+		\includegraphics[width=0.31\linewidth]{figs/cases/case1.png}
+        \label{fig:case1_v}
+	}
+	\subfigure[Visualization of Case 2]{
+		\includegraphics[width=0.31\linewidth]{figs/cases/case2.png}
+        \label{fig:case2_v}
+	}
+	\subfigure[Visualization of Case 3]{
+		\includegraphics[width=0.31\linewidth]{figs/cases/case3.png}
+        \label{fig:case3_v}
+	}
+    \vskip -0.1in
+	\caption{Visualization of three cases. (a) MAS-GPT can generate query-specific MAS. (b) MAS-GPT can generalize to unseen queries. (c) MAS-GPT can generate novel MAS.}
+	\label{fig:cases_v}	
+\vskip -0.2in
+\end{figure*}
+
+\subsection{MAS-GPT Can Generate Query-Specific MAS}
+\label{app:case1}
+
+From Table~\ref{tab:case1_query_specific}, we see that given a query, MAS-GPT first provides a reasoning process in analyzing the domain, difficulty, and required knowledge of the query.
+Secondly, MAS-GPT analyzes what multi-agent system is appropriate for addressing the question effectively and decides the required agents and structure.
+
+Finally, MAS-GPT generates a query-specific MAS (Listing~\ref{case1_mas} and Figure~\ref{fig:case1_v}), which involves five agents with specific tasks targeting the query and a final decision-making agent to provide the final answer.
+
+This indicates that MAS-GPT can flexibly generate a query-specific MAS within one single LLM inference.
+
+\subsection{MAS-GPT Can Generalize to Unseen Queries}
+\label{app:case2}
+
+From Table~\ref{tab:case2_query_reasoning}, we see that given a query whose domain is unseen from our training dataset, MAS-GPT still works well.
+Specifically, it first analyzes the involved domain, the required understandings, and the difficulty of the given query.
+Secondly, it figures out a well-suited multi-agent system to answer the query, which directly mentions what agents and what structure are appropriate.
+
+Finally, MAS-GPT generates a query-specific MAS (Listing~\ref{case2_mas} and Figure~\ref{fig:case2_v}), which involves four parallel pipelines: two pipelines that answer the query via coding and two pipelines that directly answer the query.
+The first two pipelines are both consisted of two agents: one for writing and executing the code, and one for organizing the final answer.
+Finally, an aggregation agent reasons over the four solutions and provides the final answer.
+
+This indicates that MAS-GPT can generalize to unseen queries and generate appropriate MAS.
+
+\subsection{MAS-GPT Can Generate Novel MAS}
+\label{app:case3}
+
+From Table~\ref{tab:case3_novel} and Listing~\ref{case3_mas} (Figure~\ref{fig:case3_v}), we see that given a query, the MAS-GPT proposes a novel MAS that is unseen from our base MAS pool.
+Specifically, it builds an MAS with five parallel pipelines, where each pipeline actually involves an agent for answering the question and another agent for refining the solution.
+Finally, a decision-making agent is introduced to provide the final answer.
+
+This shows that MAS-GPT is not merely memorizing the data during training, but actually learns patterns of designing MAS, indicating the generalization ability of our proposed MAS-GPT.
+
+
+
+\begin{lstlisting}[caption={Case 1: Multi-agent system generated by MAS-GPT. MAS-GPT can generate query-specific MAS. MAS-GPT designs five independent responding agents, each responsible for different aspects of the task.}, label={case1_mas}]
+from utils import *
+
+class MAS():
+    def __init__(self, model_list):
+        self.llm = LLM(model_list)
+
+    def forward(self, taskInfo):
+        """
+        A multi-agent system for solving probability-related multiple-choice questions.
+
+        Steps:
+            1. 5 agents analyze the task independently, each focusing on a specific aspect of probability theory.
+            2. A final decision-making agent reasons over the solutions and provides the final solution.
+        """
+
+        # Step-by-step instruction for each agent to reason and generate answer
+        instructions = [
+            f"Task: {taskInfo}\n\nFocus on analyzing the relationship between events A and B in terms of independence. Solve the task.",    
+            f"Task: {taskInfo}\n\nFocus on analyzing the relationship between events A and B in terms of mutual exclusivity. Solve the task.",
+            f"Task: {taskInfo}\n\nFocus on the implications of P(A \cup B) and P(A \cap B) on the relationship between events A and B. Solve the task.",
+            f"Task: {taskInfo}\n\nFocus on the definitions and properties of probability union and intersection. Solve the task.",
+            f"Task: {taskInfo}\n\nFocus on identifying any logical inconsistencies or impossibilities in the given choices. Solve the task."
+        ]
+
+        # Call the llm to generate each solution
+        cot_results = [self.llm.call_llm(instruction) for instruction in instructions]
+
+        # Get the instruction for the final decision-making agent based on all generated solutions
+        final_decision_instruction = self.get_final_decision_instruction(taskInfo, cot_results)
+
+        # Call the llm to process the final decision-making instruction and generate the final answer
+        final_decision_result = self.llm.call_llm(final_decision_instruction)
+
+        # Return the final solution
+        return final_decision_result
+
+    def get_final_decision_instruction(self, taskInfo, cot_results):
+        """
+        Format an instruction for final decision-making based on a given task description and a list of solutions.
+
+        Args:
+            taskInfo (str): A description of the task that needs to be completed.
+            cot_results (list): A list containing solutions or reasoning steps for the task.
+
+        Returns:
+            str: A formatted instruction that includes the task description, each solution, and a prompt for final decision-making.
+        """
+
+        # Initialize the instruction text with a general guideline
+        instruction = f"Task:\n{taskInfo}\n\n"
+
+        # Append each solution from cot_results to the instruction
+        for i, result in enumerate(cot_results):
+            instruction += f"Solution {i+1}:\n{result}\n\n"  # Number each solution for clarity
+
+        # Add the final prompt to encourage reasoning over the solutions and provide a final answer
+        instruction += "Given all the above solutions, reason over them carefully and provide a final answer to the task."
+
+        # Return the complete instruction text
+        return instruction
+
+\end{lstlisting}
+
+\begin{table}[h]
+    \centering
+    \caption{Case 2: user query and the reasoning process generated by our MAS-GPT. MAS-GPT firstly analyzes the domain,required elements, and the difficulty, then propose the idea of what multi-agent system is appropriate.}
+    \begin{tabular}{p{1.8cm}|p{14cm}}
+    \toprule
+        Query & An electric dipole consisting of charges of magnitude $1.50 \mathrm{nC}$ separated by $6.20 \mu \mathrm{m}$ is in an electric field of strength 1100 $\mathrm{N} / \mathrm{C}$. What is the magnitude of the electric dipole moment? \\
+    \midrule
+        Reasoning generated by MAS-GPT & The question \textcolor{blue}{involves calculating} the magnitude of the electric dipole moment, a concept rooted in physics, specifically in the domain of electromagnetism. The problem \textcolor{blue}{requires understanding the relationship} between the charges, their separation, and the resulting dipole moment. While the mathematical computation is straightforward, the problem demands precise application of the formula for the dipole moment and careful handling of units, which adds \textcolor{blue}{a layer of complexity}. \newline \newline To address this, one would analyze the question by identifying the key variables (charge magnitude, separation distance) and the formula (dipole moment = charge × separation). \newline \newline A multi-agent system is well-suited for this task because it can \textcolor{blue}{leverage multiple approaches to ensure accuracy and robustness}. First, agents can independently break down the problem into steps, generate Python code to compute the solution, and execute the code to verify the calculations. This ensures that the solution is not only theoretically correct but also computationally validated. Additionally, other agents can directly generate solutions without code, providing a baseline for comparison. Finally, an evaluation agent can synthesize the outputs from all agents, ensuring consistency and selecting the most reliable solution. This multi-faceted approach is particularly effective for scientific problems where both analytical and computational accuracy are critical.
+\\
+    \bottomrule
+    \end{tabular}
+    \label{tab:case2_query_reasoning}
+\end{table}
+
+\begin{lstlisting}[caption={Case 2: Multi-agent system generated by MAS-GPT. MAS-GPT can generalize to unseen queries from SciBench~\cite{wangscibench}, generating an appropriate multi-agent system to handle the query.}, label={case2_mas}]
+from utils import *
+
+class MAS():
+    def __init__(self, model_list):
+        self.llm = LLM(model_list)
+    
+    def forward(self, taskInfo):
+    """
+    A multi-agent system for solving math problems by executing code and directly answering.
+    Steps:
+        1. 2 agents independently solves the problem by breaking it down into steps and generating code, where each agent organizes the solution based on the code execution results, ensuring clarity and correctness.
+        2. 2 agents generate a solution directly, which provides baseline solutions especially when code generation is challenging
+        3. A final agent evaluates all the solutions and determines the final solution.
+    """
+        # 4 parallel pipelines to solve the problem independently
+        solutions = []
+        
+        # The first two pipelines generate code to solve the problem
+        for _ in range(2):
+            answer, output = self.generate_code_get_output(taskInfo)
+            solution = self.organize(taskInfo, answer, output)
+            solutions.append(solution)
+        
+        # The third pipeline generates a solution directly
+        for _ in range(2):
+            solution = self.llm.call_llm(taskInfo)
+            solutions.append(solution)
+        
+        # Determine the final solution based on the generated solutions
+        final_solution = self.get_final_solution(taskInfo, solutions)
+        return final_solution
+
+    def generate_code_get_output(self, taskInfo):
+    """
+    Generate Python code to solve the mathematical problem and execute the code to get the output.
+    Args:
+        taskInfo (str): The mathematical problem to be solved.
+    Returns:
+        a tuple containing:
+            - str: The answer generated by the LLM model.
+            - str: The output of the code execution.
+    """
+        code_generation_instruction = f"""You are an expert in solving mathematical problems.
+**Problem:**
+{taskInfo}
+**Instructions:**
+1. Analyze the problem and list the steps required to solve it.
+2. Generate Python code that can help solve the problem. The code should:
+- Print important intermediate results in the calculation process, along with clear explanations.
+- Store the final calculation result in a variable named `output`. This variable should contain the final result of the computation and be defined at the global scope.
+- Be directly executable. The code should run and produce a result when executed.
+Wrap your final code solution in <Code Solution> and </Code Solution>. For example:
+<Code Solution>
+Your function code here
+</Code Solution>
+"""
+        # Call `generate_and_extract_code` to generate answer and extract the code
+        answer, code = generate_and_extract_code(llm=self.llm, prompt=code_generation_instruction)
+        
+        # Call `execute_code` to execute the generated code and get output
+        output = execute_code(code)
+        return answer, output
+    
+    def organize(self, taskInfo, answer, result):
+    """
+    Organize the solution based on the code execution results.
+    Args:
+        taskInfo (str): The mathematical problem to be solved.
+        answer (str): The initial solution generated by the LLM model.
+        result (str): The output of the code execution.
+    Returns:
+        str: The organized solution based on the code execution results.
+    """
+        organize_instruction = f"""**Problem:**
+{taskInfo}
+**Initial Solution:**
+{answer}
+**Code Execution Result:**
+{result}
+To solve the **Problem**, the **Initial Solution** provides steps and python code for calculations. The **Code Execution Result** is the output of the code.
+Based on the **Initial Solution** and **Code Execution Result**, provide a final solution to the problem. Include the results of the code calculation in your response. Your final response should be complete as if you are directly answering the problem."""
+        solution = self.llm.call_llm(organize_instruction)
+        return solution
+
+    def get_final_solution(self, taskInfo, solutions):
+    """
+    Evaluate the solutions provided by the agents and determine the final solution.
+    Args:
+        taskInfo (str): The mathematical problem to be solved.
+        solutions (list): A list of solutions provided by the agents.
+    Returns:
+        str: The final solution to the mathematical problem.
+    """
+        # Prepare the solutions in a numbered format for evaluation
+        solutions_str = ""
+        for i, solution in enumerate(solutions):
+            solutions_str += f"Solution {i+1}\n{solution}\n\n"
+            
+        final_solution_instruction = f"""**Problem:**
+{taskInfo}
+**Solutions:**
+{solutions_str}
+Several solutions are given to solve the problem. Carefully evaluate these solutions. This consistency in answers is crucial for determining the most reliable solution.
+You should provide a final solution to the problem. Your final response should be complete as if you are directly answering the problem.""" 
+        final_solution = self.llm.call_llm(final_solution_instruction)
+        return final_solution
+\end{lstlisting}
+
+
+\begin{table}[h!]
+    \centering
+    \caption{Case 3: user query and the reasoning process generated by our MAS-GPT. MAS-GPT firstly analyzes the domain, difficulty, and required knowledge, then propose the idea of what multi-agent system is appropriate.}
+    \begin{tabular}{p{1.8cm}|p{14cm}}
+    \toprule
+        Query & The following is a multiple-choice question:
+Suppose that there are two firms in the market facing no costs of production and a demand curve given by Q = 150 - P for their identical products. Suppose the two firms choose prices simultaneously as in the Bertrand model. Compute the prices in the nash equilibrium. \newline \newline
+
+The following choices are provided:\newline
+(A) 30\newline
+(B) 50\newline
+(C) 0\newline
+(D) 25\newline
+(E) 150\newline
+(F) 75\newline
+(G) 90\newline
+(H) 120\newline
+(I) 100\newline
+(J) 60\newline \newline
+
+Please finish your answer with "the answer is (X)" where X is the correct letter choice. \\
+    \midrule
+        Reasoning generated by MAS-GPT & The question pertains to a classic economic problem in the \textcolor{blue}{domain of game theory and microeconomics}, specifically focusing on the Bertrand model of price competition. The \textcolor{blue}{difficulty lies} in understanding the strategic interaction between two firms, the implications of no production costs, and the Nash equilibrium concept. Solving this \textcolor{blue}{requires both} theoretical knowledge of economic models and the ability to apply mathematical reasoning to derive the equilibrium price. \newline\newline To address such a question, one must first break it down into its core components: the demand curve, the firms' identical products, and the simultaneous price-setting behavior. \newline\newline A multi-agent system is well-suited for this task because it can leverage multiple perspectives to ensure accuracy and depth in reasoning. By employing agents that \textcolor{blue}{independently analyze the problem, generate solutions, and refine their responses through iterative feedback}, the system ensures a robust exploration of the problem space. This approach is particularly valuable for a question like this, where multiple solution paths (e.g., algebraic derivation, economic intuition) can lead to the correct answer. The iterative refinement process allows for cross-verification of solutions, reducing the likelihood of errors. Finally, a decision-making agent synthesizes the diverse solutions, ensuring that the final answer is both logically sound and consistent with the principles of the Bertrand model. This structured reasoning process aligns with the complexity of the question and ensures a reliable outcome.
+\\
+    \bottomrule
+    \end{tabular}
+    \label{tab:case3_novel}
+\end{table}
+
+\newpage
+\begin{lstlisting}[caption={Case 3: Multi-agent system generated by MAS-GPT. MAS-GPT can generate novel MAS.}, label={case3_mas}]
+from utils import *
+
+class MAS():
+    def __init__(self, model_list):
+        self.llm = LLM(model_list)
+
+    def forward(self, taskInfo):
+        """
+        A multi-agent system for solving general tasks.
+
+        Steps:
+            1. 5 agents solve the task independently.
+            2. Each agent reflects on the solutions and provides an improved solution.
+            3. A final decision-making agent reasons over the improved solutions and provides the final solution.
+        """
+        # Step-by-step instruction for each agent to reason and generate answer
+        instruction = f"Task: {taskInfo}\n\nPlease solve the task."
+
+        # Set the number of solutions to generate; using 5 for variety and diversity
+        N = 5
+        # Call the llm to generate each solution
+        cot_results = [self.llm.call_llm(instruction) for _ in range(N)]
+
+        # Get the instruction for the self-refine process based on all generated solutions
+        self_refine_instruction = self.get_self_refine_instruction(taskInfo, cot_results)
+
+        # Call the llm to refine each solution
+        refined_results = [self.llm.call_llm(self_refine_instruction) for _ in range(N)]
+
+        # Get the final decision-making instruction based on all refined solutions
+        final_decision_instruction = self.get_final_decision_instruction(taskInfo, refined_results)
+
+        # Call the llm to process the final decision-making instruction and generate the final answer
+        final_decision_result = self.llm.call_llm(final_decision_instruction)
+
+        # Return the final solution
+        return final_decision_result
+
+    def get_self_refine_instruction(self, taskInfo, cot_results):
+        """
+        Format an instruction for self-refinement based on a given task description and a list of solutions.
+
+        Args:
+            taskInfo (str): A description of the task that needs to be completed.
+            cot_results (list): A list containing solutions or reasoning steps for the task.
+
+        Returns:
+            str: A formatted instruction that includes the task description, each solution, and a prompt for self-refinement.
+        """
+
+        # Initialize the instruction text with a general guideline
+        instruction = f"Task:\n{taskInfo}\n\n"
+
+        # Append each solution from cot_results to the instruction
+        for i, result in enumerate(cot_results):
+            instruction += f"Solution {i+1}:\n{result}\n\n"  # Number each solution for clarity
+
+        # Add the final prompt to encourage self-refinement and improvement
+        instruction += "Given all the above solutions, reason over them carefully and provide an improved solution to the task."
+
+        # Return the complete instruction text
+        return instruction
+
+    def get_final_decision_instruction(self, taskInfo, refined_results):
+        """
+        Format an instruction for final decision-making based on a given task description and a list of refined solutions.
+
+        Args:
+            taskInfo (str): A description of the task that needs to be completed.
+            refined_results (list): A list containing refined solutions for the task.
+
+        Returns:
+            str: A formatted instruction that includes the task description, each refined solution, and a prompt for final decision-making. 
+        """
+
+        # Initialize the instruction text with a general guideline
+        instruction = f"Task:\n{taskInfo}\n\n"
+
+        # Append each refined solution from refined_results to the instruction
+        for i, result in enumerate(refined_results):
+            instruction += f"Solution {i+1}:\n{result}\n\n"  # Number each solution for clarity
+
+        # Add the final prompt to encourage reasoning over the solutions and provide a final answer
+        instruction += "Given all the above solutions, reason over them carefully and provide a final answer to the task."
+
+        # Return the complete instruction text
+        return instruction
+
+\end{lstlisting}
+
+\section{Visualization of Our MAS pool}
+
+We visualize several MAS in our MAS pool in Figure~\ref{fig:mas_pool}.
+
+\begin{figure*}[t]
+\vskip -0.2in
+\centering
+\subfigure[CoT]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/1_cot_general.png}
+}
+\subfigure[5 CoT SC]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/3_5cot-sc_general.png}
+}
+\subfigure[Reflection]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/4_reflection.png}
+}
+    \subfigure[Scientific LLM Debate]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/6_llmdebate_general.png}
+}
+\vskip 0.1in
+    \subfigure[Math Ensemble]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/7_sc-ensemble_math_aflow.png}
+}
+\subfigure[Test Refine]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/16_test-and-refine_adas.png}
+}
+\subfigure[Test Fix Ensemble]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/8_ensemble-test-fix_aflow.png}
+}
+    \subfigure[Ensemble Format]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/9_ensemble-format_aflow.png}
+} 
+\vskip 0.1in
+    \subfigure[Quality Diversity]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/35_quality-diversity_general.png}
+}
+\subfigure[3 LLM Debate]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/36_llmdebate_origin.png}
+}
+\subfigure[3 Code Organize]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/40_gsmhard.png}
+}
+    \subfigure[Code Test]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/42_test_code.png}
+}
+\vskip 0.1in
+    \subfigure[Step Back Abstraction]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/11_step-back-abstraction_adas.png}
+}
+\subfigure[Code LLM Debate]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/5_3llmdebate_code.png}
+}
+\subfigure[Dynamic Agent]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/12_dynamic_agent.png}
+}
+    \subfigure[Heuristic Simulation Refine]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/13_heuristic-simulation-refine_adas.png}
+}
+\vskip 0.1in
+    \subfigure[Priority Refine]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/14_priority-refine_adas.png}
+}
+\subfigure[Socratic Questioning]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/15_questioning_adas.png}
+}
+\subfigure[Strategy Engineer|Scientist]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/21_engineer-scientist_mechagent.png}
+}
+    \subfigure[2 Code 2 Basic Ensemble]{
+    \includegraphics[width=0.23\linewidth]{figs/visualization/44_answer_cal.png}
+}
+
+\caption{Visualization of our MAS pool}
+\label{fig:mas_pool}	
+\end{figure*}
+
+
+
+\section{Additional Experimental Setups.}
+
+\begin{table}[t]
+    \centering
+    \begin{small}
+    \begin{sc}
+    \begin{tabular}{l|cc|c}
+        \toprule
+        Method & HumanEval & HumanEval-Plus & MATH \\
+        \midrule
+        ChatDev~\cite{qian2024chatdev} & 83.33 & 84.04 & 62.07\\
+        MAS-GPT (Ours) & \textbf{91.18} & \textbf{87.23} & \textbf{77.59}\\
+        \bottomrule
+    \end{tabular}
+    \end{sc}
+    \end{small}
+    \caption{Comparisons with task-specific method, ChatDev~\cite{qian2024chatdev}, which is specifically designed for software development.}
+    \label{tab:chatdev}
+\end{table}
+
+\subsection{Descriptions of Datasets}
+
+We provide an overall descriptions of the training and testing datasets in Table~\ref{tab:description_of_benchmarks}.
+
+\begin{table}[t]
+    \centering
+    \begin{small}
+    \begin{tabular}{c|c|cm{4cm}c}
+        \toprule
+        Purpose & Dataset Name & Domain & Sub-Domains & Sample Number \\
+        \midrule
+        \multirow{7}{*}{Training} & MATH~\cite{hendrycksmath2021} & Math & Counting \& Probability \newline Geometry \newline Algebra \newline Number Theory \newline Precalculus \newline Prealgebra \newline Intermediate Algebra & 6000\\
+        & GSM8K~\cite{cobbe2021gsm8k} & Math & - & 1000\\
+        & GSM-Hard~\cite{gsm-hard} & Math & - & 319\\
+        & AQUA-RAT~\cite{aqua-rat} & Reasoning & - & 1000\\
+        & MBPP~\cite{mbpp} & Code & - & 374\\
+        & SciQ~\cite{sciq} & General QA & - & 2000\\
+        & MMLU~\cite{mmlu} & General QA & Humanities\newline Social Science\newline STEM\newline Others & 1529\\
+        \midrule
+        \multirow{9}{*}{Testing} & MATH~\cite{hendrycksmath2021} & Math & Counting \& Probability\newline
+        Geometry\newline
+        Algebra\newline
+        Number Theory\newline Precalculus\newline Prealgebra\newline
+        Intermediate Algebra & 500\\
+        & GSM8K~\cite{cobbe2021gsm8k} & Math & - & 500\\
+        & GSM-Hard~\cite{gsm-hard} & Math & - & 500\\
+        & HumanEval~\cite{humaneval} & Code & - & 164\\
+        & HumanEval-Plus~\cite{evalplus} & Code & - & 164\\
+        & GPQA~\cite{rein2023gpqa} & Science & - & 448\\
+        & SciBench~\cite{wangscibench} & Science & - & 500\\
+        & MMLU~\cite{mmlu} & General QA & Humanities\newline Social Science\newline STEM\newline Others & 500\\
+        & AIME-2024 & Math & - & 30\\
+        \bottomrule
+    \end{tabular}
+    \end{small}
+    \caption{Descriptions of benchmarks}
+    \label{tab:description_of_benchmarks}
+\end{table}
+
+\begin{table}[h]
+\caption{The prompt for intra-consistency-oriented pair refinement. This prompt is fed to GPT-4o-2024-11-20 to adjust the MAS and generate a reasoning statement. The prompt is integrated with a user query and the selected MAS represented by Python code.}
+\label{tab:prompt_refinement}
+\begin{response}
+I will give you a question and a multi-agent system. The multi-agent system is described in the format of Python code, where each agent is represented by an agent-specific instruction and one call\_llm. Though the multi-agent system can answer the question, it may not be the best one. You task is return me two things: an improved multi-agent system and a paragraph.\\
+
+The improved multi-agent system should be more related to the question, while basically, try not to change the architecture compared to the original multi-agent system.\\
+- For example, if the multi-agent system is in a parallel structure (e.g., 5 parallel agents generate answer and 1 agent select the best answer), you may keep the structure unchanged while only changing each parallel agent's instruction.\\
+- If the multi-agent system is already suitable, you may only modify the instructions in the multi-agent system more relevant to the question while leaving the structure unchanged.\\
+- If you think additional agents are required (e.g., the question is difficult and complex), you may add some related expert agents to enhance the multi-agent system.\\
+
+The paragraph should first analyze the question itself, from the perspectives of domain and difficulty. Then, you should provide a reasoning process to bridge the question and the improved multi-agent system. The reasoning process should be in the views of that how one analyzes the question and objectively thinks about what multi-agent system is needed. Then, the reasoning process can finally and logically lead to the improved multi-agent system. Do not mention ``this multi-agent system", or ``the improved multi-agent system", rather, say ``a multi-agent system" instead. Do not mention the original multi-agent system or the original structure.\\
+
+Please follow the following format requirements:\\
+- The improved multi-agent system should be included between \texttt{<CODE>} and \texttt{</CODE>}\\
+- The paragraph should be included between \texttt{<PARAGRAPH>} and \texttt{</PARAGRAPH>}\\
+
+Please firstly generate the multi-agent system and then generate the paragraph. The paragraph should analyze about the question and the generated multi-agent sytem, such that when one sees the (question, paragraph, the improved multi-agent system) triplet (wihtout the original multi-agent system), one can understand the reasoning process behind the improved multi-agent system. Notice! The paragraph should never mention the original multi-agent system or the original structure.\\
+
+The question is:\\
+\textbf{\textcolor{blue}{\texttt{\{query\}}}}\\
+
+The multi-agent system is:\\
+\textbf{\textcolor{blue}{\texttt{\{MAS code\}}}}
+\end{response}
+\end{table}
+
+
+\begin{table}[h]
+\caption{The prompt for generating a reasoning process if the refined MAS fails. This prompt is fed to GPT-4o-2024-11-20 to generate a reasoning statement. The prompt is integrated with a user query and a selected MAS represented by Python code.}
+\label{tab:prompt_refinement_fail}
+\begin{response}
+I will give you a question and a multi-agent system. The multi-agent system is described in the format of Python code, where each agent is represented by an agent-specific instruction and one call\_llm. You task is return me a paragraph.\\
+
+The paragraph should first analyze the question itself, from the perspectives of domain and difficulty. Then, you should provide a reasoning process to bridge the question and the provided multi-agent system. The reasoning process should be in the angle of views that how one analyzes the question and objectively thinks about what multi-agent system is needed. Then, the reasoning process can finally and logically lead to the provided multi-agent system. Do not mention ``this multi-agent system", or ``the provided multi-agent system", rather, say ``a multi-agent system" instead.\\
+
+The paragraph should analyze about the question and the provided multi-agent sytem, such that when one sees the (question, paragraph, the provided multi-agent system) triplet, one can understand the reasoning process behind the provided multi-agent system.\\
+
+Remember, the paragraph should be included between <PARAGRAPH> and </PARAGRAPH>.\\
+
+The question is:\\
+\textbf{\textcolor{blue}{\texttt{\{query\}}}}\\
+
+The provided multi-agent system is:\\
+\textbf{\textcolor{blue}{\texttt{\{MAS code\}}}}
+\end{response}
+\end{table}
+
+\subsection{Evaluations}
+\label{app:eval}
+
+\begin{table}[h]
+\caption{Prompts for extract answer and answer evaluation.}
+\label{tab:get_answer_prompt}
+\begin{response}
+You are a helpful AI assistant tasked with extracting the final answer from a provided solution. \\
+
+**Input:** \\
+1. A problem statement, prefixed with "===Problem:  \texttt{<problem>}".\\
+2. A solution to the problem, prefixed with "===Solution:\texttt{<solution>}".\\
+
+**Problem and Solution:** \\
+===Problem: \textbf{\textcolor{blue}{\texttt{\{query\}}}}\\
+
+===Solution: \textbf{\textcolor{blue}{\texttt{\{response\}}}}\\
+
+**Instructions:** \\
+- Carefully analyze the solution and extract the final answer in reply: "The answer is \texttt{<answer extracted>} in reply".\\
+- If the solution does not contain a final answer (e.g., only reasoning, code without execution, or incomplete information), respond with: "The reply doesn't contain an answer."\\
+- Ensure that the extracted answer is exactly as presented in the solution. Do not infer or use external knowledge. Do not execute the code yourself.\\
+- Remember, Never execute the code yourself! Never doing any computation yourself! Just extract and output the existing answer!\\
+\end{response}
+\begin{response}
+You are a helpful AI assistant. You will use your coding and language skills to verify the answer.\\
+You are given:\\
+    1. A problem, which is going to start like "===Problem: \texttt{<problem>}".\\
+    2. A ground truth answer, which is going to start like "===Ground truth answer:".\\
+    3. A reply with the answer to the problem, which are going to start like "===Reply:".\\
+Please do the following:\\
+1. Extract the answer in reply: "The answer is \texttt{<answer extracted>} in reply".\\
+2. Check whether the answer in reply matches the ground truth answer. When comparison is not obvious (for example, 3*sqrt(6) and 7.348), you may compare by calculation, allowing a small margin of error.\\
+3. After everything is done, please give each reply a comment like the following options:\\
+    - "The answer is correct."\\
+    - "The answer is approximated but should be correct. Correct Answer: \texttt{<ground truth answer>} $|$ Answer extracted: \texttt{<answer extracted>}."\\
+    - "The answer is incorrect. Correct Answer: \texttt{<ground truth answer>} $|$ Answer extracted: \texttt{<answer extracted>}."\\
+    - "The reply doesn't contain an answer." \\
+Here are the problem, the ground truth answer and the reply:\\
+===Problem: \textbf{\textcolor{blue}{\texttt{\{query\}}}}\\
+
+===Ground truth answer: \textbf{\textcolor{blue}{\texttt{\{ground\_truth\_answer\}}}}\\
+
+===Reply: \textbf{\textcolor{blue}{\texttt{\{Reply\}}}}
+\end{response}
+\end{table}
+
+\begin{table}[h]
+    \caption{Prompts for extract code and functions.}
+    \label{tab:code_extract}
+    \begin{response}
+        You are given a **Problem** and a **Solution**. The **Problem** asks for a code function. Extract the final code function from the **Solution**. \\
+**Problem:**\\
+\textbf{\textcolor{blue}{\texttt{\{query\}}}}\\
+
+**Solution:**\\
+\textbf{\textcolor{blue}{\texttt{\{solution\}}}}\\
+
+Please follow the following rules:\\
+- Only output the code function that exists in the **Solution**, without any additional explanation or content.\\
+- Do not modify any part of the code function.\\
+- Remove parts like 'example use' or 'test cases'.\\
+- If the **Solution** does not contain a code function, respond with: "The reply doesn't contain a code function."
+    \end{response}
+\end{table}
+
+In this section, we detail our evaluation approach. For queries with ground truth answers, we employ LLMs to extract the MAS output and compare it with the ground truth. For code benchmarks like HumanEval and MBPP, we assess correctness using test cases.
+
+\textbf{LLM-based Evaluation with Ground-Truth Answer} We utilize LLMs to perform evaluation with ground-truth answer. However, direct evaluation against the ground truth is incompatible as the LLM annotates the response itself. To address this issue, we adopt a two-step evaluation process based on the prompts used in AutoGen~\cite{wu2023autogen}, first extract the answer, then evaluation. Here the responses generated by multi-agent systems (MAS) are often unstructured and irregular, making it difficult to extract the final answer to a query using rule-based methods. To avoid extraction errors that could impact the evaluation of MAS performance, we use LLMs to automate the answer extraction process. Specifically, we prompt the LLM to extract the answer from the MAS response based on predefined rules and then ask the LLM to compare it with the ground truth. The prompts used for this process are detailed in Table~\ref{tab:get_answer_prompt}.
+
+\textbf{Code Evaluation with Test Cases} We evaluate the MAS performance on coding tasks based on pass rate on test cases, with a two step approach: first, prompting the LLM to extract the code from the MAS response, and second, executing it in a coding environment to calculate the pass rate; see the prompts used for extract code and functions in Table~\ref{tab:code_extract}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}
+
+
+% This document was modified from the file originally made available by
+% Pat Langley and Andrea Danyluk for ICML-2K. This version was created
+% by Iain Murray in 2018, and modified by Alexandre Bouchard in
+% 2019 and 2021 and by Csaba Szepesvari, Gang Niu and Sivan Sabato in 2022.
+% Modified again in 2023 and 2024 by Sivan Sabato and Jonathan Scarlett.
+% Previous contributors include Dan Roy, Lise Getoor and Tobias
+% Scheffer, which was slightly modified from the 2010 version by
+% Thorsten Joachims & Johannes Fuernkranz, slightly modified from the
+% 2009 version by Kiri Wagstaff and Sam Roweis's 2008 version, which is
+% slightly modified from Prasad Tadepalli's 2007 version which is a
+% lightly changed version of the previous year's version by Andrew
+% Moore, which was in turn edited from those of Kristian Kersting and
+% Codrina Lauth. Alex Smola contributed to the algorithmic style files.

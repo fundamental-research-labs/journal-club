@@ -1,0 +1,779 @@
+
+%% Note: We're using this documentclass as a placeholder for now until we decide who we actually want to submit to.
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fullpage}
+\usepackage{xspace}
+\usepackage[dvipsnames, table]{xcolor}
+\usepackage[toc,page,header]{appendix}
+\usepackage{minitoc} % For ToC for appendix
+\usepackage[maxbibnames=99, natbib=true, style=nature]{biblatex}
+\addbibresource{ocean-paper.bib}
+% \usepackage[resetlabels,labeled]{multibib}
+% \bibliographystyle{naturemag}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage[export]{adjustbox}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[flushleft]{threeparttable} % for tablenotes
+\usepackage{booktabs}
+\usepackage{subfiles}
+\usepackage{footmisc}
+\usepackage{courier}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+\usepackage{subcaption}
+% \usepackage{draftwatermark}
+% \SetWatermarkText{DRAFT}
+% \SetWatermarkScale{5}
+% \SetWatermarkColor[rgb]{0.95, 0.95, 0.95}
+
+% \usepackage{eso-pic}% http://ctan.org/pkg/eso-pic
+% \AddToShipoutPictureBG{% Add picture to background of every page
+%   \AtPageLowerLeft{%
+%     \raisebox{3\baselineskip}{\makebox[\paperwidth]{\begin{minipage}{21cm}\centering
+%       Draft (do not distribute) OpenAI 
+%     \end{minipage}}}%
+%   }
+% }
+
+% (jie) keep footnotes from spanning pages
+% from https://tex.stackexchange.com/questions/32208/footnote-runs-onto-second-page
+\interfootnotelinepenalty=10000
+
+\newcommand{\obssize}{$\sim16,000$\xspace}
+
+\newcommand{\categorical}{\cellcolor{blue!25}}
+
+\newcommand\todo[1]{\textcolor{red}{TODO: #1}}
+% \newcommand\nicetohave[1]{\textcolor{blue}{#1}}
+\newcommand\nicetohave[1]{}
+
+\newcommand{\placeholder}[1]{\textcolor{red}{\emph{#1}}}
+%%% Make your own comment command with your own color, for easy commenting.
+\newcommand{\commentjon}[1]{\textcolor{BlueViolet}{[Jonathan: #1]}}
+\newcommand{\cleanexpname}{Rerun\xspace}
+\newcommand{\trueskillname}{TrueSkill\xspace}
+\newcommand{\pflopsday}{\textrm{PFlops/s}$\cdot$\textrm{days}\xspace}
+\newcommand{\totalcompute}{$770\pm50$ \pflopsday\xspace}
+\newcommand{\dota}{Dota 2\xspace}
+\newcommand{\openaifive}{OpenAI Five\xspace}
+\newcommand{\openaiarena}{OpenAI Five Arena\xspace}
+\newcommand{\openaifinals}{OpenAI Five Finals\xspace}
+\newcommand{\genericcaptionsentence}[1]{\trueskillname over the course of training (see \autoref{appendix:trueskill}) and speedup measured by the rate to attain different \trueskillname thresholds (computed using \autoref{eqn:speedup}) granted by #1\xspace}
+% TODO: figure out appendix citing using biblatex
+% \newcites{Appendix}{Appendix References}
+
+% Remove "Part I" at the top of the appendix ToC.
+\renewcommand \thepart{}
+\renewcommand \partname{}
+
+\title{\dota with Large Scale Deep Reinforcement Learning}
+\author{
+ \parbox{\linewidth}{
+ \centering
+ \textbf{OpenAI},
+\footnote{
+Authors listed alphabetically. Please cite as
+OpenAI et al., and use the following bibtex for citation: \url{https://openai.com/bibtex/openai2019dota.bib}
+}
+\\ 
+ Christopher~Berner, Greg~Brockman, Brooke~Chan, Vicki~Cheung, Przemys\l{}aw~``Psyho"~D\k{e}biak, Christy~Dennison, David~Farhi, Quirin~Fischer, Shariq~Hashme, Chris~Hesse, Rafal J\'{o}zefowicz, Scott~Gray, Catherine~Olsson, Jakub~Pachocki, Michael~Petrov, Henrique~Pond\'e de Oliveira Pinto, Jonathan~Raiman, Tim~Salimans, Jeremy~Schlatter, Jonas~Schneider, Szymon~Sidor, Ilya~Sutskever, Jie~Tang, Filip~Wolski, Susan~Zhang
+ }
+}
+\begin{document}
+
+% Further hacks for ToC for appendix. 
+% These sometimes add random blank pages, and seem to behave nondeterministically with regards to whether or not they are needed for the appendix toc to appear.
+\doparttoc % Tell to minitoc to generate a toc for the parts
+\faketableofcontents % Run a fake tableofcontents command for the partocs
+% \part{} % Start the document part
+
+\maketitle
+
+\begin{abstract}
+On April 13th, 2019, \openaifive became the first AI system to defeat the world champions at an esports game.
+The game of \dota presents novel challenges for AI systems such as long time horizons, imperfect information, and complex, continuous state-action spaces, all challenges which will become increasingly central to more capable AI systems.
+\openaifive leveraged existing reinforcement learning techniques, scaled to learn from batches of approximately 2 million frames every 2 seconds. 
+We developed a distributed training system and tools for continual training which allowed us to train \openaifive for 10 months.
+By defeating the \dota world champion (Team OG), \openaifive demonstrates that self-play reinforcement learning can achieve superhuman performance on a difficult task.
+\end{abstract}
+
+\section{Introduction}
+
+The long-term goal of artificial intelligence is to solve advanced real-world challenges. 
+Games have served as stepping stones along this path for decades, from Backgammon (1992) to Chess (1997) to Atari (2013)\cite{tesauro1994td, campbell2002deepblue, mnih2013playing}.
+In 2016, AlphaGo defeated the world champion at Go using deep reinforcement learning and Monte Carlo tree search\cite{silver2016mastering}. 
+In recent years, reinforcement learning (RL) models have tackled tasks as varied as robotic manipulation\cite{dactyl}, text summarization \cite{paulus2017deep}, and video games such as Starcraft\cite{alphastarblog} and Minecraft\cite{guss2019minerl}.
+
+Relative to previous AI milestones like Chess or Go, complex video games start to capture the complexity and continuous nature of the real world. 
+\dota is a multiplayer real-time strategy game produced by Valve Corporation in 2013, which averaged between 500,000 and 1,000,000 concurrent players between 2013 and 2019. 
+The game is actively played by full time professionals; the prize pool for the 2019 international championship exceeded \$35 million (the largest of any esports game in the world)\cite{wiki:dota2, wiki:ti2018}.
+The game presents challenges for reinforcement learning due to
+long time horizons, partial observability, and high dimensionality of observation and action spaces.
+\dota's rules are also complex --- the game has been actively developed for over a decade, with game logic implemented in hundreds of thousands of lines of code.
+
+The key ingredient in solving this complex environment was to scale existing reinforcement learning systems to unprecedented levels, utilizing thousands of GPUs over multiple months. 
+We built a distributed training system to do this which we used to train a \dota-playing agent called \openaifive. 
+% In August 2017, an early version of our system defeated the best human players in a simplified version of \dota with only a single player on each side \cite{openaidotablog}.
+In April 2019, \openaifive defeated the \dota world champions (Team OG\footnote{\url{https://www.facebook.com/OGDota2/}}), the first time an AI system has beaten an esport world champion\footnote{Full game replays and other supplemental can be downloaded from: \url{https://openai.com/blog/how-to-train-your-openai-five/}}. We also opened \openaifive to the \dota community for competitive play; \openaifive won 99.4\% of over 7000 games.
+
+One challenge we faced in training was that the environment and code continually changed as our project progressed. 
+In order to train without restarting from the beginning after each change, we developed a collection of tools to resume training with minimal loss in performance which we call {\it surgery}. 
+Over the 10-month training process, we performed approximately one surgery per two weeks. 
+These tools allowed us to make frequent improvements to our strongest agent within a shorter time than the typical practice of training from scratch would allow.
+As AI systems tackle larger and harder problems, further investigation of settings with ever-changing environments and iterative development will be critical.
+
+In \autoref{sec:dota}, we describe \dota in more detail along with the challenges it presents. In \autoref{sec:training-system} we discuss the technical components of the training system, leaving most of the details to appendices cited therein. 
+In \autoref{sec:results}, we summarize our long-running experiment and the path that lead to defeating the world champions. 
+We also describe lessons we've learned about reinforcement learning which may generalize to other complex tasks.
+
+\section{\dota}\label{sec:dota}
+
+\dota is played on a square map with two teams defending bases in opposite corners.
+Each team's base contains a structure called an ancient; the game ends when one of these ancients is destroyed by the opposing team.
+Teams have five players, each controlling a hero unit with unique abilities.
+% At the beginning of the game players choose what hero they would like to play.
+% Each team also owns a number of defensive buildings distributed across the map.
+% Three {\it lanes} connect those bases --- bottom, middle and top.
+During the game, both teams have a constant stream of small ``creep'' units, uncontrolled by the players, which walk towards the enemy base attacking any opponent units or buildings.
+Players gather resources such as gold from creeps, which they use to increase their hero's power by purchasing items and improving abilities.\footnote{Further information the rules and gameplay of \dota is readily accessible online; a good introductory resource is \url{https://purgegamers.true.io/g/dota-2-guide/}}
+% There are also neutral creeps distributed across the map which grant bounties to players who defeat them.
+
+To play \dota, an AI system must address various challenges:
+
+\begin{itemize}
+\item \textbf{Long time horizons.}
+\dota games run at 30 frames per second for approximately 45 minutes.
+\openaifive selects an action every fourth frame, yielding approximately 20,000 steps per episode. By comparison, chess usually lasts 80 moves, Go 150 moves\cite{Allis1994branching}. 
+%Longer games make it difficult for automated systems to learn which of the actions they took caused the reward they received.
+
+\item \textbf{Partially-observed state.}
+Each team in the game can only see the portion of the game state near their units and buildings; the rest of the map is hidden. 
+Strong play requires making inferences based on incomplete data, and modeling the opponent's behavior. 
+
+\item\textbf{High-dimensional action and observation spaces.}
+\dota is played on a large map containing ten heroes, dozens of buildings, dozens of non-player units, and a long tail of game features such as runes, trees, and wards. 
+\openaifive observes \obssize total values (mostly floats and categorical values with hundreds of possibilities) each time step. 
+We discretize the action space; on an average timestep our model chooses among 8,000 to 80,000 actions (depending on hero).
+%Each hero can take dozens of high-level actions, with continuous parameters such as locations. 
+%Our model observes the state of a \dota game via Valve’s Bot API as 20,000 (mostly floating-point) numbers, and we discretize the action space into approximately \todo{170,000} actions per hero (not all valid each frame). 
+For comparison Chess requires around one thousand values per observation (mostly 6-possibility categorical values) 
+% From alphazero table S1; it's not entirely clear how things are encoded, but I interpret it as:
+% - 8 timesteps history of 8 timesteps x 64 squares x (my piece type,opponent piece), for 8x8x8x2 values
+% - last 8 timesteps' repetition count (8 ints)
+% - latest position's value of color & all 4 castling legality & two move counts (5 bools, 2 ints)
+and Go around six thousand values (all binary)\cite{silver2018general}. 
+% From alphazero table S1; 19x19x2x8 + 1
+Chess has a branching factor of around 35 valid actions, and Go around 250\cite{Allis1994branching}.
+% CTF says their factortized action space has dim 540. (page 19)
+\end{itemize}
+
+Our system played \dota with two limitations from the regular game:
+\begin{itemize}
+    \item Subset of 17 heroes --- in the normal game players select before the game one from a pool of 117 heroes to play; we support 17 of them.\footnote{See \autoref{sec:multihero} for experiments characterizing the effect of hero pool size.}
+    % This only affects the pre-game ``drafting'' stage where players choose their heroes; once a game begins the heroes do not change in the middle.
+    \item No support for items which allow a player to temporarily control multiple units at the same time (Illusion Rune, Helm of the Dominator, Manta Style, and Necronomicon). We removed these to avoid the added technical complexity of enabling the agent to control multiple units.
+    %Moreover we fear (although did not prove) that controlling many units at once is an area where an AI system would have an advantage against a human player due to its ability to multitask perfectly, which is not indicative of deep thinking or long term strategy and thus somewhat ``unfair.''
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Training System}\label{sec:training-system}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Playing Dota using AI}
+
+Humans interact with the \dota game using a keyboard, mouse, and computer monitor. 
+They make decisions in real time, reason about long-term consequences of their actions, and more.
+We adopt the following framework to translate the vague problem of ``play this complex game at a superhuman level" into a detailed objective suitable for optimization.
+
+Although the \dota engine runs at 30 frames per second, \openaifive only acts on every 4th frame which we call a {\it timestep}.
+Each timestep, \openaifive receives an {\it observation} 
+% (\obssize mostly real numbers, integers representing categorical data)
+from the game engine encoding all the information a human player would see such as units' health, position, etc (see \autoref{appendix:observationspace} for an in-depth discussion of the observation).
+\openaifive then returns a discrete {\it action} to the game engine, encoding a desired movement, attack, etc. 
+
+Certain game mechanics were controlled by hand-scripted logic rather than the policy: the order in which heroes purchase items and abilities, control of the unique courier unit, and which items heroes keep in reserve. 
+While we believe the agent could ultimately perform better if these actions were not scripted, we achieved superhuman performance before doing so. 
+Full details of our action space and scripted actions are described in \autoref{appendix:actionspace}. 
+
+Some properties of the environment were randomized during training, including the heroes in the game and which items the heroes purchased. Sufficiently diverse training games are necessary to ensure robustness to the wide variety of strategies and situations that arise in games against human opponents. 
+See \autoref{sec:random} for details of the domain randomizations.
+
+\begin{figure}[ht]
+\includegraphics[width=\textwidth]{figures/smallarchdiagram.pdf}
+\caption{\textbf{Simplified \openaifive Model Architecture:} 
+The complex multi-array observation space is processed into a single vector, which is then passed through a 4096-unit LSTM.
+The LSTM state is projected to obtain the policy outputs (actions and value function). 
+Each of the five heroes on the team is controlled by a replica of this network with nearly identical inputs, each with its own hidden state.
+The networks take different actions due to a part of the observation processing's output indicating which of the five heroes is being controlled.
+The LSTM composes 84\% of the model's total parameter count.
+See \autoref{fig:observationlogic} and \autoref{fig:actionspace} in \autoref{appendix:network-architecture} for a detailed breakdown of our model architecture.}
+\label{fig:architecture}
+\end{figure}
+
+We define a {\it policy} ($\pi$) as a function from the history of observations to a probability distribution over actions, which we parameterize as a recurrent neural network with approximately 159 million parameters ($\theta$).
+The neural network consists primarily of a single-layer 4096-unit LSTM \cite{gers1999learning} (see \autoref{fig:architecture}).
+Given a policy, we play games by repeatedly passing the current observation as input and sampling an action from the output distribution at each timestep. 
+
+Separate replicas of the same policy function (with identical parameters $\theta$) are used to control each of the five heroes on the team.
+Because visible information and {\it fog of war} (area that is visible to players due to proximity of friendly units) are shared across a team in \dota, the observations are nearly\footnote{We do include a very small number of derived features which depend on the hero being controlled, for example the ``distance to me'' feature of each unit in the game.} identical for each hero.
+
+Instead of using the pixels on the screen, we approximate the information available to a human player in a set of data arrays (see \autoref{appendix:observationspace} for full details of the observations space). 
+This approximation is imperfect; there are small pieces of information which humans can gain access to which we have not encoded in the observations. 
+On the flip side, while we were careful to ensure that all the information available to the model is also available to a human, the model does get to see \emph{all} the information available simultaneously every time step, whereas a human needs to actively click to see various parts of the map and status modifiers. 
+\openaifive uses this semantic observation space for two reasons: First, because our goal is to study strategic planning and high-level decision-making rather than focus on visual processing. 
+Second, it is infeasible for us to render each frame to pixels in all training games; this would multiply the computation resources required for the project many-fold.
+Although these discrepancies exist, we do not believe they introduce significant bias when benchmarking against human players.
+To allow the five networks to choose different actions, the LSTM receives an extra input from the observation processing, indicating which of the five heroes is being controlled, detailed in \autoref{fig:observationlogic}.
+
+Because of the expansive nature of the problem and the size and expense of each experiment, it was not practical to investigate all the details of the policy and training system.
+Many details, even some large ones, were set for historical reasons or on the basis of preliminary investigations without full ablations.
+
+\subsection{Optimizing the Policy}
+Our goal is to find a policy which maximizes the probability of winning the game against professional human experts. 
+In practice, we maximize a {\it reward function} which includes additional signals such as characters dying, collecting resources, etc. 
+We also apply several techniques to exploit the zero-sum multiplayer structure of the problem when computing the reward function --- for example, we symmetrize rewards by subtracting the reward earned by the opposing team. 
+We discuss the details of the reward function in \autoref{appendix:rewards}.
+We constructed the reward function once at the start of the project based on team members' familiarity with the game. 
+Although we made minor tweaks when game versions changed, we found that our initial choice of what to reward worked fairly well. 
+The presence of these additional signals was important for successful training (as discussed in \autoref{appendix:rewards}).
+
+
+\begin{figure}
+\includegraphics[width=\textwidth]{figures/Training-Architecture.pdf}
+\caption{\textbf{System Overview}: Our training system consists of 4 primary types of machines. Rollouts run the \dota game on CPUs. They communicate in a tight loop with Forward Pass GPUs, which sample actions from the policy given the current observation. Rollouts send their data to Optimizer GPUs, which perform gradient updates. The Optimizers publish the parameter versions to storage in the Controller, and the Forward Pass GPUs occasionally pull the latest parameter version. Machine numbers are for the \cleanexpname experiment described in \autoref{sec:rerun}; \openaifive's numbers fluctuated between this scale and approximately 3x larger.}
+\label{fig:training-architecture}
+\end{figure}
+
+The policy is trained using Proximal Policy Optimization (PPO)\cite{schulman2017proximal}, a variant of advantage actor critic\cite{konda2000actor,mnih2016asynchronous}.\footnote{Early on in the project, we considered other algorithms including other policy gradient methods, q-learning, and evolutionary strategies. PPO was the first to show initial learning progress.}
+The optimization algorithm uses Generalized Advantage Estimation \cite{schulman2016gae} (GAE), a standard advantage-based variance reduction technique \cite{konda2000actor} to stabilize and accelerate training. 
+We train a network with a central, shared LSTM block, that feeds into separate fully connected layers producing policy and value function outputs.
+
+The training system is represented in \autoref{fig:training-architecture}. 
+We train our policy using collected self-play experience from playing \dota, similar to \cite{horgan2018apex}. 
+A central pool of {\it optimizer GPUs} receives game data and stores it asynchronously in local buffers called {\it experience buffers}. 
+Each optimizer GPU computes gradients using minibatches sampled randomly from its experience buffer. 
+Gradients are averaged across the pool using NCCL2\cite{nccl} allreduce before being synchronously applied to the parameters.
+In this way the effective batch size is the batch size on each GPU (120 samples, each with 16 timesteps) multiplied by the number of GPUs (up to 1536 at the peak), for a total batch size of 2,949,120 time steps (each with five hero policy replicas).
+
+We apply the Adam optimizer \cite{kingma2014adam} using truncated backpropagation through time\cite{Williams90anefficient} over samples of 16 timesteps.
+Gradients are additionally clipped per parameter to be within between $\pm 5 \sqrt{v}$ where $v$ is the running estimate of the second moment of the (unclipped) gradient.
+Every 32 gradient steps, the optimizers publish a new {\it version} of the parameters to a central Redis\footnote{\url{http://redis.io}} storage called the {\it controller}.
+The controller also stores all metadata about the state of the system, for stopping and restarting training runs.
+
+``Rollout'' worker machines run self-play games.
+They run these games at approximately 1/2 real time, because we found that we could run slightly more than twice as many games in parallel at this speed, increasing total throughput.
+We describe our integration with the \dota engine in \autoref{appendix:gym-ocean}.
+They play the latest policy against itself for 80\% of games, and play against older policies for 20\% of games (for details of opponent sampling, see \autoref{sec:selfplay}).
+The rollout machines run the game engine but not the policy; they communicate with a separate pool of GPU machines which run forward passes in larger batches of approximately 60. 
+These machines frequently poll the controller to gather the newest parameters.
+
+Rollout machines send data asynchronously from games that are in progress, instead of waiting for an entire game to finish before publishing data for optimization\footnote{Rollout machines produce 7.5 steps per second; they send data every 256 steps, or 34 seconds of game play. 
+Because our rollout games run at approximately half-speed, this means they push data approximately once per minute.}; see \autoref{fig:timescales} in \autoref{appendix:hyperparams} for more discussion of how rollout data is aggregated.
+See \autoref{subfig:staleness} for the benefits of keeping the rollout-optimization loop tight.
+Because we use GAE with $\lambda=0.95$, the GAE rewards need to be smoothed over a number of timesteps $\gg1/\lambda=20$; using 256 timesteps causes relatively little loss.
+
+The entire system runs on our %asynchronous optimization boondoggle
+custom distributed training platform called Rapid\cite{dactyl}, running on Google Cloud Platform.
+We use ops from the blocksparse library for fast GPU training\cite{gray2017blocksparse}.
+For a full list of the hyperparameters used in training, see \autoref{appendix:hyperparams}.
+
+\subsection{Continual Transfer via Surgery}\label{sec:surgery}
+As the project progressed, our code and environment gradually changed for three different reasons:
+\begin{enumerate}
+    \item\label{item:surgey-change:architecture} As we experimented and learned, we implemented changes to the training process (reward structure, observations, etc) or even to the architecture of the policy neural network.     
+    \item\label{item:surgey-change:new-stuff} Over time we expanded the set of game mechanics supported by the agent's action and observation spaces. These were not introduced gradually in an effort to build a perfect curriculum. Rather they were added incrementally as a consequence of following the standard engineering practice of building a system by starting simple and adding complexity piece by piece over time.    
+    \item\label{item:surgey-change:version} From time to time, Valve publishes a new \dota version including changes to the core game mechanics and the properties of heroes, items, maps, etc; to compare to human players our agent must play on the latest game version.
+\end{enumerate}
+These changes can modify the shapes and sizes of the model's layers, the semantic meaning of categorical observation values, etc.
+
+When these changes occur, most aspects of the old model are likely relevant in the new environment. 
+But cherry-picking parts of the parameter vector to carry over is challenging and limits reproducibility. For these reasons training from scratch is the safe and common response to such changes.
+
+However, training \openaifive was a multi-month process with high capital expenditure, motivating the need for methods that can persist models across domain and feature changes. 
+It would have been prohibitive (in time and money) to train a fresh model to a high level of skill after each such change (approximately every two weeks).
+% These allowed us to make changes and have a strong agent within a much shorter time than training from scratch would allow. 
+For example, we changed to \dota version 7.21d, eight days before our match against the world champions (OG); this would not have been possible if we had not continued from the previous agent. 
+
+Our approach, which we term ``surgery'', can be viewed as a collection of tools to perform offline operations to the old model $\pi_\theta$ to obtain a new model $\hat{\pi}_{\hat{\theta}}$ compatible with the new environment, which performs at the same level of skill even if the parameter vectors $\hat\theta$ and $\theta$ have different sizes and semantics. 
+We then begin training in the new environment using $\hat\pi_{\hat\theta}$.
+In the simplest case where the environment, observation, and action spaces did not change, our standard reduces to insisting that the new policy implements the same function from observed states to action probabilities as the old:
+\begin{equation}\label{eqn:surgery}
+    \forall o ~ \hat\pi_{\hat\theta}(o) = \pi_\theta(o)
+\end{equation}
+This case is a special case of {\it Net2Net}-style function preserving transformations \cite{chen15net2net}. 
+% When modifying the environment, observation, or action space, it is not possible to implement \autoref{eqn:surgery} exactly. 
+We have developed tools to implement \autoref{eqn:surgery} exactly when possible (adding observations, expanding layers, and other situations), and approximately when the type of modification to the environment, observation space, or action space precludes satisfying it exactly. 
+See \autoref{appendix:surgery} for further discussion of surgery.
+
+In the end, we performed over twenty surgeries (along with many unsuccessful surgery attempts) over the ten-month lifetime of \openaifive (see \autoref{table:list-surgeries} in \autoref{appendix:surgery} for a full list). Surgery enabled continuous training without loss in performance (see \autoref{fig:rerun-graphs}). In \autoref{sec:rerun} we discuss our experimental verification of this method.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Experiments and Evaluation}\label{sec:results}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\openaifive is a single training run that ran from June 30th, 2018 to April 22nd, 2019. 
+After ten months of training using \totalcompute of compute, it defeated the \dota world champions in a best-of-three match and 99.4\% of human players during a multi-day online showcase.
+
+In order to utilize this level of compute effectively we had to scale up along three axes. 
+First, we used batch sizes of 1 to 3 million timesteps (grouped in unrolled LSTM windows of length 16). 
+Second, we used a model with over 150 million parameters. 
+Finally, OpenAI Five trained for 180 days (spread over 10 months of real time due to restarts and reverts).
+Compared AlphaGo\cite{silver2016mastering}, we use 50 to 150 times larger batch size, 20 times larger model, and 25 times longer training time. 
+Simultaneous works in recent months\cite{alphastarblog, unpublishedrobotics} have matched or slightly exceeded our scale.
+
+% For comparison, typical reinforcement learning experiments use batch sizes\footnote{We compare total number of time steps in the batch; for RNNs or other networks which perform backpropagation on multiple timesteps, this is given by the number of samples times the RNN unroll length.} of hundreds\cite{espeholt2018impala} to tens of thousands \cite{silver2017mastering} of time steps,
+% model sizes ranging from one million\cite{espeholt2018impala} to seventy million\cite{alphastarblog}, 
+% and train for hours\cite{espeholt2018impala, cobbe2018coinrun} to weeks\cite{alphastarblog}.
+% \todo{Depending on which is really an outlier compared to literature, emphasize that one with more words.}
+
+\subsection{Human Evaluation}
+% Evaluations against human opponents were the only way to validate \openaifive's skill in comparison to human skill level.
+% Since \openaifive is trained entirely from self-play data, there is no injection of the strategies, playstyles, or choices --- known as the meta --- that humans commonly adhere to at all levels of play. 
+% \openaifive developed its own preferences and styles throughout training entirely independent from the human players' community.
+
+Over the course of training, \openaifive played games against numerous amateur players, professional players, and professional teams in order to gauge progress. 
+For a complete list of the professional teams \openaifive played against over time, see \autoref{appendix:humans}.
+
+On April 13th, \openaifive played a high-profile game against OG, the reigning \dota world champions, winning a best-of-three (2-0) and demonstrating that our system can learn to play at the highest levels of skill.
+For detailed analysis of our agent's performance during this game and its overall understanding of the environment, see \autoref{sec:results:understanding}.
+
+Machine Learning systems often behave poorly when confronted with unexpected situations\cite{Dalvi:2004:AC:1014052.1014066}.
+%, \nicetohave{citations-distribution-shift, etc}. 
+While winning a single high-stakes showmatch against the world champion indicates a very high level of skill, it does not prove a broad understanding of the variety of challenges the human community can present. 
+To explore whether \openaifive could be consistently exploited by creative or out-of-distribution play, we ran {\it \openaiarena}, in which we opened \openaifive to the public for competitive online games from April 18-21, 2019. 
+In total, Five played 3,193 teams in 7,257 total games, winning 99.4\%
+\footnote{Human players often abandoned losing games rather than playing them to the end, even abandoning games right after an unfavorable hero selection draft before the main game begins. 
+\openaifive does not abandon games, so we count abandoned games as wins for \openaifive. These abandoned games (3140 of the 7215 wins) likely includes a small number of games that were abandoned for technical or personal reasons.}.
+Twenty-nine teams managed to defeat \openaifive for a total of $42$ games lost.
+
+In \dota, the key measure of human dexterity is \emph{reaction time}\footnote{Contrast with RTS games like Starcraft, where the key measure is actions per minute due to the large number of units that need to be supplied with actions.}.
+\openaifive can react to a game event in 217ms on average. 
+This quantity does not vary depending on game state.
+It is difficult to find reliable data on \dota professionals' reaction times, but typical human visual reaction time is approximately 250ms\cite{jain2015reaction}.
+See \autoref{appendix:reaction-time} for more details.
+
+While human evaluation is the ultimate goal, we also need to evaluate our agents continually during training in an automated way. 
+We achieve this by comparing them to a pool of fixed reference agents with known skill using the \trueskillname rating system \cite{herbrich2007trueskill}.
+In our \trueskillname environment, a rating of 0 corresponds to a random agent, and a difference of approximately 8.3 \trueskillname between two agents roughly corresponds to an 80\% winrate of one versus the other (see \autoref{appendix:trueskill} for details of our \trueskillname setup). \openaifive's \trueskillname rating over time can be seen in \autoref{fig:final-ts}.
+
+\begin{figure}
+    \centering
+    % \begin{subfigure}[t]{0.4\textwidth}
+        % \vskip 0pt
+        \includegraphics[height=0.5\textwidth]{figures/og_trueskill_human.pdf}
+    % \end{subfigure}
+    % \begin{subfigure}[t]{0.4\textwidth}
+    %     \vskip 0pt
+    %     \includegraphics[width=\textwidth]{figures/og_trueskill_surgery_detail.pdf}
+    % \end{subfigure}
+    \caption{ \trueskillname over the course of training for \openaifive. To provide informal context for how \trueskillname corresponds to human skill, we mark the level at which OpenAI Five begins to defeat various opponents, from random to world champions.
+    Note that this is biased against earlier models; this \trueskillname evaluation is performed using the final policy and environment (\dota version 7.21d, all non-illusion items, etc), even though earlier models were trained in the earlier environment.
+    We believe this contributes to the inflection point around 600 PFLOPs/s-days --- around that point we gave the policy control of a new action (buyback) and performed a major \dota version upgrade (7.20).
+    We speculate that the rapid increase to \trueskillname 200 early in training is due to the exponential nature of the scale --- a constant \trueskillname difference of approximately 8.3 corresponds to an 80\% winrate, and it is easier to learn how to consistently defeat bad agents.
+    % Major human evaluation games are marked on the left. 
+    % Model surgeries are marked on the right. Surgery allowed for continuous training without loss of performance.
+    }
+    \label{fig:final-ts}
+\end{figure}
+
+\openaifive's ``playstyle" is difficult to analyze rigorously (and is likely influenced by our shaped reward function) but we can discuss in broad terms the flavor of comments human players made to describe how our agent approached the game.
+Over the course of training, \openaifive developed a distinct style of play with noticeable similarities and differences to human playstyles.
+Early in training, \openaifive prioritized large group fights in the game as opposed to accumulating resources for later, which led to games where they were significantly behind if the enemy team avoided fights early.
+% Early on, these behaviors were often suggested as the reason behind a loss against skilled human players. 
+% OpenAI Five strictly drafted ranged heroes that had high damage potential but low survivability, which made them very capable in early fights but at a disadvantage if the game extended into the later stages. 
+% Typically in Dota games there are roles across a team that have higher resource priority (damage dealers) and lower resource priority (supports), but gold and experience were consistently distributed evenly across all the heroes. 
+% During the early and mid game, the agents would prioritize initiating fights with the enemy team as opposed to accruing those resources which led to games where they were significantly behind if the enemy team evaded them. 
+% The agents would group up and force the next phase of the game early - 5 to 10 minutes earlier than in normal games - and push down a single lane, a strategy utilized in human play known as "deathball". 
+This playstyle was risky and would result in quick wins in under 20 minutes if \openaifive got an early advantage, but had no way to recover from falling behind, leading to long and drawn out losses often over 45 minutes.
+
+As the agents improved, the playstyle evolved to align closer with human play while still maintaining many of the characteristics learned early on. 
+\openaifive began to concentrate resources in the hands of its strongest heroes, which is common in human play. Five relied heavily on large group battles, effectively applying pressure when holding a significant advantage, but also avoided fights and focused on gathering resources if behind.
+
+The final agent played similar to humans in many broad areas, but had a few interesting differences.
+% Drafting leaned heavily towards the strongest heroes for team fighting, but included a wide variety fairly similar to a human draft. 
+Human players tend to assign heroes to different areas of the map and only reassign occasionally, but \openaifive moved heroes back and forth across the map much more frequently.
+    Human players are often cautious when their hero has low health; \openaifive seemed to have a very finely-tuned understanding of when an aggressive attack with a low-health hero was worth a risk.
+Finally \openaifive tended to more readily consume resources, as well as abilities with long {\it cooldowns} (time it takes to reload), while humans tend to hold on to those in case a better opportunity arises later. 
+% Due to their capability in control and execution within the game, both OpenAI Five’s drafting strategy and playstyle were built around team fighting. 
+% As opposed to taking a small advantage and incrementally building their lead through farming neutral camps and creeps which is common in human play, the agents would engage in teamfights which gambled their lead but had the potential to negatively impact the enemy team and therefore quickly give a much larger advantage. 
+% Since they didn’t need to rely on communication and their coordination was inherent, this enabled them to make risky decisions immediately and effectively, resulting in a high pressure and fast paced game.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Validating Surgery with \cleanexpname}\label{sec:rerun}
+In order to validate the time and resources saved by our surgery method (see \autoref{sec:surgery}), we trained a second agent between May 18, 2019 and June 12, 2019, using only the final environment, model architecture, etc. 
+This training run, called ``\cleanexpname'', did not go through a tortuous route of changing game rules, modifications to the neural network parameters, online experiments with hyperparameters, etc.
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{figures/rerun-vs-five-trueskill.pdf}
+    \caption{\textbf{Training in an environment under development:}
+    In the top panel we see the full history of our project - we used surgery methods to continue training \openaifive at each environment or policy change without loss in performance; then we restarted once at the end to run \cleanexpname.
+    On the bottom we see the hypothetical alternative, if we had restarted after each change and waited for the model to reach the same level of
+    skill (assuming pessimistically that the curve would be identical to \openaifive).
+    The ideal option would be to run \cleanexpname-like training from the very start, but this is impossible --- the \openaifive curve represents lessons learned that led to the final codebase, environment, etc., without which it would not be possible to train \cleanexpname.
+    }
+    \label{fig:rerun-graphs}
+\end{figure}
+
+\cleanexpname took 2 months and $150\pm5$ \pflopsday\ of compute (see \autoref{fig:rerun-graphs}).
+This timeframe is significantly longer than the frequency of our surgery changes (which happened every 1-2 weeks). 
+As a naive comparison, if we had trained from scratch after each of our twenty major surgeries, the project would have taken 40 months instead of 10 (in practice we likely would have made fewer changes).
+Another benefit of surgery was that we had a very high-skill agent available for evaluation at all times, significantly tightening the iteration loop for experimental changes.
+In \openaifive's regime --- exploring a novel task and building a novel environment --- perpetual training is a significant benefit.
+
+Of course, in situations where the environment is pre-built and well-understood from the start, we see little need for surgery. 
+\cleanexpname took approximately 20\% of the resources of \openaifive; if we had access to the final training environment ahead of time there would be no reason to start training e.g. on a different version of the game.
+
+\cleanexpname continued to improve beyond \openaifive's skill, and reached over 98\% winrate against the final version of \openaifive.
+We wanted to validate that our final code and hyperparameters would reproduce \openaifive performance, so we ceased training at that point. We believe \cleanexpname would have continued improving, both because of its upward trend and because we had yet to fully anneal hyperparameters like learning rate and horizon to their final \openaifive settings.
+
+This process of surgery successfully allowed us to change the environment every week. 
+However, the model ultimately plateaued at a weaker skill level than the from-scratch model was able to achieve. 
+% One hypothesis we have is that, as we increased the size of LSTM kernel in the low learning rate regime, new parameters might've never contributed as much as they could've, had this size been the same from the start.
+%This ceiling may have been caused by one or two errors in the numerous surgeries we applied, some effect of our on-the-fly hyperparameter experimentation, or something else. 
+Learning how to continue long-running training without affecting final performance is a promising area for future work.
+
+Ultimately, while surgery as currently conceived is far from perfect, with proper tooling it becomes a useful method for incorporating certain changes into long-running experiments without paying the cost of a restart for each.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Batch Size}
+% One challenge when scaling up large systems is determining how to allocate compute resources. Broadly speaking, for a fixed algorithm, there are three choices for how to do this: use more data, train larger models, and train for longer (assuming the model has not converged). We pushed on all three of these axes in a heuristic way over the course of training \openaifive (see \autoref{table:scale-comparison}), providing a useful guide for what this level of scale can achieve.
+In this section, we evaluate the benefits of increasing the batch size using small scale experiments.
+Increasing the batch size in our case means two things: first, using twice as many optimizer GPUs to optimize over the larger batch, and second, using twice as many rollout machines and forward pass GPUs to produce twice as many samples to feed the increased optimizer pool.
+
+One compelling benchmark to compare against when increasing the batch size
+%or model capacity
+is {\it linear} speedup: using 2x as much compute gets to the same skill level in 1/2 the time. 
+If this scaling property holds, it is possible to use the same {\it total} amount of GPU-days (and thus dollars) to reach a given result\cite{mccandlish2018empirical}.
+% TODO, talk about how diminishing returns means choosing tradeoff
+In practice we see less than this ideal speedup, but the speedup from increasing batch size is still noticeable and allows us to reach the result in less wall time.
+
+To understand how batch size affects training speed, we calculate the ``speedup'' of an experiment to reach various \trueskillname thresholds, defined as:
+\begin{equation}\label{eqn:speedup}
+    \textrm{speedup}(T) = \frac
+    {\textrm{Versions for baseline to first reach \trueskillname $T$}}
+    {\textrm{Versions for experiment to first reach \trueskillname $T$}}
+\end{equation}
+
+The results of varying batch size %and model capacity 
+in the early part of training can be seen in \autoref{fig:lotsa-results}.
+Full details of the experimental setup can be found in \autoref{appendix:substudies}. 
+We find that increasing the batch size speeds up training through the regime we tested, up to batches of millions of observations.
+% Increasing the model capacity (\autoref{subfig:model-capacity}) also speeds up training slightly, at least up to 50 million parameters.
+
+Using the scale of \cleanexpname, we were able to reach superhuman performance in two months. 
+In \autoref{subfig:batch-size}, we see that \cleanexpname's batch size (983k time steps) had a speedup factor of around 2.5x over the baseline batch size (123k). If we had instead used the smaller batch size, then, we might expect to wait 5 months for the same result. 
+We speculate that it would likely be longer, as the speedup factor of 2.5 applies at \trueskillname 175 early in training, but it appears to increase with higher \trueskillname. 
+
+Per results in \cite{mccandlish2018empirical}, we hoped to find (in the early part of training) linear
+speedup from increasing batch size; i.e. that it would be 2x faster to train an agent to certain thresholds if we use 2x the compute and data.
+Our results suggest that speedup is less than linear.
+However, we speculate that this may change later in training when the problem becomes more difficult. %(typically noise scale and critical batch size, above which speedup goes from linear to negligible, increase with training).
+Also, given the relevant compute costs, in this ablation study we did not tune hyperparameters such as learning rate separately for each batch size.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Data Quality}
+% \begin{figure}
+%     \centering
+%     %%% Batch Size
+%     \begin{subfigure}[t]{0.7\textwidth}
+%         \includegraphics[width=0.48\textwidth]{figures/scale_trueskill.pdf}
+%         \hfill
+%         \includegraphics[width=0.48\textwidth]{figures/scale_speedup.pdf}
+%     \end{subfigure}
+%     \hspace{0.01\linewidth}
+%     \parbox[b][1.3\height][t]{.24\linewidth}{
+%     \subcaption{\label{subfig:batch-size}
+%     \textbf{Batch size:} Larger batch size speeds up training.
+%     In the early part of training studied here, the speedup is sublinear in the computation and samples required.
+%     % The dotted line indicates perfect linear scaling (using 2x more data gives 2x speedup). 
+%     %Later training (\trueskillname 175) benefits more from increased scale than earlier training (\trueskillname 100). 
+%     %Note that \trueskillname 175 is still quite early in the overall training of \openaifive. 
+%     See \autoref{sec:methods:batchsize} for experiment details.
+%     }}
+%     % \hfill
+%     % \begin{subfigure}[t]{0.48\textwidth}
+%     %     \includegraphics[width=0.48\textwidth]{figures/capacity_trueskill.pdf}
+%     %     \hfill
+%     %     \includegraphics[width=0.48\textwidth]{figures/capacity_speedup.pdf}
+%     %     \caption{\textbf{Model capacity:} 
+%     %     Increasing model size results in slightly faster training, although very sublinear in the computation required. 
+%     %     See \autoref{sec:methods:capacity} for details.}
+%     %     \label{subfig:model-capacity}
+%     % \end{subfigure}
+%     \begin{subfigure}[t]{0.7\textwidth}
+%         \includegraphics[width=0.48\textwidth]{figures/staleness_trueskill.pdf}
+%         \hfill
+%         \includegraphics[width=0.48\textwidth]{figures/staleness_speedup.pdf}
+%     \end{subfigure}
+%     \hspace{0.01\linewidth}
+%     \parbox[b][1.3\height][t]{.24\linewidth}{
+%     \subcaption{\label{subfig:staleness}
+%     \textbf{Data Staleness:} Training on stale rollout data causes significant losses in training speed.
+%     Queue length estimates the amount of artificial staleness introduced; see \autoref{sec:methods:staleness} for experiment details.
+%     }}
+%     % \hfill
+%     \begin{subfigure}[t]{0.7\textwidth}
+%         \includegraphics[width=0.48\textwidth]{figures/sample_reuse_trueskill.pdf}
+%         \hfill
+%         \includegraphics[width=0.48\textwidth]{figures/sample_reuse_speedup.pdf}
+%     \end{subfigure}
+%     \hspace{0.01\linewidth}
+%     \parbox[b][1.85\height][t]{.24\linewidth}{
+%     \subcaption{\label{subfig:sample-reuse}
+%     \textbf{Sample Reuse:} Reusing each sample of training data causes significant slowdowns. See \autoref{sec:methods:samplereuse} for experiment details.
+%     }}    
+%     \caption{\textbf{Batch Size and data quality in early training:} For each parameter, we ran multiple training runs varying only that parameter. These runs cover early training (approximately one week) at small scale (8x smaller than \cleanexpname). On the left we plot \trueskillname over time for each run. 
+%     On the right, we plot the ``speedup'' to reach fixed \trueskillname thresholds of 100, 125, 150, and 175 as a function of the parameter under study compared to the baseline (marked with `b'); see \autoref{eqn:speedup}. 
+%     Higher speedup means that training was faster and more efficient. 
+%     These four thresholds are chosen arbitrarily; a few are omitted when the uncertainties are too large (for example in \autoref{subfig:sample-reuse} fewer than half the experiments reach 175, so that speedup curve would not be informative).
+%     }
+%     \label{fig:lotsa-results}
+% \end{figure}
+
+\begin{figure}
+    \centering
+    %%% Batch Size
+    \begin{subfigure}[t]{0.31\linewidth}
+        \includegraphics[height=\textwidth]{figures/scale_trueskill.pdf}
+        \includegraphics[height=\textwidth]{figures/scale_speedup.pdf}
+        \caption{\label{subfig:batch-size}
+        \textbf{Batch size:} Larger batch size speeds up training.
+        In the early part of training studied here, the speedup is sublinear in the computation and samples required.
+        % The dotted line indicates perfect linear scaling (using 2x more data gives 2x speedup). 
+        %Later training (\trueskillname 175) benefits more from increased scale than earlier training (\trueskillname 100). 
+        %Note that \trueskillname 175 is still quite early in the overall training of \openaifive. 
+        See \autoref{sec:methods:batchsize} for experiment details.
+        }
+    \end{subfigure}
+    \hspace{0.01\linewidth}
+    \begin{subfigure}[t]{0.31\linewidth}
+        \includegraphics[height=\textwidth]{figures/staleness_trueskill.pdf}
+        \includegraphics[height=\textwidth]{figures/staleness_speedup.pdf}
+        \caption{\label{subfig:staleness}
+        \textbf{Data Staleness:} Training on stale rollout data causes significant losses in training speed.
+        Queue length estimates the amount of artificial staleness introduced; see \autoref{sec:methods:staleness} for experiment details.
+        }
+    \end{subfigure}
+    \hspace{0.01\linewidth}
+    \begin{subfigure}[t]{0.31\linewidth}
+        \includegraphics[height=\textwidth]{figures/sample_reuse_trueskill.pdf}
+        \includegraphics[height=\textwidth]{figures/sample_reuse_speedup.pdf}
+        \caption{
+        \label{subfig:sample-reuse}
+        \textbf{Sample Reuse:} Reusing each sample of training data causes significant slowdowns. See \autoref{sec:methods:samplereuse} for experiment details.
+        }
+    \end{subfigure}
+    \caption{\textbf{Batch Size and data quality in early training:} For each parameter, we ran multiple training runs varying only that parameter. These runs cover early training (approximately one week) at small scale (8x smaller than \cleanexpname). On the left we plot \trueskillname over time for each run. 
+    On the right, we plot the ``speedup'' to reach fixed \trueskillname thresholds of 100, 125, 150, and 175 as a function of the parameter under study compared to the baseline (marked with `b'); see \autoref{eqn:speedup}. 
+    Higher speedup means that training was faster and more efficient. 
+    These four thresholds are chosen arbitrarily; a few are omitted when the uncertainties are too large (for example in \autoref{subfig:sample-reuse} fewer than half the experiments reach 175, so that speedup curve would not be informative).
+    }
+    \label{fig:lotsa-results}
+\end{figure}
+
+One unusual feature of our task is the length of the games; each rollout can take up to two hours to complete.
+For this reason it is infeasible for us to optimize entirely on fully {\it on-policy} trajectories; 
+if we waited to apply gradient updates for an entire rollout game to be played using the latest parameters, we could make only one update every two hours.
+Instead, our rollout workers and optimizers operate asynchronously: rollout workers download the latest parameters, play a small portion of the game, and upload data to the experience buffer, while optimizers continually sample from whatever data is present in the experience buffer to optimize (\autoref{fig:training-architecture}).
+
+Early on in the project, we had rollout workers collect full episodes before sending it to the optimizers and downloading new parameters. 
+This means that once the data finally enters the optimizers, it can be several hours old, corresponding to thousands of gradient steps. 
+Gradients computed from these old parameters were often useless or destructive.
+In the final system rollout workers send data to optimizers after only 256 timesteps, but even so this can be a problem. 
+
+We found it useful to define a metric for this called {\it staleness}. If a sample was generated by parameter version $N$ and we are now optimizing version $M$, then we define the {\it staleness} of that data to be $M-N$. 
+In \autoref{subfig:staleness}, we see that increasing staleness by $\sim8$ versions causes significant slowdowns. 
+Note that this level of staleness corresponds to a few minutes in a multi-month experiment.
+Our final system design targeted a staleness between 0 and 1 by sending game data every 30 seconds of gameplay and updating to fresh parameters approximately once a minute, making the loop faster than the time it takes the optimizers to process a single batch (32 PPO gradient steps).
+Because of the high impact of staleness, in future work it may be worth investigating whether optimization methods more robust to off-policy data could provide significant improvement in our asynchronous data collection regime.
+
+Because optimizers sample from an experience buffer, the same piece of data can be re-used many times. 
+If data is reused too often, it can lead to overfitting on the reused data\cite{horgan2018apex}.
+To diagnose this, we defined a metric called the {\it sample reuse} of the experiment as the instantaneous ratio between the rate of optimizers consuming data and rollouts producing data. 
+If optimizers are consuming samples twice as fast as rollouts are producing them, then on average each sample is being used twice and we say that the sample reuse is 2.
+In \autoref{subfig:sample-reuse}, we see that reusing the same data even 2-3 times can cause a factor of two slowdown, and reusing it 8 times may prevent the learning of a competent policy altogether.
+Our final system targets sample reuse $\sim1$ in all our experiments.
+
+These experiments on the early part of training indicate that high quality data matters even more than compute consumed; small degradations in data quality have severe effects on learning.
+Full details of the experiment setup can be found in \autoref{appendix:substudies}. 
+
+\subsection{Long term credit assignment}
+\begin{figure}
+    \centering
+    % To regenerate these plots run "python3 paper/plots/horizon.py ~/Desktop/horizon_plots"
+    \begin{subfigure}[t]{0.5\linewidth}
+        \centering  
+        \includegraphics[width=0.9\textwidth]{figures/horizon_resume.pdf}
+    \end{subfigure}
+    \caption{\textbf{Effect of horizon on agent performance.} We resume training from a trained agent using different horizons (we expect long-horizon planning to be present in highly-skilled agents, but not from-scratch agents). The base agent was trained with a horizon of 180 seconds ($\gamma=0.9993$), and we include as a baseline continued training at horizon 180s. Increasing horizon increases win rate over the trained agent at the point training was resumed, with diminishing returns at high horizons.}
+    \label{fig:horizon}
+\end{figure}
+\dota has extremely long time dependencies. Where many reinforcement learning environment episodes last hundreds of steps (\cite{silver2016mastering, cobbe2018coinrun, jaderberg2018human, moravvcik2017deepstack}), games of \dota can last for tens of thousands of time steps. 
+Agents must execute plans that play out over many minutes, corresponding to thousands of timesteps.
+This makes our experiment a unique platform to test the ability of these algorithms to understand long-term credit assignment.
+
+In \autoref{fig:horizon}, we study the time horizon over which our agent discounts rewards, defined as 
+\begin{equation}\label{eqn:horizon}
+    H = \frac{T}{1-\gamma}
+\end{equation}
+Here $\gamma$ is the discount factor \cite{schulman2016gae} and $T$ is the real game time corresponding to each step (0.133 seconds).
+This measures the game time over which future rewards are integrated, and we use it as a proxy for the long-term credit assignment which the agent can perform. 
+
+In \autoref{fig:horizon}, we see that resuming training a skilled agent using a longer horizon makes it perform better, up to the longest horizons we explored (6-12 minutes). 
+This implies that our optimization was capable of accurately assigning credit over long time scales, and capable of learning policies and actions which maximize rewards 6-12 minutes into the future.
+As the environments we attempt to solve grow in complexity, long-term planning and thinking will become more and more important for intelligent behavior. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Related Work}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\nicetohave{discuss other families of algorithms, early q-learning attempts}
+The \openaifive system builds upon several bodies of work combining deep reinforcement learning, large-scale optimization of deep learning models, and using self-play to explore environments and strategies.
+
+Competitive games have long served as a testbed for learning. Early systems mastered Backgammon~\cite{tesauro1994td}, Checkers~\cite{SCHAEFFER1992273checkers}, and Chess~\cite{campbell2002deepblue}.
+Self-play was shown to be a powerful algorithm for learning skills within high-dimensional continuous environments~\cite{bansal2017emergent} and a method for automatically generating curricula~\cite{sukhbaatar2017intrinsic}. 
+Our use of self-play is similar in spirit to fictitious play~\cite{brown:fp1951}, which has been successfully applied to poker~\cite{DBLP:journals/corr/HeinrichS16} - in this work we learn a distribution over opponents and use the latest policy rather than an average policy.
+
+Using a combination of imitation learning human games and self-play, Silver et al. demonstrated a master-level Go player~\cite{silver2016mastering}. 
+Building upon this work, AlphaGoZero, AlphaZero, and ExIt discard imitation learning in favor of using Monte-Carlo Tree Search during training to obtain higher quality trajectories~\cite{silver2017mastering,anthony2017thinking,silver2018general} and apply this to Go, Chess, Shogi, and Hex. 
+Most recently, human-level play has been demonstrated in 3D first-person multi-player environments \cite{jaderberg2018human}, professional-level play in the real-time strategy game StarCraft~2 using AlphaStar~\cite{alphastarblog}, and superhuman performance in Poker \cite{brown2019superhuman}.
+
+AlphaStar is particularly relevant to this paper.
+In that effort, which ran concurrently to our own, researchers trained agents to play Starcraft 2, another complex game with real-time performance requirements, imperfect information, and long time horizons.
+The model for AlphaStar used a similar hand-designed architecture to embed observations and an autoregressive action decoder, with an LSTM core to handle partial observability. 
+Both systems used actor critic reinforcement learning methods as part of the overall objective.
+% We trained \openaifive using auxiliary rewards in addition to win reward, which played significant role in jumpstarting early learning of the agent; AlphaStar used human replays to initialize the agent.
+\openaifive has certain sub-systems hard-coded (such as item buying), whereas AlphaStar handled similar decisions (e.g. building order) by conditioning (during training) on statistics derived from human replays.
+\openaifive trained using self play, while AlphaStar used a league consisting of multiple agents, where agents were trained to beat certain subsets of other agents.
+%Finally, our value function observed only units visible to the team (and shared the bulk of the network with the policy); in comparison, 
+Finally, AlphaStar's value network observed full information about the game state (including observations hidden from the policy); this method improved their training and exploring its application to \dota is a promising direction for future work. 
+%Finally, our value function was implemented as a single head on top of the neural network shared with the policy; AlphaStar used a separate network for the value function which observed the entire game state.
+
+
+Deep reinforcement learning has been successfully applied to learning control policies from high dimensional input. 
+In 2013, Mnih et al.\cite{mnih2013playing} show that it is possible to combine a deep convolutional neural network with a Q-learning algorithm\cite{watkins1992q} and a novel experience replay approach to learn policies that can reach superhuman performance on the Atari ALE games. 
+Following this work, a variety of efforts have pushed performance on the remaining Atari games\cite{mnih2016asynchronous}, reduced the sample complexity, and introduced new challenges by focusing on intrinsic rewards \cite{kulkarni2016hierarchical,burda2018exploration,ecoffet2018montezuma}.
+
+As more computational resources have become available, a body of work has developed addressing the use of distributed systems in training.
+Larger batch sizes were found to accelerate training of image models\cite{Goyal2017Imagenet, You2017Imagenet, You2018minutenet}.
+Proximal Policy Optimization\cite{schulman2017proximal} and
+A3C \cite{mnih2016a3c} improve the ability to asynchronously collect rollout data. 
+Recent work has demonstrated the benefit of distributed learning on a wide array of problems including single-player video games\cite{espeholt2018impala} and robotics\cite{dactyl}.
+
+The motivation for our surgery method is similar to prior work on {\it Net2Net} style function preserving transformations \cite{chen15net2net} which attempt to add model capacity without compromising performance, whereas our surgery technique was used in cases where the inputs, outputs, and recurrent layer size changed.
+Past methods have grown neural networks by incrementally training and freezing parts of the network \cite{fahlman90cascade}, \cite{wang17growing}, \cite{DBLP:journals/corr/abs-1806-01780}.
+% Surgery is related to continual learning and transfer learning. 
+\citet{li18learningwithoutforgetting} and \citet{rusu16progressive} use similar methods to use a trained model to quickly learn novel tasks.
+Distillation \cite{hinton15distilling} and imitation learning \cite{ross11dagger, levine13gps} offer an alternate approach to surgery for making model changes in response to a shifting environment. In concurrent work, \citet{unpublishedrobotics} has reported success using behavioral cloning for similar purposes.
+
+\section{Conclusion}
+% Richard Sutton recently claimed that ``general methods that leverage computation are ultimately the most effective, and by a large margin'', \cite{sutton2019bitter} and this is exactly what we have found.
+When successfully scaled up, modern reinforcement learning techniques can achieve superhuman performance in competitive esports games.
+The key ingredients are to expand the scale of compute used, by increasing the batch size and total training time.
+In order to extend the training time of a single run to ten months, we developed surgery techniques for continuing training across changes to the model and environment.
+While we focused on \dota, we hypothesize these results will apply more generally and these methods can solve any zero-sum two-team continuous environment which can be simulated in parallel across hundreds of thousands of instances.
+In the future, environments and tasks will continue to grow in complexity. 
+Scaling will become even more important (for current methods) as the tasks become more challenging.
+
+\newpage
+% \todo{Very last minute: make sure floats (tables and figures) appear kinda sorta near their section.}
+\section*{Acknowledgements}
+Myriad individuals contributed to this work from within OpenAI, within the \dota community, and elsewhere. 
+We extend our utmost gratitude to everyone who helped us along the way! 
+We would like to especially recognize the following contributions:
+\begin{itemize}
+\item Technical discussions with numerous people within OpenAI including Bowen Baker, Paul Christiano, Danny Hernandez, Sam McCandlish, Alec Radford%, Ilya Sutskever
+\item Review of early drafts by Bowen Baker, Danny Hernandez, Jacob Hilton, Quoc Le, Luke Metz, Matthias Plappert, Alec Radford, Oriol Vinyals 
+\item Event Support from Larissa Schiavo, Diane Yoon, Loren Kwan%, Jonas Schneider
+\item Communication, writing, and outreach support from Ben Barry, Justin Wang, Shan Carter, Ashley Pilipiszyn, Jack Clark
+\item OpenAI infrastructure support from Eric Sigler %and Chris Berner 
+\item Google Cloud Support (Solomon Boulos, JS Riehl, Florent de Goriainoff, Somnath Roy, Winston Lee, Andrew Sallaway, Danny Hammo, Jignesh Naik)
+\item Microsoft Azure Support (Jack Kabat, Jason Vallery, Niel Mackenzie, David Kalmin, Dina Frandsen)
+\item \dota Support from Valve (special thanks to Chris Carollo)
+\item \dota guides and builds from Tortedelini (Michael Cohen) and buyback saving strategy from Adam Michalik
+\item \dota expertise and community advice from Blitz (William Lee)
+\item \dota Casters: Blitz (William Lee), Capitalist (Austin Walsh), Purge (Kevin Godec), ODPixel (Owen Davies), Sheever (Jorien van der Heijden), Kyle Freedman
+\item \dota World Champions (OG): ana (Anathan Pham), Topson (Topias Taavitsainen), Ceb (S\'{e}bastien Debs), JerAx (Jesse Vainikka), N0tail (Johan Sundstein)
+\item \dota Professional Teams: Team Secret, Team Lithium, Alliance, SG E-sports
+\item Benchmark Players: Moonmeander (David Tan), Merlini (Ben Wu), Capitalist (Austin Walsh), Fogged (Ioannis Loucas), Blitz (William Lee)
+\item Playtesting: 
+Alec Radford, Bowen Baker, Alex Botev, %Jonas Schneider, Chris Berner, 
+Pedja Marinkovic, 
+Devin McGarry, Ryan Perron, Garrett Fisher, Jordan Beeli, Aaron Wasnich,  David Park, Connor Mason, James Timothy Herron, Austin Hamilton, Kieran Wasylyshyn,
+Jakob Roedel, William Rice, Joel Olazagasti, 
+Samuel Anderson
+\item We thank the entire \dota community for their support and enthusiasm. We especially profusely thank all 39,356 \dota players from 225 countries who participated in \openaiarena and all the players who played against the 1v1 agent during the LAN event at The International 2017!
+\end{itemize}
+
+\section*{Author Contributions}
+This manuscript is the result of the work of the entire OpenAI Dota team. For each major area, we list the primary contributors in alphabetical order.
+\begin{itemize}
+    \item Greg~Brockman, Brooke~Chan, Przemys\l{}aw~``Psyho"~D\k{e}biak, Christy~Dennison, David~Farhi, Scott~Gray, Jakub~Pachocki, Michael~Petrov, Henrique~Pond\'e de Oliveira Pinto, Jonathan~Raiman, Szymon~Sidor, Jie~Tang, Filip~Wolski, and Susan~Zhang developed and trained OpenAI Five, including developing surgery, expanding tools for large-scale distributed RL, expanding the capabilities to the 5v5 game, and running benchmarks against humans including the OG match and OpenAI Arena.
+    \item Christopher~Berner, Greg~Brockman, Vicki~Cheung, Przemys\l{}aw~``Psyho"~D\k{e}biak, Quirin~Fischer, Shariq~Hashme, Chris~Hesse, Rafal J\'{o}zefowicz, Catherine~Olsson, Jakub~Pachocki, Tim~Salimans, Jeremy~Schlatter, Jonas~Schneider, Szymon~Sidor, Ilya~Sutskever, and Jie~Tang developed the 1v1 training system, including the Dota 2 gym interface, building the first Dota agent, and initial exploration of batch size scaling.
+    \item Brooke~Chan, David~Farhi, Michael~Petrov, Henrique~Pond\'e de Oliveira Pinto, Jonathan~Raiman, Jie~Tang, and Filip~Wolski wrote this manuscript, including running \cleanexpname and all of the ablation studies.
+    \item Jakub~Pachocki and Szymon~Sidor set research direction throughout the project, including developing the first version of Rapid to demonstrate initial benefits of large scale computing in RL.
+    % TODO(dfarhi): decide about cutting the next one.
+    \item Greg Brockman and Rafal J\'{o}zefowicz kickstarted the team. % from late 2016; Greg Brockman, Jakub Pachocki and Szymon Sidor led from August 2017; and David Farhi led from March 2019.
+\end{itemize}
+
+\newpage
+\printbibliography
+
+\appendix
+\newpage
+\part{Appendix} % Start the appendix part
+\parttoc % Insert the appendix TOC
+\newpage
+
+
+\subfile{section-compute}
+
+\subfile{section-surgery-details}
+
+\subfile{section-hyperparams}
+
+\subfile{section-understanding}
+
+\subfile{section-observation-space}
+\subfile{section-action-space}
+\subfile{section-rewards}
+
+\subfile{section-network-architecture}
+\newpage
+\subfile{section-human-evaluation}
+
+\subfile{section-trueskill}
+
+\subfile{section-gym-env}
+
+\subfile{section-reaction-time}
+
+\subfile{section-substudies}
+
+\subfile{section-selfplay}
+
+\subfile{section-exploration}
+
+\subfile{section-multihero}
+
+% Removing for now, very bare bones. Could be fleshed out and re-added.
+% \subfile{section-herodataserver}
+
+\subfile{section-bloopers}
+
+\end{document}

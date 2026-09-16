@@ -1,0 +1,44 @@
+\label{sec:transfer}
+We propose to use transfer to a suite of domain-specific tasks in order to asses agent capabilities.
+To this end, we have created 5 benchmark intelligence tests that include both supervised and reinforcement learning tasks.
+The tests use the same action space, observation space, and types of objects as in the hide-and-seek environment.
+We examine whether pretraining agents in our multi-agent environment and then fine-tuning them on the evaluation suite leads to faster convergence or improved overall performance compared to training from scratch or pretraining with count-based intrinsic motivation.
+We find that on 3 out of 5 tasks, agents pretrained in the hide-and-seek environment learn faster and achieve a higher final reward than both baselines.
+
+We categorize the 5 intelligence tests into 2 domains: cognition and memory tasks, and manipulation tasks. 
+We briefly describe the tasks here; for the full task descriptions, see Appendix \ref{appendix:transfer_details}. For all tasks, we reinitialize the parameters of the final dense layer and layernorm for both the policy and value networks.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{assets/all_transfer_anon.pdf}
+\caption{Fine-tuning Results. We plot the mean normalized performance and 90\% confidence interval across 3 seeds smoothed with an exponential moving average, except for Blueprint Construction where we plot over 6 seeds due to higher training variance.}
+\label{fig:transfer}
+\end{figure}
+
+\textbf{Cognition and memory tasks:}
+
+In the \emph{Object Counting} supervised task, we aim to measure whether the agents have a sense of object permanence; the agent is pinned to a location and watches as 6 boxes each randomly move to the right or left where they eventually become obscured by a wall.
+It is then asked to predict how many boxes have gone to each side for many timesteps after all boxes have disappeared. The agent's policy parameters are frozen and we initialize a classification head off of the LSTM hidden state. In the baseline, the policy network has frozen random parameters and only the  classification head off of the LSTM hidden state is trained.
+
+In \emph{Lock and Return} we aim to measure whether the agent can remember its original position while performing a new task. The agent must navigate an environment with 6 random rooms and 1 box, lock the box, and return to its starting position.
+
+In \emph{Sequential Lock} there are 4 boxes randomly placed in 3 random rooms without doors but with a ramp in each room. 
+The agent needs to lock all the boxes in a particular order --- a box is only lockable when it is locked in the correct order --- which is unobserved by the agent. 
+The agent must discover the order, remember the position and status of visited boxes, and use ramps to navigate between rooms in order to finish the task efficiently.
+
+\textbf{Manipulation tasks:}
+With these tasks we aim to measure whether the agents have any latent skill or representation useful for manipulating objects.
+
+In the \emph{Construction From Blueprint} task, there are 8 cubic boxes in an open room and between 1 and 4 target sites.
+The agent is tasked with placing a box on each target site.
+
+In the \emph{Shelter Construction} task there are 3 elongated boxes, 5 cubic boxes, and one static cylinder. The agent is tasked with building a shelter around the cylinder.
+
+
+\textbf{Results:}
+In Figure~\ref{fig:transfer} we show the performance on the suite of tasks for the hide-and-seek, count-based, and trained from scratch policies across 3 seeds.
+The hide-and-seek pretrained policy performs slightly better than both the count-based and the randomly initialized baselines in \emph{Lock and Return}, \emph{Sequential Lock} and \emph{Construction from Blueprint}; however, it performs slightly worse than the count-based baseline on \emph{Object Counting}, and it achieves the same final reward but learns slightly slower than the randomly initialized baseline on \emph{Shelter Construction}.
+
+We believe the cause for the mixed transfer results is rooted in agents learning skill representations that are entangled and difficult to fine-tune. We conjecture that tasks where hide-and-seek pretraining outperforms the baseline are due to reuse of learned feature representations, whereas better-than-baseline transfer on the remaining tasks would require reuse of learned skills, which is much more difficult. This evaluation metric highlights the need for developing techniques to reuse skills effectively from a policy trained in one environment to another. In addition, as future environments become more diverse and agents must use skills in more contexts, we may see more generalizable skill representations and more significant signal in this evaluation approach.
+
+In Appendix~\ref{appendix:phase_eval} we further evaluate policies sampled during each phase of emergent strategy on the suite of targeted intelligence tasks, by which we can gain intuition as to whether the capabilities we measure improve with training, are transient and accentuated during specific phases, or generally uncorrelated to progressing through the autocurriculum. Noteably, we find the agent's memory improves through training as indicated by performance in the navigation tasks; however, performance in the manipulation tasks is uncorrelated, and performance in object counting changes seems transient with respect to source hide-and-seek performance.

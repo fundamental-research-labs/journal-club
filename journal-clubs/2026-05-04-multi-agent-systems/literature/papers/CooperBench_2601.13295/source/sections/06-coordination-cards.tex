@@ -1,0 +1,175 @@
+% \tcbset{
+%   failurecard/.style={
+%     enhanced,
+%     arc=2mm,
+%     boxrule=0.45pt,
+%     colframe=black!10,
+%     left=6pt,
+%     right=6pt,
+%     top=6pt,
+%     bottom=6pt,
+%   }
+% }
+% \tcbset{
+%   failuregroup/.style={
+%     failurecard,
+%     coltitle=black,
+%     fonttitle=\bfseries\color{black},
+%     title filled=false,
+%     valign=top,
+%     breakable,
+%     width=\textwidth,
+%   },
+%   subfailure/.style={
+%     enhanced,
+%     arc=1.6mm,
+%     boxrule=0.35pt,
+%     colframe=black!12,
+%     colback=white,
+%     left=4pt,
+%     right=4pt,
+%     top=3pt,
+%     bottom=3pt,
+%     fontupper=\scriptsize,
+%   }
+% }
+% \tcbset{
+%   evidencebox/.style={
+%     enhanced,
+%     arc=1.2mm,
+%     boxrule=0.3pt,
+%     colframe=black!12,
+%     colback=black!2,
+%     left=4pt,
+%     right=4pt,
+%     top=3pt,
+%     bottom=3pt,
+%     boxsep=0pt,
+%     fontupper=\ttfamily\scriptsize,
+%   }
+% }
+
+% \newcommand{\causecard}[4]{%
+%   \begin{tcolorbox}[subfailure]
+%     \begin{tcolorbox}[evidencebox]
+%       #2
+%     \end{tcolorbox}
+%     \textbf{Explanation:} #3\par
+%     \textbf{Outcome:} #4
+%   \end{tcolorbox}%
+% }
+
+% \subsection{Representative examples of capability gaps}
+% We provide one representative example for each coordination capability gap. Additional symptom-level examples are available in Appendix~\ref{app:symptom_examples}.
+
+% \vspace{0.25em}
+% \begin{tcolorbox}[failuregroup,colback=info,title={\emojiicon{figs/emoji/1f50d.png}\ \textbf{Expectation}: Failure to model partner state}]
+%     \causecard{}{%
+%       A msg: guid regex includes surrounding curly braces (\texttt{\{\ldots\}}), and A warns about overlap.\par
+%       A msg: WAIT Agent 10! If you add the section header AND my guid type to your branch, that WILL create a merge conflict!\par
+%       B msg: I'll add the COMPLETE section (lines 72--81) to my branch, which includes both the section header, your guid type, AND my hash\_sha256 type.\par
+%     }{Despite A's explicit warning about what they are implementing, B still treats the situation as if A's work is not being done. B duplicates A's work, and the merged artifact keeps B's (incorrect) version.}{Wrong regex version wins; GUID tests fail (merged guid pattern missing curly braces).}
+% \end{tcolorbox}
+
+% \vspace{0.35em}
+% \begin{tcolorbox}[failuregroup,colback=integ,
+%   title={\emojiicon{figs/emoji/1f9e9.png}\ \textbf{Commitment}: Failure to follow through on promises}]
+%   \centering
+%   \includegraphics[width=\linewidth]{figs/emergent/Role Division New.pdf}
+% \end{tcolorbox}
+
+% \vspace{0.35em}
+% \begin{tcolorbox}[failuregroup,colback=integ,title={\emojiicon{figs/emoji/1f9e9.png}\ \textbf{Commitment}: Failure to follow through on promises}]
+%     \causecard{}{%
+%       A msg: I'll add BOTH parameters (fallback\_processor and max\_batch\_size) to the constructor signature, BOTH docstrings, and BOTH initializations.\par
+%       A msg: \checkmark Line 26: Added BOTH parameters (fallback\_processor and max\_batch\_size) to constructor signature.\par
+%       Observed after merge: constructor only has \texttt{fallback\_processor}, missing \texttt{max\_batch\_size}.\par
+%     }{A makes a confident commitment to add both parameters, even claims completion with a checkmark. B trusts this claim and builds on it. Under partial observability, B cannot verify A's work, and the promised change is absent after merge.}{\texttt{TypeError: \_\_init\_\_() got an unexpected keyword argument max\_batch\_size}\@\ (tests fail).}
+% \end{tcolorbox}
+
+% \vspace{0.35em}
+% \begin{tcolorbox}[failuregroup,colback=comm,title={\emojiicon{figs/emoji/1f4e3.png}\ \textbf{Communication}: Breakdown in using language to coordinate}]
+%     \causecard{}{%
+%       A msg: Which approach would you prefer?\@ I want to ensure we don't lose any functionality while resolving this conflict.\@\par
+%       B:\@ no later message answers this question in the conversation log.\@\par
+%     }{A directly asks B to choose between approaches. B never responds, leaving the coordination loop broken. Without agreement, both agents proceed with potentially incompatible assumptions.}{The team proceeds without an agreed decision; implementation assumptions diverge.}
+% \end{tcolorbox}
+
+% \vspace{0.25em}
+% \par\noindent
+% These examples illustrate how each capability gap leads to coordination failure despite agents communicating and attempting to coordinate.
+
+
+
+\tcbset{
+  failurecard/.style={
+    enhanced,
+    arc=2mm,
+    boxrule=0.45pt,
+    colframe=black!10,
+    left=6pt,
+    right=6pt,
+    top=6pt,
+    bottom=6pt,
+  }
+}
+
+\tcbset{
+  failuregroup/.style={
+    failurecard,
+    coltitle=black,
+    fonttitle=\bfseries\color{black},
+    title filled=false,
+    valign=top,
+    breakable,
+    width=\textwidth,
+  },
+  subfailure/.style={
+    enhanced,
+    arc=1.6mm,
+    boxrule=0.35pt,
+    colframe=black!12,
+    colback=white,
+    left=6pt,
+    right=6pt,
+    top=6pt,
+    bottom=6pt,
+  }
+}
+
+% Figure-only nested box
+\newcommand{\causefigure}[1]{%
+  \begin{tcolorbox}[subfailure]
+    \centering
+    \includegraphics[width=\linewidth]{#1}
+  \end{tcolorbox}%
+}
+
+\subsection{Representative examples of capability gaps}
+We provide one representative example for each coordination capability gap. Additional symptom-level examples are available in Appendix~\ref{app:symptom_examples}.
+
+\paragraph{Expectation.} In the first example, Agent A announces it will modify \texttt{prompts.py} and call B's \texttt{get\_global\_filters()}. Agent B states it will insert \texttt{GLOBAL\_FILTERS} at a specific location. Both agents communicate their plans explicitly, yet the merge fails. The problem is not missing information but failure to \emph{integrate} it. Despite hearing B's plan, A proceeds as if B's code won't exist. This is the most common cause, reflecting a fundamental difficulty in maintaining an accurate model of partner state during independent work.
+
+
+\vspace{0.35em}
+\begin{tcolorbox}[failuregroup,colback=info,
+  title={\emojiicon{figs/emoji/1f50d.png}\ \textbf{Expectation}: Failure to model partner state}]
+  \causefigure{figs/Expectation.pdf}
+\end{tcolorbox}
+
+\paragraph{Commitment.} In the second example, the agent promises ``I will add bypass check at lines 100--104, happens FIRST in get().'' Later it claims completion with a checkmark. But after merge, the bypass code is missing. The partner trusted this claim and built on it, but under workspace isolation, trust is all they had. The commitment was \emph{unverifiable}. No pasted signature, no diff, nothing the partner could check without access to the branch.
+
+
+\vspace{0.35em}
+\begin{tcolorbox}[failuregroup,colback=integ,
+  title={\emojiicon{figs/emoji/1f9e9.png}\ \textbf{Commitment}: Failure to follow through on promises}]
+  \causefigure{figs/Commitment.pdf}
+\end{tcolorbox}
+
+\paragraph{Communication.} In the third example, Agent A asks a direct question, ``Which approach would you prefer?'' The response is silence. Without an answer, the coordination loop collapses. A needed a decision to proceed, and without one, both agents continued with potentially incompatible assumptions. Unlike expectation failures (where information exists but isn't integrated) or commitment failures (where promises aren't kept), this is a failure to even establish shared context.
+
+\vspace{0.35em}
+\begin{tcolorbox}[failuregroup,colback=comm,
+  title={\emojiicon{figs/emoji/1f4e3.png}\ \textbf{Communication}: Breakdown in using language to coordinate}]
+  \causefigure{figs/Communication.pdf}
+\end{tcolorbox}

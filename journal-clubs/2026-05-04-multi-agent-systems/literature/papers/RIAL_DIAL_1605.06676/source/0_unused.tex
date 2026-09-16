@@ -1,0 +1,221 @@
+
+\subsection{Hats Riddle}
+\label{subsec:hats_riddle}
+
+%\subsubsection{Description}
+The hats riddle can be described as follows:
+\emph{``An executioner lines up 100 prisoners single file and puts a red or a blue hat on each prisoner's head. Every prisoner can see the hats of the people in front of him in the line - but not his own hat, nor those of anyone behind him. The executioner starts at the end (back) and asks the last prisoner the colour of his hat. He must answer ``red'' or ``blue.'' If he answers correctly, he is allowed to live. If he gives the wrong answer, he is killed instantly and silently. (While everyone hears the answer, no one knows whether an answer was right.) On the night before the line-up, the prisoners confer on a strategy to help them. What should they do?''} \cite{poundstone2012you}. Figure~\ref{fig:hats_vis} illustrates this setup.
+% We will also refrain from using any kind of violence on the prisoners going forward.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../artwork/hats_vis.pdf} 
+    \caption{\emph{Hats:} Each prisoner can hear the answers from all preceding prisoners (to the left) and see the colour of the hats in front of him (to the right) but must guess his own hat colour.}
+    \label{fig:hats_vis}
+\end{figure}
+
+An optimal strategy is for all prisoners to agree on a communication protocol in which the first prisoner says ``blue'' if the number of blue hats is even and ``red" otherwise (or vice-versa).  All remaining prisoners can then deduce their hat colour given the hats they see in front of them and the responses they have heard behind them.  Thus, everyone except the first prisoner will definitely answer correctly. 
+
+To formalise the hats riddle as a multi-agent RL task, we define a state space $\mathbf{s} = (s^1,\ldots,s^n,a^1,\ldots,u^{n})$, where $n$ is the total number of agents, $s^a \in \{\text{blue, red}\}$ is the $a$-th agent's hat colour and $u^a \in \{\text{blue, red}\}$ is the action it took on the $a$-th step.  At all other time steps,ugent $a$ can only take a null action. On the $a$-th time step, agent $a$'s observation is ${o^a = (a^1,\ldots,u^{a-1},s^{a+1},\ldots,s^n)}$. Reward is zero except at the end of the episode, when it is the total number of agents with the correct action: $r_{n} =\sum_m \mathds{I}( a^a = s^a )$. We label only the relevant observation $o^a$ and action $u^a$ of agent $a$, omitting the time index.  
+
+Although this riddle is a single action and observation problem it is still partially observable, given that none of the agents can observe the colour of their own hat.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Hats Riddle}
+\label{subsec:exp_hats}
+
+
+%As described in Section~\ref{subsec:ddrqn}, during training all agents share the same knowledge (i.e. parameters and gradients) and each agent, is also given a unique identifier, $a$, which is used as part of the input to allow for divergent strategies among them.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../artwork/hats_arch.pdf}
+    \figspace
+    \caption{\emph{Hats:} Each agent $a$ observes the answers, $u^k$, $k<m$, from all preceding agents and hat colour, $s^k$ in front of him, $k > m$.  Both variable length sequences are processed through RNNs. First, the answers heard are passed through two single-layer MLPs, $z^k_a =\MLP{a^k} \oplus \MLP{m,n}$, and their outputs are added element-wise. $z^k_a$ is passed through an LSTM network $y^{k}_a, h^{k}_a = \text{LSTM}_a(z^k_a, h^{k-1}_a)$. Similarly for the observed hats we define $y^{k-1}_s,h^{k-1}_s = \text{LSTM}_s(z^k_s, h^{k-1}_s)$.
+The last values of the two LSTMs $y^{a-1}_a$ and $y^{n}_s$ are used to approximate $Q^a = \text{MLP}(y^{a-1}_a||y^{n}_s)$ from which the action $u^a$ is chosen.}
+    \label{fig:hats_arch}
+\end{figure}
+
+
+Figure~\ref{fig:hats_arch} shows the architecture we use to apply DDRQN to the hats riddle.
+To select $u^a$, the network is fed as input $o^a = (a^1,\ldots,u^{a-1},s^{a+1},\ldots,s^n)$, as well as $a$ and $n$.
+The answers heard are passed through two single-layer MLPs, $z^k_a=\text{MLP}\lbrack 1\times64\rbrack (a^k) \oplus \text{MLP}\lbrack 2\times64\rbrack (m,n)$, and their outputs are added element-wise. Subsequently, $z^k_a$ is passed through an LSTM network $y^k_a,h^k_a = \text{LSTM}_a \lbrack 64\rbrack (z^k_a, h^{k-1}_a)$. We follow a similar procedure for the $n-m$ hats observed defining $y^k_s,h^k_s = \text{LSTM}_s \lbrack 64\rbrack (z^k_s, h^{k-1}_s)$.
+Finally, the last values of the two LSTM networks $y^{a-1}_a$ and $y^n_s$ are used to approximate the Q-Values for each action $Q^a = \text{MLP} \lbrack 128\times64,64\times64,64\times1\rbrack (y^{a-1}_a||y^n_s)$. The network is trained with mini-batches of $20$ episodes.
+
+Furthermore, we use an adaptive variant of \emph{curriculum learning}~\cite{bengio2009curriculum} to pave the way for scalable strategies and better training performance. We sample examples from a multinomial distribution of curricula, each corresponding to a different $n$, where the current bound is raised every time performance becomes near optimal. 
+The probability of sampling a given $n$ is inversely proportional to the performance gap compared to the normalised maximum reward. The performance is depicted in Figure~\ref{fig:h_20_curriculum}.
+
+\begin{figure}[!b]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../results/hat/h_10_shared}
+    \figspace
+    \caption{../results on the hats riddle with $n = 10$ agents, comparing DDRQN with and without inter-agent weight sharing to a tabular Q-table and a hand-coded optimal strategy. The lines depict the average of $10$ runs and $95\%$ confidence intervals.}
+    \label{fig:h_10_shared}
+\end{figure}
+
+We first evaluate DDRQN for $n = 10$ and compare it with tabular Q-learning. Tabular Q-learning is feasible only with few agents, since the state space grows exponentially with $n$.  In addition, separate tables for each agent precludes generalising across agents.
+
+
+Figure~\ref{fig:h_10_shared} shows the results, in which DDRQN substantially outperforms tabular Q-learning.  In addition, DDRQN also comes near in performance to the optimal strategy described in Section \ref{subsec:hats_riddle}. This figure also shows the results of an ablation experiment in which inter-agent weight sharing has been removed from DDRQN.  The results confirm that inter-agent weight sharing is key to performance.  
+
+Since each agent takes only one action in the hats riddle, it is essentially a single step problem.  Therefore, last-action inputs and disabling experience replay do not play a role and do not need to be ablated.  We consider these components in the switch riddle in Section~\ref{subsec:exp_switches}.
+
+
+%Subsequently, we employ our adaptive Curriculum Learning to exploit the scalability of our architecture from $n=3 .. 20$ agents,und compare it with the simple training architecture for $n=20$. As illustrated in Figure~\ref{fig:h_20_curriculum}, the simple architecture is unable to learn any strategy for such a high-dimensional state-space problem and remains stagnant. In contrast to that, Curriculum Learning achieves to scale up and achieve marked performance for even $n=20$ agents.
+
+
+
+\begin{table}[t]
+\caption{Percent agreement on the hats riddle between DDRQN and the optimal parity-encoding strategy.}
+\label{table:hats-strategy}
+\begin{center}
+\begin{small}
+\begin{sc}
+\begin{tabular}{cc}
+\hline
+n & \% Agreement \\
+\hline
+3  & $100.0\%$ \\
+5  & $100.0\%$ \\
+8  & $79.6\%$ \\
+12 & $52.6\%$ \\
+16 & $50.8\%$ \\
+20 & $52.5\%$ \\
+\hline
+\end{tabular}
+\end{sc}
+\end{small}
+\end{center}
+\end{table}
+
+We compare the strategies DDRQN learns to the optimal strategy by computing the percentage of trials in which the first agent correctly encodes the parity of the observed hats in its answer. Table~\ref{table:hats-strategy} shows that the encoding is almost perfect for $n \in \{3, 5, 8\}$. For $n \in \{12,16,20\}$, the agents do not encode parity but learn a different distributed solution that is nonetheless close to optimal. We believe that qualitatively this solution corresponds to more the agents communicating information about other hats through their answers, instead of only the first agent.
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../results/hat/h_20_curriculum}
+    \figspace
+    \caption{\emph{Hats}: Using Curriculum Learning DDRQN achieves good performance for $n = 3 . . . 20$ agents, compared to the optimal strategy.}
+    \label{fig:h_20_curriculum}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Coloured MNIST Puzzle}
+\label{subsec:coloured_mnist}
+
+This two agent task is a proof of principle for learning to communicate with Deep Reinforcement learning. Agent~\agent{2} has to make a choice between two actions based on the input. The challenge is that the reward function depends both on the property of his input state and a property of the input state of the Agent~\agent{1}. Agent~\agent{1} needs to learn to communicate this property sending a message through a noisy channel.
+
+Specifically, the input state of Agent~\agent{1} consists of a random handwritten digit between $0$ and $9$ in a random colour, red or green. Similarly the input space of Agent~\agent{2} consists of a random handwritten digit in green or red, but also includes the message from Agent~\agent{1}. The payout function is fully anti-symmetric parity of Agent~\agent{1}'s digit, the colour of Agent~\agent{2}'s digit and his action:
+
+\begin{align}
+R(s) = (-1)^{(\text{Digit}(\text{agent}_1) \text{ mod } 2) + \text{Color}(\text{agent}_2) + \text{Action}(\text{agent}_2)}	
+\end{align}
+
+
+Note that this task bears similarity to some of the communication tasks that Dr. Skinner undertook with pigeons in the 60s. The difference in our task is that there is only a joined reward and no separate single agent training.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\linewidth]{artwork/digit_vis.pdf}
+    \figspacetop
+    \caption{Coloured MNIST}
+    \label{fig:digit_vis}
+    \figspace
+\end{figure}
+
+
+\subsection{Coloured MNIST Puzzle}
+\label{subsec:exp_mnist}
+
+\subsubsection{Model Architecture}
+
+
+The setup consists of two agents, where the first one is able to pass messages to the second one though a limited communications channel.
+
+
+Following the DDRQN architecture of
+Section~\ref{sec:ddrqn}, the agents share the same image processing network.
+
+The model architecture of the two agents is depicted in Figure~\ref{fig:digit_vis}.
+
+
+\subsubsection{Optimal Strategy}
+
+\subsubsection{Model Evaluation}
+
+As can be observed in figure XX, DQN allows the agents to effectively learn which property of the state space needs to be communicated in order to solve the task at hand. After XX rounds the Agent~\agent{2} reliably encodes the parity of the input digit into the message and Agent~\agent{2} combines this message with the colour of their digit in order to achieve near optimal reward.
+Even without noise in the channel the messages tend to be tightly clustered after learning has finished. However, if training continues the coding scheme is liable to change as can be inferred from the increased entropy over a larger number of batches.
+
+On the other hand, when noise is added to the message this coding scheme gets stabilised. As can be seen is figure XX, the amount of noise directly leads to a reduction of entropy over the distribution of messages in the channel.
+
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{results/digit/reward_vs_information.pdf}
+    \figspacetop
+    \caption{Reward vs Information Entropy}
+    \label{fig:digit_reward}
+    \figspace
+\end{figure}
+
+
+\begin{table}[t]
+\caption{Coloured MNIST Entropy vs Noise}
+\label{sample-table}
+\vskip 0.15in
+\begin{center}
+\begin{small}
+\begin{sc}
+\begin{tabular}{cc}
+\hline
+\abovespace\belowspace
+Noise std & Avg. Entropy \\
+\hline
+\abovespace
+0    & 1.90 \\
+0.1 & 1.63\\
+0.2    & 1.39 \\
+\hline
+\end{tabular}
+\end{sc}
+\end{small}
+\end{center}
+\vskip -0.1in
+\end{table}
+
+%The second domain consists of riddles and riddles. As it turns out, these problems are often formulated in a multi-agent setting involving a number of independent agents (eg. 'prisoners' or 'minions') that have specific inputs, can only exchange given messages and have to maximise a reward based on a joined strategy. Just like atari games are interesting because they are designed to be challenging to humans, these riddles are designed to have non-trivial interesting solutions.
+
+%We focus on two different riddles, the first one is a well-known puzzle typically phrased as 100 agents having to guess the colour of the hat they are wearing without being able to observe it ('hats riddle'). Thus, they have to learn to communicate information about the hats of the other people alongside their own guess. The second, very famous, puzzle is typically phrased as 100 prisoners that have to stay in prison until they are sure that every single one of them has been to a special cell that contains a switch as the only mean of communication ('Switch riddle').
+
+%Using LSTM based Recurrent Deep Reinforcement learning we show that independent Q-learning with weight sharing can solve the riddles and show illustrative human readable strategies for small numbers of agents as well as learning curves for larger numbers. It is to be noted that in order for the DQN to effectively solve the task it is both necessary to share weights and to feed in the most recent action of the agent as an input to the next time step.
+
+%For the Switch riddle, we compare performance to a number of baselines including DQN without recurrence, a naive time-based strategy and a scenario of broken switches.
+
+%The first domain consists of psychophysics and animal research inspired experiments that investigate the ability of agents to communicate across unknown channels in order to solve collaborative tasks. Using one of these tasks we show that with DQN, two separate agents can learn to exchange information across an unknown channel in order to maximise joined reward. Furthermore, we illustrate that adding noise to the channel leads to a increased clustering of the messages.%
+
+%	Over the last few years, deep reinforcement learning has seen a lot of success in solving single agent tasks. Most recently DQN has also been applied to a two player scenario in the atari domain. This paper applies DQN to a set of novel scenarios which add both multiple agents, the need to communicate and to memorise to the challenge. Three different challenges are explored, the first one consists of a set-up where the agents have to learn which property of the input space to communicate while the last two consist of riddles that require the discovery of a distributed strategy involving communication.

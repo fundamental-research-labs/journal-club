@@ -1,0 +1,205 @@
+\section{Experiments}\label{sec:exp}
+
+
+
+
+\paragraph{Benchmarks}
+To evaluate the efficacy of \ours~ we make use of 5 standard benchmark tasks:
+\textbf{BoolQ} \cite{clark2019boolq} $\small{\sim}$12k yes-no reading comprehension questions, \textbf{MMLU} \cite{hendrycks2020measuring} $\small{\sim}$15k multiple choice questions covering a wide array of subjects and difficulty, \textbf{BBH} \cite{suzgun2022challenging} $\small{\sim}$5k mixed-type questions 
+\textbf{SCIQ} \cite{welbl2017crowdsourcing} $\small{\sim}$13k multiple-choice science questions, \textbf{ARC} \cite{chollet2019measure} $\small{\sim}$7k multiple-choice reasoning-based questions.
+
+
+
+\paragraph{Baselines}
+We compare \ours~to several multi-agent and single-agent baselines.
+For inference-based methods, we compare to Society of Minds \textbf{SoM} \cite{du2023improving}, \textbf{Persona} \cite{chan2023chateval}.
+For training-based methods, we compare to supervised fine-tuning \textbf{SFT} \cite{radford2018improving}, \textbf{DebateTune} \cite{li2024can}, \textbf{DebateGPT} \cite{subramaniam2024debategpt}.
+We use three different base models: Llama-3-8B-Instruct \textbf{Llama-3} \cite{dubey2024llama}, Mistral-7B-Instruct \textbf{Mistral} \cite{jiang2023mistral}, and Gemma-2-2B-Instruct \textbf{Gemma-2} \cite{team2024gemma}.
+
+
+
+\subsection{ACC-Collab Performance}
+\paragraph{Final Answer Accuracy} 
+We begin by examining the performance of our method ACC-Collab (a single round of training) and ACC-Collab+ (two rounds of training)
+In table \ref{tab:main_results}, we see the average accuracy of each method after five rounds of deliberation. 
+Our method attains superior performance compared with baseline methods in most cases. 
+The high efficacy of ACC-Collab relative to the baselines indicates that in most cases, only a single round of training is necessary to produce a high-quality collaborative team. 
+It is worth noting that in some cases, further training rounds may decrease performance (i.e., ACC-Collab+ can have worse performance than ACC-Collab). 
+Hence, we have a hold-out set of tasks to determine whether further training degrades performance.
+
+
+\paragraph{Process Accuracy} In addition to measuring the correctness of the actor's final answer (i.e., outcome accuracy), we also analyze the correctness of the team's reasoning and discussion steps (i.e., process accuracy). Since ground truth is not available for reasoning and discussion steps, we use GPT-4o as an oracle to evaluate whether the agents follow the correct steps to reach the final answer. We provide an outline of the experimental setup and full results in Section \ref{Sup:reason} of the supplement. We find that our method improves or maintains the process accuracy of the actor and critic.
+
+
+\begin{table}[tbh]
+    \centering
+\begin{adjustbox}{max width=1.0\textwidth}
+    \begin{tabular}{c|c|c|c|c|c|c||c|c}
+\multicolumn{9}{r}{\textbf{Llama-3} \qquad\qquad\qquad\qquad\qquad\qquad  (Ours)      \quad\qquad~   (Ours)\qquad~}\\
+\hline\vspace{2pt}\\
+\multicolumn{9}{c}{}\vspace{-20pt}\\
+
+& SoM (2x) & SoM (4x) & Persona & DebateTune & SFT & DebateGPT & \cellcolor{green!20} ACC-Collab & \cellcolor{green!20} ACC-Collab+\\
+BoolQ & $.812_{\pm.01}$ & $.811_{\pm.007}$ & $.781_{\pm.002}$ & $.775_{\pm.033}$ & $.798_{\pm.006}$ & $.815_{\pm.005}$ & $.887_{\pm.005}$ & $\mathbf{.894}_{\pm.003}$\\ 
+MMLU & $.62_{\pm.004}$ & $.635_{\pm.004}$ & $.639_{\pm.004}$ & $.63_{\pm.004}$ & $.642_{\pm.005}$ & $.654_{\pm.005}$ & $.644_{\pm.01}$ & $\mathbf{.683}_{\pm.012}$\\ 
+BBH & $.508_{\pm.003}$ & $.514_{\pm.005}$ & $.509_{\pm.013}$ & $.508_{\pm.005}$ & $.552_{\pm.006}$ & $.551_{\pm.008}$ & $\mathbf{.593}_{\pm.006}$ & $.574_{\pm.003}$\\ 
+SCIQ & $.925_{\pm.002}$ & $.923_{\pm.002}$ & $.925_{\pm.004}$ & $.924_{\pm.004}$ & $.925_{\pm.003}$ & $.932_{\pm.001}$ & $\mathbf{.952}_{\pm.0}$ & $.948_{\pm.003}$\\ 
+ARC & $.874_{\pm.001}$ & $.874_{\pm.001}$ & $.87_{\pm.003}$ & $.871_{\pm.002}$ & $.879_{\pm.004}$ & $.876_{\pm.002}$ & $\mathbf{.881}_{\pm.004}$ & $.869_{\pm.002}$\\ 
+
+
+\multicolumn{9}{c}{}\\
+\multicolumn{9}{r}{\textbf{Mistral} ~~\qquad\qquad\qquad\qquad\qquad\qquad  (Ours)      \quad\qquad~   (Ours)\qquad~}\\
+\hline\vspace{2pt}\\
+& & & & & & & & \vspace{-20pt}\\
+
+& SoM (2x) & SoM (4x) & Persona & DebateTune & SFT & DebateGPT & \cellcolor{green!20} ACC-Collab & \cellcolor{green!20} ACC-Collab+\\
+BoolQ & $.801_{\pm.005}$ & $.798_{\pm.004}$ & $.831_{\pm.003}$ & $.83_{\pm.003}$ & $.84_{\pm.003}$ & $.848_{\pm.002}$ & $.877_{\pm.002}$ & $\mathbf{.893}_{\pm.002}$\\ 
+MMLU & $.57_{\pm.003}$ & $.562_{\pm.005}$ & $.574_{\pm.002}$ & $.562_{\pm.005}$ & $.594_{\pm.004}$ & $.577_{\pm.002}$ & $.61_{\pm.005}$ & $\mathbf{.672}_{\pm.004}$\\ 
+BBH & $.428_{\pm.002}$ & $.462_{\pm.003}$ & $.465_{\pm.011}$ & $.456_{\pm.005}$ & $.439_{\pm.006}$ & $.48_{\pm.012}$ & $.519_{\pm.009}$ & $\mathbf{.601}_{\pm.004}$\\ 
+SCIQ & $.856_{\pm.002}$ & $.856_{\pm.002}$ & $.86_{\pm.002}$ & $.863_{\pm.003}$ & $.858_{\pm.004}$ & $.871_{\pm.003}$ & $.902_{\pm.005}$ & $\mathbf{.905}_{\pm.002}$\\ 
+ARC & $.824_{\pm.001}$ & $.823_{\pm.002}$ & $.827_{\pm.001}$ & $.834_{\pm.0}$ & $.825_{\pm.003}$ & $.822_{\pm.002}$ & $.843_{\pm.003}$ & $\mathbf{.856}_{\pm.003}$\\ 
+
+
+\multicolumn{9}{c}{}\\
+\multicolumn{9}{r}{\textbf{Gemma-2} ~~\quad\qquad\qquad\qquad\qquad\qquad  (Ours)      \quad\qquad~   (Ours)\qquad~}\\
+\hline\vspace{2pt}\\
+\multicolumn{9}{c}{}\vspace{-20pt}\\
+
+& SoM (2x) & SoM (4x) & Persona & DebateTune & SFT & DebateGPT & \cellcolor{green!20} ACC-Collab& \cellcolor{green!20}ACC-Collab+\\
+BoolQ & $.75_{\pm.011}$ & $.759_{\pm.004}$ & $.716_{\pm.015}$ & $.767_{\pm.003}$ & $.783_{\pm.011}$ & $.812_{\pm.003}$ & $.84_{\pm.005}$ & $\mathbf{.845}_{\pm.005}$\\ 
+MMLU & $.58_{\pm.002}$ & $.578_{\pm.002}$ & $.577_{\pm.002}$ & $.578_{\pm.001}$ & $.579_{\pm.002}$ & $\mathbf{.582}_{\pm.002}$ & $.51_{\pm.016}$ & $.555_{\pm.003}$\\ 
+BBH & $.454_{\pm.007}$ & $.449_{\pm.01}$ & $.447_{\pm.006}$ & $.447_{\pm.007}$ & $.498_{\pm.006}$ & $.491_{\pm.01}$ & $\mathbf{.513}_{\pm.006}$ & $.475_{\pm.008}$\\ 
+SCIQ & $.903_{\pm.002}$ & $.903_{\pm.002}$ & $.908_{\pm.003}$ & $.903_{\pm.001}$ & $.913_{\pm.002}$ & $.914_{\pm.002}$ & $\mathbf{.918}_{\pm.003}$ & $.909_{\pm.003}$\\ 
+ARC & $.841_{\pm.003}$ & $.843_{\pm.005}$ & $.847_{\pm.003}$ & $.847_{\pm.003}$ & $.848_{\pm.002}$ & $.851_{\pm.003}$ & $\mathbf{.852}_{\pm.003}$ & $.849_{\pm.002}$
+    \end{tabular}
+\end{adjustbox}
+    \caption{Average accuracy (with 95\% confidence intervals) after $5$ rounds of deliberation. For each dataset, the highest accuracy is shown in bold.
+    }
+    \label{tab:main_results}
+\end{table}
+
+
+
+\subsection{Performance Increase of Multi-Agent Collaboration}
+\begin{figure}[tbh]
+    \centering
+    \includegraphics[width=1.0\linewidth]{plots/new_improve.png}
+    \caption{Percent improvement in accuracy after five rounds of deliberation, compared to a single round. Percent improvement (Eq. \ref{eq:improve}) for each method is averaged across all five datasets.}
+    \label{fig:improve}
+\end{figure}
+\paragraph{Average Improvement}
+As noted in \cite{du2023improving}, the key mechanism behind the success of multi-agent deliberation (or any of its many variants) is that discussion over multiple rounds allows the models to iteratively refine their answers.
+Thus, a natural question for any iterative multi-agent method is: \emph{how much does accuracy improve from the initial round $t=0$ to the final round $t=T$?} Where $T=4$ in our experiments.
+To measure this, we look at the percent improvement in model accuracy from round $t=0$ to round $t=4$ calculated as,
+\begin{align}\label{eq:improve}
+    \frac{\text{acc}_4 - \text{acc}_0}{\text{acc}_0} \qquad \text{ where acc$_t$ is accuracy at round $t$}
+\end{align}
+In Figure \ref{fig:improve} we see the average percent improvement for each method, averaged across all 5 datasets. 
+For each of the three base models, ACC-Collab+ has the highest average improvement compared to all other methods. 
+Additionally, the improvement gained by methods such as SoM, SFT or DebateGPT is far less stable than that of ACC-Collab+.
+In particular, for Mistral, SoM yields nearly no improvement, similarly SFT and DebateGPT offer 
+little improvement when applied to of Llama-3.
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{plots/new_perRoundconf.png}
+    \includegraphics[width=1.0\linewidth]{plots/new_perRoundSCIQ.png}
+    \caption{Accuracy over five rounds of deliberation on BoolQ (top) and SCIQ (bottom).}
+    \label{fig:perRound}
+\end{figure}
+\paragraph{Per-Round Accuracy} Next, we look more closely at the accuracy of each method across five rounds of deliberation. 
+Figure \ref{fig:perRound}, shows per-round accuracy on the BoolQ dataset. 
+As already illustrated by Table \ref{tab:main_results}, ACC-Collab and ACC-Collab+ achieve higher final round accuracy than the other methods. 
+Notably, our method has higher accuracy both at the final round $t=4$ and at round $t=0$. 
+Recall that at round $t=0$, the actor's response is independent of the critic. 
+This indicates that in some cases, our training pipeline can produce actor agents with superior zero-shot accuracy (without deliberation) compared to models produced by SFT and DebateGPT.
+
+
+Interestingly, we observe that in some cases, SFT and DebateGPT are not much better than simple deliberation with untrained models (i.e., SoM-4x), e.g., BoolQ with Llama-3.
+This is primarily due to the fact that these methods are designed to improve the model's single-short performance but do little to improve their collaborative abilities. 
+Cases such as this outline the necessity of training to improve collaboration (ACC-Collab) rather than training for raw accuracy (SFT and DebateGPT).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Individual Performance}
+Next, we examine the relative effectiveness of both the actor and the critic. 
+To do this, we train an actor and critic via ACC-Collab.
+Then, during deliberation, we pair the trained actor with an untrained critic and pair the trained critic with an untrained actor. 
+In Table \ref{tab:actor_critic_ablation}, column ``Actor" corresponds to the former, while ``Critic" corresponds to the latter.
+On average, the trained actor attains higher accuracy compared to the trained critic, this aligns with intuition as the actor is responsible for providing answers while the critic plays a supporting role.
+In most cases, the trained actor (paired with an untrained critic) outperforms SFT and DebateGPT. 
+When the trained actor is paired with a trained critic (either ACC-Collab or ACC-Collab+), its performance is further improved.
+
+
+
+
+\begin{table}[tbh]
+    \centering
+\begin{adjustbox}{max width=0.99\textwidth}
+    \begin{tabular}{c|c|c||c|c||c|c}
+\multicolumn{7}{c}{\textbf{Llama-3}}\\
+\hline
+& SoM (4x) & DebateGPT & Actor & Critic & ACC-Collab & ACC-Collab+\\
+BoolQ & $.811_{\pm.007}$ & $.815_{\pm.005}$ & $.867_{\pm.003}$ & $.834_{\pm.005}$ & $.887_{\pm.005}$ & $\mathbf{.894}_{\pm.003}$\\ 
+MMLU & $.635_{\pm.004}$ & $.654_{\pm.005}$ & $.651_{\pm.012}$ & $.65_{\pm.008}$ & $.644_{\pm.01}$ & $\mathbf{.683}_{\pm.012}$\\ 
+BBH & $.514_{\pm.005}$ & $.551_{\pm.008}$ & $.583_{\pm.01}$ & $.55_{\pm.015}$ & $\mathbf{.593}_{\pm.006}$ & $.574_{\pm.003}$\\ 
+SCIQ & $.923_{\pm.002}$ & $.932_{\pm.001}$ & $.947_{\pm.002}$ & $.945_{\pm.001}$ & $\mathbf{.952}_{\pm.0}$ & $.948_{\pm.003}$\\ 
+ARC & $.874_{\pm.001}$ & $.876_{\pm.002}$ & $\mathbf{.885}_{\pm.003}$ & $.866_{\pm.002}$ & $.881_{\pm.004}$ & $.869_{\pm.002}$\\ 
+
+
+\multicolumn{7}{c}{\textbf{Mistral}}\\
+\hline
+& SoM (4x) & DebateGPT & Actor & Critic & ACC-Collab & ACC-Collab+\\
+BoolQ & $.798_{\pm.004}$ & $.848_{\pm.002}$ & $.873_{\pm.002}$ & $.843_{\pm.002}$ & $.877_{\pm.002}$ & $\mathbf{.893}_{\pm.002}$\\ 
+MMLU & $.562_{\pm.005}$ & $.577_{\pm.002}$ & $.598_{\pm.002}$ & $.611_{\pm.001}$ & $.61_{\pm.005}$ & $\mathbf{.672}_{\pm.004}$\\ 
+BBH & $.462_{\pm.003}$ & $.48_{\pm.012}$ & $.493_{\pm.012}$ & $.518_{\pm.005}$ & $.519_{\pm.009}$ & $\mathbf{.601}_{\pm.004}$\\ 
+SCIQ & $.856_{\pm.002}$ & $.871_{\pm.003}$ & $.891_{\pm.001}$ & $.891_{\pm.002}$ & $.902_{\pm.005}$ & $\mathbf{.905}_{\pm.002}$\\ 
+ARC & $.823_{\pm.002}$ & $.822_{\pm.002}$ & $.833_{\pm.003}$ & $.842_{\pm.003}$ & $.843_{\pm.003}$ & $\mathbf{.856}_{\pm.003}$\\ 
+
+
+\multicolumn{7}{c}{\textbf{Gemma-2}}\\
+\hline
+& SoM (4x) & DebateGPT & Actor & Critic & ACC-Collab & ACC-Collab+\\
+BoolQ & $.759_{\pm.004}$ & $.812_{\pm.003}$ & $.839_{\pm.005}$ & $.774_{\pm.014}$ & $.84_{\pm.005}$ & $\mathbf{.845}_{\pm.005}$\\ 
+MMLU & $.578_{\pm.002}$ & $\mathbf{.582}_{\pm.002}$ & $.519_{\pm.026}$ & $.566_{\pm.002}$ & $.51_{\pm.016}$ & $.555_{\pm.003}$\\ 
+BBH & $.449_{\pm.01}$ & $.491_{\pm.01}$ & $.51_{\pm.011}$ & $.475_{\pm.004}$ & $\mathbf{.513}_{\pm.006}$ & $.475_{\pm.008}$\\ 
+SCIQ & $.903_{\pm.002}$ & $.914_{\pm.002}$ & $\mathbf{.923}_{\pm.002}$ & $.912_{\pm.001}$ & $.918_{\pm.003}$ & $.909_{\pm.003}$\\ 
+ARC & $.843_{\pm.005}$ & $.851_{\pm.003}$ & $.85_{\pm.002}$ & $\mathbf{.855}_{\pm.002}$ & $.852_{\pm.003}$ & $.849_{\pm.002}$
+    \end{tabular}
+    \end{adjustbox}
+    \caption{Accuracy after 5 rounds of deliberation. The Actor (Critic) column corresponds to an actor-agent (critic-agent) trained via ACC-Collab and paired with an untrained Critic (Actor) during deliberation.}
+    \label{tab:actor_critic_ablation}
+
+\end{table}
+
+
+
+
+
+\begin{figure}[tbh]
+    \centering
+\includegraphics[width=0.99\linewidth]{criticResp.png}
+    \caption{Comparison of responses from the critic model before and after training with ACC-Collab.}
+    \label{fig:critic_resp}
+\end{figure}
+\subsection{What do the Agents Actually Learn?}
+Lastly, we are interested in understanding how ACC-Collab improves the Actor-Critic Team. 
+Figure \ref{fig:critic_resp} demonstrates an example of the difference in responses between an untrained critic and a critic trained through ACC-Collab. 
+Although the actor provides a wrong answer, the untrained critic is too agreeable and does not provide substantive feedback for the actor to correct their answer. 
+
+In contrast, the trained critic is more willing to disagree with the actor and provides more detailed feedback. 
+Largely, we observe that this trend is common; untrained critics are too agreeable and are thus less able to change the actor's mind, while trained critics are more willing to disagree 
+(see Section \ref{SUP:critic} for more examples).
+When examining the trained actor's responses, we do not find a notable qualitative change compared to the responses of an untrained actor. However, as shown previously, we do observe a qualitative change in the actor's responses to become more accurate.
+
+

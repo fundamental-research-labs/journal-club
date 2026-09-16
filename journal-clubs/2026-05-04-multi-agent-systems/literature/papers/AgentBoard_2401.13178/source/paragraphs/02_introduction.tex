@@ -1,0 +1,109 @@
+% 1. llms are generalist agents. 
+
+General-purpose agents that can autonomously perceive and act in various environments are considered significant milestones in Artificial Intelligence \citep{russell2005ai}. Recent advancements in large language models \citep{openai2023gpt, touvron2023llama} have demonstrated emergent agent abilities that enable them to understand diverse environments and perform step-by-step planning through multi-round interactions~\citep{yao2022react, song2023llm}. These advanced abilities contribute to the potential of LLMs to act as generalist agents for real-world problem-solving. 
+
+A comprehensive evaluation of LLM agents is crucial for the progression of this emerging field. To start, \emph{task diversity} is necessary to cover various agent tasks such as embodied, web, and tool agents. Additionally, \emph{multi-round interaction} is critical to mimic realistic scenarios, in contrast to the single-round tasks commonly adopted in existing benchmarks~\citep{xu2023tool, lin2023llm, qin2023tool}. Furthermore, evaluating agents in \emph{partially-observable} environments, where they must actively explore to understand their surroundings, is essential for practical assessments. This differs from the ``synthetic'' agent tasks~\citep{wang2023mint} derived from conventional benchmarks in fully-observable environments, such as MMLU~\citep{lanham2023measuring} and GSM8K~\citep{cobbe2021gsm8k}. 
+However, existing agent benchmarks fail to satisfy all of these criteria.
+
+Moreover, the inherent complexity in agent tasks 
+characterized by multi-round interactions 
+% decision-making based on long context, and the achievement of various subgoals, 
+distinguishes them significantly from other language tasks. 
+Due to this complexity, there is a pressing need to delve into the details and gain a deeper understanding of how models function during the process.
+% This includes discerning differences in progress among failing agents, assessing action grounding accuracy, analyzing the agent capabilities from different aspects, and evaluating the capacity to reason over long execution histories.
+% Such detailed evaluation is vital for recognizing the advancements of LLM agents and for steering the development of stronger LLM agent models. 
+Nonetheless, most current evaluations predominantly rely on the final success rate as their metric, which provides limited insights into these intricate processes \citep{liu2023agentbench, wang2023mint, yao2022react, liu2023bolaa, mialon2023gaia}. This simplified evaluation is particularly inadequate in challenging environments where most models demonstrate nearly zero success rates, consequently blurring finer distinctions and obscuring underlying mechanisms \citep{liu2023agentbench}. 
+% Therefore, there is an urgent need for a more systematic and analytical evaluation.
+
+% More importantly, agent tasks diverge from most other language tasks due to their complexities -- LLMs often need to interact with the environment in multiple rounds, make a sequence of decisions depending on long contexts, achieve multiple intermediate subgoals in the process, and finally accomplish the final task. 
+% Because of such complexity, it is desired to zoom into details and obtain a deeper understanding of the models during the processes, for example, can the agent make valid actions? When two agents both fail the final task, are they making the same or divergent progresses? Can the agent reason over the long execution history and make consistent progresses? 
+% Answering these analytic questions is critical to identify the progresses of LLM agents in a fine-grained manner and guide further developments of stronger LLM agent models.  
+% Nonetheless, existing LLM evaluations adopt the final success rate as the main metric, providing few insights in the complicated process~\citep{liu2023agentbench, wang2023mint, qin2023tool, yao2022react, liu2023bolaa}.  
+% This is particularly true since most models can only achieve near zero success rate in challenging environments~\citep{liu2023agentbench}, which fails to differentiate these models in a finer-grained manner, and it is unknown what is actually happening behind these extremely low success rate scores. 
+% % In addition, the agentic behavior of models attributes to the diverse abilities of LLMs, making metrics insufficient for thorough insights for researchers.
+%  Therefore, a systematic, analytic evaluation is required, offering users an established evaluation process and interpretative analysis. 
+% Efforts have been made to assess the performance of LLMs as generalist agents, as per several studies \citep{liu2023agentbench, wang2023mint, qin2023tool, yao2022react, liu2023bolaa}. 
+% Agent tasks
+% Interestingly, the performance variance among currently available open-source LLM agents appears minimal using existing benchmark metrics, with most agent tasks' success rates nearly zero despite their proclaimed state-of-the-art performance  \citep{liu2023agentbench, liu2023bolaa}. These findings might appear counter-intuitive, but they emphasize the intricacy of agent tasks -- For example, an initial minor error in decision-making can be challenging to rectify, which substantially increases the difficulty for language models. Consequently, there is a need for more fine-grained metrics to distinguish the performance levels of these models.
+
+
+
+% Moreover, another significant challenge is that LLM agents benchmark results are confounded by nuances in agent structure and prompting techniques \citep{liu2023bolaa}. Unlike preceding benchmarks, which primarily focus on test data \citep{hendrycks2020measuring, lin2023llm, huang2023c}, LLM agent benchmarking necessitates a standadized framework with clearly delineated evaluation processes, prompt development, and agent structures. In addition, the agentic behavior of models attributes to the diverse features of LLMs, making metrics insufficient for thorough insights for researchers. Therefore, a systematic analytic evaluation is required, offering users an established evaluation process and interpretative analysis. 
+
+
+
+% Despite optimism in this field, LLM as agents is still bottlenecked by the significant gap between top-tier models and their open-sourced competitors \citep{liu2023agentbench}. Also, the difference between current open-source LLM agents are reported to be marginal \citep{liu2023agentbench, liu2023bolaa} and instruction-tuning methods (supervised instruction fine-tuning and reinforcement-learning from human feedback) that have shown success in improving the general performance of LLM fail to narrow the gap \citep{wang2023mint}. Such counter-intuitive results call for a more systematic and principled evaluation that aims to address the question - \emph{What is the current status of LLM as agents and what are the next steps to improve the weakness of these models ?}
+
+% Meanwhile, there has been a progressive effort to evaluate and benchmark LLMs as agents. Current benchmarks are predominantly constructed within a singular context for specialized evaluation, especially in scenarios involving web \citep{yao2022webshop, deng2023mind2web, zhou2023webarena}, knowledge retrieval \citep{yao2022react} and tool-using \citep{qin2023toolllm, tang2023toolalpaca, li2023api}. However, such narrowed focus often limits a comprehensive understanding of LLMs' generalist capabilities. On the other hand, more comprehensive LLM benchmarks, such as LLM-Eval\citep{lin2023llm}, lack a multi-round interactive setting, which is essential in distinguishing LLMs as agents from other capabilities. interactive setting. Therefore, these efforts demonstrate the need for agent evaluations that employ a systematic and principled approach.
+% \jh{Before here, I think we should have already touched the ``fine-grained'' and ``explainable analysis'' perspectives that are the key to distinguish our benchmarks from existing ones. You could talk that how agent tasks are complex involving with multiple stages/steps, and fine-grained evaluation rather than a success rate is more important than traditional tasks to understand the behaviors of the model}
+
+To address these issues, we introduce \BenchName, a benchmark designed for multi-turn LLM agents, complemented by an analytical evaluation board for detailed model assessment beyond final success rates.
+\BenchName{} encompasses a diverse set of 9 unique tasks and 1013 exemplary environments, covering a range from embodied AI and game agents to web and tool agents. 
+Each environment, whether newly created or adapted from pre-existing ones, is carefully crafted and authenticated by humans to ensure multi-round and partially observable characteristics in a unified manner.
+Notably, we have defined or manually annotated subgoals for each data sample, introducing a unified \emph{progress rate} metric to track the agents' detailed advancements. As we will demonstrate in \S\ref{sec:res}, this metric uncovers significant progress made by models that would otherwise appear trivial due to negligible differences in success rates. 
+
+Along with the benchmark, we develop the \BenchName{} evaluation framework as an open-source toolkit that features an analytical web panel to examine various dimensions of agent abilities through interactive visualization. 
+The toolkit offers a unified interface, providing users with easy access and effortless customization options.
+As shown in Figure~\ref{fig:overall illustration}, the \BenchName{} toolkit  currently supports analysis and visualization on fine-grained progress rates tracking, performance breakdown for hard and easy examples, detailed performance across various sub-skills, long-range interaction assessment, grounding accuracy, and trajectory.
+% discerning differences in progress among failing agents, assessing action grounding accuracy, analyzing the agent capabilities from different aspects and on samples of varying difficulties, evaluating the capacity to reason over long execution histories, and visualizing the complete trajectory in an easily readable manner.
+This detailed evaluation is crucial for acknowledging the progress of LLM agents and for guiding the development of more robust LLM agent models. The comparison between \BenchName{} and previous works is shown in Table~\ref{table: dataset_comparison}.
+
+
+
+% The board also enables the analysis of long-range planning abilities, multi-dimensional capabilities, and differences in performance across scenarios of varying complexity.
+% Furthermore, \BenchName{} provides a user-friendly platform for the analysis of state-of-the-art LLM agents. It features an analytical panel\footnote{\label{wandb link}An example of the panel is public in \href{https://wandb.ai/agentboard/llm-agent-eval-gpt-4-all}{WandB}.} that facilitates the visualization of comparative model analyses and prediction trajectories across different environments, enhancing the understanding and evaluation of these advanced agents. An overview of \BenchName{} is demonstrated in Figure~\ref{fig:overall illustration}, and its comparison to previous works is shown in Table~\ref{table: dataset_comparison}.
+% Furthermore, we establish an \BenchName{} evaluation framework with an analytic board that consists of various aspects. 
+% Specifically, we define and manually annotate subgoals for each sample environment, proposing a new \emph{progress rate} metric to track fine-grained progresses of the agents. As empirically reflected in \S\ref{sec:res}, \emph{progress rate} is able to reveal more information and non-trivial progresses from seemingly weak models with near zero success rates. Besides, the analytic board supports analysis such as agents' long-range planning abilities, multiple-dimensional abilities, and performance breakdown on easy and difficult examples.  
+% In addition to the benchmark data, we implement an easy-to-use framework to allow users to easily analyze state-of-the-art LLM agents in \BenchName, which features the analytic board as a panel to visualize the analysis results of multiple models and the prediction trajectories on each environment.\footnote{An example of the panel is public in \href{xx}{xx}. \jh{give a link}}
+
+
+% we define and manually annotate subgoals for each sample environment, proposing a new \emph{progress rate} metric to track fine-grained progresses of the agents. As empirically reflected in \S\ref{sec:res}, \emph{progress rate} is able to reveal more information and non-trivial progresses from seemingly weak models with near zero success rates. Furthermore, the analytic board supports analysis on the agents' long-range planning abilities, scores agents from multiple dimensions. 
+
+% \BenchName{} is designed with five principles as shown in Table~\ref{table: dataset_comparison}: (1) \emph{task diversity} is enforced by consisting of 9 unique tasks and 1013 exemplary environments, ranging from embodied AI, game agents, to web agent and tool-using tasks; (2) \emph{multi-round interaction} is considered critical for agents to operationalize practically. We ensure a multi-round task for every data sample, where the agent continuously receives information and adapts towards the environment. This differs from most existing agent benchmarks that consist of a significant portion of single-round examples\jh{plz check if this is true, and add citation}; (3) \emph{partially-observable environments} means that the complete state of the environment is not available to the agent, and should be incorporated to assess agent world modeling ability as additional knowledge needs to be acquired through online exploration \citep{wang2023voyager}. We make sure that all our environments are partially available to represent realistic scenarios, which stands in contrast with the ``pseudo'' agent tasks\jh{cite some benchmarks here that consists of these pseudo tasks} derived from conventional benchmarks in fully-observable environments such as \jh{give one or two examples, gsm8k?}; 
+
+% In response to the existing challenges within agent evaluation, we present \BenchName, a fine-grained evaluation framework for multi-turn interactive LLM agents across a spectrum of challenging environments. As shown in Figure \ref{fig:overall illustration}, \BenchName incorporates 9 unique tasks with 1013 exemplary environments. Each environment, whether newly created or modified from pre-existing ones, is carefully crafted and authenticated by humans, adhering to the previously stated principles. Furthermore, we position \BenchName as a systematic evaluation: It includes a user-friendly script for constructing goal-oriented reflex agents based on current state-of-the-art language models and features a panel for visualizing and interpreting metrics in comparison to baseline models. Moreover, it provides an interpretable analysis of multiple dimensions of agent abilities.
+
+
+% This principle is especially crucial for benchmarking pre-trained models as their knowledge is embedded in parameters and hard to replenish. 
+% Fourth, \textit{fine-grained progress metrics} are necessary to track stage-wise progress and differentiate performance among LLM models, emphasizing their unique ability to break complex goals into manageable subgoals \citep{wei2022chain}
+% such as a culinary agent should remove food from the stove since feedback show that the food is burnt 
+% In response to the existing challenges within agent evaluation, we present \BenchName, a fine-grained evaluation framework for multi-turn interactive LLM agents across a spectrum of challenging environments. 
+% As shown in Figure \ref{fig:overall illustration}, \BenchName incorporates 9 unique tasks with 1013 exemplary environments. Each environment, whether newly created or modified from pre-existing ones, is carefully crafted and authenticated by humans, adhering to the previously stated principles. Furthermore, we position \BenchName as a systematic evaluation: It includes a user-friendly script for constructing goal-oriented reflex agents based on current state-of-the-art language models and features a panel for visualizing and interpreting metrics in comparison to baseline models. Moreover, it provides an interpretable analysis of multiple dimensions of agent abilities.
+
+% identify principles for constructing a benchmark to evaluate LLM as generalist agents, as shown in Table \ref{table: dataset_comparison}. First, \textit{task diversity} is required to comprehensively understand the generalist ability of LLM agents \citep{reed2022generalist}, which is built upon LLM's extensive knowledge base and exceptional scenario comprehension. Second, a \textit{multi-round, interactive} paradigm \citep{wang2023mint} is necessary to reflect the evolutionary nature of human intelligence, which continuously receives information and adapts towards the environment, such as a culinary agent should remove food from the stove since feedback show that the food is burnt. Third, \textit{partially-observable} environments, where the complete state of the environment is not available to the agent, should be incorporated to assess agent world modeling ability as additional knowledge needs to be acquired through online exploration \citep{wang2023voyager}. This principle is especially crucial for benchmarking pre-trained models as their knowledge is embedded in parameters and hard to replenish. Fourth, \textit{fine-grained progress metrics} are necessary to track stage-wise progress and differentiate performance among LLM models, emphasizing their unique ability to break complex goals into manageable subgoals \citep{wei2022chain}. And finally, \textit{systematic evaluation}, including standarized prompting, systematic metric analysis, and user-friendly visualisation is essential in gaining a comprehensive understanding of an LLM-agent.
+
+
+% \begin{itemize}\setlength{\itemsep}{-2pt}
+%     \item \textbf{Embodied}: robot manipulation task in a given space. The interaction format is natural language. 
+%     \item \textbf{Game}: text-based games featuring fictional environments and challenging puzzles. The interaction format is natural language. 
+%     \item \textbf{Web}: including web shopping and web browsing. The interaction format is writing API calls. 
+%     \item \textbf{Tools}: using tools for answering factual questions and using tools as operators. The interaction format is writing API calls. 
+% \end{itemize}
+
+\begin{figure*}[!t]%
+    \centering
+    {\includegraphics[width=\linewidth]{figures/figure01.pdf} }%
+    \caption{The illustrative overview of \BenchName. \BenchName{} consists of a 9 diverse tasks.
+    Agents interact in multi-rounds with partially-observable environments to achieve each subgoal.
+    Furthermore, \BenchName{} provides an open-source analytical evaluation framework, as shown in the figure.}
+    \label{fig:overall illustration}%
+    \vspace{-6mm}
+\end{figure*}
+
+We evaluated a range of proprietary and open-weight LLM agents using \BenchName{}, obtaining insights into the current landscape of LLMs as agents. Key findings include: (1) GPT-4, unsurprisingly, outperforms all other models by exhibiting extensive proficiency across distinct agentic abilities 
+% while open-weight LLMs are catching up with commercial models, 
+with Llama3~\citep{touvron2023llama} and DeepSeek LLM~\citep{deepseekai2024deepseek}  taking the lead; (2) Strong LLM agents are characterized by their capability for \emph{multi-turn} interaction with the environment, an ability that is notably lacking in most open-weight models; 
+% -- open LLMs typically saturate after 6 rounds of interaction, 
+% while stronger LLMs like GPT-4 continue to improve with more interactions; 
+(3) Emergent agentic abilities are strongly dependent on basic abilities like grounding, world modeling, and self-reflection. Current proprietary models typically demonstrate comprehensive agentic abilities, while open-weight LLMs show varying deficiencies. 
+Through \BenchName{}, we highlight the importance of analytic evaluation of LLM agents. 
+% Recently,~\citet{ruan2024observational} use \BenchName{} to explore scaling laws and found that 
+% the agentic capabilities of advanced LLMs like GPT-4 can be accurately predicted from their smaller LLMs. 
+% Additionally, \BenchName{} 
+% assessments show a strong correlation between LLMs' agentic abilities and their performance on complex reasoning and coding tasks, resonating with our view on agentic abilities. 
+The detailed evaluations provided by \BenchName{} and its open-source toolkit are expected to significantly contribute to the further development of LLM agents.
+
+
+\input{tables/main_comparison}
+
+

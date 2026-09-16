@@ -1,0 +1,32 @@
+\documentclass[ocean-paper.tex]{subfiles}
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Reaction time}
+\label{appendix:reaction-time}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/action_offset_staleness_small.pdf}
+    \caption{\textbf{Reaction Time: } OpenAI Five observes four frames bundled together, so any surprising new information will become available at a random frame in the red region. 
+    The model then processes the observation in parallel while the game engine runs forward four more frames.
+    The soonest it can submit an action based on the red observations is marked in yellow.
+    This is between 5 and 8 frames (167-267ms) after the surprising event.
+    }
+    \label{fig:reaction-time}
+\end{figure}
+
+The \dota game engine runs at 30 steps per second so in theory a bot could submit an action every 33ms.
+Both to speed up our game execution and in order to bring reactions of our model closer to the human scale we downsample to every 4th frame, which we call {\it frameskip}.
+This yields an effective observation and action rate of 7.5 frames per second.
+To allow the model to take precisely timed actions, the action space includes a ``delay'' which indicates which frame during the frameskip the model wants this action to evaluate on.
+Thus the model can still take actions at a particular frame if so desired, although in practice we found that the model did not learn to do this and simply taking the action at the start of the frameskip was better.
+
+Moreover, we reduce our computational requirements by allowing the game and the machine learning model to run concurrently by asynchronously issuing actions with an {\it action offset}. 
+When the model receives an observation at time $T$, rather than making the game engine wait for the model to produce an action at time $T$, we let the game engine carry on running until it produces an observation at time $T+1$. 
+The game engine then sends the observation at time $T+1$ to the model, and by this time the model has produced its action choice based on the observation at time $T$.
+In this way the action which the model takes at time $T+1$ is based upon the observation at time $T$.
+In exchange for this penalty in available ``reaction time,'' we are able to utilize our compute resources much more efficiently by preventing the two major computations from blocking one another
+(see \autoref{fig:reaction-time}).
+
+Taken together, these effects mean that the agent can react to new information with a reaction time randomly distributed between 5 and 8 frames (167ms to 267ms), depending on when during the frameskip the new information happens to occur.
+For comparison, human reaction time has been measured at 250ms in controlled experimental settings\cite{jain2015reaction}. This is likely an underestimate of reaction time during a Dota game.
+\end{document}

@@ -1,0 +1,156 @@
+\section{prompt template and diverse role prompt}
+\label{appendix:prompt_template}
+
+The overall prompt template is shown in Table~\ref{tab:prompt_template}, we draw inspiration from~\cite{wu2023large} and design several different role descriptions as follows.
+
+\textbf{General Public}
+\textit{You are now General Public, one of the referees in this task. You are interested in the story and looking for updates on the investigation. Please think critically by yourself and note that it's your responsibility to choose one of which is the better first.}
+
+\textbf{Critic}
+\textit{You are now Critic, one of the referees in this task. You will check fluent writing, clear sentences, and good wording in summary writing. Your job is to question others judgment to make sure their judgment is well-considered and offer an alternative solution if two responses are at the same level.}
+
+\textbf{News Author}
+\textit{You are News Author, one of the referees in this task. You will focus on the consistency with the original article. Please help other people to determine which response is the better one.}
+
+
+\textbf{Psychologist}
+\textit{You are Psychologist, one of the referees in this task. You will study human behavior and mental processes in order to understand and explain human behavior. Please help other people to determine which response is the better one.}
+
+\textbf{Scientist}
+\textit{You are Scientist, one of the referees in this task. You are a professional engaged in systematic study who possesses a strong background in the scientific method, critical thinking, and problem-solving abilities. Please help other people to determine which response is the better one.}
+
+
+
+
+\begin{table}[hbpt!]
+
+\begin{tcolorbox}
+
+{
+% \fontfamily{cmtt}\selectfont
+
+[Question]
+
+\textcolor[rgb]{0,0,0.9}{\{source\_text\}}
+
+[The Start of Assistant 1’s Answer]
+
+\textcolor[rgb]{0,0,0.9}{\{compared\_text\_one\}}
+
+[The End of Assistant 1’s Answer]
+
+[The Start of Assistant 2’s Answer]
+
+\textcolor[rgb]{0,0,0.9}{\{compared\_text\_two\}}
+
+[The End of Assistant 2’s Answer]
+
+[System]
+
+We would like to request your feedback on the performance of two AI assistants in response to the user question displayed above.
+
+Please consider the helpfulness, relevance, accuracy, and level of detail of their responses.
+
+Each assistant receives an overall score on a scale of 1 to 10, where a higher score indicates better overall performance.
+
+There are a few other referees assigned the same task, it's your responsibility to discuss with them and think critically before you make your final judgment.
+
+Here is your discussion history:
+
+\textcolor[rgb]{0,0,0.9}{\{chat\_history\}}
+
+\textcolor[rgb]{0,0,0.9}{\{role\_description\}}
+
+Now it's your time to talk, please make your talk short and clear,
+\textcolor[rgb]{0,0,0.9}{\{agent\_name\}} !
+}
+\end{tcolorbox}
+\caption{The prompt template for FairEval Dataset. We replace the colored slot with real text before querying the LLMs. Note that we use the same template when conducting single-agent-based experiments and ignore the chat history and role description slot.  }
+% After each turn's output, a system prompt is concatenated to emphasize the role prompt and contents in the [System] above.}
+\label{tab:prompt_template}
+\end{table}
+
+
+
+
+\section{formal depiction of different communication strategy}
+\label{appendix:algorithm}
+
+% \incmargin{1em}
+% \restylealgo{boxed}\linesnumbered
+\begin{algorithm}
+\SetKwInOut{Input}{input}
+\SetKwInOut{Output}{output}
+\caption{One-by-One}
+\Input{agents number $N$, discuss turn $T$, a group of debate agents $[D_1,\cdots,D_N]$, chat history of each agent $[H_1,\cdots,H_N]$, answer\_extracter (either majority vote or average score) $EXT$}
+\Output{Final results for text evaluation $ANS$}
+\BlankLine
+\For{$t\leftarrow 0$ \KwTo $T$}{
+\For{$n\leftarrow 1$ \KwTo $N$}{
+
+$h_n$ $\leftarrow$ $D_n(H_n)$\;\tcp{utilize agents to generate responses}
+\For{$m\leftarrow n$ \KwTo $N$}{
+    \If{$m$ $>$ 1}{
+    $H_m \leftarrow H_m + h_n$\;\tcp{concatenate current response to later agents' chat history}
+    }
+    }
+}
+}
+$ANS$ $\leftarrow$ $EXT$($[H_1,\cdots,H_N]$)\;
+\Return $ANS$\;
+\label{algo:one by one}
+\end{algorithm}
+% \decmargin{1em}
+
+
+
+
+\begin{algorithm}
+\SetKwInOut{Input}{input}
+\SetKwInOut{Output}{output}
+\caption{Simultaneous-Talk}
+\Input{agents number $N$, discuss turn $T$, a group of debate agents $[D_1,\cdots,D_N]$, chat history of each agent $[H_1,\cdots,H_N]$, answer\_extracter (either majority vote or average score) $EXT$, buffer $BUF$}
+\Output{Final results for text evaluation $ANS$}
+\BlankLine
+\For{$t\leftarrow 0$ \KwTo $T$}{
+\For{$n\leftarrow 1$ \KwTo $N$}{
+
+$h_n$ $\leftarrow$ $D_n(H_n)$\;\tcp{utilize agents to generate responses}
+$buf$ $\leftarrow$ $buf + h_n$\;\tcp{add the responses in current turn to the buffer}
+
+}
+\For{$n\leftarrow 1$ \KwTo $N$}{
+    $H_n$ $\leftarrow$ $H_n + buf$\;\tcp{add the buffer to all agents' chat history}
+    }
+}
+$ANS$ $\leftarrow$ $EXT$($[H_1,\cdots,H_N]$)\;
+\Return $ANS$\;
+\label{algo:simultaneuous}
+\end{algorithm}
+
+
+
+
+\begin{algorithm}[t]
+\SetKwInOut{Input}{input}
+\SetKwInOut{Output}{output}
+\caption{Simultaneous-Talk-with-Summarizer}
+\Input{agents number $N$, discuss turn $T$, a group of debate agents $[D_1,\cdots,D_N]$, chat history of each agent $[H_1,\cdots,H_N]$, answer\_extracter (either majority vote or average score) $EXT$, buffer $BUF$, summarizer $SUM$}
+\Output{Final results for text evaluation $ANS$}
+\BlankLine
+\For{$t\leftarrow 0$ \KwTo $T$}{
+\For{$n\leftarrow 1$ \KwTo $N$}{
+
+$h_n$ $\leftarrow$ $D_n(H_n)$\;\tcp{utilize agents to generate responses}
+$buf$ $\leftarrow$ $buf + h_n$\;\tcp{add the responses in current turn to the buffer}
+
+}
+\For{$n\leftarrow 1$ \KwTo $N$}{
+    $H_n$ $\leftarrow$ $H_n + SUM(BUF)$\;\tcp{add the summarized buffer to all agents' chat history}
+    }
+}
+$ANS$ $\leftarrow$ $EXT$($[H_1,\cdots,H_N]$)\;
+\Return $ANS$\;
+\label{algo:simultaneuous with summarizer}
+\end{algorithm}
+

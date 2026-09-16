@@ -1,0 +1,595 @@
+\appendix
+\onecolumn % The $\mathtt{\backslash onecolumn}$ command above can be kept in place if you prefer a one-column appendix, or can be removed if you prefer a two-column appendix.  Apart from this possible change, the style (font size, spacing, margins, page numbering, etc.) should be kept the same as the main body.
+
+\section*{Organization of Appendix}
+
+The appendix is organized as follows: 
+in Section \ref{sec:fc-deep-dive} further details about failure categories and failure modes are given, 
+in Section \ref{appendix:mas-with-annotated-traces-appendix} we provide some details about the multi-agent systems we have annotated and studied, 
+in Section \ref{sec:python_library} we describe how to use the \taxonomy{} easily as a python library using \verb|pip install|,
+in Section \ref{sec:programdev} we describe the tasks in ProgramDev and ProgramDev-v2 Datsaet,
+in Section \ref{appendix:mas-failure-modes-corr} we plot the correlations between MAS failure modes, 
+in Section \ref{sec:failure_across_model} we analyze the failure comparison between models and MAS,
+in Section \ref{sec:better-mas} we discuss some tactical approaches and structural strategies to make MASs more robust to failures, 
+in Section \ref{sec:case-studies} we present two case studies where we show that tactical approaches can get only limited results,
+in Section \ref{sec:analysis_on_opensource_models} we present the failure mode distribution of the MAS frameworks powered by open-source language models,
+in Section \ref{sec:mast_correlations} we present the correlations of failure mode distribution with some crucial statistics such as task completion rates and different benchmarks,
+in Section \ref{sec:llm_judge_cost} we present the cost breakdown of LLM Annotator used in this paper for different MAS frameworks,
+in Sections \ref{appendix:ag2} and \ref{appendix:chatdev} there are prompt interventions we tested on AG2 and ChatDev case studies,
+in Section \ref{appendix:examples} examples of every failure mode are reported and commented. 
+
+\section{\taxonomy Failure Categories: Deep Dive}
+\label{sec:fc-deep-dive}
+%\melissa{revisit, I think we need to be a lot strict in terms of the boundary}
+%\Shuyi{I have already updated these sections, but let's do one last pass when the taxonomy is definitive because small changes in the titles could still happen.}
+
+\subsection{FC1. \fcI}
+% \Melissa{Need Update with new names}\Shuyi{Done on 16th March. Remember to update them in case of further modifications of MASFT.}
+
+This category includes failures that arise from deficiencies in the design of the system architecture, poor conversation management, unclear task specifications or violation of constraints, and inadequate definition or adherence to the roles and responsibilities of the agents.
+
+
+We identify five failure modes under this category:
+
+\begin{itemize}
+
+\item FM-1.1: \textbf{Disobey task specification} - Failure to adhere to the specified constraints or requirements of a given task, leading to suboptimal or incorrect outcomes.
+%This error occurs when an agent or system fails to adhere to specified constraints, guidelines, or requirements associated with a particular task. Non-compliance can result from unclear, incomplete, or ambiguous instructions provided by the user, system prompts, or task descriptions. It may also arise from an agent's inadequate ability to interpret or apply constraints effectively. Consequences of poor task constraint compliance include incorrect, suboptimal, or irrelevant outputs, reduced system performance and increased resource consumption.
+
+
+\item FM-1.2: \textbf{Disobey role specification} - Failure to adhere to the defined responsibilities and constraints of an assigned role, potentially leading to an agent behaving like another.
+
+\item FM-1.3: \textbf{Step repetition} - Unnecessary reiteration of previously completed steps in a process, potentially causing delays or errors in task completion.
+%Step repetition occurs when an agent or system unnecessarily repeats a phase, a task, a stage that have already been completed. Such redundancy can arise from inadequate state or context tracking, inefficient workflow management, unclear or ambiguous instructions, or failure to recognize completed tasks.
+
+\item FM-1.4: \textbf{Loss of conversation history} - Unexpected context truncation, disregarding recent interaction history and reverting to an antecedent conversational state.
+
+\item FM-1.5: \textbf{Unaware of termination conditions} - Lack of recognition or understanding of the criteria that should trigger the termination of the agents' interaction, potentially leading to unnecessary continuation. 
+
+\end{itemize}
+
+\subsection{FC2. Inter-Agent Misalignment}
+
+This category includes failures arising from ineffective communication, poor collaboration, conflicting behaviors among agents, and gradual derailment from the initial task.
+
+We identify six failure modes under this category:
+
+\begin{itemize}
+
+\item FM-2.1: \textbf{Conversation reset} - Unexpected or unwarranted restarting of a dialogue, potentially losing context and progress made in the interaction.
+
+\item FM-2.2: \textbf{Fail to ask for clarification} - Inability to request additional information when faced with unclear or incomplete data, potentially resulting in incorrect actions.
+
+\item FM-2.3: \textbf{Task derailment} - Deviation from the intended objective or focus of a given task, potentially resulting in irrelevant or unproductive actions.
+
+\item FM-2.4: \textbf{Information withholding} - Failure to share or communicate important data or insights that an agent possess and could impact decision-making of other agents if shared.
+%This error occurs when an agent or group of agents possesses critical information but fails to share it promptly or effectively with other agents or system components that rely upon this information for their operations. The failure to disseminate relevant information may arise from ineffective or insufficient communication protocols, erroneous assumptions regarding the relevance or priority of the information, inadequate system coordination mechanisms, or deliberate withholding stemming from overly restrictive privacy policies or security constraints. Consequences of withholding relevant information can be severe, potentially leading to reduced operational efficiency, increased latency in task completion, unnecessary redundant processing, incorrect or suboptimal decision-making, and even complete system failures. Additionally, this error can significantly impair collaborative effectiveness, leading to misunderstandings, mistrust, or inefficiencies within the multi-agent environment. Furthermore, initial failures due to withheld information can trigger cascading errors, amplifying the negative impact on overall system performance and reliability. For instance, consider a scenario where a bug localization agent identifies a software defect, accurately determining the affected file and specific line number. The intended process requires this agent to immediately report such detailed bug information to a coding or repair agent responsible for addressing and resolving the issue. However, if the bug localization agent instead attempts to fix the bug independently without sharing the vital bug identification details with the coding agent, this withholding of relevant information could lead to duplicated effort, delayed resolution, incorrect fixes, or further system instability.
+
+
+\item FM-2.5: \textbf{Ignored other agent's input} - Disregarding or failing to adequately consider input or recommendations provided by other agents in the system, potentially leading to suboptimal decisions or missed opportunities for collaboration.
+%Not properly considering input or recommendations provided by other agents in the system (ignore their suggestions), potentially leading to bad decisions, stalled progress, or missed opportunities for solving the task.
+
+
+\item FM-2.6: \textbf{Reasoning-action mismatch} - Discrepancy between the logical reasoning process and the actual actions taken by the agent, potentially resulting in unexpected or undesired behaviors.
+
+\end{itemize}
+
+
+\subsection{FC3. Task Verification}
+
+This category includes failures resulting from premature execution termination, as well as insufficient mechanisms to guarantee the accuracy, completeness, and reliability of interactions, decisions, and outcomes.
+
+We identify three failure modes under this category:
+
+\begin{itemize}
+
+\item FM-3.1: \textbf{Premature termination} - Ending a dialogue, interaction or task before all necessary information has been exchanged or objectives have been met, potentially resulting in incomplete or incorrect outcomes.
+
+\item FM-3.2: \textbf{No or incomplete verification} - (partial) omission of proper checking or confirmation of task outcomes or system outputs, potentially allowing errors or inconsistencies to propagate undetected.
+
+\item FM-3.3: \textbf{Incorrect verification} - Failure to adequately validate or cross-check crucial information or decisions during the iterations, potentially leading to errors or vulnerabilities in the system.
+
+\end{itemize}
+
+
+
+
+
+
+\newpage
+\section{Details of Multi-Agent Systems Evaluated}
+\label{appendix:mas-with-annotated-traces-appendix}
+
+In this section, we provide details on MAS we evaluated during this study and their performance benchmark evaluation. 
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.5\linewidth]{figures/multi_agent_systems_failure_rates.pdf}
+    \caption{Failure rates of six popular Multi-Agent LLM Systems with GPT-4o and Claude-3.7-Sonnet. Performances are measured on different benchmarks, therefore they are not directly comparable. 
+    }
+    % \Melissa{@shuyi - plz add openmanus, ty, and manus too. - ok leave for camera read or if reviwer complains.}
+    \label{fig:mas_failure_rate}
+\end{figure}
+
+\subsection{Overview of MAS}
+In this study, we evaluated 7 open-source frameworks. The architecture and the purpose of the systems is detailed in the table below.
+
+\begin{table*}[h]
+\vskip -0.15in
+\caption{Overview of MAS covered in \dataset{}} 
+\begin{center}
+\begin{small}
+\begin{tabular}{>{\centering\arraybackslash}m{2.8cm} >{\centering\arraybackslash}m{2.5cm} m{7.2cm}}
+%\begin{tabular}{m{2.5cm} m{2.5cm} >{\raggedright}p{7cm}}
+\toprule
+MAS & Agentic Architecture & Purpose of the System \\
+\midrule
+MetaGPT\newline\cite{hong2023metagpt} & Assembly Line & Simulating the SOPs of different roles in Software Companies to create open-ended software applications \\ \hline
+ChatDev\newline\cite{chatdev} & Hierarchical Workflow & Simulating different Software Engineering phases like (design, code, QA) through simulated roles in a software engineering company\\ \hline
+HyperAgent\newline\cite{phan2024hyperagent} & Hierarchical Workflow & Simulating a software engineering team with a central Planner agent coordinating with specialized child agents (Navigator, Editor, and Executor)\\ \hline
+AppWorld\newline\cite{trivedi2024appworld} & Star Topology & Tool-calling agents specialized to utility services (ex: Gmail, Spotify, etc.) being orchestrated by a supervisor to achieve cross-service tasks \\ \hline
+AG2\newline\cite{wu2024autogen} & N/A - Agentic Framework & An open-source programming framework for building agents and managing their interactions.  \\ \hline
+Magentic-One\newline\cite{fourney2024magentic} & Star Topology & A generalist multi-agent system designed to autonomously solve complex, open-ended tasks involving web and file-based environments across various domains.  \\ \hline
+OpenManus\newline\cite{openmanus2025} & Hierarchical & An open-source multi-agent framework designed to facilitate the development of collaborative AI agents that solve real-world tasks. It was inspired by the Manus AI agent. \\
+% Manus\newline\cite{manus} & n/a & A general AI agent platform. \\
+\bottomrule
+\end{tabular}
+\end{small}
+\label{tab:annotated-mas}
+\end{center}
+\vskip -0.2in
+\end{table*}
+
+
+\subsection{Multi-Agent Systems in the Initial Annotation Phase}
+
+\textit{\textbf{MetaGPT.}} MetaGPT \cite{hong2023metagpt} is a multi-agent system that simulates a software engineering company and involves agents such as a Coder and a Verifier. The goal is to have agents with domain-expertise (achieved by encoding Standard Operating Procedures of different roles into agents prompts) collaboratively solve a programming task, specified in natural language.
+
+\textit{\textbf{ChatDev.}}
+ChatDev is a generalist multi-agent framework that initializes different agents, each assuming common roles in a software-development company~\cite{qian2024chatdev}. The framework breaks down the process of software development into 3 phases: design, coding and testing. Each phase is divided into sub-tasks, for example, testing is divided into code review (static) and system testing (dynamic). In every sub-task, two agents collaborate where one of the agents acts as the orchestrator and initiates the interaction and the other acts as an assistant to help the orchestrator achieve the task. The 2 agents then hold a multi-turn conversation to achieve the goal stated by the orchestrator ultimately leading to the completion of the task, marked by a specific sentinel by either agents. ChatDev has the following agent roles: CEO, CTO, Programmer, Reviewer and Tester. ChatDev introduces ``Communicative Dehallucination'', which encourages the assistant to seek further details about the task over multiple-turns, instead of responding immediately.
+
+\textit{\textbf{HyperAgent.}} 
+HyperAgent \cite{phan2024hyperagent} is a framework for software engineering tasks organized around four primary agents: Planner, Navigator, Code Editor, and Executor. 
+These agents are enhanced by specialized tools, designed to provide LLM-interpretable output. 
+The Planner communicates with child agents via a standardized message format with two fields: Context (background and rationale) and Request (actionable instructions).
+Tasks are broken down into subtasks and published to specific queues. 
+Child agents, such as Navigator, Editor, and Executor instances, monitor these queues and process tasks asynchronously, enabling parallel execution and significantly improving scalability and efficiency. 
+For example, multiple Navigator instances can explore different parts of a large codebase in parallel, the Editor can apply changes across multiple files simultaneously, and the Executor can run tests concurrently, accelerating validation.
+
+\textit{\textbf{AppWorld.}}
+AppWorld is a benchmark, that provides an environment with elaborate mocks of various everyday services like eShopping Website, Music Player, Contacts, Cost-sharing app, e-mail, etc~\cite{trivedi2024appworld}. The benchmark consists of tasks that require executing APIs from multiple services to achieve the end-users tasks. The AppWorld benchmark provides a ReAct based agent over GPT-4o as a strong baseline. We create a multi-agent system over AppWorld derived from the baseline ReAct agent, where each agent specializes in using one of the services mocked in AppWorld, with detailed instructions about the APIs available in that service, and access to the documentation for that specific service. A supervisor agent receives the task instruction to be completed, and can hold one-on-one multi-turn conversations with each of the service-specific agents. The service-agents are instructed to seek clarification with the supervisor, whenever required. The supervisor agent holds access to various information about the human-user, for example, credentials to access various services, name, email-id and contact of the user, etc, which the service-agents need to access the services, and must clarify with the supervisor agent.
+
+\textit{\textbf{AG2.}} AG2 (formerly AutoGen) \cite{wu2023autogen} is an open-source programming framework for building agents and managing their interactions. 
+With this framework, it is possible to build various flexible conversation patterns, integrating tools usage and customizing the termination strategy. 
+
+\subsection{Closed-Source MAS}
+In our efforts to build a comprehensive dataset, we also explore popular closed-source platforms that are speculated to function as MAS. A notable example is Manus \cite{manus}, a general AI agent platform. However, evaluating and incorporating such systems into \dataset{} for fine-grained failure analysis presents significant challenges. Specifically, with systems like Manus, the underlying language model is often not disclosed, and more critically, the platforms may not provide access to full agent execution traces. This lack of transparency into the internal conversational and operational steps makes reliable, detailed failure annotation using \taxonomy{} infeasible. While we conduct human evaluation of task correctness for some closed-source systems (for instance, Manus achieves a 60\% success rate on our ProgramDev benchmark), the absence of comprehensive trace data prevents their inclusion in the primary \dataset{} which focuses on deeply annotated failure dynamics. Our focus for \dataset{} thus remains on systems where such trace analysis can yield robust insights.
+
+% \subsection{MAS with at least 5 human annotated traces} % \Melissa{Update number}
+
+% \textit{\textbf{AutoKaggle.}}
+% AutoKaggle is a multi-agent framework designed to solve data science competitions, popularly held on Kaggle, autonomously~\cite{li2024autokaggle}. Similar to ChatDev above, AutoKaggle has a phase-based workflow. It divides the data science competition process into six key phases: background understanding, preliminary exploratory data analysis, data cleaning (DC), in-depth exploratory data analysis, feature engineering (FE), and model building, validation, and prediction (MBVP). AutoKaggle consists of 5 specialized agents: Reader, Planner, Developer, Reviewer and Summarizer. In each phase, a subset of these agents are active and work in sequence to complete the phase. The reader agent finds information relevant to the task, by reading the summary from the previous phase and makes observations about the current phase and includes them in an overview. The planner uses the overview to generate a plan to complete the current phase. Next, the developer agent uses tools like code execution, debugger and unit tests to write the code. AutoKaggle also provides a comprehensive set of machine learning tools, abstracting away complex code that would be required to perform compound data processing tasks like ``FillMissingValues'' into simple API calls that AutoKaggle agents can generate. The reviewer then provides feedback. Finally, the summarizer agent writes a detailed summary of the phase execution including changes (addition/deletions) to the data, and this summary is then passed to the next phase.
+
+% \textit{\textbf{Multi-Agent Peer Review.}} Multi-Agent Peer Review \cite{xu2023towards} is a collaboration strategy where each agent independently constructs its own solution, peer-reviews the solutions of others, and assigns confidence levels to its reviews. 
+% Upon receiving peer reviews, agents revise their initial solutions, and the final prediction is determined through a majority vote among the n participating agents. 
+
+% \textit{\textbf{MA-ToT.}} Multi-Agent Tree of Thoughts leverage the strengths of both multi-agent reasoning and Tree of Thoughts (ToT) strategies. In this system, multiple Reasoner agents operate in parallel, employing ToT to explore diverse reasoning paths. 
+% Then, a Thought Validator verifies these paths and promotes valid reasonings. 
+
+\newpage
+
+\input{14_pip_library}
+
+\section{ProgramDev and ProgramDev-v2 Datasets}
+\label{sec:programdev}
+
+The ProgramDev dataset contains 30 coding problems \footnote{\url{https://github.com/multi-agent-systems-failure-taxonomy/MAST/blob/main/traces/programdev/programdev_dataset.json}}. These tasks are programming challenges, such as implementing Tic-Tac-Toe, Chess, or Sudoku, for which abundant solutions and descriptions are readily available online. We design ProgramDev with tasks intended to be relatively straightforward for MAS, rather than exceptionally difficult, to better isolate specific failure dynamics. We later extend this to ProgramDev-v2, a 100-problem dataset developed primarily for the comparative analyses of MAS architectures and underlying LLMs presented in Figure~\ref{fig:underlying_llm_effect}.
+
+\newpage
+\section{MAS Failure Modes Correlation}
+\label{appendix:mas-failure-modes-corr}
+We evaluate \taxonomy{}'s effectiveness based on three key aspects: its generalization to unseen systems and datasets, the balanced distribution of identified failures, and the distinctiveness of its failure categories. This section details the correlation analysis. 
+
+% \textbf{Balanced Distribution.} The distribution of failures across \taxonomy{}'s categories is relatively balanced (FC1: 41.77\%, FC2: 36.94\%, FC3: 21.30\%, Figure~\ref{fig:taxonomy}).
+% The absence of a single dominant category suggests \taxonomy{} provides balanced coverage and captures diverse failure types, rather than reflecting biases from specific system designs. Furthermore, the distinct failure profiles observed across different MAS (Figure~\ref{fig:mas_failure_bar})
+% highlight \taxonomy{}'s ability to capture system-specific characteristics, such as AppWorld suffers with premature terminations (FM-3.1) and OpenManus suffers from step repetition (FM-1.3).
+% \melissa{also consider removing as people argue that a balance tax != a good tax}
+
+Figure~\ref{fig:mas_failure_cat_corr} shows low correlations (0.17-0.32). This suggests that the categories capture distinct aspects of MAS failures with limited overlap, supporting the taxonomy's structure. This distinctiveness is crucial because, as noted in Insight 2, failures with similar surface behaviors can stem from different root causes (e.g., memory management vs. agent coordination). 
+
+Although \taxonomy{}'s fine-grained nature helps differentiate root cause, it also poses a challenge for our LLM annotator. Analyzing correlations between specific failure modes (see Appendix~\ref{appendix:mas-failure-modes-corr} for Figure~\ref{fig:mas_failure_modes_corr})
+shows moderate correlations (max of 0.63) between modes with similar symptoms might lead automated evaluators to conflate distinct root causes.
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.5\linewidth]{figures/masft_fc_corr.pdf}
+    \caption{MAS failure modes correlation matrix}
+    \label{fig:mas_failure_cat_corr}
+\end{figure}
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/masft_fm_corr.pdf}
+    \caption{MAS failure modes correlation matrix}
+    \label{fig:mas_failure_modes_corr}
+\end{figure}
+
+
+
+
+\newpage
+\input{10_mast_analysis}
+
+
+
+
+
+
+
+\newpage
+\input{09_solutions}
+
+
+
+\newpage
+\input{11_qwen_coder}
+
+\input{12_failure_mode_task_success_correlation}
+
+\input{13_llm_judge_cost}
+
+
+\newpage
+\section{AG2 - MathChat Scenario}
+\label{appendix:ag2}
+
+\subsection{Initial prompt}
+\label{sec:ag2-mathchat-original-prompt}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+Let's use Python to solve a math problem.
+
+Query requirements:
+You should always use the 'print' function for the output and use fractions/radical forms instead of decimals.
+You can use packages like sympy to help you.
+You must follow the formats below to write your code:
+
+```python
+# your code
+```
+
+First state the key idea to solve the problem. You may choose from three ways to solve the problem:
+Case 1: If the problem can be solved with Python code directly, please write a program to solve it. You can enumerate all possible arrangements if needed.
+Case 2: If the problem is mostly reasoning, you can solve it by yourself directly.
+Case 3: If the problem cannot be handled in the above two ways, please follow this process:
+1. Solve the problem step by step (do not over-divide the steps).
+2. Take out any queries that can be asked through Python (for example, any calculations or equations that can be calculated).
+3. Wait for me to give the results.
+4. Continue if you think the result is correct. If the result is invalid or unexpected, please correct your query or reasoning.
+
+After all the queries are run and you get the answer, put the answer in \\boxed{}.
+
+Problem:
+\end{lstlisting}
+
+
+\subsection{Structured prompt with verification section}
+\label{sec:ag2-mathchat-improved-prompt}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+Let's use Python to tackle a math problem effectively.
+
+Query Requirements:
+1. Output Format: Always utilize the print function for displaying results. Use fractions or radical forms instead of decimal numbers.
+2. Libraries: You are encouraged to use packages such as sympy to facilitate calculations.
+
+Code Formatting:
+Please adhere to the following format when writing your code:
+```python
+# your code
+```
+
+Problem-Solving Approach:
+First, articulate the key idea or concept necessary to solve the problem. You can choose from the following three approaches:
+Case 1: Direct Python Solution. If the problem can be solved directly using Python code, write a program to solve it. Feel free to enumerate all possible arrangements if necessary.
+Case 2: Reasoning-Based Solution. If the problem primarily involves reasoning, solve it directly without coding.
+Case 3: Step-by-Step Process. If the problem cannot be addressed using the above methods, follow this structured approach:
+1. Break down the problem into manageable steps (avoid excessive granularity).
+2. Identify any queries that can be computed using Python (e.g., calculations or equations).
+3. Await my input for any results obtained.
+4. If the results are valid and expected, proceed with your solution. If not, revise your query or reasoning accordingly.
+
+Handling Missing Data:
+If a problem is deemed unsolvable due to missing data, return \boxed{'None'}. 
+Ensure that only numerical values are placed inside the \boxed{}; any accompanying words should be outside.
+
+Verification Steps:
+Before presenting your final answer, please complete the following steps:
+1. Take a moment to breathe deeply and ensure clarity of thought.
+2. Verify your solution step by step, documenting each part of the verification process in a designated VERIFICATION section.
+3. Once you are confident in your verification and certain of your answer, present your final result in the format \boxed{_you_answer_}, ensuring only numbers are inside.
+
+Problem Statement: 
+\end{lstlisting}
+
+
+\subsection{Agent Problem Solver's System Prompt}
+\label{sec:ag2-mathchat-new-topology-problem-solver}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+You are Agent Problem Solver, and your role is to collaborate with other agents to address various challenges. 
+
+For each problem, please follow these steps:
+1. **Document Your Solution**: Write your solution step by step, ensuring it is independent of the solutions provided by other agents.
+2. **Engage in Discussion**: Once you have outlined your solution, discuss your approach and findings with the other agents.
+\end{lstlisting}
+
+
+\subsection{Agent Coder's System Prompt}
+\label{sec:ag2-mathchat-new-topology-coder}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+You are Agent Code Executor. You can solve problems only writing commented Python code.
+
+For each problem, please follow these steps:
+1. **Develop Your Solution**: Write your solution in Python code, detailing each step independently from the solutions provided by other agents.
+2. **Utilize SymPy**: Feel free to use the SymPy package to facilitate calculations and enhance your code's efficiency.
+3. **Display Results**: Ensure that you **print the final result at the end of your Python code** (e.g., `print(_result_)`).
+4. **Engage in Discussion**: After obtaining the result from your Python code, discuss your findings with the other agents.
+
+Always format your Python code within: 
+```python
+# your code here
+print(_result_)
+``` 
+
+If you wish to execute your code, please indicate this by stating "SUGGESTED NEXT SPEAKER: Agent Code Executor" at the end of your message.
+\end{lstlisting}
+
+
+\subsection{Agent Verifier's System Prompt}
+\label{sec:ag2-mathchat-new-topology-verifier}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+You are Agent Verifier.    
+
+Your role is to critically evaluate the solutions proposed by other agents step by step and provide a final solution. 
+1. **Solution Requirement**: Before making any decisions, ensure you have received solutions from both Agent Code Executor and Agent Problem Solver. If either proposed solution is missing, do not draw any conclusions; instead, suggest the next speaker by stating: SUGGESTED NEXT SPEAKER: _suggested_agent_name_.
+2. **Avoid Assumptions**: Pay attention to the variables provided in the original problem statement versus those assumed by the agents. **Assumed values are not valid for the solution** and can lead to inaccuracies. Never base your solution on assumed values. Always base your solution on the explicitly given variables to ensure correctness. If a problem is deemed unsolvable due to missing information, return: **SOLUTION_FOUND \\boxed{'None'}**.
+3. **Evaluating Conflicting Solutions**: If different answers are presented during the discussion, choose the most appropriate solution based on your evidence or initiate further discussion to clarify.
+4. **Final Solution Declaration**: When you are confident about the final solution, return it as follows: **SOLUTION_FOUND \\boxed{_solution_value_here_}**. Ensure that only numerical values are placed inside the \\boxed{}; any accompanying text should be outside.
+\end{lstlisting}
+
+
+\subsection{AG2 - MathChat: an example of conversation with three specialized agents}
+\label{sec:ag2-mathchat-new-topology-example}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+[Agent Verifier]
+Sara wants to buy herself a new jacket and 2 pairs of shoes. The jacket she wants costs $120 and each pair of shoes cost $100. Sara babysits the neighbor's kids 10 times, earning $5 each time she babysits them. Her parents pay her $10 each time she mows the lawn. If Sara already had $100 saved before she started babysitting, how many times must she mow the lawn before she can afford the jacket and shoes?
+
+[Agent Problem Solver]
+First, let's break down the problem:,
+- The costs are: $120 for the jacket, $100 for each pair of shoes, and she wants 2 pairs. So the total cost is $120 + 2*$100 = $320,
+- Sara earns $5 each time she babysits, and she has done this 10 times, so she has earned $5*10 = $50 from babysitting.
+- Sara also has $100 saved from before.
+- The amount Sara has after babysitting and her savings is $100 + $50 = $150.
+- The amount Sara still needs is the total cost minus what she has, which is $320 - $150 = $170.
+- Sara earns $10 for every time she mows the lawn, to determine how many times she must do this, we divide the amount she needs by the amount she earns each time: $170 / $10 = 17 times.
+So, Sara must mow the lawn 17 times to afford the jacket and shoes.
+
+[Agent Verifier]
+SUGGESTED NEXT SPEAKER: Agent_Code_Executor
+
+[Agent Coder]
+Sure, I'll write a Python code for the calculation.
+```python
+# cost of items
+jacket_cost = 120
+shoes_cost = 100 * 2  # since she wants 2 pairs of shoes
+# total cost of items
+total_cost = jacket_cost + shoes_cost
+# earnings from babysitting
+babysitting_earning = 5 * 10  # $5 each time, done 10 times
+# initial money
+initial_money = 100
+# total money after babysitting
+total_money_after_babysitting = initial_money + babysitting_earning
+# amount still needed
+amount_needed = total_cost - total_money_after_babysitting
+# how much sara earns from mowing each time
+mowing_earning = 10
+# calculate how many times she needs to mow the lawn
+num_times_mowing = amount_needed // mowing_earning  # using integer division for whole number of times
+# print result
+print(num_times_mowing)
+```
+When you execute this, the result should be 17, confirming Agent Problem Solver's solution.
+
+[Agent Verifier]
+exitcode: 0 (execution succeeded)
+Code output: 17
+
+[Agent Problem Solver]
+Agent Code Executor's Python program has provided the solution - Sara must mow the lawn 17 times to afford the jacket and shoes, which supports Agent Problem Solver's proposal. Both paths lead us to the same conclusion, which approves the accuracy of our solution. 
+Great team work, Agents.
+
+[Agent Verifier]
+SOLUTION_FOUND \\boxed{17}
+\end{lstlisting}
+
+
+
+
+
+
+
+
+
+
+\newpage
+\section{ChatDev Prompt Interventions}
+\label{appendix:chatdev}
+
+
+\subsection{Initial Prompt}
+\label{appendix:chatdev_inits}
+
+\subsubsection{Programmer}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+"{chatdev_prompt}",
+    "You are Programmer. we are both working at ChatDev. We share a common interest in collaborating to successfully complete a task assigned by a new customer.",
+    "You can write/create computer software or applications by providing a specific programming language to the computer. You have extensive computing and coding experience in many varieties of programming languages and platforms, such as Python, Java, C, C++, HTML, CSS, JavaScript, XML, SQL, PHP, etc,.",
+    "Here is a new customer's task: {task}.",
+    "To complete the task, you must write a response that appropriately solves the requested instruction based on your expertise and customer's needs."
+ 
+\end{lstlisting}
+\subsubsection{Code Reviewer}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+"{chatdev_prompt}",
+    "You are Code Reviewer. we are both working at ChatDev. We share a common interest in collaborating to successfully complete a task assigned by a new customer.",
+    "You can help programmers to assess source codes for software troubleshooting, fix bugs to increase code quality and robustness, and offer proposals to improve the source codes.",
+    "Here is a new customer's task: {task}.",
+    "To complete the task, you must write a response that appropriately solves the requested instruction based on your expertise and customer's needs."
+
+\end{lstlisting}
+\subsubsection{Software Test Engineer}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+  "{chatdev_prompt}",
+    "You are Software Test Engineer. we are both working at ChatDev. We share a common interest in collaborating to successfully complete a task assigned by a new customer.",
+    "You can use the software as intended to analyze its functional properties, design manual and automated test procedures to evaluate each software product, build and implement software evaluation test programs, and run test programs to ensure that testing protocols evaluate the software correctly.",
+    "Here is a new customer's task: {task}.",
+    "To complete the task, you must write a response that appropriately solves the requested instruction based on your expertise and customer's needs."
+ 
+\end{lstlisting}
+\subsubsection{Chief Executive Officer}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+"{chatdev_prompt}",
+    "You are Chief Executive Officer. Now, we are both working at ChatDev and we share a common interest in collaborating to successfully complete a task assigned by a new customer.",
+    "Your main responsibilities include being an active decision-maker on users' demands and other key policy issues, leader, manager, and executor. Your decision-making role involves high-level decisions about policy and strategy; and your communicator role can involve speaking to the organization's management and employees.",
+    "Here is a new customer's task: {task}.",
+    "To complete the task, I will give you one or more instructions, and you must help me to write a specific solution that appropriately solves the requested instruction based on your expertise and my needs."
+    
+\end{lstlisting}
+\subsubsection{Chief Technology Officer}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+ "{chatdev_prompt}",
+    "You are Chief Technology Officer. we are both working at ChatDev. We share a common interest in collaborating to successfully complete a task assigned by a new customer.",
+    "You are very familiar to information technology. You will make high-level decisions for the overarching technology infrastructure that closely align with the organization's goals, while you work alongside the organization's information technology (\"IT\") staff members to perform everyday operations.",
+    "Here is a new customer's task: {task}.",
+    "To complete the task, You must write a response that appropriately solves the requested instruction based on your expertise and customer's needs."
+ 
+\end{lstlisting}
+\subsection{Modified System Prompts}
+
+\subsubsection{Programmer}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+ "{chatdev_prompt}",
+      "You are a Programmer at ChatDev. Your primary responsibility is to develop software applications by writing code in various programming languages. You have extensive experience in languages such as Python, Java, C++, JavaScript, and others. You translate project requirements into functional and efficient code.",
+      "You report to the technical lead or CTO and collaborate with other programmers and team members.",
+      "Here is a new customer's task: {task}.",
+      "To complete the task, you will write code to implement the required functionality, ensuring it meets the customer's specifications and quality standards."
+
+\end{lstlisting}
+\subsubsection{Software Test Engineer}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+ "{chatdev_prompt}",
+      "You are a Software Test Engineer at ChatDev. Your primary responsibility is to design and execute tests to ensure the quality and functionality of software products. You develop test plans, create test cases, and report on software performance. You identify defects and collaborate with the development team to resolve them.",
+      "You need to ensure that the software is working as expected and meets the customer's requirements.",
+      "Check the edge cases and special cases and instances for the task we are doing. Do not miss any cases. Do not suffice with generic and superficial cases.",
+      "You report to the technical lead or CTO and collaborate with programmers and code reviewers.",
+      "Here is a new customer's task: {task}.",
+      "To complete the task, you will design and implement test procedures, report issues found, and verify that the software meets the customer's requirements."
+
+\end{lstlisting}
+\subsubsection{Code Reviewer}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+"{chatdev_prompt}",
+      "You are a Code Reviewer at ChatDev. Your primary responsibility is to review and assess source code written by programmers. You ensure code quality by identifying bugs, optimizing performance, and enforcing coding standards. You provide constructive feedback to improve software robustness.",
+      "You report to the technical lead or CTO and work closely with programmers.",
+      "Here is a new customer's task: {task}.",
+      "To complete the task, you will review the code submitted by programmers, identify issues, and suggest improvements to meet quality standards."
+
+\end{lstlisting}
+\subsubsection{Chief Executive Officer}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+"{chatdev_prompt}",
+      "You are the Chief Executive Officer (CEO) of ChatDev. Your primary responsibilities include making high-level decisions about policy and strategy, overseeing the overall operations and resources of ChatDev, and acting as the main point of communication between the board and corporate operations.",
+      "As the CEO, you have the authority to make final decisions and terminate conversations when appropriate.",
+      "Here is a new customer's task: {task}.",
+      "To complete the task, you will provide strategic guidance and instructions to your team, ensuring that the solution meets the customer's needs and aligns with the company's objectives."
+
+\end{lstlisting}
+\subsubsection{Chief Technology Officer}
+\begin{lstlisting}[
+    basicstyle=\footnotesize\ttfamily,
+    columns=flexible,
+    breaklines=true
+]
+ "{chatdev_prompt}",
+      "You are the Chief Technology Officer (CTO) of ChatDev. Your primary responsibilities include overseeing all technical aspects of the company. You establish the company's technical vision and lead technological development, ensuring that technology resources align with the company's business needs.",
+      "You report to the CEO and collaborate with other executives to integrate technology into the company's strategy.",
+      "Here is a new customer's task: {task}.",
+      "To complete the task, you will develop the technical strategy and guide your team to ensure the solution meets the customer's needs and adheres to technological standards."
+
+\end{lstlisting}
+
+
+% \newpage
+% \section{ProgramDev}
+% \melissa{here we also release ProgramDev task for full transparency. ProgramDev is intended to be a task that university level CS student should be able to implement with open access to internet. However, the model struggle to implement. etc...}
+
+\newpage
+\input{99_failure_modes_examples}

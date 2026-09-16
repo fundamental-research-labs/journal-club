@@ -1,0 +1,960 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+\pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt]{article}
+
+% Remove the "review" option to generate the final version.
+\usepackage{ACL2023}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out.
+% However, it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{todonotes}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{tipa}
+\newcommand{\kaixin}[2][]{\todo[color=green,size=\scriptsize,fancyline,caption={},#1]{KM:#2}}
+\newcommand{\dai}[2][]{\todo[color=cyan,size=\scriptsize,fancyline,caption={},#1]{DAI:#2}}
+
+
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\title{%WebVoyager: A Comprehensive Framework for end-to-end Web Task Planning via Large Multimodal Model\\ Weblazer: Web Browsing Meets Large Multimodal Agents for Zero-shot Task Planning \\ 
+% Wenhao: Building end-to-end Web Generalist Agent via Large Multimodal Model
+WebVoyager \includegraphics[width=0.04\textwidth]{figures/emoji/v2.png}:
+% \includegraphics[width=0.04\textwidth]{figures/emoji/v3.png}
+Building an End-to-End Web Agent with 
+\\ Large Multimodal Models % wenhao
+% Wenhao: WebVoyager: Building Web Generalist Agent via Large Multimodal Model
+}
+
+% Author information can be set in various styles:
+% For several authors from the same institution:
+% \author{Author 1 \and ... \and Author n \\
+% Address line \\ ... \\ Address line}
+% if the names do not fit well on one line use
+% Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
+% For authors from different institutions:
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+% \And  ... \And
+% Author n \\ Address line \\ ... \\ Address line}
+% To start a seperate ``row'' of authors use \AND, as in
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+% \AND
+% Author 2 \\ Address line \\ ... \\ Address line \And
+% Author 3 \\ Address line \\ ... \\ Address line}
+
+% \author{First Author\\
+%   Affiliation / Address line 1 \\
+%   Affiliation / Address line 2 \\
+%   Affiliation / Address line 3 \\
+%   \texttt{email@domain} \\\And
+%   Second Author \\
+%   Affiliation / Address line 1 \\
+%   Affiliation / Address line 2 \\
+%   Affiliation / Address line 3 \\
+%   \texttt{email@domain} \\}
+
+\author{Hongliang He$^{1,3}$\thanks{\ \ Work done during the internship at Tencent AI Lab.} , 
+        Wenlin Yao$^{2}$, 
+        Kaixin Ma$^{2}$, 
+        Wenhao Yu$^{2}$, 
+        Yong Dai$^{2}$, \\ 
+        \textbf{Hongming Zhang}$^{2}$,
+        \textbf{Zhenzhong Lan}$^{3}$,
+        \textbf{Dong Yu}$^{2}$ \\
+        $^{1}$Zhejiang University,
+        $^{2}$Tencent AI Lab, 
+        $^{3}$Westlake University \\
+        % \texttt{\{hehongliang,lanzhenzhong\}@westlake.edu.cn},   \texttt{yongdai@tencent.com} \\
+        % \texttt{\{wenlinyao,kaixinma,wenhaowyu,hongmzhang,dyu\}@global.tencent.com}
+        \texttt{hehongliang@westlake.edu.cn}, \texttt{wenlinyao@global.tencent.com}
+    }
+
+\begin{document}
+\maketitle
+\begin{abstract}
+% Building large web agents to address web tasks holds practical significance as large models continue to advance. Recent web agents mainly focus on processing HTML of web pages, while neglecting the rendering capabilities of browsers. Most of them are also oriented toward offline and stepwise evaluation. We propose WebVoyager, a Large Multimodal Model (LMM) powered agent for online web navigation and end-to-end web task resolution. Based on the robust multimodal comprehension abilities of GPT-4V, WebVoyager adapts to various websites and completes tasks end-to-end with generalized natural language instruction. We develop an online environment for WebVoyager and collect tasks across 15 popular websites.  Our evaluation, comprising Human Evaluation and GPT-4V based auto-evaluation, focuses on the end-to-end Task Success Rate. Human Evaluation results highlight WebVoyager's effectiveness with a task success rate of 55.7\%, significantly outperforming GPT-4 (All Tools) and Text-only setting, thereby demonstrating the effectiveness of WebVoyager. Finally, we conduct a thorough error analysis to pave the way for further enhancements to WebVoyager. 
+
+
+% Wenhao version: + Kaixin revision 
+%The evolution of large language models (LLMs) is ushering an exciting era of autonomous real-world applications, spurring the innovative development of sophisticated web agents. 
+The rapid advancement of large language models (LLMs) has led to a new era marked by the development of autonomous applications in real-world scenarios, which drives innovation in creating advanced web agents.
+Existing web agents typically only handle one input modality and are evaluated only in simplified web simulators or static web snapshots, greatly limiting their applicability in real-world scenarios. %primarily focus on processing HTML content of web pages, often neglecting the vital visual information available online.
+To bridge this gap, we introduce WebVoyager, an innovative Large Multimodal Model (LMM) powered web agent that can complete user instructions end-to-end by interacting with real-world websites. %for online web navigation and end-to-end web task resolution.
+%Leveraging the robust multimodal comprehension capabilities of GPT-4V, WebVoyager excels in a diverse array of website scenarios, adeptly completing tasks through generating instructions for web-based task execution.
+%Moreover, we propose a new evaluation protocol for web agents to address the challenges of automatic evaluation of open-ended web agent tasks, leveraging the robust multimodal comprehension capabilities of GPT-4V. 
+%We also create a new benchmark by gathering real-world tasks from 15 widely used websites to evaluate web agents. 
+Moreover, we establish a new benchmark by compiling real-world tasks from 15 popular websites and introduce an automatic evaluation protocol leveraging multimodal understanding abilities of GPT-4V to evaluate open-ended web agents.
+We show that WebVoyager achieves a 59.1\% task success rate on our benchmark, significantly surpassing the performance of both GPT-4 (All Tools) and the WebVoyager (text-only) setups, underscoring the exceptional capability of WebVoyager.
+%We also create a new benchmark by gathering real-world tasks from 15 widely used websites to evaluate web agents. 
+The proposed automatic evaluation metric achieves 85.3\% agreement with human judgment, 
+%paving the way for further development of web agents in a real-world setting.
+indicating its effectiveness in providing reliable and accurate assessments of web agents.%\footnote{Our code and data will be released.}
+\footnote{Our code and data will be released at \url{https://github.com/MinorJerry/WebVoyager}}
+%Our evaluation strategy involves both human and GPT-4V-based assessments to measure the end-to-end task success rate. 
+%The results from human evaluation demonstrate WebVoyager's remarkable effectiveness, achieving an impressive 55.7\% task success rate. significantly surpassing the performance of both GPT-4 (All Tools) and the WebVoyager (text-only) setups, underscoring the exceptional capability of WebVoyager in practical applications. Finally, we conduct a thorough error analysis to pave the way for further advancement to WebVoyager. 
+
+
+
+\end{abstract}
+
+\section{Introduction}
+% The advancement of Large Language Models (LLMs), such as ChatGPT and GPT-4 \citep{openai2023gpt4}, has ignited researchers' enthusiasm for creating LLM-based autonomous agents \citep{Significant_Gravitas_AutoGPT} to employ tools and address complex tasks \citep{qin2023toolllm, schick2023toolformer}. WEB could be considered as a widely used tool, and an autonomous agent for online web navigation would serve as a powerful and meaningful assistant for individuals. Imagine the process of human web browsing, we do not directly access verbose HTML but interact with intuitive web elements and text, which allows for greater efficiency and accuracy. We posit that agents can mimic this human approach to enhance their proficiency in Web navigation. At Present, Large Multimodal Models (LMMs), particularly GPT-4V(ision) \citep{openai2023gpt4} and Gemini \citep{team2023gemini}, demonstrate a remarkable ability to integrate intricate visual cues with textual information, which provides feasibility for this concept.
+
+
+The recent advancement of large language models (LLMs), such as ChatGPT and GPT-4 \citep{openai2023gpt4}, have sparked significant interest in developing LLM-based autonomous agents~\citep{Significant_Gravitas_AutoGPT} for complex task execution \citep{qin2023toolllm, schick2023toolformer}. %However, Language-only agents cannot effectively utilize tools with rendering capabilities, such as web browsers. 
+%However, vision ability is essential for using tools like web browsers, as rendered web pages are designed for easy human reading and are more structured. 
+Recent studies have explored the construction of text-based web browsing environments and how to instruct large language model agents to perform web navigation \citep{nakano2021webgpt, gur2023real, zhou2023webarena, lu2023chameleon}. The primary challenge in these works lies in managing complex and verbose HTML texts, and solutions include simplifying and structuring HTML~\citep{nakano2021webgpt, zhou2023webarena,gur2023real,deng2023mind2web}.
+
+However, existing approaches overlook a critical functionality of browsing: rendering HTML into visual webpages. 
+Particularly, vision capability is crucial for utilizing tools such as web browsers, as rendered web pages are inherently designed with user experience (UX), emphasizing intuitive information and structured presentation. This design principle of rendering makes visual analysis more effective than mere HTML representation.
+At present, large multimodal models (LMMs), particularly GPT-4V(ision) \citep{openai2023gpt4} and Gemini \citep{team2023gemini}, demonstrate a remarkable ability to integrate intricate visual cues with textual information. %We posit that multimodal web agents may mimic humans behavior to enhance their proficiency in Web navigation.
+Existing studies such as Pix2Struct \citep{lee2023pix2struct} and WebArena \citep{zhou2023webarena}, have initiated explorations into using screenshots as inputs for decision-making in web navigation, yet these are preliminary and do not represent a deep exploration.
+Therefore, building multimodal web agents to leverage the environment rendered by browsers through screenshots, thus mimicking human web browsing behavior, is now a viable approach to enhance web navigation abilities.
+% and mimic how humans browse the web to enhance efficiency becomes feasible. % to enhance efficiency is proof-of-concept.
+%Solutions involve simplifying HTML with Mozilla’s Readability.js  \citep{nakano2021webgpt}, utilizing a streamlined Accessibility Tree \citep{zhou2023webarena}, and summarizing HTML into task-relevant snippets \citep{gur2023real}, etc. 
+%Yet, there remains requirements for further investigation to develop multimodal web navigation agents that are applicable across a wide range of websites. Additionally, most proposed autonomous web agents primarily focus on offline scenarios and environments, including training and evaluation.
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.8\linewidth]{figures/overall_process_crop.pdf}
+\caption{The overall workflow of WebVoyager. 
+%Humans assign web tasks to WebVoyager, which automatically browses the web online. 
+WebVoyager takes web tasks assigned by a human and automatically browses the web online.
+At each step, WebVoyager selects actions based on screenshots and text (the `type' of the web element and its contents). Once the task is completed, the answers will be returned to the user. For example, for a user query: "Find the cost of a 2-year protection for PS4 on Amazon.", the agent interacts with Amazon online, locates the PS4, identifies the 2-year protection price, and returns "\$30.99" to the user.}
+\vspace{-0.1in}
+\label{fig:overall}
+\end{figure*}
+
+% We introduce WebVoyager, a framework that incorporates web task creation via self-instruct \citep{wang2022self}, an online web browsing environment, and a universal end-to-end web task planning methodology. We construct an autonomous multimodal web agent with GPT-4V, feeding it with web screenshots and textual content from web elements. Inspired by Set-of-Mark Prompting \citep{yang2023set}, we mark interactive web elements on screenshots (see Figure \ref{fig:web_mark}) to facilitate decision-making processes for the agent. In this paper, we primarily focus on the online setting. As pioneers in combining vision and text information during web navigation, we advocate that automation, multimodal capabilities, and online interaction constitute the essential trajectory toward the genuine intelligence of web agents.
+%We introduce WebVoyager, a multimodal web agent designed to accomplish web tasks online in an end-to-end manner, which denotes managing the process from start to finish autonomously without intermediate human intervention.
+We introduce WebVoyager (Figure \ref{fig:overall}), a multimodal web agent designed to autonomously accomplish web tasks online from start to finish, managing the entire process end-to-end without any intermediate human intervention.
+WebVoyager processes the user query by making observations from screenshots and textual content in interactive web elements, formulates a thought on what action to take (such as clicking, typing, or scrolling, etc.), and then executes that action on the websites.
+%We construct an online environment using Selenium for WebVoyager, feeding it with screenshots and textual content in interactive web elements. 
+Inspired by Set-of-Mark Prompting \citep{yang2023set}, we mark interactive web elements on screenshots (see Figure \ref{fig:web_mark}) to facilitate decision-making for WebVoyager. 
+%As a pioneer in combining vision and text information during web navigation, we advocate that autonomous end-to-end task completion, multimodal capabilities and online navigation constitute the essential trajectory toward the genuine intelligence of web agents. 
+% We show that the integration of vision and textual information for web navigation, embodied by WebVoyager, represents a foundational step towards achieving intelligence in web agents through autonomous navigation, end-to-end task execution, and multimodal capabilities.
+
+
+
+
+Another challenge is the evaluation of an end-to-end web agent. 
+Existing benchmarks, such as Mind2Web \citep{deng2023mind2web}, primarily focus on stepwise and offline evaluation, where agents follow a predefined ``golden'' trajectory for action selection. 
+This approach, however, may not fully account for the variety of viable strategies to accomplish a task, as it only reflects one possible plan. This limitation could lead to a biased evaluation and difficulties in fairly comparing different methods.
+To accurately evaluate the capabilities of web agents in end-to-end task completion, we propose an automated evaluation protocol using GPT-4V. 
+Specifically, we save screenshots throughout the online navigation process and then use GPT-4V to evaluate these trajectories together with the final results automatically.
+Human evaluations are also conducted to verify the results and 
+%confirm the reliability of GPT-4V as the evaluator.
+the analysis shows that our evaluation protocol achieves 85.3\% agreement with human judges, indicating GPT-4V can serve as a reliable evaluator for online agents.
+%We report the consistency between human-human and human-GPT4V to ensure credibility.
+% \citep{zhang2023gpt}
+
+% To reflect the ability of web agents with end-to-end task completion, we save screenshots of online navigation and adopt %human evaluation and 
+% GPT-4V powered auto evaluation \citep{zhang2023gpt} to assess the trajectories. We also employ human evaluation to validate the results and the reliability of GPT-4V.
+%We conduct evaluations on the collected dataset comprising 300 web tasks from 15 commonly accessed websites, as well as a selection of web tasks from the GAIA dataset. 
+
+We conduct evaluations on a newly collected dataset, which is semi-automatically generated using a self-instruct \citep{wang2022self} method, comprising 643 web tasks from 15 commonly accessed websites. We also evaluate WebVoyager on 90 web-related tasks of level 1 and level 2 from the GAIA \citep{mialon2023gaia}, and 50 interactive open-web tasks from SeeAct \cite{zheng2024gpt}.  
+We compare our WebVoyager with 1) GPT-4 (All Tools)\footnote{GPT-4 (All Tools) is an integrated tool-based agent 
+released by OpenAI in Oct. 2023. See https://chat.openai.com/}, and 2) WebVoyager in a text-only setting which employs the textual accessibility tree proposed in WebArena  \citep{zhou2023webarena} to describe web pages. 
+The results show that WebVoyager achieves a Task Success Rate of 59.1\% on our new benchmark, significantly outperforming GPT-4 (All Tools) with a rate of 30.8\% and the text-only setting with a rate of 40.1\%, demonstrating the effectiveness of our method. 
+Our research demonstrates the effectiveness of the WebVoyager method for web tasks, offering insights into the development of more intelligent and efficient web automation solutions.
+
+%Our main contributions are as follows:
+
+% \begin{itemize}
+%     \item We employ a multimodal web agent that integrates textual and visual information to address web tasks end-to-end and introduce a generalist planning approach for navigation.
+    
+%     \item We build an online web browsing environment, offering a variety of tasks centered on widely used websites and introducing a method for expanding these tasks.
+     
+%     \item We conduct manual evaluations of navigation trajectories and propose an automated evaluation protocol using GPT-4V. 
+%     We present a comprehensive analysis of the evaluation results and show that GPT-4V can serve as a reliable evaluator for online agents. 
+% \end{itemize}
+
+
+
+
+
+\section{Related Work}
+%\subsection{Web Agents}
+Autonomous web navigation \citep{shi2017world, yang2023dawn} requires an agent to follow instructions, construct plans, comprehend complex web structures, and decompose tasks into step-by-step decisions \citep{weng2023prompt}. To study web agents in a controlled environment, previous works constructed web simulators that contain simplified websites \citep{shi2017world,yao2022webshop}. More recently, there has been a surge of interest in building more challenging and realistic benchmarks such as Mind2Web \cite{deng2023mind2web} and WebArena \cite{zhou2023webarena}. 
+
+Along with these new benchmarks, numerous efforts have been made to build autonomous web agents. WebGPT \citep{nakano2021webgpt} constructs a text-based web browsing environment and fine-tunes GPT-3 as a web agent. WebAgent \citep{gur2023real} pretrains a T5 model to extract HTML snippets and leverages Flan-U-PaLM \citep{chowdhery2023palm} to generate Python code to interact with the environment. Besides fine-tuning, another line of work tries to build web agents by prompting LLMs \cite{yao2022react, shinn2023reflexion, ma2023laser}. %, where prompt engineering techniques are used to elicit the inherent reasoning of the model to perform web actions. 
+Multimodal web agents that integrate visual signals have also been explored, WebGUM \citep{furuta2023multimodal} combines T5 \citep{raffel2020exploring} with a Vision Transformer (ViT) to navigate using both screenshots and HTML text. PIX2ACT \citep{shaw2023pixels} instead solely relies on web screenshots as inputs to predict agent actions. Unlike previous works that only consider a single modality or simplified web environments, we build a multimodal agent that can complete tasks on real-world websites in this work.
+Concurrently with our work, SeeAct \citep{zheng2024gpt} also leverages Large Multimodal Models (LMMs) for integrated visual understanding and actions on websites. However, the best SeeAct agent still relies on a finetuned cross-encoder model to select candidate elements for interaction. In contrast, WebVoyager does not require any additional modules.  
+%This further highlights the significance of developing comprehensive end-to-end web agents and underscores the promising prospects in this field.
+%Concurrently with our work, SEEACT \citep{zheng2024gpt} is a web agent leveraging Large Multimodal Models (LMMs) for integrated visual understanding and actions on websites, highlighting the challenge of effectively grounding these models' textual plans into actions.
+%Concurrently with our work, SEEACT \citep{zheng2024gpt} implements an online evaluation on a selected portion of Mind2Web. Both agents are designed to interact with real-world websites in real time, navigating through complex web interfaces and completing tasks just as a human user might. This further highlights the significance of developing comprehensive end-to-end web agents and underscores the promising prospects in this field.
+%Concurrent to our work, SEEACT \citep{zheng2024gpt} implements a multimodal web agent leveraging GPT-4V, but they mainly focus on offline navigation where the agent observes the static website snapshot to make predictions. We show that our agent can complete user tasks and get up-to-date answers by interacting with a web browser.   %specifically designed for long HTML documents. It extracts HTML snippets and integrates with Flan-U-PaLM \citep{chowdhery2023palm} to generate Python Selenium code. 
+
+%WebArena \citep{zhou2023webarena} leverages sandbox technology to create an offline web simulation environment and offers corresponding test cases. 
+
+
+
+%Paradigms such as Chain-of-Thought Prompting \citep{wei2022chain} and its variants \citep{yao2023tree, wang2023boosting, yu2023chain} enhance the reasoning abilities of large agents and self-reflection methods \citep{yao2022react, shinn2023reflexion, ma2023laser,yu2023improving} allow agents address errors encountered during processes. Moreover, effective multimodal reasoning approaches are emerging \citep{yang2023mm, wu2023visual}, which demonstrates the feasibility of constructing multimodal web agents. 
+
+%Recently, there have been numerous explorations and benchmarks \citep{shi2017world, deng2023mind2web} for web agents. 
+
+
+
+% \subsection{Planning}
+% Autonomous web navigation \citep{shi2017world, yang2023dawn} entails an agent following instructions to navigate through the Graphical User Interface (GUI) provided by a browsing environment. This process requires the agent to make plans, comprehend complex web tasks, and decompose them into step-by-step decisions \citep{weng2023prompt} in web navigation. Paradigms such as Chain-of-Thought Prompting \citep{wei2022chain} and its variants \citep{yao2023tree, wang2023boosting, yu2023chain} enhance the reasoning abilities of large agents and self-reflection methods \citep{yao2022react, shinn2023reflexion, ma2023laser} allow agents address errors encountered during Web navigation. Moreover, with the integration of vision plugins or the application of multimodal models, powerful and effective multimodal reasoning approaches \citep{yang2023mm, wu2023visual} emerge, which demonstrates the feasibility of constructing multimodal web agents.
+
+% \subsection{Web Agent}
+% Effective large models based web agents greatly improve the efficiency of using web to solve tasks. There have been numerous explorations and benchmarks \citep{shi2017world, deng2023mind2web} in this area. WebGPT \citep{nakano2021webgpt} constructs a text-based web browsing environment and fine-tunes GPT-3 as a web agent. WebAgent \citep{gur2023real} introduces HTML-T5, a pre-trained Large Language Model (LLM) specifically designed for long HTML documents. It extracts HTML snippets and integrates with Flan-U-PaLM \citep{chowdhery2023palm} to generate Python Selenium code. WebArena \citep{zhou2023webarena} leverages sandbox technology to create an offline web simulation environment and offers corresponding test cases. Besides text-based observation, multimodal web agents also integrate visual grounding. WebGUM \citep{furuta2023multimodal} combines T5 \citep{raffel2020exploring} with a Vision Transformer (ViT) to navigate using both screenshots and HTML text. PIX2ACT \citep{shaw2023pixels}, trained via REINFORCE \citep{williams1992simple}, solely processes pixel-based observations and produces textual mouse and keyboard actions.  A concurrent work called SEEACT \citep{zheng2024gpt} implements multimodal web agents on various models, including GPT-4V, but mainly focus on offline navigation. 
+
+
+
+
+\section{WebVoyager} 
+%\dai[]{Here need a task description, tell people what you what problem you want to solve}
+%We aim to enable agents to browse the web and acquire knowledge autonomously, similar to humans, for solving real-life tasks. 
+We aim to build an agent that can browse the open web autonomously without human intervention to complete user instructions. Given an instruction, our WebVoyager first instantiates a web browser and then performs actions with visual (i.e., screenshots) and textual (i.e., HTML elements) signals from the web. 
+% Like humans, WebVoyager takes the visual signals from the web (i.e., screenshots) as the primary input source at every step, and it considers text extracted from key HTML elements in addition. 
+The agent produces an action based on the inputs at every step, which is then executed in the browser environment. 
+The process continues until the agent decides to stop. The details of WebVoyager, including environment, interaction cycle, observation space, and action space, are as follows.
+%Typically, these tasks involve navigating specific websites to search for required knowledge or to perform some operations.
+%To this end, we develop WebVoyager, an end-to-end multimodal web agent that autonomously navigate and derive answers based on task requirements and given websites.
+%During web navigation, screenshots serve as the primary observation, which is intuitive like human perception. %To perform evaluation, we construct a dataset comprising web tasks related to 15 popular websites, which is introduced in Section \ref{sec:benchmark}. 
+
+
+\subsection{Browsing Environment}
+We develop an automated web-browsing environment using Selenium\footnote{https://www.selenium.dev/}. 
+% Our environment provides the same level of website accessibility to the agent as a human user, i.e. a browser window, similar to WebArena \cite{zhou2023webarena}. 
+Unlike WebArena~\cite{zhou2023webarena}, we do not host any websites locally and allow the agent to explore the open web instead, which poses unique challenges such as floating ads, pop-up windows, constant updates, etc.\footnote{Regarding CAPTCHAs (Completely Automated Public Turing test to tell Computers and Humans Apart) challenges, we believe it is important to respect the rules of these websites and prompt the agent to retrieve information from alternative sources.} Still, we opt for online interaction with real websites as we believe that this setting truly reflects the real-world use cases (e.g., the agent needs access to real-time information from the web), and a successful web agent should be able to adapt to these challenges and consistently solve the problem robustly. 
+%Actually, making websites that requires real-time access to internet data standalone, such as Google Search, Booking, and Google Flights, poses challenges. In this work, most tasks rely on real-time information from the websites, we opt for online interaction with them. As mentioned by WebArena, live websites may undergo unpredictable modifications in their content and style. We aim for our agent to robustly adapt to this issue and consistently find the correct paths. 
+
+ %\dai[]{there need citation or footboot}%, such as through other Google Search results.
+
+
+\subsection{Interaction Formulation}\label{subsec:planning_method}
+
+Formally, we denote the Environment as \(\mathcal{E}\), the large Multimodal Model as \(\mathcal{M}\), the Observation Space as \(\mathcal{O}\), and the Action Space as \(\mathcal{A}\). At time step $t$, the model receives the context $c_t$ as inputs, 
+%which consists of historical actions $\hat{a}_t$ and observations $o_t$, defined as: $c_t = (o_t, \hat{a}_{t-1}, o_{t-1},...,o_1, \hat{a}_1, I)$ \kaixin[]{Is the order reversed?}, where $I$ denotes the system prompt. 
+which consist of historical actions $a_i$ and observations $o_i$, defined as: $c_t = (o_1, a_1, ..., o_{t-1}, a_{t-1}, o_t, I)$ %\kaixin[]{Is the order reversed?}, where $I$ denotes the system prompt. 
+The the model produces the action $a_t$ at time 
+$t$,
+$a_t = \mathcal{M}(c_t)$, which is then executed in the environment. After execution, the environment sends back the observation at time $t+1$, $o_{t+1} = \mathcal{E}(o_t, a_t)$. Then the context will be updated and this interaction process continues until the model generates a terminating action or the maximum step is reached. 
+
+%In the ReAct paradigm, each action $a_t \in \mathcal{A}$ is augmented by a thought expressed in natural language. Consequently, the Action Space in ReAct is denoted as $\hat{\mathcal{A}} = \mathcal{A} \cup \mathcal{L}$, where $\mathcal{L}$ represents the Language Space. 
+
+Inspired by the paradigm of ReAct Prompting %\kaixin[]{I think ReAct method is not considered to be a planning method by the community, the original paper only frame the 'think' step as one additional action}
+\citep{yao2022react}, we also prompt our agent to generate a thought process first before generating the action code. Hence $a_t$ can be further composed into $(s_t, \hat{a}_t)$ where $s_t$ and $\hat{a}_t$ represent the natural language thought and action code respectively. %\kaixin[]{Hongliang, please check if this is accurate} 
+Figure \ref{fig:prompt} in Appendix \ref{sec:appendixA} presents the System Prompt we designed for the action prediction step. Also, it's worth noting that excessive observations of web pages from longer episodes may confuse the agent. Therefore, we perform context clipping to remove outdated web page information and only keep the three most recent observations in the inputs, and we keep the entire history of thoughts and actions to better guide the agent. 
+%In each iteration, the agent performs reasoning based on context and then selects an Action Format. The framework automatically executes actions according to the Action Format and generates a new round of Observation. 
+
+
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/screenshot1_flights.pdf}
+\caption{Examples of webpage screenshots provided to the agent. We add borders to most of the interactive elements on the web pages and label them with numerical tags in the top left corner.}
+\label{fig:web_mark}
+\vspace{-0.1in}
+\end{figure}
+
+
+
+
+\subsection{Observation Space}
+%Intuitively, from the perspective of human web browsing, we posit that visual information is the most important, with text information serving as an auxiliary.  Visual information shows the rendering of a webpage. 
+Similar to how humans browse the web, our agent also takes the visual information from the web (screenshots) as the primary source of input. Using screenshots allows us to avoid the burden of processing HTML DOM tree or accessibility tree to portray the overall structure of webpages, which can lead to overly verbose texts and impact the decision-making process of the agent. Inspired by Set-of-Mark Prompting \citep{yang2023set}, we overlay bounding boxes of the interactive elements on the websites to better guide the agent's action prediction. Unlike \citet{yang2023set}, we do not need any object detection module \citep{zou2023object}. Instead, we utilize %\kaixin[]{It's better to describe the exact method in more detail and then provide the reference, since this is just a github repo and may not be well-known} 
+GPT-4V-ACT\footnote{https://github.com/ddupont808/GPT-4V-Act}, a Javascript tool to extracts the interactive elements based on web element types and then overlays bounding boxes with numerical labels on the respective regions of the elements. GPT-4V-Act is efficient since it is rule-based without incorporating any object detection model. % tool to assign numerical labels to interactive elements on webpages. GPT-4-ACT is a tool written in JavaScript, that 
+
+As illustrated in Figure \ref{fig:web_mark}, the nature of webpages allows us to locate and outline each interactive element using this tool precisely. The numerical labels assigned to each element are also essential for the model to identify the elements requiring interaction, thereby facilitating accurate action determination. We empirically choose black color for the borders and the background of the labels to enhance clarity. We observe that using a single black color yields higher success rates than using multiple colors.
+We also provide the agent with auxiliary text as inputs, including the textual content embedded within the interactive element, the type of the element, and possibly some comment text in the aria-label attribute. To simplify the observation, we have disabled multiple tabs, i.e., all interactions occur within the current tab instead of opening new ones. 
+
+%In each iteration, we provide the agent with an Observation. In most instances, this Observation consists of a webpage screenshot accompanied by a numerical label and some auxiliary text. 
+At every step, the agent receives the current screenshot, auxiliary text, and history as inputs, as discussed in (\S\ref{subsec:planning_method}). In case the agent's action raised an exception during execution, we additionally incorporated the error messages in the prompt and asked the model to regenerate the response. Note that each error correction attempt also consumes one step from the total exploration budget. %We allows the agent to attempt xA times before terminating the episode. %\kaixin[]{Hongliang, is my understanding correct? If so, please replace x with the actual number}
+%However, there are cases where the agent's incorrect action leads to execution failure. In such scenarios, the Observation becomes an error prompt, prompting the agent to reflect its action. 
+
+\subsection{Action Space}
+%Our goal is to enable the agent to browse web pages as humans do. 
+We define the action space of our agent similar to how humans browse the web. 
+To this end, we implement the most commonly used mouse and keyboard actions, sufficient for the agent to browse various web pages and locate the content required for the task. With the help of numerical labels in screenshots, we enable the agent to respond with a concise Action Format. This approach precisely locates the elements requiring interaction and executes the corresponding actions. The usage of actions is as follows (more details in Appendix \ref{sec:action_space}): %\kaixin[]{Maybe organize the actions and each action's format, purpose in a table, as done in previous works?}
+1) \textbf{Click.} This action involves clicking on an element within a webpage, typically a link or a button. 
+2) \textbf{Input.} This composite action involves selecting a text box, deleting any existing content within it, and then inputting new content.
+3) \textbf{Scroll}. Scrolling is a common operation for browsing webpages, usually involving the vertical movement of the entire page. 
+4) \textbf{Wait}. Action execution requires time, and this action is often used to wait for web pages to load. 
+5) \textbf{Back}. This action is used to return to the previous page. 
+6) \textbf{Jump to Search Engine}. There are often situations where agents get stuck at a certain website without finding an answer. This action enables the agent to jump to a search engine and start anew. 
+7) \textbf{Answer}. Once all questions in the task are resolved, this action concludes the iteration and provides an answer in line with the task requirements. 
+
+
+
+\section{Benchmark for WebVoyager}\label{sec:benchmark}
+
+\subsection{Website Selection}
+We select 15 representative websites that cover different aspects of our daily life to ensure diversity in our evaluation, including Allrecipes, Amazon, Apple, ArXiv, BBC News, Booking, Cambridge Dictionary, Coursera, ESPN, GitHub, Google Flights, Google Map, Google Search, Huggingface, and Wolfram Alpha. Due to technical limitations, we regretfully omit websites requiring login or CAPTCHA to access their content. Additionally, Google Search is a universal website that can serve as a starting point for any website, making our framework applicable to various scenarios.
+
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/data_creation.pdf}
+\caption{Data creation process using self-instruct.}
+\label{fig:data_creation}
+\vspace{-0.1in}
+\end{figure}
+ 
+
+
+\subsection{Data Construction}%\dai[]{Add a figure to show your data creation process}
+We employ a combination of self-instruct \citep{wang2022self} and human verification to construct our evaluation set. Figure \ref{fig:data_creation} illustrates our data creation process. Initially, we manually sample and rewrite some tasks from Mind2Web \citep{yin2023lumos, deng2023mind2web} for websites including Google Flights, Google Map, Google Search, Booking, and Wolfram Alpha. 
+% We prioritize the diversification of tasks so that they can test various functionalities of these websites. 
+This process yields initial seed tasks in the Task Pool for subsequent generation. 
+In step two, we sample tasks from Task Pool as in-context examples \citep{dong2022survey} and prompt GPT-4 Turbo to generate approximately 100 new tasks (20 iterations). Then we manually verify each generated task and rewrite them if necessary to ensure its high quality and the answers can be found on the corresponding website, then we add them to the Task Pool as additional seed tasks. This step allows us to create human-validated seed tasks for each website. 
+%\kaixin[]{I don't see any difference of this step compare to the above paragraph}
+%Finally, the process of step three is very similar to step two, except that we only manually verify that the answers to the generated questions can be found on the websites, and we do not perform any additional refinement or filtering. The verified questions are directly added to the task pool. 
+% hongliang:
+Finally, in step three, we sample more diverse in-context examples in the Task Pool and directly add the generated tasks to the Task Pool in each iteration. We manually verify that the generated tasks have low repetition, and the answers to the generated tasks can be found on the websites.
+In total, we collected 40+ tasks per website, resulting in a total of 643 tasks.
+
+To further confirm that the generated tasks in the dataset have low repetition, We use the all-mpnet-base-v2\footnote{https://huggingface.co/sentence-transformers/all-mpnet-base-v2} model to calculate pairwise similarity for 643 ques. Out of a total of 206,403 pairs, only 49 pairs have a similarity greater than 0.8, and 140 pairs have a similarity between 0.7 and 0.8. All of these have been manually checked and found to be acceptable. 99.68\% of pairs have a similarity of less than 0.6. This demonstrates the diversity of our tasks and the robustness of our approach.
+
+% the generation is similar, yet we add the generated tasks at each step directly into the Task pool. We observe that the tasks generated by GPT-4 Turbo merely align with the website's features, but do not guarantee that the answers to these tasks can be found on the corresponding websites. Consequently, we perform human verification and modify these tasks to ensure that people can locate answers on websites. 
+
+% \begin{itemize}
+%     %\item \kaixin[]{Seems that second and third phase just repeat the first phase? In this case, maybe you can just describe the seed example sampling and human filtering and say that we iterate these two steps a few times. } 
+%     \item In the first phase, the Task Pool contains 100 seed tasks and remains unchanged. We sample seed tasks as in-context examples \citep{dong2022survey} and prompt GPT-4 Turbo to generate approximately 100 new tasks. Manual filtering and rewriting is performed on these tasks, and then they are added to the Task Pool as seed tasks for the second phase. This is to ensure the quality of seed tasks, with each website having human-evaluated seed tasks after the first phase. 
+%     \item In the second phase, the generation is similar to the first phase with the key difference being the addition of generated tasks to the Task Pool after each iteration. 
+%     \item In the third phase, human verification is again involved. We observe that the tasks generated by GPT4 merely align with the website's features, but do not guarantee that the answers to these tasks can be found on the corresponding websites. Consequently, we modify these tasks to ensure that people can locate answers on websites. We also rewriting some  repetitive tasks and finally set 20 tasks per website, resulting in a total of 300 tasks.
+% \end{itemize}
+
+\subsection{Annotation Process}
+After collecting the full task pool, we annotate answers for each task. Since some questions are open-ended and the web information may change, these questions may not have a fixed golden response. Thus, we label each data entry with an answer, categorized as ``Possible'' or ``Golden.'' For answers labeled as ``Golden,'' we provide a comprehensive listing of possible responses and consider them stable in the short term. The ``Possible'' category covers the following scenarios: 1) Answers for open-ended tasks where it's hard to find an exact match answer, such as summarization. 2) multiple answers satisfy the task, making it impractical to list all of them. Therefore, we provide a partial listing. 3) Tasks related to real-time information, where the answer might change, e.g., flight ticket prices. Hence, the ``Possible'' answers were also correct during our experiments. %\kaixin[]{Do we know how many possible answers are time-sensitive? If so, we probably want to also mention the percentage here}
+%However, there is a possibility of periodic changes, such as slogans, execution rules, location information, etc. For example, we ask the separator for a multilingual abstract on ArXiv, and we label the golden answer as `\verb|-----|' because it will not change in the short term, but ArXiv may update the strategy in the future. 
+In total, 22.3\% of questions are annotated with golden responses, and the rest only have possible answers. 
+
+%\kaixin[]{We probably want to have some statistics here and some representitive examples}
+
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/episode_h_large.pdf}
+\caption{Screenshots of a complete trajectory of online web browsing. Given the task: `Search Apple for the accessory Smart Folio for iPad and check the closest pickup availability next to zip code 90038.' The agent interacts with the Apple website and obtains the answer: `Apple Tower Theatre.'}
+\label{fig:episode}
+\vspace{-0.1in}
+\end{figure*}
+
+
+\section{Experiment}
+%\subsection{Experimental Setup}%\dai[]{metrics need to be highlighted for easy reading}
+\paragraph{Dataset and Metrics}
+%We utilize the dataset generated in Section \ref{sec:benchmark}, which comprises open-domain tasks where humans can easily find answers on specific websites. 
+%To perform evaluation, we construct a dataset comprising web tasks related to 15 popular websites, which is 
+% We evaluated our agent on the new benchmark introduced in Section \ref{sec:benchmark}. 
+Besides the benchmark introduced in Section \ref{sec:benchmark}, we also evaluated on 90 web browsing tasks (Level 1 and Level 2) from the GAIA dataset \citep{mialon2023gaia}, which also come with golden responses. Since GAIA does not provide specific websites, we instruct the agent to start with Google Search. We further evaluated our agent on the 50 tasks used in SeeAct agent's online evaluation \cite{zheng2024gpt} and compared with their results. Following WebArena \citep{zhou2023webarena}, the primary evaluation metric we adopt is the \textbf{Task Success Rate}, measuring the successful completion of tasks without considering whether the steps are optimal. %We set the maximum number of interaction steps for each task to 15. %However, we require the agent to complete the task and find the correct answer within a maximum number of interactions. 
+%We also examine the step-level success rate for some tasks, aiming to optimize our framework at a more fine-grained level. 
+
+
+
+
+
+%\paragraph{Multimodal Models}
+
+%Additionally, \citet{yang2023dawn} mentioned the utilization of GPT-4V for non-automatic web navigation, indicating the agent's ability to recognize web screenshots and make action selections. 
+
+%%%%%%%%% Origin Result %%%%%%%%%
+%%%%%%%%% Origin Result %%%%%%%%%
+% \begin{table*}[t]
+% \centering
+% \setlength{\tabcolsep}{1.6mm}{
+% \scalebox{0.85}{\begin{tabular}{@{}lcccccccc@{}}
+% \toprule \toprule
+% & Allrecipes & Amazon & Apple & ArXiv & GitHub & Booking & ESPN & Coursera \\ \midrule
+% GPT-4 (All Tools) & \ \ 5 (25\%) & \ \ 3 (15\%) & \ \ 8 (40\%) & \ \ 3 (15\%) & \ \ 9 (45\%) & \ \ 5 (25\%)  & \ \ 8 (40\%) & \ \ 8 (40\%) \\
+% WebVoyager$_{\text{Text-only}}$ & 10 (50\%) & \ \ 8 (40\%)  & \ \ 7 (35\%)  & \ \ 6 (30\%) & 
+%  11 (55\%) & \ \ 0 \ \ (0\%) & \ \ 7 (35\%) & \ \ 7 (35\%) \\
+% WebVoyager  & 12 (60\%) & \ \ 9 (45\%)  & 12 (60\%)  & \ \ 9 (45\%) & 12 (60\%) & \ \ 8 (40\%)  & \ \ 9 (45\%)  & 15 (75\%) \\ 
+
+% \textit{WebVoyager}$^*$ & 11 (55\%) &  10 (50\%)  & 12 (60\%)  & \ \ 9 (45\%) & 12 (60\%) & \ \ 7 (35\%)  & 11 (55\%)  & 13 (65\%)   \\ 
+% % WebVoyager$_{\text{AutoEval}}$ \\
+% % Consistency$_{\text{human}}$ \\
+% % Consistency$_{\text{auto}}$ \\
+% \midrule \midrule
+% & Cambridge & BBC & Google & Google & Google & \multirow{2}{*}{Huggingface} & Wolfram & \multirow{2}{*}{Overall}  \\ 
+% & Dictionary & News & Flights & Map & Search & & Alpha & \\ 
+% \midrule 
+% GPT-4 (All Tools)  & \ \ 6 (30\%) & \ \ 2 (10\%)  & \ \ 2 (10\%)  &13 (65\%) & \ \ 11 (55\%) & \ \ 7 (35\%)  & \ \ 8 (40\%)& 32.7\%  \\
+% WebVoyager$_{\text{Text-only}}$ & 13 (65\%) & \ \ 7 (35\%)  & \ \ 1 (5\%) &  11 (55\%) & \ \ 14 (70\%) & \ \ 5 (25\%) & 10 (50\%) & 39.0\%  \\
+% WebVoyager  & 12 (60\%) & 12 (60\%)  & 10 (50\%)  & 13 (65\%) & \ \ 16 (80\%) & \ \ 9 (45\%)  & \ \ 9 (45\%) & 55.7\%  \\ 
+
+% \textit{WebVoyager}$^*$  & 16 (80\%) & 12 (60\%)  &11 (55\%)  & 12 (60\%) & \ \ 17 (85\%) & 13 (65\%)  & \ \ 9 (45\%) & 58.3\%  \\ 
+
+% % WebVoyager$_{\text{AutoEval}}$ \\
+% % Consistency$_{\text{human}}$ \\
+% % Consistency$_{\text{auto}}$ \\
+% \bottomrule \bottomrule
+% \end{tabular}}}
+% \vspace{-0.1in}
+% \caption{
+% The main result for WebVoyager.
+% Each website contains 20 tasks, and we report the Task Success Number (Task Success Rate) in the table.
+% We provide the results for GPT-4 (All Tools), WebVoyager$_{\text{Text-only}}$ using the accessibility tree, and WebVoyager. Notice: the results of \textit{WebVoyager}$^*$ is given by GPT-4V based evaluator (full trajectory, kappa is equal to 0.70). } 
+% \label{tab:noise}
+% \end{table*}
+%%%%%%%%% Origin Result %%%%%%%%%
+%%%%%%%%% Origin Result %%%%%%%%%
+
+%%%%%%%%% Extend Resutl %%%%%%%%%
+%%%%%%%%% Extend Resutl %%%%%%%%%
+
+%%%%%%%%% Extend Resutl %%%%%%%%%
+%%%%%%%%% Extend Resutl %%%%%%%%%
+
+
+
+
+\paragraph{Experimental Details}
+We employ GPT-4 Turbo with vision (gpt-4-vision-preview) as the backbone model of our agent, which showcases strong semantic and visual understanding capabilities equivalent to GPT-4V \citep{openai2023gpt4}. Furthermore, we incorporate two additional backbone models, namely Claude 3 Opus \citep{anthropic2024introducing} and GPT-4o (GPT-4 Omni, \citealp{openai2024hello}), to augment the diversity of our research. We include the GPT-4 (All Tools) for baselines, which integrates vision, web browsing, code analysis, and various plugins in one model. Additionally, we consider a text-only baseline where the agent only receives the websites' accessibility tree as input to prediction actions.  %This latest product of GPT-4 is observed to initiate web searches from Bing, with the planning method remaining undisclosed in our practical attempts.
+%We construct a simulated environment using Python Selenium, 
+We used a fixed browser window size of 1024 * 768 pixels for our environment, ensuring a consistent size for the screenshots in our observations. We set the temperature to 1 during generation and allow the agent to explore at most 15 steps. 
+%The color of numerical labels in the screenshots can be customized, with the default color being black.  Considering that the number of screenshots in the context would increase with each iteration, which would lead to token wastage and could potentially harm the model's instruction-following ability, we clip the context and only attach the 3 most recent screenshots. If a PDF file is downloaded during the browsing process, we will use the Assistant API to retrieve the content and analyze it. We set the model of Assistant as `gpt-4-1106-preview' and the tool type as `retrieval'. 
+
+
+
+
+
+
+
+% \begin{figure}[t!]
+% \centering
+
+% \includegraphics[width=1.0\linewidth]{figures/web_res.pdf}
+% \caption{Task Success Rate for each website in our created dataset. We have compiled the results for WebVoyager, GPT-4 (All Tools), and Text-only (using the accessibility tree).}
+% \label{fig:success_rate}
+% \end{figure}
+
+
+
+
+% \begin{table*}[t!]
+% \centering
+%   \resizebox{1.0\textwidth}{!}{%
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+%    & Allrecipes & Amazon & Apple  & ArXiv      & BBC News      & Booking     & Cambridge Dict. & Coursera \\ \midrule
+% GPT-4 (All Tools)  & 25 & 15     & 40     & 15 & 10    & 25  & 30   & 40       \\
+% WebVoyager$_{\text{Text-only}}$ & 50 & 40     & 35     & 30 & 35    & 0   & 65   & 35       \\
+% WebVoyager  & 60 & 45     & 60     & 45 & 60    & 35  & 60   & 80       \\ 
+% WebVoyager$_{\text{AutoEval}}$ \\
+% Consistency$_{\text{human}}$ \\
+% Consistency$_{\text{auto}}$ \\
+%     \midrule
+%    & ESPN       & GitHub & Google Flights & Google Map & Google Search & Huggingface & Wolfram Alpha& Overall  \\ \midrule
+% GPT-4 (All Tools)  & 40 & 45     & 10     & 65 & 55    & 35  & 40   & 32.7     \\
+% WebVoyager$_{\text{Text-only}}$ & 35 & 55     & 5      & 55 & 70    & 25  & 50   & 39.0     \\
+% WebVoyager  & 45 & 55     & 40     & 65 & 85    & 45  & 45   & 55.0     \\ \bottomrule
+% \end{tabular}
+% }
+% \caption{Task Success Rate for each website in our created dataset. We have compiled the results for GPT-4 (All Tools), WebVoyager$_{\text{Text-only}}$ using the accessibility tree, and WebVoyager.}
+% \end{table*}
+
+
+
+
+
+\subsection{Evaluation Methods}
+% Since the answers for most tasks are not fixed and there are no specific answer format, these tasks require human evaluation. Human evaluators judge whether a task is successfully completed based on the answer provided by the agent and the screenshots of entire episode. 
+We adopt human evaluation as our main evaluation metric since most of the questions in our benchmark have open-ended answers. In particular, we provide the human evaluators with the complete trajectories of the agent's interaction with the web (all screenshots and all actions), and ask them to provide a binary judgment of whether the agent successfully completed the task. %judge whether a task is successfully completed based on the answer provided by WebVoyager and the screenshots of the entire trajectory. Due to the complexity of annotation, each task is assigned to three human annotators. 
+For a subset of 300 tasks, we invite three annotators to judge each trajectory to understand the agreement among human annotators. %The final label is reached by taking the majority vote of the individual human labels, and then we compute the Task Success Rate using the final label. 
+%The final Task Success Rate reported is the consensus result after discussion, referred to as human labels. 
+%Prior to the discussions, we also report the consistency among independently annotated results. 
+% We observe that for most tasks, evaluators can determine the correctness of the task based on the final screenshot. 
+% For the remaining tasks, the evaluator may require the second-to-last, third-to-last, or even the entire trajectory to make an accurate judgment. 
+% On average, it takes an expert about 1 minute to evaluate one task. %, which is quite expensive.
+
+Even though human evaluations are accurate, they are often not scalable.
+Hence, we want to see if leveraging an LMM for automatic evaluation is feasible. To this end, we propose to use GPT-4V as an auto-evaluator that emulates the behavior of human evaluators to evaluate the navigation trajectories of WebVoyager. In particular, we provide the task, the responses from WebVoyager, and the last $k$ screenshots to the evaluator and ask it to judge whether the agent has completed the task, where $k$ is a hyper-parameter. The prompt of the GPT-4V evaluator is shown in Appendix \ref{appendix:auto_eval}.
+% We hypothesize that the strong multimodal reasoning ability of GPT-4V allows it to act as a reliable evaluator, which could reduce the burden of human evaluators and significantly lower the cost of future experiments. 
+
+%We anticipate that GPT-4V could achieve or even surpass the accuracy of human evaluation. As a reliable evaluator, it is expected to assess a substantial volume of web navigation trajectories, thereby saving significant human labor.
+
+%We then report the consistency between the auto labels and human labels. 
+
+
+\begin{table*}[t]
+\centering
+\setlength{\tabcolsep}{1.6mm}{
+\scalebox{0.72}{\begin{tabular}{@{}lcccccccc@{}}
+\toprule \toprule
+& Allrecipes & Amazon & Apple & ArXiv & GitHub & Booking & ESPN & Coursera \\ \midrule
+GPT-4 (All Tools) & \ \ 11.1\% & \ \ 17.1\% & \ \ 44.2\% & \ \ 14.0\% & \ \ 48.8\% & \ \ 22.7\%  & \ \ 31.8\% & \ \ 31.0\% \\
+WebVoyager$_{\text{Text-only}}$ & \ \ \bf 55.6\% & \ \ 31.7\% & \ \ 34.9\%  & \ \ 32.6\% & \ \ 61.0\% & \ \ 2.3\% & \ \ 36.4\% & \ \ 23.8\% \\
+WebVoyager  & \ \ 53.3\% & \ \ \bf 58.5\%  & \ \ \bf 65.1\%  & \ \ \bf 51.2\% & \ \ \bf 63.4\% & \ \ \bf 43.2\%  & \ \ \bf 38.6\% & \ \ \bf 73.8\% \\ 
+
+\textit{WebVoyager$_{\text{Text-only}}$}$^*$ & \ \ 57.8\%$_{\pm 0.0\%}$ & \ \ 43.1\%$_{\pm 1.4\%}$ & \ \ 36.4\%$_{\pm 3.5\%}$ & \ \ 50.4\%$_{\pm 1.4\%}$ & \ \ 63.4\%$_{\pm 2.5\%}$ & \ \ 2.3\%$_{\pm 0.0\%}$ & \ \ 38.6\%$_{\pm 2.3\%}$ & \ \ 24.6\%$_{\pm 1.4\%}$ \\
+
+\textit{WebVoyager}$^*$ & \ \ 51.1\%$_{\pm 2.2\%}$ & \ \  52.9\%$_{\pm 1.4\%}$  & \ \ 62.8\%$_{\pm 2.3\%}$  & \ \ 52.0\%$_{\pm 1.3\%}$ & \ \ 59.3\%$_{\pm 3.7\%}$ & \ \ 32.6\%$_{\pm 2.7\%}$  & \ \  47.0\%$_{\pm 1.3\%}$  & \ \  57.9\%$_{\pm 2.7\%}$   \\ 
+
+\textit{WebVoyager$_{\text{Claude}}$}$^*$ & \ \ 45.9\%$_{\pm 3.4\%}$ & \ \  58.6\%$_{\pm 4.2\%}$  & \ \ 58.1\%$_{\pm 4.0\%}$  & \ \ 55.0\%$_{\pm 7.0\%}$ & \ \ 56.9\%$_{\pm 1.4\%}$ & \ \ 19.0\%$_{\pm 1.3\%}$  & \ \  46.2\%$_{\pm 1.3\%}$  & \ \  68.2\%$_{\pm 1.3\%}$   \\
+
+\textit{WebVoyager$_{\text{GPT-4o}}$}$^*$ & \ \ 56.3\%$_{\pm 1.3\%}$ & \ \  53.7\%$_{\pm 2.5\%}$  & \ \ 56.6\%$_{\pm 1.3\%}$  & \ \ 60.5\%$_{\pm 0.0\%}$ & \ \ 57.7\%$_{\pm 3.7\%}$ & \ \ 43.9\%$_{\pm 3.5\%}$  & \ \  44.0\%$_{\pm 2.7\%}$  & \ \  65.1\%$_{\pm 2.8\%}$   \\
+
+\midrule \midrule
+& Cambridge & BBC & Google & Google & Google & \multirow{2}{*}{Huggingface} & Wolfram & \multirow{2}{*}{Overall}  \\ 
+& Dictionary & News & Flights & Map & Search & & Alpha & \\ 
+\midrule 
+GPT-4 (All Tools)  & \ \ 25.6\% & \ \ 9.5\%  & \ \ 2.4\%  & \ \ 53.7\% & \ \ 60.5\% & \ \ 37.2\%  & \ \ 52.2\% & \ \ 30.8\%  \\
+WebVoyager$_{\text{Text-only}}$ & \ \ 62.8\% & \ \ 45.2\%  & \ \ 7.1\% & \ \  61.0\% & \ \ 67.4\% & \ \ 20.9\% & \ \ 58.7\% & \ \ 40.1\%  \\
+WebVoyager  & \ \  \bf 65.1\% & \ \ \bf 61.9\%  & \ \ \bf 59.5\%  & \ \ \bf 70.7\% & \ \ \bf 76.7\% & \ \ \bf 44.2\%  & \ \ \bf 63.0\% & \ \ \bf 59.1\%  \\ 
+\textit{WebVoyager$_{\text{Text-only}}$}$^*$ & \ \ 66.7\%$_{\pm 3.6\%}$ & \ \ 45.2\%$_{\pm 2.4\%}$ & \ \ 7.1\%$_{\pm 0.0\%}$ & \ \ 62.6\%$_{\pm 2.8\%}$ & \ \ 75.2\%$_{\pm 1.3\%}$ & \ \ 31.0\%$_{\pm 1.4\%}$ & \ \ 60.2\%$_{\pm 1.3\%}$ & \ \ 44.3\%$_{\pm 0.6\%}$ \\ 
+\textit{WebVoyager}$^*$ & \ \ 71.3\%$_{\pm 1.3\%}$ & \ \  60.3\%$_{\pm 2.8\%}$  & \ \ 51.6\%$_{\pm 1.4\%}$  & \ \ 64.3\%$_{\pm 2.8\%}$ & \ \ 77.5\%$_{\pm 2.7\%}$ & \ \ 55.8\%$_{\pm 2.3\%}$  & \ \  60.9\%$_{\pm 2.2\%}$  & \ \  57.1\%$_{\pm 0.2\%}$  \\ 
+
+\textit{WebVoyager$_{\text{Claude}}$}$^*$ & \ \ 71.3\%$_{\pm 3.6\%}$ & \ \  66.7\%$_{\pm 4.8\%}$  & \ \ 15.1\%$_{\pm 5.5\%}$  & \ \ 55.3\%$_{\pm 1.4\%}$ & \ \ 72.9\%$_{\pm 1.3\%}$ & \ \ 53.5\%$_{\pm 4.7\%}$  & \ \  51.5\%$_{\pm 5.4\%}$  & \ \  52.8\%$_{\pm 1.4\%}$  \\ 
+
+\textit{WebVoyager$_{\text{GPT-4o}}$}$^*$ & \ \ 82.2\%$_{\pm 1.3\%}$ & \ \  54.8\%$_{\pm 2.4\%}$  & \ \ 28.6\%$_{\pm 0.0\%}$  & \ \ 56.9\%$_{\pm 2.8\%}$ & \ \ 63.6\%$_{\pm 1.3\%}$ & \ \ 42.6\%$_{\pm 3.6\%}$  & \ \  65.2\%$_{\pm 2.2\%}$  & \ \  55.5\%$_{\pm 0.8\%}$  \\
+\bottomrule \bottomrule
+\end{tabular}}}
+% \vspace{-0.1in}
+\caption{
+The main result for WebVoyager.
+Each website contains 40 to 45 tasks, and we report the Task Success Rate in the table.
+We show the results of GPT-4 (All Tools), WebVoyager$_{\text{Text-only}}$ using the accessibility tree, and WebVoyager by comparing with human expert labels. \textit{WebVoyager}$^*$, \textit{WebVoyager$_{\text{Text-only}}$}$^*$, \textit{WebVoyager$_{\text{Claude}}$}$^*$ and \textit{WebVoyager$_{\text{GPT-4o}}$}$^*$  are results evaluated by GPT-4V (full trajectory, kappa = 0.70). For each automatic evaluation, we run GPT-4V evaluator three times to calculate the performance mean and standard deviation.} 
+\label{tab:noise}
+\end{table*}
+
+\begin{table}[t]
+\small
+\vspace{-0.1in}
+\centering 
+% \resizebox{1.0\linewidth}{!}{
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\multirow{2}{*}{} & \multirow{2}{*}{Success Rate} & \multicolumn{2}{c}{Consistency} \\ \cmidrule(l){3-4} 
+                  &                                       & Agreement        & $\kappa$        \\ \midrule
+k=1               & 47.7\%                                & 75.3\%           & 0.51         \\
+k=2               & 55.3\%                                & 79.7\%           & 0.59         \\
+k=3               & 54.3\%                                & 81.3\%           & 0.62         \\
+Full   & 58.3\%                                & 85.3\%           & 0.70         \\ \bottomrule
+\end{tabular}
+%}
+% \vspace{-0.07in}
+\caption{Consistency between GPT-4V and Human. Success Rate is the overall success rate of all tasks given by GPT-4V. Based on the annotations given by GPT-4V and Human (after alignment), we compute Agreement, i.e., the label overlap, and the Kappa values.}
+\label{tab:consistency}
+\end{table}
+
+
+
+\subsection{Result}
+Figure \ref{fig:episode} presents an example that demonstrates how the agent interacts with the Apple website step by step in an online fashion to complete a task. In the final screenshot, the Agent acquires the desired information, then selects the    ``ANSWER'' action to respond and conclude the navigation. 
+% This trajectory represents an optimal path without any redundant actions. 
+% However, in many cases, there may be some redundant actions in between. 
+Additional examples are provided in the Appendix \ref{sec:additional_traj}. 
+
+We present the results for our dataset and the extracted GAIA web tasks in Table \ref{tab:noise} and Figure \ref{fig:success_rate_gaia}. % , we conduct tests on three settings: our WebVoyager framework, a Text-only setting utilizing the accessibility tree as the Observation, and GPT-4 (All Tools) (Baseline). 
+%In Table \ref{tab:noise}, it is observable that the Task Success Rate of 
+WebVoyager outperforms text-only and GPT-4 (All Tools) baselines by large margins in most website tasks, while it is slightly lower than Text-only on Allrecipes and similar to Text-only on Github, ESPN, Cambridge Dictionary and Wolfram Alpha. This is primarily because these websites are more text-heavy than others. Since WebVoyager mostly relies on web screenshots for decision-making, dense text might not be easily recognizable from the image. We think extracting such text from the HTML to augment the input could be a potential solution to this problem, suggesting a direction for future work. 
+% WebVoyager's greater reliance on current screenshot information, which may lead to inaccuracies in recognizing complex characters (such as phonetic symbols in Dictionary pronunciations) and occasionally treating screenshots as complete webpage information, thereby missing answers that require scrolling through the webpage. 
+In Figure \ref{fig:success_rate_gaia}, WebVoyager also achieves much stronger performance than both baselines. Finally, WebVoyager has a success rate of 30\% on the SeeAct online test set whereas the best SeeAct autonomous agent has 26\%, showing the efficacy of our proposed agent.
+
+
+% Next, we delve into the consistency of our evaluations. 
+% First we compute the agreement score among our three human annotators before final discussion, we found the Fleiss's Kappa \citep{fleiss1971measuring} of human annotators to be 0.7, which is substantial agreement. 
+%WebVoyager results on our benchmark are based on the majority voting of human labels by 3 annotators, where the. 
+We report the Agreement (the ratio of overlap) and Kappa ($\kappa$; \citealt{cohen1960coefficient}) between consolidated human labels\footnote{the Fleiss's Kappa \citep{fleiss1971measuring} of human annotators before any discussion is 0.7, which is substantial agreement. } and GPT-4V's judgments on the subset of 300 tasks in Table \ref{tab:consistency}. Here,
+$k$ denotes the number of screenshots provided to GPT-4V, with ``full'' implying the full trajectory. GPT-4V's agreement with human annotators gradually improves as it receives more information, and its final Kappa score also reaches 0.7, which is on par with the agreement among human annotators. The consistency between GPT-4V and humans suggests that GPT-4V is a promising automatic evaluator for multi-modal web agents. Accordingly, we report the automatic evaluation results based on GPT-4V in Table \ref{tab:noise}. The automatic evaluation results of three backbone models, GPT-4V, Claude 3 Opus, and GPT-4o, are relatively close, and their performance is significantly better than the Text-only setting (with GPT-4 as the backbone). 
+However, there is a performance decline for both Claude and GPT-4o on Google Flights. Upon reviewing the trajectories, it is observed that GPT-4o falls into a cognitive bias, where it fails to correctly select the `one way' option for one-way trip tasks, mistakenly assuming that only the departure date needs to be entered. On the other hand, Claude-3-Opus encounters difficulties in correctly interacting with web elements while inputting basic flight information. Modifying the system prompt for GPT-4o or Claude may potentially improve the performance. 
+%We also investigate the Claude-3-Opus-based auto evaluation. When provided with the full trajectory, it achieves a kappa value of 0.6 with humans, indicating some reliability but lower than GPT-4V. We also find that Claude-3-Opus tends to favor its own results. In its automatic evaluation process, Claude's Overall Task Success Rate is 61.6\%, but GPT-4V considers it to be only 52.8\%.
+
+
+\begin{table}[t]
+\small
+\vspace{-0.1in}
+\centering 
+\begin{tabular}{@{}cccc@{}}
+\toprule
+\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}WebVoyager \\ Backbone\end{tabular}} & \multicolumn{3}{c}{Evaluator}   \\ \cmidrule(l){2-4}  & GPT-4V & Claude-3-Opus & GPT-4o \\ \midrule
+GPT-4V     & 57.1   & 55.1          & 63.0     \\
+Claude-3-Opus  & 52.8   & 61.6          & 55.4   \\
+GPT-4o    & 55.5   &  54.9             & 64.1   \\ \bottomrule
+\end{tabular}
+\caption{Overall Task Success Rate of WebVoyager using automatic evaluation. We employ GPT-4V, Claude-3-Opus, and GPT-4o as backbones for WebVoyager and run all tasks, followed by automatic evaluation using these three models.}
+\label{tab:auto_eval_mat}
+\end{table}
+
+
+
+Besides, we conduct the Claude-3-Opus based evaluation and the GPT-4o based evaluation. When provided with the full trajectory, the Claude-3-Opus achieves a kappa value of 0.6 with humans, indicating that it is less reliable than the GPT-4V. And the kappa value between GPT-4o and humans is 0.72, slightly higher than that of GPT-4V. Table \ref{tab:auto_eval_mat} illustrates the Task Success Rate when using GPT-4V, Claude-3-Opus, and GPT-4o as backbones and auto evaluators. We observe that GPT-4o exhibits a more lenient attitude towards task performance results, while GPT-4V tends to be relatively strict. However, both models agree that Claude-3-Opus performs the worst. Claude-3-Opus, on the other hand, demonstrates a clear preference for its own results, believing that GPT-4V and GPT-4o are similar but considers itself to have the best performance. GPT-4o and GPT-4V also exhibit a certain bias towards their own results, with each considering itself to be superior to the other.
+
+
+
+
+
+\subsection{Discussions}
+\textbf{Direct interaction with the websites is necessary} From our experience of using GPT-4 (All Tools), the primary limitation of GPT-4 (All Tools)'s performance is rooted in its reliance on Bing search for web browsing, predominantly depending on web pages fetched by Bing. It cannot directly access certain websites (such as Apple, Amazon, BBC News, etc.) for searching, clicking, or utilizing their sorting functions. This greatly limits the agent's ability to complete certain types of tasks. %This is also an important reason for building the WebVoyager framework. 
+
+\noindent \textbf{Both text and vision are necessary for generalist web agents}. As discussed earlier, WebVoyager struggles with text-heavy websites. On the other hand,  we observe that the text-only agent demonstrates significantly poorer performance on websites with complex visual elements, such as Booking and Flights, which require interactions with calendars and other intricate components. In these scenarios, the textual input such as the accessibility tree becomes highly complex and verbose, making it far less intuitive than using screenshots. Hence it's necessary to incorporate both modalities of inputs when building the general purpose agents. 
+
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.8\linewidth]{figures/web_res_gaia.pdf}
+\caption{Success Rate for GAIA Level 1 and Level 2. }
+\vspace{-0.1in}
+\label{fig:success_rate_gaia}
+\end{figure}
+
+\noindent \textbf{Websites with more interactable elements are more challenging for agents.} We also calculate the average trajectory length of tasks completed within the maximum number of iterations, as well as the average number of interactive web elements present on the webpage screenshots.  Figure \ref{fig:page_complexity} illustrates their relationship with the Task Success Rate. We posit that the average trajectory length serves as a measure of a task's complexity to some extent, while the average number of numerical labels related to the decision-making process reflects the complexity of a webpage.  Intuitively, websites depicted in the lower-left corner of Figure \ref{fig:page_complexity}, characterized by relatively simple webpages and shorter trajectory lengths, are expected to exhibit higher Task Success Rates. As observed in Figure \ref{fig:page_complexity}, the results largely align with this intuition. 
+% It is important to note that our current measure of webpage complexity is somewhat rudimentary. 
+
+
+
+
+\noindent \textbf{Why not use Open Source models.} There are a few critical limitations of the existing open-sourced LMMs that prevent us from exploring other alternatives. Specifically, the web navigation task requires the agent to process fine-grained details from web page screenshots to make decisions, hence high-resolution is required to preserve the information from the web. However, most open-sourced LMMs such as  LLaVA \citep{liu2024visual} reduce the image resolution to 224x224 or 336x336, which makes text with smaller fonts unrecognizable, hence they are unsuitable for web navigation tasks. Moreover, models like LLaVA have a max context length of 4096. In our case, the agent needs to handle trajectories as long as 15 steps, and it requires approximately 7000+ tokens, which does not fit in those models' context size. 
+
+
+
+\begin{figure}[t!]
+\centering
+
+\includegraphics[width=0.9\linewidth]{figures/page_complexity.pdf}
+\caption{Factors related to task success rate. We show the average number of elements per page and the average trajectory length for each website type. The darker colors indicate a higher task success rate.}
+\label{fig:page_complexity}
+\vspace{-0.1in}
+\end{figure}
+
+
+
+
+\subsection{Error Analysis}
+In this section, we discuss and summarize the primary issues encountered by WebVoyager in the task completion process. These challenges will serve as critical entry points for future enhancements of the Task Success Rate and for devising strategies to obtain an Optimal Trajectory. We sampled 300 tasks from our benchmark and manually labeled the error category for each failed case, we show the distribution of errors in table \ref{tab:error}. 
+In Appendix \ref{sec:error_eg}, we also provide specific examples for each issue. % \kaixin[]{Did you labeled all of the failed tasks from our dataset?}
+
+
+\paragraph{Navigation Stuck} 
+The most common failure is running out of steps before completing the task. There are three failure scenarios: %Agents may encounter a situation during web navigation where they become trapped in a specific local area, leading to the continuous exploration of incorrect web content. For instance: 
+1) When the agent's search query is not precise and explicit enough, it will be overwhelmed by irrelevant search results. The agent may prefer to browse different results or wait for incorrect outcomes rather than correct its previous action; 2) When the scroll-able area is 
+%only a small part of the screen, 
+very small,
+the agent might not be able to locate the correct scrolling area and repeatedly request the execution of useless scrolling actions; 3) Sometimes in the middle of the page, the agent has trouble deciding whether to scroll up or down.
+The agent also tends to repeat its previous mistakes due to the input clipping, as mentioned in section \ref{subsec:planning_method}. %, the presence of a clip message may contribute to the agent repeating its mistakes since previous error information could be missing.
+These meaningless or repetitive actions may hinder the completion of the task.
+
+\paragraph{Visual Grounding Issue} The visual grounding ability of our agent still has a large room for improvement. We observe the following issues: 1) The agent cannot interpret less frequently observed patterns, such as misidentifying characters representing the pronunciations or math formulas; 2) The agent doesn't recognize the subtle difference between two observations and thinks the execution has failed;  3) The agent selects the wrong element for action execution due to proximity. %This issue is also mentioned in \citet{zheng2024gpt}. 
+For example, the model sometimes confuses adjacent elements and misinterprets numbers on a calendar as numerical labels. Sometimes textual information plays a significant role, offering valuable cues and assisting in distinguishing between overly dense web elements. We find that incorporating the text content included in Web Elements can alleviate these problems to some extent. However, a stronger visual encoder or additional text inputs might be needed.
+%to fully address the issue.  
+
+
+\begin{table}[t]
+\small
+\centering 
+% \resizebox{1.0\linewidth}{!}{
+\begin{tabular}{@{}lll@{}}
+\toprule
+\begin{tabular}[c]{@{}l@{}}Main reasons for \\ Failure\end{tabular} & Ratio  \\ \midrule
+Navigation Stuck &   44.4\%     \\
+Visual Grounding Issue    &  24.8\%      \\
+Hallucination&   21.8\%     \\
+Prompt Misalignment     &    9.0\%     \\ \bottomrule
+\end{tabular}
+%}
+% \vspace{-0.05in}
+\caption{Distribution of main failure reasons.}
+\vspace{-0.1in}
+\label{tab:error}
+\end{table}
+
+
+\paragraph{Hallucination} 
+Agents sometimes produce seemingly correct answers, which may require checking carefully to identify errors. We mainly see the following two scenarios: 1) The agent may overlook certain task requirements and settle for an answer that is only partially correct. For instance, when asked for the cheapest product, the agent might respond with a cheap product visible in a screenshot, neglecting the need to sort the options first.
+2) The agent might execute a seemingly correct action without raising any errors, which deviate it from the correct reasoning path. %In action execution, agents error understanding the function of web elements and tend to believe that an action is correct if it does not result in an error, often without rechecking. However, the executed action might be wrong, though executable. %Examples include incorrect date selection or 
+For example, inputting content to the wrong text box when there are many text boxes on the webpage is still valid, yet it would guide the agent to obtain a wrong answer.
+
+\paragraph{Prompt Misalignment} 
+Understanding and following complex prompts, as illustrated in Figure \ref{fig:prompt}, often poses significant challenges. Moreover, longer trajectories may result in excessively lengthy contexts, hindering effective instruction following. Although many of the errors in Navigation Stuck and Hallucination categories can also be attributed to prompt design, we use Prompt Misalignment to categorize the following situations: 1) the agent fails to generate outputs that can be parsed into executable actions, e.g. providing only the `Thought' without the corresponding `Action'; 2) Prematurely terminating the process using the ANSWER action, though agent knows that the task is not yet complete (explicitly mentioned in its answer). %Additionally, while utilizing the gpt-4-vision-preview, we encounter the issue of non-determinism \citep{chann2023non}. Despite setting the temperature to zero and fixing the prompt and seed, outcome variations persist, further complicating the design of effective prompts.
+
+
+
+\section{Conclusion}
+%We introduce WebVoyager, an LMM-powered web agent designed for end-to-end web task resolution. To evaluate the performance of WebVoyager, we collect a variety of web tasks related to 15 websites. We propose Human Evaluation and GPT-4V-based Automatic Evaluation, ensuring result reliability with consistent analyses. The results highlight WebVoyager's potential with a 59.1\% Task Success Rate, yet significant room remains for improvement. A comprehensive Error Analysis of the weaknesses of WebVoyager is provided after the experiments. For future work, we suggest exploring better integration methods for visual and textual information. Additionally, it's worth investigating how to train a better model with open-sourced LMMs for building multi-modal web agents similar to WebVoyager.
+
+We introduce WebVoyager, an innovative web agent powered by large multimodal models (LMM) that can complete real-world web tasks end-to-end by interacting with websites. We have shown through evaluations that WebVoyager outperforms several baselines by leveraging both visual and textual signals. 
+We also propose an automatic evaluation protocol by leveraging GPT-4V as the evaluator for online agents. 
+Our work demonstrates the promise of using advanced LMM capabilities in building intelligent web agents. We hope WebVoyager provides a strong foundation for future research toward building more versatile and capable web assistants.
+
+
+\section*{Limitations}
+%The environment we have constructed allows users to extend actions, but there remain some limitations. 
+We recognize the following limitations of our work.
+First, we haven't supported all possible actions in our environment compared to actions a human user might take when browsing the web. e.g. the Drag action on web pages. Supporting such an action is challenging since the degree of Drag is not a finite set. We may allow it to choose the pixel values to be dragged if the Visual Grounding capabilities of LMMs are further enhanced. Second, our agent currently can only analyze basic file formats (such as text files and PDF files) and doesn't support all file formats, especially videos. Enhancing support for additional file formats is a crucial step in the development of web agents and we leave it for future work. 
+
+Regarding the potential risks of our work, we believe that it requires a substantial amount of safety checks before deploying web agents like WebVoyagar into real-world applications, as the agent might unintentionally download malicious content from unauthorized websites, or input private/confidential information on public websites. Also the agent might send fake requests to website servers or generate fake user activities, which might be harmful to website owners. Therefore it's necessary to take extra caution when using and testing our agent. 
+%Supporting more file formats would also require a non-trivial amount of effort and we consider it to be an important step towards building AGI-like agents. %Thirdly, Finding an alternative way to reduce the impact of CAPTCHAs also presents a promising technology exploration.
+
+
+\section*{Ethics Statement}
+Our experiments have been designed to operate within strict ethical guidelines. Specifically, we restrict our web agent to perform only non-login tasks. This approach is in full compliance with the terms of service and user agreements of the websites our agent interacts with. Furthermore, we closely monitor the agent's activities during its online evaluations. This monitoring is designed to identify and prevent any actions that could lead to potentially harmful consequences. By taking these precautions, we ensure that our research does not cross ethical boundaries or cause unintended harm.
+
+Additionally, all task queries for evaluation undergo thorough manual inspection to ensure they are harmless and ethically sound. This manual inspection process is aimed at ensuring that every query is harmless and does not promote or propagate harmful content or actions. Our work aims to enhance user experience and accessibility while mitigating potential negative societal impacts. By proactively addressing ethics concerns, we dedicate to conducting research that benefits society while upholding high ethical standards.
+
+
+
+
+% \section*{Acknowledgements}
+
+
+% Entries for the entire Anthology, followed by custom entries
+\bibliography{custom}
+\bibliographystyle{acl_natbib}
+
+\clearpage
+\appendix
+
+
+
+
+
+
+\section{Prompt for WebVoyager}
+\label{sec:appendixA}
+
+The System Prompt for WebVoyager is shown in Figure \ref{fig:prompt}. The Prompt's guidelines hold potential for optimization and should be generalist rather than website-specific in design. Incorporating specific issues from websites into the system prompt may compromise the agent's universality. 
+
+
+\section{Prompt for Auto Evaluation}\label{appendix:auto_eval}
+
+
+Figure \ref{fig:prompt_auto} demonstrates using GPT-4V as an evaluator for web tasks, involving web task instruction, screenshots in the trajectory, and WebVoyager responses. We require GPT-4V to mark success or not success. The temperature is set to 0 to reduce randomness during evaluation. 
+
+
+\section{Action Space}\label{sec:action_space}
+We detail the interaction actions that WebVoyager employs to navigate and operate within web environments. These actions are fundamental to how the agent interacts with web pages, retrieves information, and performs specific tasks as part of its operational protocol. The actions range from basic web navigation to more complex operations, tailored to efficiently gather data and respond to queries. Each action is designed with a specific format for easy identification and execution. 
+
+\begin{itemize}
+    \item Click. This action involves clicking on an element within a webpage, typically a link or a button. 
+    If clicking a link results in the download of a PDF file, we automatically parse its content using the OpenAI Assistant API\footnote{https://platform.openai.com/docs/assistants/overview} and incorporate it into the Observation. Action Format: \texttt{Click [Numerical\_Label]}.
+    \item Input. This is a composite action that involves selecting a text box, deleting any existing content within it, and then inputting new content. 
+    To minimize interaction frequency, an automatic ENTER key press follows the input completion. Action Format:  \texttt{Type [Numerical\_Label]; [Content]}.
+    \item Scroll. Scrolling is a common operation for browsing webpages, usually involving the vertical movement of the entire page. 
+    However, there are instances where only a specific section within the webpage is scrollable. In such cases, we expect the Agent to select an element within the scrollable area and navigate to that particular region for scrolling. Action Format: \texttt{Scroll [Numerical\_Label or WINDOW]; [up or down]}.
+    \item Wait. Action execution requires time, and this action is often used to wait for web pages to load. 
+    Action Format: \texttt{Wait}. 
+    \item Back. This action is used to return to the previous page. 
+    We consider the forward action unnecessary because it can be achieved by repeating previous actions. Action Format: \texttt{GoBack}.
+    \item Jump to Search Engine. There are often situations where agents get stuck at a certain website, without finding an answer. This action enables the agent to jump to a search engine and start anew. 
+    In this work, we just adopt Google Search. Action Format: \texttt{Google}. 
+    \item Answer. Once all questions in the task are resolved, this action concludes the iteration and provides an answer in line with the task requirements. 
+    Action Format: \texttt{ANSWER; [Content]}.
+
+\end{itemize}
+
+
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=0.97\linewidth]{figures/prompt.pdf}
+\caption{System Prompt for WebVoyager. We instruct agents to perform web navigation, along with specific browsing actions and action formats. To enhance efficiency and accuracy, we can incorporate additional general into the prompts. These guidelines should be generic and not about a specific website to ensure generalizability.}
+\label{fig:prompt}
+\end{figure*}
+
+
+
+
+\section{Additional Trajectories}\label{sec:additional_traj}
+%In our experiment, we present the complete trajectory of WebVoyager accessing the Apple website and addressing the task. 
+In Figure \ref{fig:episode}, we demonstrate how WebVoyager automatically navigates the Apple website and accomplishes the task.
+In this section, we exhibit the trajectories for the remaining websites that complete web tasks successfully. We provide a screenshot for each step, accompanied by the action generated by WebVoyager. The specific navigation trajectories for each website are illustrated in Figures \ref{fig:episode_allrecipes} to \ref{fig:episode_wolfram}. In addition, we also explore the performance of WebVoyager on websites in other languages, and we provide two example trajectories in Chinese and Spanish in Figure \ref{fig:episode_flights_chinese} and Figure \ref{fig:episode_cambridge_spanish}.
+
+
+\section{Additional Related Work}
+\textbf{Vision-based Agents} Concurrent to our work, a few related works also studied vision-based autonomous agents. VisualWebArena \cite{koh2024visualwebarena} extends WebArena with additional websites and tasks that focus on visual reasoning to facilitate research on vision-based web agents. SeeClick \cite{cheng2024seeclick} focused on finetuning an LMM to solely leverage screenshots as inputs to interact with websites. WebVLN \cite{chen2023webvln} introduced a web simulator that provides both HTML text and screenshots to finetune supervised vision-language models. GPT-4V Wonderland \cite{yan2023gpt4v} and AppAgent \cite{zhang2023appagent} instead focus on building agents that can operate smartphone apps using the GPT-4V as the backbone. These works further underscore the promising prospects in this field.
+ 
+\noindent \textbf{Large Multimodal Models}.
+In recent years, significant strides have been made in unifying image and text representations within a single multimodal model through joint training with image and text \citep{ li2019visualbert, dosovitskiy2020image, wang2021simvlm, dai2022one, aghajanyan2022cm3}. 
+%With the evolution of Large Language Models (LLMs), there has been a substantial enhancement in both the scale and capabilities \citep{brown2020language, chen2021evaluating, chowdhery2023palm}. Through effective Techniques such as large-scale pre-training and instruction tuning \citep{ouyang2022training}, LLMs have been equipped with a wealth of multi-domain knowledge and have demonstrated the emergent abilities such as in-context learning \citep{pan2022knowledge, shin2022effect}.
+%Large Multimodal Models (LMMs), following in the footsteps of Large Language Models (LLMs), attain the capability of instruction following and exhibit robust multimodal comprehension, thereby advancing the development of Artificial General Intelligence. Represented by GPT-4V \citep{openai2023gpt4} and Gemini \citep{team2023gemini}, LMMs have demonstrated impressive performance on benchmarks \citep{goyal2017making, lu2022learn, zellers2019recognition, hessel2022abduction}, establishing a foundation for the construction of multimodal agents in subsequent research. 
+Large Multimodal Models (LMMs), following in the footsteps of Large Language Models \citep{brown2020language, chen2021evaluating, chowdhery2023palm}, attain the capability of instruction following \citep{ouyang2022training} and exhibit robust multimodal comprehension. Represented by GPT-4V \citep{openai2023gpt4} and Gemini \citep{team2023gemini}, LMMs have demonstrated impressive performance on benchmarks \citep{goyal2017making, lu2022learn, zellers2019recognition, hessel2022abduction}, establishing a foundation for the construction of multimodal agents in subsequent research. 
+
+\begin{figure*}[h!]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/prompt_auto.pdf}
+\caption{System Prompt for Auto Evaluation by GPT-4V.}
+\label{fig:prompt_auto}
+\end{figure*}
+
+\section{Error Cases}\label{sec:error_eg}
+In this section, we provide specific examples of the four types of errors mentioned in the Error Analysis section. Figure \ref{fig:error_flights} illustrates a snippet of WebVoyager navigating on Google Flights and a Visual Grounding Issue appears. The task is to retrieve one-way flight information for January 22nd; however, it selects December 22nd on the Calendar and fails to make the necessary corrections. Although it attempts to modify the date in step 6, it ultimately fails to do so. Figure \ref{fig:error_allrecipes} illustrates a situation of WebVoyager navigating on Allrecipes, encountering the Navigation Stuck issue. The agent requires multiple downward scrolls to locate the correct ingredients. However, it experiences confusion during the process, and it is uncertain whether to scroll up or down. Figure \ref{fig:error_coursera} depicts the Hallucination issue encountered by WebVoyager on the Coursera website. In the task, we query the number of quizzes in the "Artificial Intelligence for Healthcare" course. However, the agent only identifies the quiz in module 1 of the course, which is not the optimal answer and does not fulfill the task requirements. Figure \ref{fig:error_bbc} illustrates the issue of Prompt Misalignment encountered while browsing BBC News. WebVoyager fails to fulfill all the task requirements. Instead of completing the navigation, it provides partial answers and tells me how to find complete answers, which is not end-to-end.
+
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/allrecipes_4.pdf}
+\caption{Screenshots of a complete trajectory of browsing Allrecipes. Given the task: ``Find a recipe for Baked Salmon that takes less than 30 minutes to prepare and has at least a 4-star rating based on user reviews.'' The agent interacts with the Allrecipes website and obtains the answer: ``The "Baked Dijon Salmon" recipe meets the user's criteria, with a 4.6-star rating and a preparation time of 15 minutes.''}
+\label{fig:episode_allrecipes}
+\end{figure*}
+
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/Amazon_0.pdf}
+\caption{Screenshots of a complete trajectory of browsing Amazon. Given the task: ``Search for an Xbox Wireless controller with green color and rated above 4 stars.'' The agent interacts with the Amazon website and obtains the answer: ``The green Xbox Wireless controller ("Xbox Core Wireless Gaming Controller – Velocity Green") rated above 4 stars has been found on Amazon with a rating of 4.7 out of 5 stars.''}
+\label{fig:episode_amazon}
+\end{figure*}
+
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/ArXiv_11.pdf}
+\caption{Screenshots of a complete trajectory of browsing ArXiv. Given the task: ``For non-English submissions, do I need to provide a multi-language abstract, if needed, answer the separator between the multiple abstracts.'' The agent interacts with the ArXiv website and obtains the answer: ``Line ("\textrm{-{}-{}-{}-{}-}")''}
+\label{fig:episode_arxiv}
+\end{figure*}
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/BBC_9.pdf}
+\caption{Screenshots of a complete trajectory of browsing BBC News. Given the task: ``Find out which musician made the headlines in Music News.'' The agent interacts with the BBC News website and obtains the answer: ``The musician who made the headlines in Music News is Taylor Swift.''}
+\label{fig:episode_bbc}
+\end{figure*}
+
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/booking_1.pdf}
+\caption{Screenshots of a complete trajectory of browsing Booking. Given the task: ``Find the cheapest available hotel room for a three-night stay from 1st Jan in Jakarta. The room is for 2 adults, just answer the cheapest hotel room and the price.'' The agent interacts with the Booking website and obtains the answer: ``The cheapest hotel room is at OYO 3755 Sweet Home for US\$14 for a three-night stay.''}
+\label{fig:episode_booking}
+\end{figure*}
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/cambridge_29.pdf}
+\caption{Screenshots of a complete trajectory of browsing Cambridge Dictionary. Given the task: ``Go to the Plus section of Cambridge Dictionary, find Image quizzes and do an easy quiz about Animals and tell me your final score.'' The agent interacts with the Cambridge Dictionary website and obtains the answer: ``The final score on the easy Animals quiz is 6 out of 6.''}
+\label{fig:episode_cambridge}
+\end{figure*}
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/coursera_16.pdf}
+\caption{Screenshots of a complete trajectory of browsing Coursera. Given the task: ``Identify a course on Coursera named 'Introduction to Finance: The Basics', who is the course instructor, and what other courses does he/she teach.'' The agent interacts with the Coursera website and obtains the answer: The course instructor for `Introduction to Finance: The Basics' is Xi Yang. Xi Yang also teaches `Introduction to Finance: The Role of Financial Markets' and `Introduction to Financial Analysis - The "Why?"'}
+\label{fig:episode_coursera}
+\end{figure*}
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/espn_11.pdf}
+\caption{Screenshots of a complete trajectory of browsing ESPN. Given the task: ``How many NBA teams are there and list all the teams with `New' in their name.'' The agent interacts with the ESPN website and obtains the answer: ``There are 30 NBA teams. The teams with `New' in their name are the New York Knicks and the New Orleans Pelicans.''}
+\label{fig:episode_espn}
+\end{figure*}
+
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/GitHub_0.pdf}
+\caption{Screenshots of a complete trajectory of browsing GitHub. Given the task: ``Search for an open-source project related to `climate change data visualization' on GitHub and report the project with the most stars.'' The agent interacts with the GitHub website and obtains the answer: ``resource-watch/resource-watch with 63 stars''}
+\label{fig:episode_github}
+\end{figure*}
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/google_map_4.pdf}
+\caption{Screenshots of a complete trajectory of browsing Google Map. Given the task: ``Plan a trip from Boston Logan Airport to North Station.'' The agent interacts with the Google Map website and obtains the answer: ``The fastest route from Boston Logan International Airport to North Station is via MA-1A S and takes approximately 8 minutes in current traffic conditions.''}
+\label{fig:episode_map}
+\end{figure*}
+
+
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/google_flights_8.pdf}
+\caption{Screenshots of a complete trajectory of browsing Google Flights. Given the task: ``Search a one-way flight from Dublin To Athens Greece for 1 Adult that leaves on December 30 and analyse the price graph for the next 2 months.'' The agent interacts with the Google Flights website and obtains the answer: ``The price graph has been analyzed, and it shows the trends for flight prices from Dublin to Athens over the next two months.''}
+\label{fig:episode_flights}
+\end{figure*}
+
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/google_search_3.pdf}
+\caption{Screenshots of a complete trajectory of browsing Google Search. Given the task: ``Show me a list of comedy movies, sorted by user ratings. Show me the Top 5 movies.'' The agent interacts with the Google Search website and obtains the answer: ``The Top 5 comedy movies sorted by user ratings are:Life Is Beautiful; Back to the Future; The Intouchables; City Lights; Modern Times''}
+\label{fig:episode_google_search}
+\end{figure*}
+
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/huggingface_3.pdf}
+\caption{Screenshots of a complete trajectory of browsing Huggingface. Given the task: ``Look up a model with a license of cc-by-sa-4.0 with the most likes on Huggingface.'' The agent interacts with the Huggingface website and obtains the answer: ``The model with a license of cc-by-sa-4.0 with the most likes on Hugging Face is "replit/replit-code-v1-3b" with 703 likes.''}
+\label{fig:episode_huggingface}
+\end{figure*}
+
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/wolframalpha_6.pdf}
+\caption{Screenshots of a complete trajectory of browsing Wolfram Alpha. Given the task: ``Simplify x\textasciicircum5-20x\textasciicircum4+163x\textasciicircum3-676x\textasciicircum2+1424x-1209 so that it has fewer items.'' The agent interacts with the Wolfram Alpha website and obtains the answer: ``(x - 4)\textasciicircum5 + 3(x - 4)\textasciicircum3 + 7''}
+\label{fig:episode_wolfram}
+\end{figure*}
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/google_flights_Chinese.pdf}
+\caption{Screenshots of a complete trajectory of browsing Google Flights in Chinese. Given the task: ``Find a flight from Hangzhou to Shenzhen on June 15, 2024, returning on June 20, departing at night, answer a flight that meets the requirements, and answer its specific departure time, airline and price.'' The agent interacts with the Google Flights website and obtains the answer: ``Departure time: 17:35, airline: Shenzhen Airlines, price: HK\$2,680''}
+\label{fig:episode_flights_chinese}
+\end{figure*}
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/cambridge_spanish.pdf}
+\caption{Screenshots of a complete trajectory of browsing Cambridge Dictionary in Spanish. The description of task and answer are shown in Figure.}
+\label{fig:episode_cambridge_spanish}
+\end{figure*}
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/flights2_error.pdf}
+\caption{An error case for Google Flights. Given the task:``Find the lowest fare from all eligible one-way flights for 1 adult from JFK to Heathrow on Jan. 22.'' Agent fails to select the correct numerical label though it really wants to select 22 January. }
+\label{fig:error_flights}
+\end{figure*}
+
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/error_allrecipes_8.pdf}
+\caption{An error case for Allrecipes. Given the task:``Search for a recipe for Beef Wellington on Allrecipes that has at least 200 reviews and an average rating of 4.5 stars or higher. List the main ingredients required for the dish.'' Agent fails to scroll the page correctly and find ingredients.}
+\label{fig:error_allrecipes}
+\end{figure*}
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/error_coursera_6.pdf}
+\caption{An error case for Coursera. Given the task: ``Identify a course on Coursera related to 'Artificial Intelligence for Healthcare' and note the course duration along with the number of quizzes in Assessments.'' The agent provides the answer: ``Module 1 includes 3 quizzes in the Assessments.'' However, we also require other Modules and agent fails to provide the results.}
+\label{fig:error_coursera}
+\end{figure*}
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/trajectories/error_BBC_11.pdf}
+\caption{An error case for BBC News. Given the task: ``Find out how many teams are in the Scottish Premiership of the Football Tournament and when did the Hibernian team's most recent match start?'' The agent provides the answer: ``There are 12 teams in the Scottish Premiership. To find out the exact start time of Hibernian's most recent match, further interaction with the website would be required.'' The Agent knows that the task is not yet complete, but it ends its navigation early, even though it can find the Hibernian team's most recent match.}
+\label{fig:error_bbc}
+\end{figure*}
+
+\end{document}

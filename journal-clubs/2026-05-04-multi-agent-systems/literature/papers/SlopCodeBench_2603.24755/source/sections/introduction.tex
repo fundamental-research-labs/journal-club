@@ -1,0 +1,25 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Every design decision in software engineering is a compromise with unknown future requirements. A code search program built around regular expressions works until the specification demands structural pattern matching, at which point the entire architecture must be rewritten. Existing coding-agent benchmarks systematically undermeasure this failure mode, evaluating models once against complete task specifications~\citep{swe-bench,projdevbench,vibe-code-bench,swe-rebench-v2}. They measure whether an agent can produce correct code for the current specification, not whether that code remains extensible under future change.
+
+\begin{figure}[t]
+    \centering
+    \input{figs/overview.tex}
+    \caption{Iterative evaluation in SlopCodeBench. At each checkpoint, the agent receives an updated specification and extends its own prior solution. File-level diffs grow across checkpoints, reflecting accumulated code changes.}
+    \label{fig:overview}
+\end{figure}
+
+Under repeated editing, agent-generated code often deteriorates in recognizable ways. LLMs favor verbose constructions over concise idioms~\citep{dou2024-whats-wrong-llm-code, abbassi2025-taxonomy-inefficiencies}, and each multi-turn edit preserves and extends the anti-patterns of prior turns~\citep{chen2025-patch-quality, nakashima2026-agentic-prs, what-to-cut}. The resulting low-quality, high-volume code is often colloquially called ``slop.'' In traditional software engineering, such accumulation is associated with higher maintenance cost and slower modification~\citep{lacerda2020-code-smells-tertiary,le2021-architectural-decay,li2022-architecture-erosion}, yet pass rates can remain stable even as the underlying code becomes harder to extend. Pass-rate-centric single-shot benchmarks do not capture this.
+
+Recent benchmarks push toward multi-turn or long-horizon coding, but none of them isolate \emph{true iterative coding}. Some construct iterative tasks by decomposing monolithic solutions into dependency-ordered subproblems, producing a self-contained test bed rather than a realistic setting where the agent selects an architecture and must live with it later~\citep{codeflowbench}. Others derive tasks from the commit histories of mature open-source repositories~\citep{thai2025-swe-evo,evoclaw,swe-ci}. These are valuable for studying maintenance and feature work in existing systems, but they do not test iterative coding ability. Using human-built workspaces and historically realized evolution paths means the agent never pays the cost of its own early design decisions. In some cases the task formulation is also tied to test- or oracle-derived signals, which further undercuts the benchmark's ability to measure open-ended iterative design~\citep{swe-ci}. To properly measure this, a benchmark needs four things: the agent builds on its own prior code; problems specify only external behavior, not internal interfaces; the test suite stays hidden so it can't leak architectural hints; and each task is a black-box contract that's implementable in any language.
+
+We therefore introduce \textbf{SlopCodeBench (SCBench)}, a benchmark for measuring how code quality evolves as agents repeatedly extend \emph{their own prior code} under changing specifications. SCBench contains 20 problems spanning 93 checkpoints. Each checkpoint specifies only observable behavior at a CLI or API boundary, leaving internal structure unconstrained and keeping the test suite hidden. The benchmark is language-agnostic by construction; in this paper we focus on the Python track. Beyond correctness, we track two trajectory-level quality signals: \textbf{verbosity}, which measures redundant or duplicated code growth, and \textbf{structural erosion}, which measures the concentration of complexity in already-complex functions.
+
+Our contributions are:
+\begin{enumerate}[leftmargin=*,itemsep=2pt,topsep=2pt]
+    \item \textbf{\scb{}},\footnote{Benchmark, data, and code available at \url{https://www.scbench.ai}} a language-agnostic benchmark of 20 iterative software-development problems spanning 93 checkpoints. No evaluated agent solves a problem end-to-end; the highest checkpoint solve rate is 17.2\%.
+    \item \textbf{Two trajectory-level quality metrics}, verbosity and structural erosion, that separate redundant code growth from concentration of complexity mass. Erosion rises in \erosionPctIncreasing{}\% of trajectories and verbosity in \vfTrajIncPct{}\%.
+    \item \textbf{Calibration against human code.} Agent code is 2.2x more verbose and more eroded than 20 maintained repositories, and the gap widens every iteration.
+    \item \textbf{Prompt intervention study.} Quality-aware prompts reduce initial verbosity and erosion but do not slow the degradation, improve pass rates, or reduce cost.
+\end{enumerate}

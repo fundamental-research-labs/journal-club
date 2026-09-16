@@ -1,0 +1,71 @@
+\section{Related Work}
+% \jy{https://arxiv.org/pdf/2505.06120}
+\subsection{Multi-Agent Architectures}
+Recent studies have explored diverse architectural choices for LLM-based multi-agent systems, spanning from static, predefined role-playing topologies to dynamic, task-adaptive orchestrations. Early frameworks such as CAMEL \citep{li2023camel} and Generative Agents \citep{park2023generative} established the foundation for communicative interaction, which was later structured into a natural language communication pipeline from ChatDev \citep{qian2024chatdev}. To enhance flexibility, EvoMAC \cite{hu2024self} 
+% \gncomment{Missing reference here.} 
+explores self-evolving collaboration and AutoAgents \cite{chen2023autoagents} focuses on automated agent generation. Advanced orchestrators like AgentOrchestra \cite{zhang2025agentorchestra} introduce standardized protocols (e.g., TEA), while MASS \citep{zhou2025multi} and DyLAN \citep{liu2023dynamic} optimize inter-agent topologies for adaptive task decomposition. Despite achieving higher autonomy in personnel allocation, these architectures still struggle with high-density communication and cognitive overload in long-horizon tasks. To address this, MegaAgent \cite{wang2025megaagent} and subsequent scaling laws \citep{qian2024scaling} examine the decay of efficiency in large clusters, leading to optimization strategies such as sequential aggregation in Chain-of-Agents \citep{zhang2024chain}, and memory abstractions in MemGPT \citep{packer2023memgpt}. Many open-source agents such as OpenHands \citep{wang2024openhands} further reduce context explosion through history condensation.
+
+Although many multi-agent systems optimize information flow, they largely rely on "standardized operating procedures" to maintain agent coordination \citep{hong2023metagpt, nguyen2025agilecoder} and incorporate agile methodologies for lifecycle management. Deeper coordination is studied through implicit co-player inference \citep{meulemans2024multi}, consensus-based evaluation in agent-as-judge \citep{zhuge2024agent}. However, in shared-artifact environments like software engineering, these linguistically-governed architectures frequently encounter execution conflicts when multiple agents concurrently modify the codebase. \cite{khatua2026cooperbench} suggest that this critical bottleneck for multi-agent execution remains under-explored. This gap reveals that we need an architectural design that physically coordinates multiple agents in an execution-aware paradigm.
+
+
+\subsection{Multi-Agent Coordination Challenges}
+Despite advances in multi-agent architectures, coordination stability remains constrained by communication workflows, which is directly reflected in task delegation under the uncertainty of complex tasks and explicit conflicts within shared workspaces. In dialogue-driven systems \citep{wu2024autogen}, delegation typically emerges implicitly through conversational interaction rather than explicit authority modeling, which can lead to redundant effort or delayed escalation. While recent studies propose more structured approaches—including orchestrator-executor handoffs and hierarchical organizations \citep{song2025coact, xu2025boad} to regulate task delegation, scaling analyses \citep{qian2024scaling, li2024more} demonstrate that increasing the agent population without disciplined delegation amplifies communication overhead and may degrade overall performance. Another critical challenge caused by unstructured communication is physical interference: planning-oriented analyses \citep{li2024agent} report severe task overlap and inconsistent action sequences, while empirical scaling results \citep{qian2024scaling, li2024more} quantify a "coordination tax" in which synchronization costs grow superlinearly with agent count. These findings indicate that linguistic alignment can harmonize intent but cannot inherently serialize concurrent state transitions or guarantee integration consistency. To address these challenges, we use a central manager to explicitly delegate tasks and physically isolate the workspaces of concurrent agents to prevent integration conflicts.
+
+\subsection{Software Engineering for Multi-Agent Coordination}
+Before the emergence of LLM-based agents, software engineering had already developed mechanisms for coordinating parallel work over shared artifacts, including branching and merging, dependency management, continuous integration, and code review. These mechanisms treat coordination as explicit control over versioned artifacts and their integration. Recent multi-agent work has begun to implicitly adopt parts of the SWE paradigm. Process-driven frameworks such as MetaGPT \citep{hong2023metagpt} and AgileCoder \citep{nguyen2025agilecoder} mirror role decomposition and lifecycle management. Sandbox-based systems, including the SWE-agent \cite{yang2024swe}, incorporate build–test feedback loops analogous to continuous integration. However, recent empirical studies \cite{khatua2026cooperbench} still report that concurrent modification and merge conflicts remain a primary failure mode when these engineering primitives are not explicitly modeled. These observations suggest that, in shared repositories, the central issue is not only how agents are organized into roles or workflows, but also how concurrent work is isolated, integrated, and verified.  In this paper, we focus on branch-and-merge coordination and the SWE primitives that support it in multi-agent software engineering.
+
+% These suggest that effective multi-agent coordination in shared environments naturally requires elevating software engineering primitives such as versioned state, dependency graphs, integration checks, and conflict resolution. We build upon these insights by formalizing a coordination paradigm that adopts Git-based primitives in multi-agent system design.
+
+
+\subsection{Software Engineering Evaluation Benchmarks}
+Software Engineering (SWE) tasks, which evaluate agents on their ability to autonomously carry out diverse real-world development activities across complex codebases, have become the core benchmarks for measuring the practical capabilities of LLM-based coding agents. SWE-bench \cite{jimenez2023swe} provides the initial benchmark for autonomous issue resolution. SWE-bench Verified \cite{chowdhury2024swebenchverified} refines the evaluation methodology to enhance fidelity and robustness, whereas SWE-bench Pro \cite{deng2025swe} expands the task design to include professionally curated, multi-step engineering problems that better approximate complex real-world development workflows. To move beyond issue-level resolution, several benchmarks isolate specific capabilities of software engineering agents. TerminalBench \cite{merrill2026terminal} and InterCode \cite{yang2023intercode} evaluate the use of terminal-based tools, while DevBench \cite{li2024devbench} extends the assessment to the broader software development lifecycle. For long-horizon and reasoning-intensive scenarios, SciCode \citep{tian2024scicode} and LongCLI \citep{feng2026longcli} introduce multi-step algorithmic or decentralized workflows. At a larger granularity, Commit0 \cite{zhao2024commit0} and PaperBench \cite{starace2025paperbench} introduce long-horizon SWE tasks that move beyond localized reasoning. Long-horizon, complex SWE tasks naturally constitute a rigorous testbed for multi-agent systems, as coordinated multi-file modifications, interdependent subtasks, and explicit merge conflicts systematically expose challenges in synchronization, consistency maintenance, and progress integration across agents. In this paper, we evaluate \ourmethod on Commit0 and PaperBench.
+
+% Recent work has explored diverse architectural choices for LLM-based multi-agent systems, spanning topology design, orchestration strategies, and communication mechanisms.
+
+
+%
+% \begin{itemize}
+%     \item TDAG~\citep{tdag2024} dynamically decomposes tasks and generates specialized agents on the fly for each subtask.
+%     \item MegaAgent~\citep{megaagent2024} scales autonomous multi-agent collaboration to large systems without requiring predefined standard operating procedures.
+%     \item AgentOrchestra~\citep{agentorchestra2025} proposes the TEA protocol to unify the orchestration of agent communication and task flow.
+%     \item \citet{evoorchestration2025} evolve the orchestration strategy itself through iterative refinement across agent interactions.
+%     \item MASS~\citep{mass2025} jointly optimizes agent prompts and inter-agent topologies for improved collaboration performance.
+%     \item EvoMAC~\citep{evomac2025} treats the agent network as a learnable structure and self-evolves its topology at test time using compiler feedback as a training signal.
+%     \item On the communication side, \citet{latentmas2025} replace natural language with latent-space representations for inter-agent communication, while \citet{magrpo2025} use multi-agent reinforcement learning to learn collaboration strategies among LLM agents.
+%     \item \citet{scalingmac2024} study scaling laws and emergent behaviors as the number of collaborating agents increases.
+% \end{itemize}
+
+% These systems coordinate agents whose outputs are independent texts (reasoning traces, answers, plans) that can be aggregated by voting or debate. None provides mechanisms for multiple agents to modify a shared mutable artifact in parallel, which \textsc{Prism} addresses through SWE primitives.
+
+
+% \subsection{Multi-Agent Systems for Software Engineering}
+
+% Software engineering is one of the most active application domains for multi-agent systems, but existing work equates ``multi-agent'' with role splitting rather than parallel collaboration.
+% \begin{itemize}
+%     \item MetaGPT~\citep{metagpt2023} encodes software company SOPs into a sequential role pipeline (product manager, architect, engineer, QA) where agents hand off structured artifacts in a fixed order.
+%     \item ChatDev~\citep{qian2024chatdev} simulates a software company through dialogue-driven role collaboration, also executing strictly sequentially.
+%     \item EvoMAC~\citep{evomac2025} self-evolves agent topologies for code generation but remains sequential and only handles greenfield generation from scratch.
+%     \item Agyn~\citep{benkovich2026agyn} splits roles into manager, researcher, engineer, and reviewer, yet the actual coding is still performed by a single engineer agent.
+%     \item Similarly, Trae Agent~\citep{gao2025traeagent} and Prometheus~\citep{pan2025prometheus} employ multi-agent pipelines for SWE tasks but route all implementation through a single sequential execution thread.
+%     \item On the empirical side, CooperBench~\citep{cooperbench2026} directly experiments with two agents coding on a shared repository in parallel and finds a 30\% success rate degradation, attributing failures to cluttered communication and broken commitments between agents.
+% \end{itemize}
+% Existing SWE multi-agent systems only split roles without enabling parallel engineering, and CooperBench confirms that naive parallelism degrades performance. \textsc{Prism} uses \texttt{git worktree} for workspace isolation, dependency graphs for scheduling, and \texttt{git merge} for integration, making parallel multi-agent collaboration on a shared codebase reliable.
+
+
+
+
+
+
+
+% Task allocation and communication design are two central problems in multi-agent systems; recent work has proposed various allocation strategies and systematically analyzed failure modes.
+% \begin{itemize}
+%     \item \citet{delegation2026} study when and what an AI agent should delegate to other agents or humans.
+%     \item COALESCE~\citep{coalesce2025} formulates task allocation as a cost-optimized marketplace where agents bid on subtasks based on skill competence.
+%     \item \citet{decentralizedtask2025} propose decentralized algorithms for dynamic task redistribution without a central coordinator.
+%     \item \citet{scalingagents2025} provide a scientific framework for analyzing how agent system performance changes with scale and organizational structure.
+%     \item On the diagnostic side, \citet{llmmas2024} survey open problems in LLM-based multi-agent systems and identify task allocation as a core unsolved challenge, while \citet{masfail2025} empirically analyze failure modes and find that unstructured free-form communication is the primary cause of multi-agent breakdown.
+% \end{itemize}
+
+% Existing allocation strategies are domain-agnostic, treating tasks as abstract units without exploiting domain structure, and failure analyses consistently blame unstructured communication. \textsc{Prism} addresses both by coupling task allocation directly to the codebase's import graph and replacing free-form dialogue with structured JSON task specifications.
+
+

@@ -1,0 +1,259 @@
+\section{\mlgym}
+% \dn{Please take a look and leave feedback}
+% \rr{left some comments}
+
+An LLM agent can perform ML research/development by interacting with a shell environment through a sequence of commands.
+%
+Given a task description, some starter code and access to its action and observation history, the LLM generates appropriate shell commands to accomplish research objectives like generating ideas, processing data, implementing new methods, training and evaluating models, analyzing the results, and reasoning about what experiments to run next.
+%
+The agent is iteratively prompted to take actions based on the task description and execution feedback from previous commands, allowing it to develop and self-refine the solutions in-context.
+%
+% One of the first works in this domain \citep{huangMLAgentBenchEvaluatingLanguage2024} builds an environment and agent for benchmarking LLMs on ML research tasks.
+% %
+% However, they do not provide a clean API or config-based design to easily integrate new agents or research tasks. Hence, it doesn't provide a useful tool for advancing research on this topic.
+
+The \mlgym framework provides a unified framework for evaluating and developing agents and models for AI research tasks. We take inspiration from long existing field of RL and build a \textsc{Gym}~\citep{brockman2016openaigym} environment that can execute shell commands in a local docker machine shell. 
+\mlgym \textbf{provides access to four core components: Agents, Environment, Datasets, and Tasks}. \mlgym's modular design allows one to easily utilize and extend the library.
+For example, researchers can easily implement other agentic harnesses to improve performance, they can expand the environment by adding more tools for an agent, add more datasets within a given task (e.g., if the task is image classification they could add ImageNet in addition to Cifar-10), and they can even add more tasks to the \mlgym benchmark. Below, we discuss each component in detail.
+
+\subsection{Agents}
+\label{sec:agents}
+The Agent class provided by \mlgym acts as a wrapper around a base LLM and provides functionality for integrating various base models, history processors, and cost management.
+%
+Moreover, unlike other frameworks~\citep{huangMLAgentBenchEvaluatingLanguage2024,yangSWEagentAgentComputerInterfaces2024}, \mlgym separates the agent from the environment, allowing for easy integration of external agents.
+This also enables one to fairly compare different base models given the same agentic harness without the need of implementing their own agentic orchestration.
+
+% \dm{isn't it the last 5}
+The agent is expected to take the history of all prior observations and actions as input and return the next action to take. The provided action is then passed to the environment, which executes the command and returns the next observation based on the command output.
+%
+The agent can execute any \textsc{bash command} in the environment. In addition, it has access to a set of tools (i.e., bash scripts such as editing a file) that it can use similarly to any other bash command.
+% Here, action is a bash command that is executed in the environment. Note that the tools are also defined as bash scripts and thus the agent can use them similar to any other bash command.
+\mlgym provides an agent adapted from SWE-Agent~\citep{yangSWEagentAgentComputerInterfaces2024} as a default agentic harness.
+We describe the design and configuration of the tools in~\autoref{sec:tools}. The full system prompt used can be found in~\autoref{lst:system_prompt}.
+
+\subsection{Environment}
+\label{sec:environment}
+\mlgym environments are designed as Gymnasium (\textit{gym}) environments \citep{towers2024gymnasiumstandardinterfacereinforcement}.
+%
+The environment component is responsible for initializing a \textit{shell environment} in a local \textit{docker machine}, with all the required tools, installing task-specific \textit{python dependencies}, copying all the necessary data and code in a separate agent workspace and managing interactions between the LLM agent and the system.
+%
+Moreover, to support open-ended research tasks and make the environment safe and flexible, \mlgym environment also manages permissions for various files and directories.
+%
+Specifically, when running in a docker container, due to various security concerns associated with using a root user, we create a non-root user named "agent" and set the appropriate permissions for the working directory.
+
+In this work, we make a conscious decision to decouple tools and ACI as defined in SWE-Agent \citep{yangSWEagentAgentComputerInterfaces2024}\footnote{As of the latest release, SWE-Agent also decouples tools/ACI from the agent.}.
+%
+Note that this ensures that the agent and environment are not tightly coupled, allowing for easier implementation of other agentic architectures.
+%
+Practically, this means that when the environment is initialized, it also initializes the tools in the working environment and a tool documentation is prepared which can be added to the LLM agent's prompt. More details about the tools are provided in \autoref{sec:tools}.
+
+\subsection{Datasets} 
+\label{sec:datasets}
+\mlgym provides a simple abstraction for defining datasets through configuration files.
+%
+It supports both locally stored and Hugging Face datasets.
+%
+We decouple the dataset definition from the task definition, so that a single dataset can be used in multiple tasks. Similarly, a single task can have more than one dataset so that the agent's code can be evaluated across all of them to demonstrate the generality of the implemented method.
+
+Moreover, if the dataset files are stored locally, the environment automatically copies the relevant files to the agent workspace with read-only permissions.
+%
+This ensures that the agent cannot change the dataset files, which is important for reproducibility and cheating prevention.
+
+If the dataset is stored in Hugging Face, the agent is given the dataset URL through the starter code or in the prompt and asked to utilize it. 
+%
+Note that if the LLM agent fails to follow instructions or uses a different dataset, the evaluation code will not work or result in performance issues.
+
+\subsection{Tasks}
+\label{sec:tasks}
+We provide an easy abstraction to define any ML research task using configuration files.
+%
+Each task can incorporate one or more datasets, custom evaluation scripts (with read-only access), task-specific conda environment, optional starter code, training timeouts, and memory management settings.
+%
+This provides a flexible framework for defining diverse open-ended ML research tasks covering a wide range of difficulty. For example, one can define an easier version of a task by providing a baseline code and a harder version by providing no starter code or one with bugs, thus creating a natural curriculum.
+
+\ibold{Evaluation} is a critical component for any ML task.
+% 
+Every task requires a different evaluation protocol; thus, Kaggle-style evaluation as done in MLE-Bench~\citep{chanMLEbenchEvaluatingMachine2024} where the agent is expected to submit a CSV file is not feasible for every problem. 
+For example, in reinforcement learning settings, the evaluation artifact is a set of models trained on a set of pre-defined random seeds, which is then used to get a mean reward across a set of environment seeds. Similarly for Game Theoretic tasks, it can be a Python file with a strategy function which will be evaluated against a fixed set of strategy functions.
+% Given the dynamical nature of this evaluation process and the environment's stochasticity, one cannot merely evaluate performance given a csv file with predictions.
+% For language modeling, the artefact could be a model checkpoints which will be evaluated based on human interactions.
+%
+Since we aim to evaluate the agent on open-ended and diverse tasks, it is not possible to convert all submissions to a CSV format.
+%
+To ensure extensibility to such open-ended tasks, the task definition is expected to provide an evaluation script and submission artifact instructions.
+%
+The LLM agent can then be prompted to follow the submission instructions and write the appropriate code.
+%
+Moreover, the evaluation script is read-only for the LM agent, so while it can inspect the evaluation format, it cannot modify the script to change the evaluation logic.
+
+Existing works such as~\citet{huangMLAgentBenchEvaluatingLanguage2024,rebench-metr,chenScienceAgentBenchRigorousAssessment2024} also use a script based evaluation approach, whereas MLE-Bench \citep{chanMLEbenchEvaluatingMachine2024} uses a Kaggle style evaluation.
+
+% 
+All our design decisions for the Agent, Environment, Dataset, and Tasks are meant to reduce overhead on the developers' and researchers' side and enhance reproducibility in this newly emerging area.
+
+
+\subsection{Tools and ACI}
+\label{sec:tools}
+Augmenting LLM agents with the ability of using external tools is a critical component for making progress on knowledge-intensive tasks.
+%
+In this work, we extend the ACI (agent-computer interface) first introduced in SWE-Agent \citep{yangSWEagentAgentComputerInterfaces2024} with some additional features required for an ML research agent. 
+%
+Specifically, we extend the commands for search, navigation, file viewer, file editor and context management with our permission management system and introduce new commands for literature search and a memory module.
+For example, if the agent tries to open a file without read permission, the file viewer tool will generate textual feedback for the agent. Similarly, if agent tries to edit the evaluation script (which is marked as read-only), the edit tools will output a feedback string instead of failing silently.
+Literature search and the ability to maintain a experimental log in it's memory are crucial for the agent to surpass SOTA solutions on open-ended research tasks.
+%
+
+Similar to SWE-Agent, tools are defined as bash or python scripts and are made available as bash commands in the environment.
+
+All tool documentation is provided to the agent in the system prompt. See \autoref{tab:tools} for a description of the available tools.
+
+% PAUL_TOL = ["#4477AA", "#EE6677", "#228833", "#CCBB44", "#66CCEE", "#AA3377", "#BBBBBB"]
+\definecolor{color1}{HTML}{4477AA}
+\definecolor{color2}{HTML}{EE6677}
+\colorlet{sweAgentColor}{color1!50!white}
+\colorlet{extendedColor}{color2!50!white}
+
+
+\begin{table*}[!h]
+    \centering
+    \begin{adjustbox}{width=1.0\textwidth}
+    \begin{NiceTabular}{cccc}
+        % \CodeBefore
+        %     \rowcolor{sweAgentColor}{2}
+        %     \rowcolor{extendedColor}{15}
+        % \Body
+        \toprule
+        Category & Tool & Arguments & Documentation \\
+        \midrule
+        % {{ \rowcolor{sweAgentColor} }} \Block{1-4}{\centering\textbf{SWE-Agent Tools}} \\
+        % \rowcolor{sweAgentColor} {{ }} \Block{1-4}{\centering\textbf{SWE-Agent Tools}} \\
+        \multicolumn{4}{c}{\textbf{SWE-Agent Tools}} \\
+        % \multicolumn{4}{c}{\cellcolor{sweAgentColor}\textbf{SWE-Agent Tools}} \\
+        % \multicolumn{1}{c}{\columncolor{sweAgentColor}} & \multicolumn{1}{c}{\columncolor{sweAgentColor}} & \multicolumn{1}{c}{\columncolor{sweAgentColor}} & \multicolumn{1}{c}{\columncolor{sweAgentColor}} \\[-2pt]
+        % \multicolumn{4}{c}{\colorbox{sweAgentColor}{\makebox[\dimexpr\linewidth-2\fboxsep\relax]{\textbf{SWE-Agent Tools}}}} \\
+        % \multicolumn{4}{c}{\textbf{SWE-Agent Tools}} \\
+        % \multicolumn{4}{p{\dimexpr\linewidth}}{%
+        %     \noindent\colorbox{sweAgentColor}{%
+        %         \makebox[\dimexpr\linewidth-2\fboxsep]{%
+        %             \centering\textbf{SWE-Agent Tools}%
+        %         }%
+        %     }%
+        % } \\
+        % \multicolumn{4}{p{\dimexpr\textwidth-2\tabcolsep}}{%
+        %     \noindent\colorbox{sweAgentColor}{%
+        %         \makebox[\dimexpr\textwidth-2\tabcolsep-2\fboxsep]{%
+        %             \centering\textbf{SWE-Agent Tools}%
+        %         }%
+        %     }%
+        % } \\
+        \midrule
+                Search & $\textbf{search\_dir}$  & $\mathrm{<search\_term> [<dir>]}$ & searches for the search term in all files in dir \\
+               & $\textbf{search\_file}$ & $\mathrm{<search\_term> [<file>]}$ & searches for the search term in the given file \\
+               & $\textbf{find\_file}$   & $<file\_name> [<dir>]$ & finds all the files with the given name in dir  \\
+        \midrule
+        File Viewer & $\textbf{open}$ & $\mathrm{<path> [<line\_number>]}$  & opens the given file and goes to the line number \\
+                    & $\textbf{goto}$ & $\mathrm{<line\_number>}$ & moves the window to show the line number \\
+                    & $\textbf{scroll\_down}$ &  & moves the window down 1000 lines \\
+                    & $\textbf{scroll\_up}$ &  & moves the window up 1000 lines \\
+        \midrule
+        File editing & $\textbf{create}$ & $\mathrm{<filename>}$ & creates a new file \\
+                     & $\textbf{insert}$ & $\mathrm{<line\_number <text\_to\_add>}$ & inserts the given text at line number in the open file \\
+                     & $\textbf{edit}$ & $\mathrm{<start\_line>:<end\_line <replacement\_text>}$ & replaces the given lines with the given text in the open file \\
+        \midrule
+        Evaluation & $\textbf{validate}$ &  & validates the current submission file and returns the metrics on the test set \\
+                   & $\textbf{submit}$ &  & submits the current code and terminates the session \\
+        \midrule
+        % \rowcolor{extendedColor} {{ }} \Block{1-4}{\centering\textbf{Extended Tools}} \\
+        % \multicolumn{4}{c}{\cellcolor{extendedColor}\textbf{Extended Tools}} \\
+        % \multicolumn{4}{c}{\cellcolor{extendedColor}\textbf{Extended Tools}} \\
+        % \multicolumn{1}{c}{\columncolor{extendedColor}} & \multicolumn{1}{c}{\columncolor{extendedColor}} & \multicolumn{1}{c}{\columncolor{extendedColor}} & \multicolumn{1}{c}{\columncolor{extendedColor}} \\[-2pt]
+        % \multicolumn{4}{c}{\colorbox{extendedColor}{\makebox[\dimexpr\linewidth-2\fboxsep\relax]{\textbf{Extended Tools}}}} \\
+        \multicolumn{4}{c}{\textbf{Extended Tools}} \\
+        % \multicolumn{4}{p{\dimexpr\linewidth}}{%
+        %     \noindent\colorbox{extendedColor}{%
+        %         \makebox[\dimexpr\linewidth-2\fboxsep]{%
+        %             \centering\textbf{Extended Tools}%
+        %         }%
+        %     }%
+        % } \\
+        % \multicolumn{4}{p{\dimexpr\textwidth-2\tabcolsep}}{%
+        %     \noindent\colorbox{extendedColor}{%
+        %         \makebox[\dimexpr\textwidth-2\tabcolsep-2\fboxsep]{%
+        %             \centering\textbf{Extended Tools}%
+        %         }%
+        %     }%
+        % } \\
+        \midrule
+        Literature Search & \textbf{literature\_search} & $\mathrm{<query> [<num\_results>]}$ & query Semantic Scholar API for papers with attached PDFs \\
+                          & \textbf{parse\_pdf\_url} & $\mathrm{<url>}$ & downloads and extracts the contents of a PDF given a URL \\
+        \midrule
+        Memory Module & \textbf{memory\_write} & $\mathrm{<content\_str>}$ & save important results, configs or findings to memory \\
+                      & \textbf{memory\_read} & $\mathrm{<query\_str>}$ & retrieve top-2 elements from memory most similar to a query \\
+        \bottomrule
+    \end{NiceTabular}
+    \end{adjustbox}
+    \caption{List of tools available to agents. Required arguments are enclosed in $<>$ and optional arguments are in $[]$.}
+    \label{tab:tools}
+\end{table*}
+
+% \begin{table*}[!h]
+%     \centering
+%     \begin{adjustbox}{width=1.0\textwidth}
+%     \begin{NiceTabular}{llll}
+%         \toprule
+%         Category & Tool & Arguments & Documentation \\
+%         \midrule
+%                 Search & $\textbf{search\_dir}$  & $\mathrm{<search\_term> [<dir>]}$ & searches for the search term in all files in dir \\
+%                & $\textbf{search\_file}$ & $\mathrm{<search\_term> [<file>]}$ & searches for the search term in the given file \\
+%                & $\textbf{find\_file}$   & $<file\_name> [<dir>]$ & finds all the files with the given name in dir  \\
+%         \midrule  
+%         File viewer & $\textbf{open}$ & $\mathrm{<path> [<line\_number>]}$  & opens the given file and goes to the line number \\
+%                     & $\textbf{goto}$ & $\mathrm{<line\_number>}$ & moves the window to show the line number \\
+%                     & $\textbf{scroll\_down}$ &  & moves the window down 1000 lines \\
+%                     & $\textbf{scroll\_up}$ &  & moves the window up 1000 lines \\
+%         \midrule
+%         File editing & $\textbf{create}$ & $\mathrm{<filename>}$ & creates a new file \\
+%                      & $\textbf{insert}$ & $\mathrm{<line\_number <text\_to\_add>}$ & inserts the given text at line number in the open file \\
+%                      & $\textbf{edit}$ & $\mathrm{<start\_line>:<end\_line <replacement\_text>}$ & replaces the given lines with the given text in the open file \\
+%         \midrule
+%         Evaluation & $\textbf{validate}$ &  & validates the current submission file and returns the metrics on the test set \\
+%                    & $\textbf{submit}$ &  & submits the current code and terminates the session \\
+        
+%         \bottomrule
+%     \end{NiceTabular}
+%     \end{adjustbox}
+%     \caption{List of tools available to agents in \mlgym, in addition to standard Linux Bash commands. Required arguments are enclosed in $<>$ and optional arguments are in $[]$.}
+%     \label{tab:tools}    
+% \end{table*}
+
+
+
+\ibold{Validation and Submit}
+We provide two commands to the agent to validate the submission and submit the results.
+%
+Both the validate and submit commands are used to run the evaluation script and give the agent feedback on its current score on the test set.
+%
+However, while the submit command is a terminal action, i.e., the agent's trajectory is terminated, and the evaluation script is executed to log the final scores, the validate command can be used as many times as needed during the run to get the current performance on the test set.
+
+Addition of a validation command helps the agent to continuously improve its performance on the test set.
+
+\ibold{Literature Search and PDF Parser}
+% \todo[inline]{@ajay: please add details about this.}
+We provide the agent with two tools to find and extract knowledge from external sources. The Literature Search tool allows the agent to query the Semantic Scholar API to find research papers about a given query that have open-access PDFs available, and the PDF Parsing tool allows the agent to download PDFs and convert them into a text-based representation. The paper contents can be stored in the context window as well as the Memory Module for longer-term tasks. Combined, these two tools allow the agent to find and analyze research papers as part of its workflow. See~\autoref{tab:tools} for more information about these tools and how they are called.
+ 
+% \dm{Decide whether to call it External Memory or Memory Module?} 
+
+\ibold{Memory Module - Research Logs}
+% \todo[inline]{@nikolay: please add details about this.}
+We introduce the Memory Module for \mlgym, an important tool to improve the performance of agents on long-horizon AI research tasks. The Memory Module enables the agent to persistently store critical findings and successful training configurations using a structured memory system, overcoming the challenge of limited context retention in long tasks. During our experiments, we observed that when the agent has access to the memory module, it can retrieve the best training configuration from memory and continue to iterate on it (see ~\autoref{fig:memory_example_1} and \autoref{fig:memory_example_2}). Without the memory module, the agent's trajectory can become longer than the model's context length, thus not being able to retrieve the best configuration, effectively forgetting older experiments and only being able to locally iterate on recent configurations.  
+
+The module is equipped with two core functions: \texttt{memory\_write} and \texttt{memory\_read}. The \texttt{memory\_write} function allows the agent to store key insights and effective configurations by saving text data along with its corresponding embeddings and tags in JSON format. In contrast, the \texttt{memory\_read} method retrieves the top-k most relevant stored entries based on cosine similarity with a given query, allowing the agent to review past knowledge and iterate from previously successful configurations.
+
+Empirical results demonstrate the positive impact of the Memory Module on long-horizon tasks. Agents equipped with the Memory Module were able to sustain progress over extended sequences of trials, reusing optimal configurations and findings to achieve superior results compared to agents limited by fixed context windows. To further enhance its capabilities, we added the state of the memory to the system prompt (memory tags and number of records) so that the agent is aware of the type of data stored. Tags from a memory record are extracted by identifying the 3-gram most closely matching to the memory record.
+
+This module significantly reduces the limitations of constrained context length, allowing agents to operate effectively in long experimental settings. However, it is an early version and there are many ways to improve the module. For example, one possible direction would be to introduce a more structured memory format, such as hierarchical or relational models, allowing for precise storage and retrieval of information and enabling more complex reasoning over stored knowledge. Another is to incorporate memory operations directly into the model’s training or fine-tuning process to allow the agent to natively utilize stored knowledge for improved performance. Or using a sub-agent that will automatically manage the memory by selecting important insights, removing unnecessary entries, and updating the memory. Each of these directions would require extensive experimentation and rigorous testing to ensure robustness and scalability.
+
+For all the experiments presented in this paper, the agent only uses the SWE-Agent tools and validation command.
+
+% \todo[inline]{@deepak: Add a table listing all the tools}
+

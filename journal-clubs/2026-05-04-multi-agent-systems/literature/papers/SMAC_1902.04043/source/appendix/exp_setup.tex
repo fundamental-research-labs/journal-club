@@ -1,0 +1,45 @@
+\section{Experimental Setup}\label{appendix:exp_setup}
+
+\subsection{Architecture and Training}
+
+The architecture of all agent networks is a DRQN\cite{hausknecht_deep_2015} with a recurrent layer 
+comprised of a GRU with a 64-dimensional hidden state, with a fully-connected 
+layer before and after.
+Exploration is performed during training using independent $\epsilon$-greedy action selection, where each agent $a$ performs $\epsilon$-greedy action selection over its own $Q_a$. 
+Throughout the training, we anneal $\epsilon$ linearly from $1.0$ to $0.05$ over $50k$ time steps and keep it constant for the rest of the learning. 
+We set $\gamma = 0.99$ for all experiments.
+The replay buffer contains the most recent $5000$ episodes.  
+We sample batches of 32 episodes uniformly from the replay buffer, and train on fully unrolled episodes, performing a single gradient descent step after every episode. 
+\textbf{Note:} This differs from the earlier an earlier beta release of SMAC, which trained once after every 8 episodes.
+The target networks are updated after every $200$ training episodes.
+
+To speed up the learning, we share the parameters of the agent networks across all agents. 
+Because of this, a one-hot encoding of the \texttt{agent\_id} is concatenated onto each agent's observations. 
+All neural networks are trained using RMSprop\footnote{We set $\alpha = 0.99$ and do not use weight decay or momentum.} with learning rate $5 \times 10^{-4}$. 
+
+The mixing network consists of a single hidden layer of $32$ units, utilising an ELU non-linearity. 
+The hypernetworks consist of a feedforward network with a single hidden layer of $64$ units with a ReLU non-linearity\footnote{This differs from the architecture used in \citep{rashid_qmix:_2018} and in an earlier beta release of SMAC, in which a single linear layer was used for the hypernetworks.}. 
+The output of the hypernetwork is passed through an absolute function (to acheive non-negativity) and then resized into a matrix of appropriate size.
+
+The architecture of the COMA critic is a feedforward fully-connected neural network with the first 2 layers having 128 units, followed by a final layer of $|U|$ units. We set $\lambda=0.8$. 
+We utilise the same $\epsilon$-floor scheme as in \citep{foerster_counterfactual_2017} for the agents’ policies, linearlly annealing $\epsilon$ from 0.5 to 0.01 over 100k timesteps.
+For COMA we roll-out 8 episodes and train on those episodes.
+The critic is first updated, performing a gradient descent step for each timestep in the episode, starting with the final timestep.
+Then the agent policies are updated by a single gradient descent step on the data from all 8 episodes.
+
+The architecture of the centralised $Q$ for QTran is similar to the one used in \citep{son_qtran2019}.
+The agent's hidden states ($64$ units) are concatenated with their chosen action ($|U|$ units) and passed through a feedforward network with a single hidden layer and a ReLU non-linearity to produce an agent-action embedding ($64 + |U|$ units). The network is shared across all agents. The embeddings are summed across all agents.
+The concatentation of the state and the sum of the embeddings is then passed into the $Q$ network.
+The $Q$ network consists of 2 hidden layers with ReLU non-linearities with $64$ units each.
+The $V$ network takes the state as input and consists of 2 hidden layers with ReLU non-linearities with $64$ units each.
+We set $\lambda_{opt}=1$ and $\lambda_{nopt\_min}=0.1$.
+
+We also compared a COMA style architecture in which the input to $Q$ is the state and the joint-actions encoded as one-hot vectors.
+For both architectural variants we also tested having 3 hidden layers.
+For both network sizes and architectural variants we performed a hyperparameter search over $\lambda_{opt}=1$ and $\lambda_{nopt\_min} \in \{0.1,1,10\}$ on all 3 of the maps we tested QTran on and picked the best performer out of all configs.
+
+\subsection{Reward and Observation}
+
+All experiments use the default shaped rewards throughout all scenarios. At each timestep, agents receive positive rewards, equal to the hit-point damage dealt, and bonuses of $10$ and $200$ points for killing each enemy unit and winning the scenario, respectively. The rewards are scaled so that the maximum cumulative reward achievable in each scenario is around $20$. 
+
+The agent observations used in the experiments include all features from Section \ref{section:state_and_obs}, except for the he last actions of the allied units (within the sight range), terrain height and walkability.
