@@ -1,82 +1,82 @@
-# Self-evolving agents: research landscape
+# Research landscape: self-evolving agents
 
-Prepared September 16, 2026. This updates the [initial topic map](../research-notes.md) for the September 18 journal club. Audience and format remain the session's existing assumption: LLM-literate participants, 45 minutes including discussion. Source details and access depths are in the [register](sources.md).
+**Cutoff: September 16, 2026.** This topic map supports a 45-minute, technically literate journal club. It organizes evidence and open questions rather than prescribing a final thesis. Start with the [ranked shortlist](shortlist.md); consult [source records](sources.md) and linked notes for exact versions and access depth. This revision supersedes earlier numerical/access qualifications where the new primary-source audit resolves them.
 
-## What counts as evolution?
+## 1. What persists, and who changes it?
 
-Use a working operational definition: **experience changes retained state that affects later behavior**. Always name the state, feedback, update rule, acceptance test, and fixed infrastructure. Distinguish improving an output, improving an agent, and improving the process that generates agent changes. These are discussion categories, not an agreed universal hierarchy.
+For this session, an operational definition is: **an agent uses experience or feedback to change state that affects subsequent behavior**. This separates a successful task attempt from improvement across attempts or tasks. “Self” is a matter of which decisions the agent controls; it does not imply absence of human-designed objectives, pretrained knowledge, rewards, or infrastructure.
 
-| Editable state | What it buys | Main tradeoff / evaluation question | Examples |
+| Persistent object | How an update happens | Representative resources | What is still externally anchored? |
 | --- | --- | --- | --- |
-| Prompt or contextual procedure | Cheap, inspectable behavioral changes | Extra context, brittle instructions; does it transfer? | AgentStream, GEPA background |
-| Memory or skills | Reuse lessons across tasks | Retrieval, stale guidance, conflicts, retirement | WikiSkill, Library Drift, Hermes |
-| Harness code and tools | Change execution, recovery, and control flow | Noisy program search, overfitting, model dependence | HarnessDev, harness-evaluation study |
-| Data and model parameters | Internalize learning beyond injected text | Training cost, contamination, forgetting | MetaRSI, ScienceBuddy; SEAL background |
-| Improvement procedure | Change how future modifications are generated | Hard to distinguish better search from more search | Hyperagents |
-| Serving and release infrastructure | Connect real experience to accepted updates | Delayed feedback, version attribution, rollback | Reef |
+| Reflections, facts, episodic memory | Summarize, retrieve, revise, consolidate | [Reflexion](notes/2023-reflexion.md), [MemRL](notes/2026-memrl.md), [SelfMem](notes/2026-selfmem.md), [NemoClaw](notes/2026-nemoclaw-memory.md) | Base weights, retrieval architecture, reward or evaluator, usually memory budgets |
+| Reusable skills and procedural knowledge | Compile experience into code/playbooks; accept, reuse, retire | [Voyager](notes/2023-voyager.md), [WikiSkill](notes/wikiskill.md), [ACE](notes/2025-agentic-context-engineering.md), [Library Drift](notes/library-drift.md) | Task/environment, validation criteria, often tool interfaces and model |
+| Prompts, workflow, harness code | Reflective proposals, search, tests, selection | [GEPA](notes/2025-gepa.md), [HarnessDev](notes/harnessdev.md), [DGM](notes/2025-darwin-godel-machine.md), [Evo-Harness](notes/2026-evo-harness.md) | Proposal model, compute envelope, evaluator; edit permissions differ |
+| Model weights | Generate update data/instructions; apply gradients | [SEAL](notes/2025-self-adapting-language-models.md), [TTRL](notes/2025-test-time-reinforcement-learning.md), [Shopify](notes/2026-shopify-sidekick.md) | Optimizer/training stack, reward, data access, deployment gates |
+| Curriculum and task distribution | Generate questions/programs; judge difficulty/correctness; train | [R-Zero](notes/2025-r-zero.md), [Absolute Zero](notes/2025-absolute-zero.md), [Agent-World](notes/2026-agent-world.md) | Pretraining, filtering/rewards, executable environment or pseudo-label rule |
+| Improvement strategy itself | Rewrite the improver, co-evolve optimizers, replay search histories | [STOP](notes/2023-stop.md), [Hyperagents](notes/hyperagents.md), [Escher-Loop](notes/2026-escher-loop.md), [Dream-RSI](notes/2026-dream-rsi.md) | Outer selection, feedback/evaluation, resource limits, often frozen foundation model |
 
-The table is our synthesis of the linked sources. These mechanisms overlap; “self-evolving” does not necessarily imply a genetic algorithm or model-weight updates.
+Agent-World makes the environment/curriculum branch explicit: it mines executable environments and targets RL data at observed failures. Its external benchmark breadth is valuable, but generated data and compute are not matched across scaling conditions. World Knowledge Exploration trains a policy to create website guidebooks; deployment adaptation is external Markdown, not a weight update. [Agent-World audit](notes/2026-agent-world.md); [world-knowledge audit](notes/2026-spontaneous-world-knowledge.md).
 
-## Does accumulated experience become useful knowledge?
+These are overlapping surfaces, not mutually exclusive product categories. SIA, MetaRSI, ScienceBuddy, and Shopify combine surfaces. A model that edits a prompt is doing useful optimization without necessarily improving its underlying weights; a learned update program can change weights without choosing its own evaluator.
 
-WikiSkill provides a useful positive example because the knowledge representation, skill edits, validation gate, and test splits are inspectable. Its design also leaves a practical gap: full skill injection excludes retrieval failures. Library Drift studies routing and lifecycle management, including harm from overly aggressive retirement. These studies address different bottlenecks and use different models, tasks, and budgets; their scores should not share a leaderboard. See [WikiSkill methods and appendix notes](notes/wikiskill.md) and [Library Drift protocol and ablations](notes/library-drift.md).
+The practical loop to inspect is **experience → feedback → proposed update → validation/selection → retained state → later task**. For every arrow, ask which information is visible, who designed the rule, and where costs accrue. The proposed “self-evolution” label alone answers none of those questions.
 
-Pair these experiments with the [Hermes and LangChain implementation descriptions](../practitioner-sources.md). Documentation establishes how a system stores or updates procedures; a controlled comparison is still needed to determine whether those changes help. The NVIDIA memory example in that register adds a concrete instance of aggregate gains coexisting with a smaller-category regression.
+## 2. Does improvement generalize beyond the selection process?
 
-**Question to resolve:** Is the bottleneck extracting a good lesson, deciding when it applies, or retiring it when circumstances change? A useful experiment varies these independently and measures future-task accuracy, regressions, retrieval cost, and storage growth.
+The most important comparison is often the same agent with one component changed. WikiSkill compares representations with held-out splits; FinEvo pairs persistent and reset state under the same backbone and stream; the harness-evaluation critique asks whether a five-rollout budget is better spent sampling task solutions. These controls answer different causal questions and should not be combined into one leaderboard. [WikiSkill, Table 1/Appendix B](https://arxiv.org/html/2608.27454v1); [FinEvo, §4.1](https://arxiv.org/html/2608.06144v1); [harness critique, main comparisons](https://arxiv.org/html/2607.12227v2).
 
-## Does evolution beat another use of the same budget?
+**Three distinctions prevent common overclaims:**
 
-The harness-evaluation study supplies direct competing uses of additional rollouts and a separate held-out test. HarnessDev independently examines feedback-based selection and subsequent generalization across runtime models. Together they motivate stronger controls, but neither proves that harness evolution is generally ineffective. Their evidence concerns particular tasks, implementations, budgets, and selection procedures. See [budget and transfer comparison](notes/harness-evolution-evaluation.md) and [HarnessDev](notes/harnessdev.md).
+- A validation improvement is not a held-out gain. HarnessDev's **34/64** measures directional agreement of adjacent feedback and held-out changes; it is not a count of successful generalization events. [Note](notes/harnessdev.md).
+- Repeated attempts on the same problems do not create new independent test items. SEAL's ARC result has eight selected test tasks; GEPA and VISTA repeat 30 AIME questions five times. [SEAL](notes/2025-self-adapting-language-models.md), [GEPA](notes/2025-gepa.md), [VISTA](notes/2026-reflection-in-the-dark.md).
+- Re-running a chosen candidate on the same task set addresses stochastic selection noise but does not test transfer to new tasks. Reef's **22/60 vs 21/60** fresh comparison is explicitly in this category. [Reef primary results and audit](notes/reef.md).
 
-The important denominator is future useful work. Offline optimization may be worthwhile when its cost is amortized across many later tasks, even if it loses on a single five-attempt comparison. Conversely, a better final score may be unattractive if it incurs much more search or inference cost. Record proposal, validation, unsuccessful experiments, deployment, and rollback costs separately.
+**Discussion:** What is the appropriate held-out unit—question, user, repository, task family, environment version, or time period? Which of these sources would still count as improving if the benchmark were retired tomorrow?
 
-**Question to resolve:** What is the cost per additional correctly completed future task, and how long does the gain persist?
+## 3. Does retained experience remain useful?
 
-## What happens when deployment changes?
+A durable store can accumulate useful procedures and harmful assumptions simultaneously. WikiSkill gives a controlled positive example: Qwen-3.5-9B improves **29.9→47.4** in macro accuracy, while a smaller model regresses on OfficeQA. Library Drift shows that retirement policy can reverse gains, but on a selected 40-task MBPP evaluation set with unequal call budgets. These findings motivate lifecycle management; they do not establish one universally optimal memory format. [WikiSkill, Table 1](https://arxiv.org/html/2608.27454v1); [Library Drift audit](notes/library-drift.md).
 
-AgentStream varies task order and domain mixing. EvoHarnessBench varies the externally supplied tools, skills, and specialist agents. These are complementary sources of change, and neither should be collapsed into a single “continual learning” score. Gains differ by model and environment; some configurations regress. Read [AgentStream](notes/agentstream.md) beside [EvoHarnessBench](notes/evoharnessbench.md).
+AgentStream makes task order and mixing explicit. Across three order seeds, three models, and five methods, the audited isolated/sequential/interleaved mean differences from each model’s vanilla macro average are **+1.37/+0.75/+0.90 percentage points**. Interleaved streams have **28 positive and 17 negative** model–method–seed cells. These cells share tasks; percentages are descriptive, not an independent-binomial success probability. The reported variability is reproduced as the sample SD of three seed-level means. [Tables 2 and 11–13; audit](notes/agentstream.md).
 
-Measure old-task retention, new-task acquisition, task-order sensitivity, version compatibility, and forward transfer. Use the same tasks and resource accounting for meaningful comparisons, while ensuring that final tests do not feed adaptation. Repeated measurements on one stream do not become independent trials merely because there are many steps.
+External change is a separate problem: EvoHarnessBench expands tool/API catalogs across 17 streams. An agent can retain an accurate old skill yet fail after its interface changes. The benchmark's **802 unique tasks** differ from **1,510 axis-level examples**, and its ± values are population SDs over three runs. [Benchmark note](notes/evoharnessbench.md).
 
-**Question to resolve:** Can a system distinguish obsolete memory from a newly confusing tool interface?
+The weight-space counterpart is forgetting. SEAL explicitly evaluates loss of prior knowledge after later updates. R-Zero's autonomous curriculum improves early and deteriorates later; declining pseudo-label accuracy is a candidate explanation, not a causal decomposition. Its appendix also shows different model sizes deteriorating at different noise levels. [SEAL forgetting tests](notes/2025-self-adapting-language-models.md); [R-Zero, Appendix D–E](notes/2025-r-zero.md).
 
-## Can the agent improve its own learning process?
+**Discussion:** Should a rejected skill's supporting memory survive? Who decides what to delete? Should evaluation reward peak accuracy, terminal accuracy, area under the learning curve, or recovery after regressions?
 
-Hyperagents makes meta-agent code editable and tests transferred improvement strategies. Its cross-run evidence is more qualified than an “unbounded improvement” interpretation: the notes identify a nonsignificant endpoint comparison, limited iterations, and fixed outer infrastructure. This remains informative evidence about a narrower question. See [Hyperagents](notes/hyperagents.md), especially Figures 3–4.
+## 4. Can feedback be trusted?
 
-MetaRSI and ScienceBuddy explore complementary update surfaces. MetaRSI compares scheduled composition with individual operators and fixed composition under stated budget controls. ScienceBuddy alternates harness learning and model learning; its auxiliary reflector remains fixed, and its controlled experimental feedback should be distinguished from researcher interaction examples. See [MetaRSI](notes/metarsi.md) and [ScienceBuddy](notes/sciencebuddy.md).
+“Verifiable” can mean an executable test, a reference answer, a model's majority vote, or a rubric judge. These signals have different failure modes. R-Zero uses majority-generated pseudo-labels; Absolute Zero uses execution-based self-play. FinEvo calibrates its automated rubric scoring against one financial expert on 120 outputs, but the same rubric ecosystem also supplies learning feedback. That provides a useful control without proving robustness to a new evaluator. [R-Zero](notes/2025-r-zero.md), [Absolute Zero](notes/2025-absolute-zero.md), [FinEvo §4.2](notes/2026-finevo-bench.md).
 
-**Question to resolve:** What would distinguish an improved modification policy from warm-starting with a stronger task agent? Freeze the task initialization, expose candidate improvers to unseen domains, equalize total budgets, and measure the quality and cost of descendants over repeated runs.
+STOP's reward-hacking example exploited an evaluator shape bug, producing an apparent score above 1000%. RewardHackingAgents and RHB focus directly on evaluation integrity; Self-Evolution Backfires separates repeated optimization on a public benchmark from fresh evaluation. These are reasons to isolate evaluators and audit selection, not grounds to assume every reported improvement is gaming. [STOP §6](notes/2023-stop.md), [evaluation-integrity notes](notes/2026-reward-hacking-agents.md), [Backfires](notes/2026-self-evolution-backfires.md).
 
-## What is new as of this preparation date?
+VISTA is another useful challenge: a defective starting prompt can trap reflective optimization. Its recovery relies heavily on hand-designed failure hypotheses, and experiments use one optimization seed. It demonstrates a failure case and an intervention under those conditions, not the typical failure rate of GEPA. [VISTA Tables 1–3](notes/2026-reflection-in-the-dark.md).
 
-| Candidate trend | Observations across time | Alternative explanation / confidence limit |
-| --- | --- | --- |
-| Evaluation expands beyond initial-versus-final scores | July harness-budget critique; July AgentStream; September HarnessDev and EvoHarnessBench | More benchmarks need not mean more independent replication; task and model changes prevent a simple progress curve |
-| Persistent state needs management, not just accumulation | May Library Drift; June memory engineering guidance; August WikiSkill; September Reef | Different artifacts solve different problems; not evidence that one memory design universally wins |
-| Harness and weight updates are increasingly combined | September MetaRSI and September 15 ScienceBuddy | New designs and limited experiments, not established long-term compounding; stronger helpers and added compute can explain gains |
-| Research loops produce reusable infrastructure | March autoresearch; September Reef and SoL-Pi | Code releases show implementation activity, not controlled population-level performance improvements |
+**Discussion:** If the agent can edit its own improvement code, which evaluator, budget, and audit boundaries should remain immutable? What independent signal would convince us an apparent gain is real?
 
-These are candidate interpretations supported by distinct project families in the [source register](sources.md), not a settled thesis or a claim of exhaustive historical coverage. The newest verified primary additions are ScienceBuddy and Reef on September 15; the ScienceBuddy lab announcement is September 16. SoL-Pi's inspected commit is September 15, but its original release date is unverified.
+## 5. Is a better agent worth the adaptation cost?
 
-## Suggested discussion and evidence choices
+GEPA's rollout efficiency does not establish total compute efficiency. Reflection, validation, data generation, inner training, and future inference must all be counted. AgentStream supplies a concrete warning: its GPT-5.4/A-Mem cost table reports **$0.297→$1.893 per task**, while action counts fall. The cost table and aggregate accuracy table use different aggregation scopes; do not attach their numbers to one synthetic “paired experiment.” [GEPA](notes/2025-gepa.md); [AgentStream Table 7 audit](notes/agentstream.md).
 
-Retain the topic-wide format. Use WikiSkill to explain retained knowledge; pair it with Library Drift and practitioner skill systems. Use the harness-budget critique and HarnessDev for evaluation, AgentStream for changing task distributions, and Hyperagents for the stronger meta-improvement question. Give the September composition work a brief, explicitly provisional frontier segment.
+HGM improves resource accounting by matching evaluation counts and reporting allocated CPU-hours, which still differ from dollars or end-to-end energy. Dream-RSI reduces discovery calls in within-model comparisons but omits a complete cost ledger for replay construction and meta-optimization. FinEvo counts agent execution/reflection tokens and excludes its rubric judge. [HGM](notes/2025-huxley-godel-machine.md), [Dream-RSI](notes/2026-dream-rsi.md), [FinEvo](notes/2026-finevo-bench.md).
 
-Useful figures to inspect for a later presentation: WikiSkill Figure 2 and Table 6; HarnessDev Figure 8 and Table 6; Hyperagents Figures 3–4; ScienceBuddy Figures 8–10. Redraw mechanisms with attribution; do not compare unlike score scales or treat pass@4 as single-attempt accuracy.
+The practitioner sources add operational constraints. Shopify describes trajectory repair, daily training, serving, and prompt compression; Reef exposes delayed-feedback attribution and versioned candidates; NemoClaw publishes small evaluation artifacts and category-level regressions. Company reports and inspectable code are useful evidence of design choices. Neither serving savings nor a runnable repository alone isolates learning efficacy. [Shopify](notes/2026-shopify-sidekick.md), [Reef](notes/reef.md), [NemoClaw](notes/2026-nemoclaw-memory.md).
 
-Discussion prompts:
+**Discussion:** Over how many future tasks must an update amortize? What happens if better performance requires an ever-growing prompt or skill library? Which costs belong in the comparison?
 
-1. Which retained changes deserve to be called learning?
-2. When should the system modify memory, code, or weights?
-3. Should failed edits still leave durable knowledge?
-4. Who evaluates the evaluator, and which parts must stay fixed for a credible experiment?
-5. Would a more expensive agent with fewer regressions be preferable to a cheaper one with higher average accuracy?
-6. What finite experiment would change your belief about recursive improvement?
+## 6. Is the improvement process improving?
 
-## Coverage and handoff
+STOP, Hyperagents, Escher-Loop, and Dream-RSI provide concrete ways to modify an improver. They are more informative than treating every prompt update as equivalent recursion. Their anchors remain important: fixed evaluators, fixed base models in several systems, small task sets, and constrained outer loops. Hyperagents reports five-run experiments, but its mathematical transfer endpoint **0.640 vs 0.610 is not significant**. Escher-Loop matches a 10M equivalent-token budget yet reuses three geometry instances. Dream-RSI's replay guarantee is relative to a finite recorded history; unseen search branches are not evaluated by that guarantee. [Linked methods and audits above](#1-what-persists-and-who-changes-it).
 
-Ready for analysis: mechanism map, twelve detailed source notes, positive and negative findings, current practitioner releases, dates, and explicit qualifications. No single thesis has been forced. No slides or experiments were produced.
+September frontier sources expand the design space but do not close the evidence gaps. ScienceBuddy combines harness and weight updates; its maintained 715/90/90 split has explicitly overlapping source-material groups and differs from the paper's schedule. MetaRSI describes accounting conventions, but actual per-variant budget/split ledgers were not located. Their claims remain provisional pending those artifacts. [ScienceBuddy](notes/sciencebuddy.md), [MetaRSI](notes/metarsi.md).
 
-Remaining limits: selected-section rather than exhaustive paper review; incomplete financial/embodied-domain coverage; scarce independent replication; failed direct X access; no talk/video viewing; unreviewed recipe-level logs. Some uncertainty definitions and evaluation denominators remain unresolved and are marked in the notes. The [work queue](../workflow.md) identifies follow-ups needed only if those quantitative claims are selected for presentation.
+The Economics of Recursive Self-Improvement asks a different, theoretical question: when do interacting feedback elasticities exceed the threshold for sustained acceleration? Its key research-productivity elasticity is poorly measured and its calibration is illustrative. It helps distinguish a finite gain on a verifiable task from economy-wide acceleration; it does not estimate the probability that a particular agent will recursively improve. [Theory note](notes/2026-economics-rsi.md).
+
+**Discussion:** What experiment would distinguish better search over a fixed space from a growing ability to discover new improvement methods? Would the conclusion survive a new domain, fixed lifetime budget, and an independent evaluator?
+
+## Handoff boundaries
+
+The corpus supports a topic-wide session with positive mechanisms, meaningful controls, regressions, practitioner systems, and a clearly labeled September frontier. It does not supply an independent reproduction or establish open-ended, domain-general recursive acceleration. Multi-agent topology search, embodied systems, and long-horizon organizational deployment are covered more lightly than coding, memory, and reasoning. The register preserves those leads for a focused follow-up if the session emphasis changes.
+
+Primary papers and first-party code/results were read to the depth recorded in each note. Several source PDFs were rendered to verify tables. No videos were watched, no training experiments reproduced, and inaccessible social posts were not used as factual evidence. [Workflow and remaining questions](../workflow.md).

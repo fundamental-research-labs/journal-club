@@ -1,0 +1,20 @@
+# First-party talks, demos, and social artifacts
+
+**Run date:** 2026-09-16. This bounded pass searched for original researcher or lab talks/demos/social posts for GEPA, SEAL, Hyperagents/DGM, R-Zero, AZR, and recent self-evolving-agent work. The screened set includes direct author/lab pages and official repositories, plus one unverified video lead excluded by the coordinator. YouTube descriptions were inspected; no full video transcript was available in this pass, so videos are marked **video unseen / description read**. X/Twitter pages were inaccessible; no claims were inferred from snippets.
+
+## Useful original resources
+
+| Candidate key / evidence family | Resource and provenance | Access depth and use | Gaps / restrictions |
+| --- | --- | --- | --- |
+| `2025-seal-author-talk` / `2025-seal` | *Self-Adapting Language Models* unverified video lead, Statistical Machine Learning YouTube, 2025-06-15; [video](https://www.youtube.com/watch?v=XEb0iDkpy5M). Description names Adam Zweiger, Jyothish Pari, Han Guo, Ekin Akyürek, Yoon Kim, Pulkit Agrawal and summarizes self-edits, RL training, knowledge incorporation, and few-shot generalization. | **Video unseen; description read.** Discovery only: the description lists the paper authors, but this does not verify the video speaker/channel. Paper identity is linked by [arXiv](https://arxiv.org/abs/2506.10943) and the [MIT CSAIL news page](https://www.csail.mit.edu/news/teaching-large-language-models-how-absorb-new-knowledge). | Channel ownership and speaker identity are not established beyond the description; do not treat description wording as independently measured evidence. |
+| `2025-seal-lab-news` / `2025-seal` | MIT CSAIL, *Teaching large language models how to absorb new knowledge*, 2025; [official news](https://www.csail.mit.edu/news/teaching-large-language-models-how-absorb-new-knowledge). Quotes/attribution identify Jyothish Pari and describe SEAL’s self-generated synthetic data and update process. | **Page read.** Original institutional communication; useful context and links to the paper/project, not an independent evaluation. | News story is not a peer-reviewed methods/results source; preserve author claims as attributed. |
+| `2025-azr-author-project` / `2025-absolute-zero` | TongAgents/author project page, *Absolute Zero Reasoner (AZR)*; [project page](https://tongagents.mybigai.ac.cn/en/index/azr/). Describes AZR as reinforced self-play grounded in code execution. Related primary paper: [Absolute Zero arXiv](https://arxiv.org/abs/2505.03335). | **Project page read; no talk transcript/video inspected.** Useful direct demo/project pointer for the AZR family and its verifier-based setup. | Project page’s result language was not independently audited here; no performance numbers adopted. |
+| `2026-hyperagents-official-project` / `2026-hyperagents` | HyperAgents project site associated with the paper/repository; [site](https://hyperagents.agency/), [code](https://github.com/facebookresearch/Hyperagents). Site exposes repository structure and domains (Polyglot, paper review, Genesis robotics, IMO grading, BALROG, search arena). | **Project page read; no video/transcript found.** Useful original demo/repository navigation, linked to the existing Hyperagents evidence family. | Site is a project/demo artifact; repository and paper remain the evidence sources for methods/results. Do not count this as replication. |
+
+## Social search limitation
+
+Searches for original X/Twitter posts by SEAL, Hyperagents/DGM, GEPA, R-Zero/AZR, and recent September 2026 projects produced inaccessible or non-verifiable pages in the available reader. No post text, date, thread context, or performance claim is used here. Third-party explainers, Reddit posts, and secondary video summaries were excluded from the evidence set.
+
+## Candidate records
+
+The compact machine-readable candidate list is in [`talks-social-candidates.json`](talks-social-candidates.json). Keys are descriptive and include an `evidence_family` field so these artifacts remain companions to existing paper families rather than duplicate sources.

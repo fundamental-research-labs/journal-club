@@ -1,0 +1,43 @@
+# Foreground launcher: python scripts/train.py configs/train.toml
+# All paths are relative to this file. No external project code/environments.
+# Every evaluation uses temperature 0; interaction and RL sampling use 1.
+# Future experiments use one W&B run and upload this exact file as config.toml.
+mode = "coevolve"
+experiment = "../runs/qwen35-4b-coevolve-YYYYMMDD-01"
+
+[model]
+mode = "train"
+steps = 30
+checkpoint_interval = 0          # Save only at the end of each RL stage.
+eval_interval = 30               # Co-evolution evaluates only at stage boundaries.
+concurrency = 64
+tool_seconds = 60
+
+[harness_evolve]
+selection_tasks = 90
+candidates = 3
+workers = 64
+feedback_every = 16
+preflight_task_id = "lab-dbqa-4e94e449-0aa6-4ee5-be54-8cf9128f9119"
+steps_per_phase = 3               # Steps within each harness_evolve stage.
+user_turns = 1                    # Bounded, verifier-assisted simulated researcher feedback.
+actions = 9
+max_tokens = 4096
+context_tokens = 24576
+seed = 20260911
+tool_response_tokens = 2048
+tool_history_tokens = 8192
+
+[harness_evolve.improver]
+backend = "remote"
+base_url = "https://your-provider.example/v1"
+model = "gpt-6-astra"
+reasoning_effort = "medium"
+api_key_env = "SCIENCEBUDDY_IMPROVER_API_KEY"
+max_tokens = 8192
+
+[coevolve]
+worker_id = "rl-01"
+max_rounds = 3                   # Three complete harness + RL cycles; end at r0003.
+trigger = "always_debug"          # Exercise RL even without a harness gain; not an improvement claim.
+# Test scores do not control candidate selection or the fixed stage schedule.

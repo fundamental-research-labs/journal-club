@@ -1,13 +1,115 @@
 # Reef
 
-[First-party announcement](https://huggingface.co/blog/quao627/your-inference-server-is-secretly-a-learner-reef), Ao Qu and collaborators, September 15, 2026; [repository snapshot](https://github.com/Human-Agent-Society/reef/tree/401db3670d34b1b5a77989234272e0bee4b90ce8), September 16. Accessed September 16; article and substantial README sections read. Web reader failed on the article; direct HTTP retrieval succeeded. Family: Reef.
+## Source and access
 
-**Question/design.** How does serving traffic become reusable learning evidence? Record inference receipts, attach delayed feedback, run learning recipes, evaluate candidates, and version accepted weight or harness changes.
+**Source key:** `reef`.
 
-**Observed artifact.** README maps serving, feedback matching, training, evaluation, and artifact delivery to modules; lists separate model and harness recipes and links recipe-level results. Code existence and documented interfaces were inspected; modules and results were not executed or comprehensively audited.
+**Originals and source links:** [register](../sources.md#reef); [canonical source](https://github.com/Human-Agent-Society/reef/tree/401db3670d34b1b5a77989234272e0bee4b90ce8). Retained unmodified: [reef-code-license-commit-401db36.txt](../originals/reef/reef-code-license-commit-401db36.txt); [reef-meta-harness-results-commit-401db36.md](../originals/reef/reef-meta-harness-results-commit-401db36.md); [reef-meta-harness-eval-readme-commit-401db36.md](../originals/reef/reef-meta-harness-eval-readme-commit-401db36.md). Repository-artifact license is recorded in the manifest; this does not license the paper or blog. [Manifest](../originals/manifest.json).
 
-**Authors' claim.** Infrastructure can support continuous improvement of the whole agent.
+[First-party announcement](https://huggingface.co/blog/quao627/your-inference-server-is-secretly-a-learner-reef),
+Ao Qu and collaborators, September 15, 2026; [repository snapshot](https://github.com/Human-Agent-Society/reef/tree/401db3670d34b1b5a77989234272e0bee4b90ce8),
+commit `401db3670d34b1b5a77989234272e0bee4b90ce8`, authored September 16.
+Accessed September 16; article, README, Meta-Harness result report, and runnable
+evaluation README read. Family: Reef. No code was installed or executed.
 
-**Interpretation/limits.** Useful implementation evidence about feedback attribution, versioning, and deployment. It does not supply a single controlled estimate of “Reef improvement,” and recipe results should not be pooled. The documentation's comparisons with other infrastructure are authors' characterizations, not independently verified exclusions.
+**Retained original artifacts (unmodified, Apache-2.0):** - [Meta-Harness results](../originals/reef/reef-meta-harness-results-commit-401db36.md)
+- [Terminal-Bench evaluation README](../originals/reef/reef-meta-harness-eval-readme-commit-401db36.md)
+- [Repository license](../originals/reef/reef-code-license-commit-401db36.txt)
 
-**Inspect/discuss.** README architecture and recipe catalog. What prevents stale feedback from promoting a change to the wrong system version? Any demo remains separate from a longitudinal reliability test.
+Pinned raw URLs, byte counts, SHA-256 hashes, and license basis are recorded in
+[`acquisition-practitioner.json`](../originals/acquisition-practitioner.json).
+
+## Question and methods
+
+How does serving traffic become reusable learning evidence? Reef records inference
+receipts, attaches delayed feedback, runs learning recipes, evaluates candidates,
+and versions accepted weight or harness changes. The README maps serving, feedback
+matching, training, evaluation, and artifact delivery to modules. This establishes
+an inspectable infrastructure boundary; separate recipes make different empirical
+claims and should not be pooled into one “Reef improvement” number.
+
+## Results and evidence
+
+### Meta-Harness experiment
+
+The retained report compares Reef's Meta-Harness implementation with the upstream
+`stanford-iris-lab/meta-harness` method on a fixed **30-task** hard subset of
+Terminal-Bench 2 at revision `69671fbaac6d67a7ef0dfec016cc38a64ef7a77c`.
+The seed is vanilla Terminus 2. Both campaigns use target `gpt-5.6-luna` and
+proposer `gpt-5.6-sol`; the comparison used the Responses API with `xhigh`
+reasoning. Each arm measures its baseline and four full-history candidate
+iterations, with **two repeats per 30-task measurement: 60 trials**. A candidate
+replaces the incumbent only when its mean score is strictly higher; a tie keeps
+the current choice.
+
+| Step | Reef score | Reef decision | Upstream score | Upstream decision |
+| --- | ---: | --- | ---: | --- |
+| Baseline | 20/60 | Start with baseline | 24/60 | Start with baseline |
+| Iteration 1 | 23/60 | Select iteration 1 | 22/60 | Keep baseline |
+| Iteration 2 | 20/60 | Keep iteration 1 | 20/60 | Keep baseline |
+| Iteration 3 | 20/60 | Keep iteration 1 | 21/60 | Keep baseline |
+| Iteration 4 | 23/60 | Tie; keep iteration 1 | 21/60 | Keep baseline |
+
+The baselines are the same vanilla harness but were measured independently, which
+is why their observed scores differ. The result is therefore not a paired claim
+that Reef raised one shared baseline from 20/60 to 23/60 while upstream did not.
+
+As a control on implementation semantics, the authors replayed all completed score
+histories through Reef's selector and upstream's `update_frontier`. The two selectors
+made the same choice on all **eight candidate decisions**, including Reef's tie.
+This checks selection logic conditional on identical observations; it does not make
+independently proposed candidates or stochastic scores equivalent.
+
+The selected harnesses were then measured with two fresh repeats on the **same 30
+tasks**: Reef iteration 1 scored **22/60 (36.67%)** and the upstream baseline
+**21/60 (35.00%)**. These measurements did not feed back into search, but they are
+**not held-out task evaluation**. One infrastructure loss per arm was replaced;
+Reef retained one terminal-loss zero under the shared scoring policy. The 1/60
+difference is a bounded owner-reported result, not evidence of reliable generalization.
+
+## Appraisal and limitations
+
+### Reproducibility boundary and controls
+
+The retained runnable README pins tasks, upstream revision, models, runtime package
+versions, repeat/iteration budgets, selection rule, and relevant verification tests.
+It also states that the runnable recipe does not reproduce the exact reported
+comparison: the published measurements used a local experiment runner and request/
+verifier adaptations not installed in the shared recipe. The runnable implementation
+uses paired gates that remeasure the incumbent while selection references its admitted
+score; the reported campaign measured the baseline once and only new candidates
+afterward. Raw campaign histories and audit records remain internal.
+
+The checked-in selected Reef harness preserves iteration 1 code and completion prompt;
+the report gives the original file's SHA-256. Contract tests exercise recipe loading,
+scoring, commits, publication, and recovery with mocked model calls and episode
+launches. They verify plumbing rather than live benchmark performance.
+
+### Authors' claim
+
+Inference infrastructure can continuously improve the whole agent
+by connecting versioned serving receipts and feedback to model- and harness-learning
+recipes.
+
+### Reported evidence
+
+The Meta-Harness artifact demonstrates one bounded method
+comparison and selector-equivalence control on a fixed 30-task subset. It does not
+show held-out transfer, longitudinal deployment reliability, or a single aggregate
+effect of Reef across its recipe catalog.
+
+### Interpretation
+
+Reef is strong implementation evidence about feedback attribution,
+versioning, selection, and deployment. The experiment gives more support than a code
+release alone, but evidence for improvement remains medium-to-low: small same-task
+differences, stochastic independent baselines, no held-out tasks, internal raw campaign
+records, and a runnable path that differs from the reported runner. Recipe results
+should remain separate and all performance claims are owner-reported.
+
+## Discussion and follow-up
+
+Use the architecture and Meta-Harness controls together. What
+prevents stale feedback from promoting a change to the wrong system version? What
+would a held-out future-task pass need to freeze, and how should independent baseline
+variance affect candidate admission?

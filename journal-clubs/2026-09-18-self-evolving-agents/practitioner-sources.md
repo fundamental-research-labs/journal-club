@@ -1,54 +1,40 @@
-# Practitioner research, blogs, and social posts
+# Practitioner resources and original artifacts
 
-**September 16 update:** Added [Reef](research/notes/reef.md), announced September 15, and [SoL-Pi](research/notes/sol-pi.md), whose inspected commit is September 15. These notes distinguish implementation evidence from unreviewed performance claims. [autoresearch](research/notes/autoresearch.md) now has a pinned repository snapshot and renewed social-access check. [ScienceBuddy](research/notes/sciencebuddy.md) combines a September 15 paper, code, and product demonstration within one evidence family.
+**Updated September 16, 2026.** These resources are part of the topic, alongside papers. The useful distinction is what can be inspected: a measured comparison, a working implementation, a demo, a design proposal, or an opinion. A publication format alone does not determine evidence quality. All reported measurements below remain the source authors' results; none were independently reproduced.
 
-Searched September 16, 2026. These sources contribute to the main topic alongside papers. Publication format does not determine evidence quality: examine the method, artifacts, comparison, and reproducibility. No software was installed or experiments reproduced for this pass.
+## Priority resources
 
-## Sources to weave into the talk
+| Resource / date | What it contributes | Evidence and limits |
+| --- | --- | --- |
+| **Shopify, [Sidekick's continual learning loop](https://shopify.engineering/sidekicks-continual-learning-loop)** — Aug 5, 2026 | Production account spanning harness search, trajectory repair, SFT, GRPO, daily weight updates, and prompt compression. Selected among the ten because it connects the research mechanisms to deployment. | Original article read. Public quality ablations, denominators, split manifests, and raw training traces are absent. Serving economics are not causal estimates of the learning loop's benefit. [Detailed note](research/notes/2026-shopify-sidekick.md). |
+| **NVIDIA, [Building a Memory-Driven Agent with NVIDIA NemoClaw](https://developer.nvidia.com/blog/building-a-memory-driven-agent-with-nvidia-nemoclaw/)** — Sep 4, 2026; repository pinned Sep 16 | Readable Markdown knowledge, a judgment ledger, and updates from user corrections; public evaluation artifacts expose category-level gains and regressions. | Same Nemotron 3 Ultra backbone, **186 synthetic questions**, reported **90.9% vs 82.8%**. Faithfulness **100→92.3% on 13 questions**; single-hop **86.7→83.3% on 30**. One run/corpus, missing evaluated self-model adapter/memory, and incomparable ingestion accounting. Original/published transformed-answer results differ; both are preserved in [note and artifacts](research/notes/2026-nemoclaw-memory.md). |
+| **Human-Agent Society, [Reef](https://github.com/Human-Agent-Society/reef)** — September 2026 release; pinned `401db36` | Delayed-feedback attribution, actor lineage, versioned candidates, inference receipts, and recipes for improving harnesses. | Code and original result records read; not executed. Meta-harness uses 30 tasks × two repeats, four outer iterations. Fresh selected-candidate comparison **22/60 vs 21/60 on the same tasks**; no held-out transfer and no statistical separation established. Small Apache-2.0 originals retained. [Detailed note](research/notes/reef.md). |
+| **Andrej Karpathy, [autoresearch](https://github.com/karpathy/autoresearch)** — repository inspected Sep 16 | A compact loop: modify training code, run a fixed experiment, measure, keep/revert, repeat. Useful for explaining the machinery required before calling a loop self-improvement. | Primary code/instructions inspected. Model experiments run under a fixed evaluation recipe; the repository is not evidence of autonomous general-purpose recursive improvement. [Detailed note](research/notes/autoresearch.md). |
+| **NVIDIA, [SoL-Pi](https://github.com/NVIDIA/SoL-Pi)** — September 2026 release; pinned Sep 15 commit | Concrete reusable harness-efficiency mechanisms and engineering choices. | README/code documentation inspected; a full empirical recipe was not independently audited and a paper was forthcoming in the inspected release. [Detailed note](research/notes/sol-pi.md). |
 
-### Autonomous experiments: Andrej Karpathy's autoresearch
+## Useful engineering explanations and proposals
 
-- **Source/date:** [Official repository and README](https://github.com/karpathy/autoresearch), March 2026 project; live documentation inspected September 16.
-- **What it adds:** A compact, inspectable experiment loop. The agent edits `train.py`, runs five-minute training experiments, and retains or discards changes using validation bits per byte. The README assigns `program.md` to human editing and leaves preparation/evaluation utilities fixed.
-- **Evidence/status:** README read; executable project available, not reproduced here. An implementation example rather than a controlled estimate of general self-improvement.
-- **Discussion:** Which system is improving—the trained model, the experiment procedure, or the coding agent? Our interpretation: the default editing boundary demonstrates automated research without establishing that the agent autonomously improves every part of its own learning process.
-- **Social context:** The repository links the author's [announcement](https://x.com/karpathy/status/2030371219518931079) and [follow-up](https://x.com/karpathy/status/2031135152349524125). Direct X retrieval failed. Preserve these original links; do not quote inaccessible posts or import numerical claims from reposts. Exact post dates remain unverified here.
+**Nous Research: [Hermes Agent skills](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills).** Live documentation inspected September 16; publication date not established. Documents skill creation, update, and deletion with procedural reuse. It establishes functionality, not an effect size or long-term reliability. Pair it with WikiSkill and Library Drift: storage helps only if the procedure remains correct, applicable, and available at use time.
 
-### Persistent procedural learning: Hermes Agent
+**Jake Broekhuizen / LangChain: [How To Give Your Agent Memory](https://www.langchain.com/blog/how-to-give-your-agent-memory), June 24, 2026.** Original article read. Trace capture, background analysis, and versioned context make the learning loop concrete. The inspected account provides engineering guidance rather than a controlled benchmark estimate. Its runtime-context issue matters: writing an improved memory is insufficient if later executions keep using stale context.
 
-- **Source/date:** Nous Research's [Skills System documentation](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills), live documentation accessed September 16, 2026; publication date not shown.
-- **What it adds:** The agent can create, update, and delete skills using `skill_manage`. Documentation describes recording reusable procedures after difficult workflows, errors, or user corrections, and loading skills when relevant.
-- **Evidence/status:** Relevant documentation sections read. This establishes documented functionality, not the size of a performance gain or its reliability over months.
-- **Discussion:** Compare creation, selection, retrieval, and retirement of a skill. A saved procedure only helps if it is correct, applicable, and loaded at the right time. Pair this implementation view with WikiSkill's experimental evidence.
+**Kirill Krainov: [Karpathy's Autoresearch: Improving Agentic Coding Skills](https://zerocopy.blog/2026/03/25/karpathys-autoresearch-improving-agentic-coding-skills/), March 25, 2026.** Original proposal read. Edits a skill, repeats test cases, scores correctness/time/cost, and retains or reverts changes. The article defers a working implementation and results; classify it as a proposal. Its additive scoring scheme prompts a useful discussion about whether efficiency should ever compensate for correctness failures.
 
-### Trace-to-memory engineering: LangChain
+Additional practitioner candidates and exclusions remain in the [source register](research/sources.md). Broadly promotional material and uninspectable claimed successes were not promoted merely because they describe “self-improving agents.”
 
-- **Source/date:** Jake Broekhuizen, [How To Give Your Agent Memory](https://www.langchain.com/blog/how-to-give-your-agent-memory), June 24, 2026.
-- **What it adds:** A concrete capture-traces → analyze-traces → update-memory workflow, using observability, background analysis, and versioned context. The post distinguishes stored history from lessons that change later behavior.
-- **Evidence/status:** Article read. Engineering guidance and a vendor implementation description; no controlled benchmark gain is established by the sections reviewed.
-- **Discussion:** What should become durable context, an evaluation example, a tool fix, or a code change? The article also highlights stale runtime context: storing an update is insufficient if subsequent runs never load it.
+## Paper-linked implementations are companions, not replications
 
-### September example with measurements: NVIDIA NemoClaw
+- [Hyperagents code](https://github.com/facebookresearch/Hyperagents) was pinned and its statistical routine inspected. Equal-length run arrays use one-sided paired Wilcoxon tests; bootstrap intervals use run-level resampling. This resolves interpretation of the paper, without reproducing its experiments. [Audit](research/notes/hyperagents.md).
+- [ScienceBuddy code](https://github.com/Gen-Verse/ScienceBuddy) was pinned to `454d11c`; small MIT-licensed experiment/algorithm guides and configuration retained. The released split includes source-material overlap, and its schedule differs from the paper; its 90-task test count must not be assigned retrospectively to historical paper curves. [Audit](research/notes/sciencebuddy.md).
+- [MetaRSI's RSI-Harness](https://github.com/CosmosMind-AI/RSI-Harness) was inspected for experimental ledgers. A runnable-looking harness and accounting conventions do not replace actual per-variant split/cost records. [Audit](research/notes/metarsi.md).
+- [Dream-RSI](https://github.com/zhengkid/Dream-RSI) had a paper, images, and README in the inspected September 16 snapshot, with implementation forthcoming. Its animated demo labels its numbers illustrative. [Audit](research/notes/2026-dream-rsi.md).
 
-- **Source/date:** Xuan Wu et al., [Building a Memory-Driven Agent with NVIDIA NemoClaw](https://developer.nvidia.com/blog/building-a-memory-driven-agent-with-nvidia-nemoclaw/), September 4, 2026; [linked recipe](https://github.com/NVIDIA/nemoclaw-community/tree/main/examples/recipes/nvidia/memory-driven-chief-of-staff).
-- **What it adds:** Structured Markdown knowledge, a separate judgment ledger, and user corrections that update a readable preference policy.
-- **Reported evidence:** Table 1 compares the self model with agentic RAG using the same NVIDIA Nemotron 3 Ultra model: 90.9% versus 82.8% overall accuracy on **186 questions**, **+8.1 percentage points**. Changed-fact tracking is 100% versus 60%, but involves only **five questions**. Faithfulness declines from 100% to 92.3% on **13 questions**.
-- **Evidence/status:** Article body and table read; recipe landing page inspected. Repetitions and confidence intervals were not established in this pass. The article explicitly describes invented sample entities and recorded decisions in its offline walkthrough; distinguish that walkthrough from benchmark measurements.
-- **Discussion:** Our interpretation: aggregate memory gains can coexist with regressions. This is evidence about the evaluated memory configuration, not proof of indefinitely compounding improvement.
+## Talks, project pages, and X/Twitter
 
-### Practitioner proposal: improving coding skills through experiments
+The [dated talks/social audit](research/workers/talks-social-audit.md) records original institutional/project pages for SEAL, Absolute Zero, and Hyperagents, along with an unverified video lead. SEAL's [MIT CSAIL article](https://www.csail.mit.edu/news/teaching-large-language-models-how-absorb-new-knowledge) is useful institutional context; it is not an independent evaluation.
 
-- **Source/date:** Kirill Krainov, [Karpathy's Autoresearch: Improving Agentic Coding Skills](https://zerocopy.blog/2026/03/25/karpathys-autoresearch-improving-agentic-coding-skills/), March 25, 2026.
-- **What it adds:** A proposed loop that edits a skill, repeats test cases, evaluates correctness/time/cost, and retains or reverts the change.
-- **Evidence/status:** Article read. Its conclusion says initial results and a working version are future work; classify it as a design proposal, not an empirical success report.
-- **Discussion:** Its additive scoring scheme invites a useful critique: can efficiency points compensate for correctness failures? Our interpretation: objective design deserves the same scrutiny as the agent's update mechanism.
+No video was watched and no transcript was available in this pass. A YouTube description naming the SEAL authors did **not** establish the speaker or channel's provenance; that video is excluded from the evidence set. Original X/Twitter retrieval was unsuccessful for the selected research families. [The previously discovered Karpathy post](https://x.com/karpathy/status/2039805659525644595) remains an inaccessible lead, not verified content or a quotation. Project demonstrations and search snippets do not substitute for paper methods or original run artifacts.
 
-## Additional social lead
+## Reuse and access
 
-[Karpathy post associated with LLM knowledge bases](https://x.com/karpathy/status/2039805659525644595): discovered through search, but direct access failed. Keep as a discovery lead, not verified evidence or a quotation. Its relevance is the transition from accumulated traces to maintained knowledge; inspect the original before using it in a slide.
-
-## How this changes the presentation
-
-Use autoresearch when defining the improvement boundary; use Hermes and LangChain when explaining retained procedural knowledge; use NVIDIA alongside academic evaluations when discussing measurements and regressions. Let papers, code, and practitioner experience answer the same topic questions rather than presenting a separate “social media” appendix.
-
-For the final refresh, search X/Twitter and author/project blogs alongside paper indexes. Follow original posts to code, experiment logs, negative results, and technical explanations. Record post time, edits, release/commit identifiers where available, and what was actually inspected. Avoid counting an announcement, its blog, and its paper as three independent pieces of evidence. Direct X coverage in this pass was limited by retrieval failures; this is not a comprehensive review of recent threads.
+Small unmodified Reef, NemoClaw, and ScienceBuddy artifacts are retained under their repository licenses. The [originals manifest](research/originals/manifest.json) records exact URLs, pins, dates, licenses, and hashes. Captures are deliberately partial; relative upstream links inside an original README may refer to files not copied here. Copyrighted blog pages and inaccessible posts are linked rather than archived without permission.

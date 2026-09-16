@@ -1,15 +1,33 @@
 # autoresearch
 
+## Source and access
+
+**Source key:** `autoresearch`.
+
+**Originals and source links:** [register](../sources.md#autoresearch); [canonical source](https://github.com/karpathy/autoresearch/tree/228791fb499afffb54b46200aca536f79142f117). not retained: public original inspected; no redistribution license verified for page, or only metadata/theoretical background reviewed. [Manifest](../originals/manifest.json).
+
 [Repository snapshot](https://github.com/karpathy/autoresearch/tree/228791fb499afffb54b46200aca536f79142f117), Andrej Karpathy; March 2026 project, inspected commit March 26. Accessed September 16; README re-read. Family: autoresearch, including linked social announcements.
 
-**Question/design.** What is the smallest inspectable autonomous experiment loop? Modify training code, run a fixed-duration experiment, score validation bits per byte, retain or reject changes.
+**Social access:** [Announcement](https://x.com/karpathy/status/2030371219518931079) failed direct web retrieval again; [follow-up](https://x.com/karpathy/status/2031135152349524125) retains the earlier access limitation. Exact post dates unverified; no quotations or numerical claims imported.
 
-**Observed artifact.** README separates editable training code from preparation/evaluation utilities and human-directed program instructions. The fixed training interval is five minutes; it is not the entire wall-clock cost of proposal, evaluation setup, and research.
+## Question and methods
 
-**Authors' framing.** Automated experimentation can search for improved training configurations.
+What is the smallest inspectable autonomous experiment loop? Modify training code, run a fixed-duration experiment, score validation bits per byte, retain or reject changes.
 
-**Interpretation/limits.** Excellent example of specifying the editable artifact and fixed evaluator. Better training code or a trained model is not automatically evidence that the experiment-generating agent improves. No controlled general-effect estimate or reproduction here.
+## Results and evidence
 
-**Social access.** [Announcement](https://x.com/karpathy/status/2030371219518931079) failed direct web retrieval again; [follow-up](https://x.com/karpathy/status/2031135152349524125) retains the earlier access limitation. Exact post dates unverified; no quotations or numerical claims imported.
+README separates editable training code from preparation/evaluation utilities and human-directed program instructions. The fixed training interval is five minutes; it is not the entire wall-clock cost of proposal, evaluation setup, and research.
 
-**Inspect/discuss.** README experiment contract. Is the output an improved artifact, an improved agent, or an improved learning process?
+## Appraisal and limitations
+
+### Authors' framing
+
+Automated experimentation can search for improved training configurations.
+
+### Interpretation and limitations
+
+Excellent example of specifying the editable artifact and fixed evaluator. Better training code or a trained model is not automatically evidence that the experiment-generating agent improves. No controlled general-effect estimate or reproduction here.
+
+## Discussion and follow-up
+
+README experiment contract. Is the output an improved artifact, an improved agent, or an improved learning process?

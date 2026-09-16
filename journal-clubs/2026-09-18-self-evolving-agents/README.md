@@ -2,37 +2,38 @@
 
 **Session:** Friday, September 18, 2026  
 **Research cutoff:** September 16, 2026  
-**Format:** Topic-wide overview and discussion, organized by concepts and evidence.
+**Scope:** Topic-wide research for an audience familiar with LLM basics; working assumption of 45 minutes including discussion.
 
 Central question: **How can agents turn experience into lasting improvements—and how can we tell whether those improvements generalize?**
 
-## Materials
+## Start here
 
-- [Updated research landscape](research/landscape.md): current starting point, with September additions, competing evidence, and discussion questions.
-- [Source register and detailed reading notes](research/sources.md): twelve source notes, publication/version dates, experimental details, and access limits.
-- [Search log](research/search-log.md) and [research handoff](workflow.md): coverage, verification, and remaining questions.
-- [Research notes](research-notes.md): conceptual map, recent evidence, limitations, and discussion questions.
-- [Reading list](reading-list.md): recent primary sources, dates, review status, and historical background.
-- [Practitioner sources](practitioner-sources.md): original blogs, project documentation, code releases, and X/Twitter leads, with evidence and access notes.
+- **[Ranked shortlist: ten priority resources](research/shortlist.md)** — why each belongs, what to read, key results, limitations, and strong alternatives.
+- **[Research landscape](research/landscape.md)** — mechanisms, competing evidence, and discussion questions organized around the topic.
+- **[Source register](research/sources.md)** — 132 candidate/resource records with selection decisions, exact review depths, versions, and acquisition status; 43 substantive reading-note files.
+- [Reading routes](reading-list.md) and [practitioner resources](practitioner-sources.md) — ways to navigate the corpus by interest.
+- [Search and audit log](research/search-log.md), [originals guide](research/originals/README.md), and [research handoff](workflow.md) — provenance, checks, and remaining limits.
 
-## Proposed topic outline
+## Selected supporting resources
 
-Working assumption: 45 minutes including discussion; audience familiar with LLM basics.
+The ranked ten are **WikiSkill; Rethinking the Evaluation of Harness Evolution for Agents; GEPA; SEAL; Hyperagents; AgentStream; R-Zero; HarnessDev; FinEvo-Bench; and Shopify's Sidekick continual-learning account**. They cover retained knowledge, prompt/harness evolution, weight adaptation, self-generated curricula, meta-improvement, longitudinal evaluation, and production practice. Papers are supporting examples for the field's questions, not ten separate talk sections.
 
-| Time | Question | Coverage |
+Strong alternatives include **Dream-RSI, EvoHarnessBench, Library Drift, NemoClaw, ACE, HGM/DGM, Absolute Zero, Agent-World, and Reef**. September frontier coverage includes ScienceBuddy, MetaRSI, and the Economics of Recursive Self-Improvement, with explicit distinctions between controlled results, provisional claims, and theory. Social/talk leads with unverified provenance or inaccessible content are not used as empirical evidence.
+
+## Possible discussion structure
+
+| Time | Question | Evidence route |
 | --- | --- | --- |
-| 0–5 min | What does self-evolution mean? | Persistent adaptation, feedback, and the distinction between task improvement and improving the improvement process |
-| 5–15 min | What can change? | Prompts, memory, skills, tools, agent code, model weights, curricula, and collaboration |
-| 15–25 min | How does experience become an update? | Reflection, selection, validation, retention, rollback; recent examples across several mechanisms |
-| 25–35 min | What evidence is convincing? | Held-out tasks, matched compute, task streams, transfer, regressions, and verifier quality |
-| 35–45 min | What remains open? | Reliability, forgetting, cost, autonomy, and whether recursive improvement compounds |
+| 0–5 min | What persists, and who controls the update? | State, feedback, selection, and the boundary of “self” |
+| 5–15 min | What can change? | Knowledge/skills, prompts/harnesses, weights, curricula |
+| 15–25 min | Do improvements generalize and last? | Held-out evaluation, reset controls, task order, forgetting, collapse |
+| 25–35 min | Are the feedback and economics credible? | Evaluator integrity, matched budgets, deployment loops |
+| 35–45 min | Can the improvement process itself improve? | Hyperagents/Dream-RSI, external anchors, open questions |
 
-## Selected supporting literature
+## Repository and review notes
 
-Prioritize **WikiSkill** for retained knowledge, **AgentStream** for task streams, **Rethinking the Evaluation of Harness Evolution for Agents** and **HarnessDev** for evaluation, and **Hyperagents** for improving the improvement process. Pair these with **Library Drift** and **EvoHarnessBench** for regressions and changing interfaces. September frontier coverage includes **MetaRSI** and the September 15 **ScienceBuddy** preprint; their stronger claims retain explicit qualifications. The reading list also includes memory, longitudinal evaluation, and broad surveys.
+Existing descriptive source keys are preserved; newer sources generally use year-prefixed keys. Canonical URLs, notes, and licensed originals are linked through the register. Original PDFs are unmodified; source-specific licenses and hashes are recorded. Temporary downloads, text extraction, and rendered inspection images remain outside this repository.
 
-DGM, SICA, and earlier systems provide historical context. The session does not have a single main paper. These are initial research materials; slides have not yet been created.
+Research used the journal-club-research skill's discovery → screening → coordinator-verification workflow. Primary methods/results, relevant appendices, first-party repositories, and original practitioner articles were inspected to the depths recorded. Selected tables were visually checked; AgentStream's published aggregates were reconstructed. No training experiments were reproduced. This is a research handoff; a final analysis thesis, claim ledger, and slide deck have not been created.
 
-Weave practitioner examples into the same themes: autoresearch for experiment loops, Hermes and LangChain for procedural learning, and NVIDIA's September memory-agent writeup for measured benefits and regressions. The update adds **Reef** for continual-learning infrastructure and **SoL-Pi** for reusable harness-efficiency mechanisms. Code releases and demos are distinguished from controlled measurements.
-
-Research was updated September 16 using the journal-club-research skill. Primary methods/results sections and selected appendices were reviewed; no experiments were reproduced. See the source notes for review depth and unresolved statistical details.
+[Initial research notes](research-notes.md) remain as historical context; the current shortlist, landscape, and source notes supersede their earlier reading-status and numerical qualifications.

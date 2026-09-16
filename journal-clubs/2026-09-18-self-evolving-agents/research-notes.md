@@ -1,5 +1,8 @@
 # Self-evolving agents: topic map and initial evidence
 
+> **Historical initial notes.** For the completed September 16 research pass, use the [ranked shortlist](research/shortlist.md), [current landscape](research/landscape.md), and [source-specific audits](research/sources.md). They supersede the review depths, versions, and provisional numerical statements below.
+
+
 **Update:** Start with the [September 16 research landscape](research/landscape.md) and [detailed source notes](research/sources.md). They add newer sources and deepen the initial readings below, including WikiSkill's splits/statistical procedure, Hyperagents' qualified transfer evidence, and the current MetaRSI version. These initial notes are preserved as context.
 
 Prepared September 16, 2026 for September 18. These notes synthesize selected primary-source sections; the [reading list](reading-list.md) records review depth and versions. Reported results below are authors' results, not independent replications.

@@ -1,39 +1,34 @@
-# Reading list
+# Reading routes
 
-**Updated research:** The [source register](research/sources.md) records the latest review depths and adds HarnessDev, EvoHarnessBench, Library Drift, and ScienceBuddy. Detailed notes now cover WikiSkill's appendix, Hyperagents' transfer experiments, MetaRSI v2 (September 9), and the harness-evaluation paper v2 (August 27). The initial screening records below remain available for background sources.
+**Current as of September 16, 2026.** The authoritative ranked reading set is the [ten-resource shortlist](research/shortlist.md). This page supplies topic routes, not a second ranking. Exact publication/version dates, authors, access depth, licenses, and links to originals are in the [source register](research/sources.md).
 
-For original work outside paper venues, see [practitioner research, blogs, code, and social posts](practitioner-sources.md). These are part of the session's core research coverage.
+## A compact preparation route
 
-Search conducted September 16, 2026. This is a curated starting map, not an exhaustive systematic review. Dates below refer to initial arXiv submissions unless a revision is explicitly identified. Recent entries are treated as preprints; peer review is not assumed.
+1. **Define lasting adaptation:** [WikiSkill](research/notes/wikiskill.md), then the [harness-evaluation critique](research/notes/harness-evolution-evaluation.md). Identify what persists and the correct counterfactual.
+2. **Contrast update surfaces:** [GEPA](research/notes/2025-gepa.md) for prompts, [SEAL](research/notes/2025-self-adapting-language-models.md) for weights, [R-Zero](research/notes/2025-r-zero.md) for an autonomous curriculum.
+3. **Test persistence and transfer:** [AgentStream](research/notes/agentstream.md), [HarnessDev](research/notes/harnessdev.md), and [FinEvo-Bench](research/notes/2026-finevo-bench.md).
+4. **Ask what becomes recursive:** [Hyperagents](research/notes/hyperagents.md), with [Dream-RSI](research/notes/2026-dream-rsi.md) as the September alternative.
+5. **Connect to deployment:** [Shopify Sidekick](research/notes/2026-shopify-sidekick.md), paired with inspectable [Reef](research/notes/reef.md) or [NemoClaw](research/notes/2026-nemoclaw-memory.md) artifacts.
 
-**Review status:** “Sections read” means selected sections of the primary full text were inspected, not an exhaustive paper or appendix audit. “Abstract screened” means a candidate for further reading; detailed results are not assessed here. Version-specific links preserve the text used for the notes.
+If preparation time is short, the four starting anchors are WikiSkill, the harness critique, SEAL, and Hyperagents. Read the limitations with the results; the corpus is designed to make the disagreement visible.
 
-## Recent work, grouped by role
+## Deeper routes
 
-| Role | Paper and authors | Date | Review status / reading target |
-| --- | --- | --- | --- |
-| Current broad framing | Yi Duan et al., [The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement](https://arxiv.org/abs/2609.11873) | Sep 10, 2026; v2 Sep 15 | v1 introduction/taxonomy inspected; v2 metadata and abstract checked. Read v2 before using detailed claims. Treat its autonomy levels as a proposed framework. |
-| Data, harness, model, and meta-level updates | Zihan Tan et al., [MetaRSI / RSI2: A Meta-Recursive Self-Improving System for Recursive Self-Improving Systems Themselves](https://arxiv.org/abs/2609.06396) | Sep 6, 2026 (v1 full-text stamp) | [v1](https://arxiv.org/html/2609.06396v1), introduction and selected methodology sections; quantitative claims not audited. Secondary indexes show differing dates; use primary history for citation. |
-| Persistent knowledge and skills | Liyan Tang et al., [WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution](https://arxiv.org/abs/2608.27454) | Aug 27, 2026 | [v1](https://arxiv.org/html/2608.27454v1), §§2–4 and Table 1 read; appendix statistics need closer review. |
-| Professional workflows | Bo Deng et al., [FinEvo-Bench: A Longitudinal Benchmark for Self-Evolving Agents in Professional Financial Workflows](https://arxiv.org/abs/2608.06144) | Aug 6, 2026 | Abstract screened; candidate for evaluating open-ended deliverables and retained experience. |
-| Coding landscape | Hao Zhou et al., [Self-Evolving Coding Agents](https://arxiv.org/abs/2608.03392) | Aug 4, 2026 | [v1](https://arxiv.org/html/2608.03392v1), introduction, definitions, and taxonomy inspected. |
-| Streaming evaluation | Dong Yan et al., [AgentStream: How Well Do Self-Evolving LLM Agents Perform Under Streaming Tasks?](https://arxiv.org/abs/2608.00155) | Jul 31, 2026 | [v1](https://arxiv.org/html/2608.00155v1), introduction, framework, and experimental setup read; results summary screened. August identifier differs from initial submission month. |
-| Critical evidence | Yike Wang et al., [Rethinking the Evaluation of Harness Evolution for Agents](https://arxiv.org/abs/2607.12227) | Jul 14, 2026 | [v1](https://arxiv.org/html/2607.12227v1), §§3–4.2 and Table 1 read. |
-| Memory strategy | Shu Yang et al., [SelfMem: Self-Optimizing Memory for AI Agents](https://arxiv.org/abs/2607.03726) | Jul 4, 2026 | Abstract screened; [full text](https://arxiv.org/html/2607.03726v1) located. |
-| Long-term evaluation | Sihang Jiang et al., [SEA-Eval: A Benchmark for Evaluating Self-Evolving Agents Beyond Episodic Assessment](https://arxiv.org/abs/2604.08988) | Apr 10, 2026 | Abstract screened; candidate complement to AgentStream. |
-| Improving the improver | Jenny Zhang et al., [Hyperagents](https://arxiv.org/abs/2603.19461) | Mar 19, 2026 | [v1](https://arxiv.org/html/2603.19461v1), introduction inspected. Rendered manuscript also carries an August 24 date; March is the initial arXiv date, not a claim about the revision date. |
-| Broad taxonomy | Huan-ang Gao et al., [A Survey of Self-Evolving Agents: What, When, How, and Where to Evolve on the Path to Artificial Super Intelligence](https://arxiv.org/abs/2507.21046) | Jul 2025; v4 Jan 16, 2026 | Metadata/abstract checked; arXiv records TMLR January 2026. Use as a field map, with newer papers added. |
+| Interest | Primary readings and challenge companions |
+| --- | --- |
+| Memory and procedural learning | [Reflexion](research/notes/2023-reflexion.md) → [Voyager](research/notes/2023-voyager.md) → [WikiSkill](research/notes/wikiskill.md); challenge with [Library Drift](research/notes/library-drift.md), [Ground Truth First](research/notes/2026-ground-truth-first.md), [SelfMem](research/notes/2026-selfmem.md), [MemRL](research/notes/2026-memrl.md) |
+| Context and prompt search | [GEPA](research/notes/2025-gepa.md), [ACE](research/notes/2025-agentic-context-engineering.md), [VISTA](research/notes/2026-reflection-in-the-dark.md), [World Knowledge Exploration](research/notes/2026-spontaneous-world-knowledge.md) |
+| Harness/code evolution | [STOP](research/notes/2023-stop.md) → [DGM](research/notes/2025-darwin-godel-machine.md) → [HGM](research/notes/2025-huxley-godel-machine.md); compare [HarnessDev](research/notes/harnessdev.md), [Agentic Harness Engineering](research/notes/2026-agentic-harness-engineering.md), [Evo-Harness](research/notes/2026-evo-harness.md) |
+| Weights, self-play, and curricula | [SEAL](research/notes/2025-self-adapting-language-models.md), [Absolute Zero](research/notes/2025-absolute-zero.md), [R-Zero](research/notes/2025-r-zero.md), [TTRL](research/notes/2025-test-time-reinforcement-learning.md), [Agent-World](research/notes/2026-agent-world.md) |
+| Evaluation and failure | [Harness critique](research/notes/harness-evolution-evaluation.md), [AgentStream](research/notes/agentstream.md), [FinEvo](research/notes/2026-finevo-bench.md), [EvoHarnessBench](research/notes/evoharnessbench.md), [SEA-Eval](research/notes/2026-sea-eval.md), [Self-Evolution Backfires](research/notes/2026-self-evolution-backfires.md), [RewardHackingAgents/RHB](research/notes/2026-reward-hacking-agents.md) |
+| Meta-improvement and frontier | [Hyperagents](research/notes/hyperagents.md), [Dream-RSI](research/notes/2026-dream-rsi.md), [Escher-Loop](research/notes/2026-escher-loop.md), [SIA](research/notes/2026-sia.md), [MetaRSI](research/notes/metarsi.md), [ScienceBuddy](research/notes/sciencebuddy.md); theory companion: [Economics of RSI](research/notes/2026-economics-rsi.md) |
+| Embodiment and scientific discovery | [Voyager](research/notes/2023-voyager.md), [SHAPER](research/notes/2026-shaper.md), [AlphaEvolve](research/notes/2025-alphaevolve.md), [ScienceBuddy](research/notes/sciencebuddy.md); coverage is thinner than coding/memory |
 
-## Historical background and complementary branches
+## Surveys and conceptual navigation
 
-- [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366) (2023): background reading for reflection and memory; abstract screened.
-- [Voyager: An Open-Ended Embodied Agent with Large Language Models](https://arxiv.org/abs/2305.16291) (2023): background reading for accumulated skills; abstract screened.
-- [A Self-Improving Coding Agent](https://arxiv.org/abs/2504.15228), Maxime Robeyns, Martin Szummer, Laurence Aitchison (April 2025): methods and results/Table 1 read in v1.
-- [Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents](https://arxiv.org/abs/2505.22954), Jenny Zhang et al. (May 2025): v1 methods, experiments, and selected discussion read. Historical example, not the latest state of the field.
-- [Self-Adapting Language Models](https://arxiv.org/abs/2506.10943) (June 2025): complementary reading for model adaptation; abstract screened.
-- [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning](https://arxiv.org/abs/2507.19457), Lakshya A. Agrawal et al. (July 2025): prompt optimization branch; abstract screened. HTML access failed and OpenReview returned a browser challenge, so detailed findings are not reviewed here.
-- [Huxley-Gödel Machine: Human-Level Coding Agent Development by an Approximation of the Optimal Self-Improving Machine](https://arxiv.org/abs/2510.21614), Wenyi Wang et al. (October 2025): v1 introduction and algorithm/assumption excerpts read; optional historical bridge to selecting productive improvement lineages.
+- Gao et al., [A Survey of Self-Evolving Agents](https://arxiv.org/abs/2507.21046v4): v4 January 16, 2026, TMLR January 2026. Current taxonomy/metadata inspected; a navigation source, not an independent experimental confirmation.
+- Zhou et al., [Self-Evolving Coding Agents](https://arxiv.org/abs/2608.03392v3): v3 August 29, 2026 preprint. Coding-specific taxonomy and primary-source discovery map.
+- Duan et al., [The Last AI Built by Humans](https://arxiv.org/abs/2609.11873v2): v2 September 15, 2026 preprint. Proposed autonomy/RSI framing; v2 metadata/abstract inspected. Do not cite its detailed claims as full-text-reviewed evidence.
+- Schmidhuber, [Gödel Machines](https://arxiv.org/abs/cs/0309048): conceptual predecessor, not an empirical LLM-agent result; see the background paragraph in the [STOP note](research/notes/2023-stop.md).
 
-## Before presenting
-
-Read the latest versions of the sources used on slides, including experimental splits and uncertainty. Refresh the search before Friday for September 16–18 additions. Keep paper links here rather than adding downloaded manuscripts to the repository.
+The register preserves additional screened and excluded candidates so future refinement can target gaps rather than restart discovery. Earlier abstract-only status for GEPA, SEAL, FinEvo, Reflexion, Voyager, and several memory/evaluation sources has now been superseded by substantive primary reading.
