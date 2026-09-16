@@ -8,6 +8,8 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 ## Start here
 
+- **[Trend and central thesis](analysis/thesis.md)** — the argument, competing explanations, practical implications, and discussion decisions.
+- [Claim ledger](analysis/claims.md) and [presentation storyline](analysis/storyline.md) — evidence, confidence, limits, and a 45-minute narrative.
 - **[Ranked shortlist: ten priority resources](research/shortlist.md)** — why each belongs, what to read, key results, limitations, and strong alternatives.
 - **[Research landscape](research/landscape.md)** — mechanisms, competing evidence, and discussion questions organized around the topic.
 - **[Source register](research/sources.md)** — 151 candidate/resource records with selection decisions, exact review depths, versions, and acquisition status; 48 substantive reading-note files.
@@ -36,6 +38,6 @@ Strong alternatives include **Dream-RSI, EvoHarnessBench, Library Drift, NemoCla
 
 Existing descriptive source keys are preserved; newer sources generally use year-prefixed keys. Canonical URLs, notes, and licensed originals are linked through the register. Original PDFs are unmodified; source-specific licenses and hashes are recorded. Temporary downloads, text extraction, and rendered inspection images remain outside this repository.
 
-Research used the journal-club-research skill's discovery → screening → coordinator-verification workflow. Primary methods/results, relevant appendices, first-party repositories, and original practitioner articles were inspected to the depths recorded. Selected tables were visually checked; AgentStream's published aggregates were reconstructed. No training experiments were reproduced. This is a research handoff; a final analysis thesis, claim ledger, and slide deck have not been created.
+Research used the journal-club-research skill's discovery → screening → coordinator-verification workflow. Primary methods/results, relevant appendices, first-party repositories, and original practitioner articles were inspected to the depths recorded. Selected tables were visually checked; AgentStream's published aggregates were reconstructed. No training experiments were reproduced. The journal-club-analyze pass is complete: thesis, claim ledger, and presentation storyline are ready with explicit qualifications. No slide deck has been created.
 
 [Initial research notes](research-notes.md) remain as historical context; the current shortlist, landscape, and source notes supersede their earlier reading-status and numerical qualifications.

@@ -11,9 +11,22 @@ investigate next. A catalog of paper summaries is insufficient.
 
 Read [the shared workflow](../journal-club-research/references/workflow.md), the
 session README, research landscape, source register, and relevant reading notes.
-Reopen primary sources for pivotal claims and ambiguous measurements. If research
-is absent, request or perform research according to the authorized scope; do not
-create an authoritative thesis from titles or abstracts alone.
+Check the originals directory and acquisition manifest before accessing sources
+online. Reopen the retained primary originals for pivotal claims and ambiguous
+measurements, using the exact versions supporting the reading notes. Extract or
+render local PDFs as needed; “reopen primary sources” does not mean search the web.
+
+Reuse the research stage's documented cutoff and freshness checks. An analysis
+request does not by itself require another discovery or latest-version search.
+Use targeted online access when a needed original is missing, unreadable, or
+incomplete, a material question cannot be resolved locally, or a freshness update
+is requested or required by the session date. For missing originals, consult the
+acquisition record and open its canonical/versioned URL before broad search;
+preserve recorded retention restrictions. Record the specific gap and any new
+evidence without silently replacing the version already reviewed.
+
+If research is absent, request or perform research according to the authorized
+scope; do not create an authoritative thesis from titles or abstracts alone.
 
 ## Build and challenge interpretations
 

@@ -1,16 +1,27 @@
-# Research handoff
+# Research and analysis handoff
 
-**Updated September 16, 2026. Stage: research ready for analysis, with explicit source limitations.** Scope is the existing September 18 topic-wide journal club. The user authorized approximately one hour of autonomous research; this does not request a final analysis thesis, slides, or external publication.
+**Updated September 16, 2026. Stage: analysis complete, ready for presentation development with explicit source limitations.** Scope is the existing September 18 topic-wide journal club. The subsequent user request authorized the analyze skill and clarification of its local-source workflow. Slides and external publication are not requested.
 
 ## Current materials
 
+- [Central thesis](analysis/thesis.md), [12-claim ledger](analysis/claims.md), and [45-minute storyline](analysis/storyline.md): current analysis and presentation handoff.
 - [Ranked shortlist](research/shortlist.md): ten priority resources and reasoned alternatives.
 - [Landscape](research/landscape.md): topic questions, update surfaces, positive/negative evidence, and discussion prompts.
 - [Source register](research/sources.md) / [structured records](research/sources.json): candidate decisions, exact access depth, versions, and acquisition status.
 - [Reading notes](research/notes/), [originals guide](research/originals/README.md), and [acquisition manifest](research/originals/manifest.json): primary-source evidence and reproducibility limits.
 - [Search log](research/search-log.md): queries, lane reports, ranking changes, and audit outcomes.
 
-The session README and reading/practitioner routes now point to the same current corpus. Initial research notes remain historical context and are visibly superseded. No claim ledger, storyboard, or deck exists, so no downstream slide edits are outstanding.
+The session README and reading/practitioner routes point to the current corpus. Initial research notes remain historical context and are visibly superseded. The claim ledger and storyline now exist; no slide storyboard or deck exists, so no downstream slide edits are outstanding.
+
+## Analysis revision and checks
+
+The analysis distinguishes a dated expansion of editable components from evidence of capability growth or adoption. Its preferred thesis is useful bounded learning with unresolved durability, economics, and general recursive improvement. It explicitly weighs the extra-compute/task-specialization alternative and proposes a discriminating experiment. Inputs were the current README, landscape, register, shortlist, relevant source notes, and pivotal primary results. Claims C001–C012 map to storyline beats B1–B8.
+
+The source-access audit found all 36 retained originals present with matching sizes and SHA-256 hashes: 24 PDFs and 12 repository artifacts. Six shortlisted resources have retained originals; GEPA, AgentStream, FinEvo, and Shopify do not, per acquisition records. Local PDF extraction rechecked pivotal values in WikiSkill, the harness critique, SEAL, R-Zero, Hyperagents, and HarnessDev. Earlier in this analysis turn, canonical HTML was also reopened for pivotal sources; that duplicated local access unnecessarily for retained papers. The user requested a correction, and the analyze skill now explicitly checks local originals first and reuses the documented research cutoff. Its validator passed.
+
+Online primary checks covered WikiSkill, the harness critique, FinEvo, AgentStream, Hyperagents, Shopify, R-Zero, Dream-RSI, and SEAL; GEPA HTML returned an error, so existing reading notes remain its basis and no new numerical claim depends on it. Two broad freshness queries were made before the local-first correction; no discovery from them was promoted into the evidence or shortlist. This pass is synthesis of the existing September 16 corpus, not a new comprehensive discovery run.
+
+Remaining gaps below narrow the argument rather than block it. No training experiments, public-system reproductions, or new visual artifact renderings were performed in analysis. Existing research visual table checks are retained as prior checks, not rerun claims.
 
 ## What changed
 
@@ -26,6 +37,8 @@ These are conditional analysis/presentation follow-ups, not barriers to using th
 
 | Key / requesting stage | Affected source and precise question | Why it matters / acceptance criterion | Owner / status |
 | --- | --- | --- | --- |
+| `analysis-generalization` / analysis | C005–C012: can durable gains and improver transfer survive novel task families, independent judging, and equal total budgets? | Existing sources lack a decisive joint test; thesis includes a proposed four-arm experiment and limits conclusions accordingly. | Research; unresolved, conclusion narrowed |
+| `analysis-local-originals` / user | Pivotal claims and source access: are retained originals available before browsing? | Verified 36 files against manifest; local-first rule added to analyze skill and validated. | Analysis/tooling; resolved |
 | `sciencebuddy-historical-eval` / analysis | Which tasks, seeds, and total resources produced each paper curve, given the different released schedule and overlapping source materials? | Obtain matching run/split ledger before estimating uncertainty or claiming independent held-out performance. Current recipe is separately documented. | Research; open, claim narrowed |
 | `metarsi-actual-ledgers` / analysis | Are per-variant resource budgets and sealed splits released for the reported composition comparison? | Verify actual experiment records, not merely Appendix F conventions or a general harness README. | Research; open, claim provisional |
 | `rzero-aggregate-conflict` / presentation | Which code/checkpoint aggregation resolves v4 table/prose disagreements? | Do not chart disputed abstract aggregates; the separately audited Appendix Table 6 collapse result is usable with its model/scope. | Research; open, avoid disputed aggregates |
