@@ -31,7 +31,7 @@ mapping in the storyboard. Keep URLs and result locators alongside IDs so reader
 can inspect the underlying evidence without knowing the workflow.
 
 On a return to an earlier stage, do a targeted pass, update the affected evidence,
-and propagate substantive changes through claims, storyline, storyboard, and deck.
+and propagate substantive changes through thesis, claims, storyboard, and deck.
 Mark dependent artifacts stale until updated. Reopen broad discovery only when the
 scope changes or the gap reveals a missed approach.
 
@@ -141,7 +141,7 @@ reviewed support. Avoid copying long copyrighted passages.
 - Confidence (high/moderate/low) with a short evidence-based rationale; confidence
   is an analytic judgment, not a statistical probability.
 - What would falsify, narrow, or materially change the claim.
-- Status: usable, provisional, or unsupported; downstream storyline/slide references.
+- Status: usable, provisional, or unsupported; downstream slide references when a presentation exists.
 
 Use only usable claims as unqualified factual takeaways. Provisional claims may be
 presented with visible qualification. Unsupported claims belong in an explicitly
@@ -152,7 +152,8 @@ framed hypothesis or open question, not in the deck as established findings.
 - Research → analysis: source register, ranked shortlist, retained originals with
   acquisition limitations, reading notes, landscape, search log with run changes,
   and gaps.
-- Analysis → presentation: thesis, claim ledger, storyline, unresolved qualifications.
+- Analysis → presentation: thesis, claim ledger, unresolved qualifications. Presentation develops
+  the narrative and slide sequence in its storyboard.
 - Presentation → completion: storyboard, editable source, final deck/exports,
   figure provenance when relevant, visual/factual review, and current README links.
 

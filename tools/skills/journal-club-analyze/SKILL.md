@@ -50,34 +50,52 @@ additional evidence supports a broader direction.
 
 ## Write the analysis
 
-Create `analysis/thesis.md` with:
-- A concise central thesis, its scope, and why the audience should care now.
-- Supporting arguments arranged as a narrative, each linked to claim IDs.
-- Established findings, emerging trends, and your interpretations clearly separated.
-- Your reasoned position on consequential tradeoffs, with confidence and limits.
-- The strongest competing explanation and evidence against your preferred view.
-- Practical implications, unresolved questions, and tests that could settle them.
-- Discussion questions that invite a decision, prediction, or disagreement and
-  name the evidence that would inform it.
+Write `analysis/thesis.md` as a clear scholarly synthesis, with the narrative quality
+of the introduction and related-work sections of a strong NeurIPS paper. Lead the
+reader from the problem and its significance through the relevant approaches to
+the unresolved question and your evidence-backed position. This is a literature
+argument, not an original research paper: do not invent contributions or experiments.
+
+Use connected paragraphs with informative topic sentences, concrete subjects, and
+explicit transitions. Define unfamiliar terms when first needed. Organize related
+work around conceptual relationships, assumptions, and disagreements; explain what
+comparisons establish rather than listing papers in sequence. Use a few descriptive
+headings when helpful, without imposing a fixed template or length. Avoid a briefing
+format built from a bold thesis slogan, numbered argument cards, chronology tables,
+confidence labels, or competing-thesis matrices.
+
+Integrate the strongest competing explanation, limitations, and practical or
+research implications into the argument. Distinguish reported findings from your
+interpretation through attribution and calibrated prose, rather than separate
+“established/emerging/interpretive” bins. Keep decisive numbers and qualifications
+that affect their meaning; leave exhaustive audit detail in the evidence records.
+Cite primary sources near the claims, with result locators where relevant. Keep
+claim-ID traceability in `claims.md` or a compact supporting map, so the thesis can
+be read independently of internal workflow labels.
+
+Keep source-access audits and readiness status in the workflow record. The thesis
+should explain the field to a reader, not narrate the analysis process.
+Presentation narrative, slide sequencing, visuals, and discussion facilitation
+belong to the presentation skill. Analysis hands off the thesis, claim ledger,
+and unresolved qualifications; do not create a storyline or presentation outline.
 
 Create `analysis/claims.md` using the shared claim format. Label analyst inference,
 opinion, and prediction explicitly, but still show the evidence and assumptions
 behind them. Avoid false balance: give alternatives attention proportional to their
 plausibility and evidence. Do not hide uncertainty to make the story cleaner.
 
-Create `analysis/storyline.md` as the presentation handoff: audience and duration,
-opening question, minimal conceptual background, argument sequence, decisive
-results, counterargument, synthesis, and discussion. Suggest visual explanations
-and trace each major beat to claim IDs. Keep paper-specific detail in supporting
-material unless needed to understand the argument.
-
 ## Iterate and finish
 
 Send missing evidence, conflicting results, or uncertain provenance back to research
 with a precise question and an explanation of which conclusion it could change.
-Revise affected claims and the storyline after the response. Retain rejected theses
+Revise affected claims and the thesis after the response. Retain rejected theses
 briefly when their rejection explains an important tradeoff; do not accumulate a
 transcript of every draft.
+
+Before finishing, read the thesis as continuous prose: can a reader follow the
+problem, relationships among approaches, evidence gap, and conclusion without the
+claim ledger or presentation outline? Revise abrupt transitions, unexplained jargon,
+and paragraphs that merely enumerate sources.
 
 The analysis is ready when the central argument is traceable, serious objections
 are addressed, confidence matches the evidence, and remaining gaps are either

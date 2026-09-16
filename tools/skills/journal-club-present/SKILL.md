@@ -10,7 +10,7 @@ question, and remember. Preserve the thesis's limits while making its implicatio
 concrete.
 
 Read [the shared workflow](../journal-club-research/references/workflow.md), the
-session README, thesis, claim ledger, and storyline. Check source notes for the
+session README, thesis, claim ledger, and unresolved qualifications. Check source notes for the
 results and graphics you will use. If analysis is missing, develop it within scope
 or record the prerequisite; do not silently replace analysis with paper summaries.
 
@@ -22,12 +22,16 @@ the PDF skill when available. If those skills are unavailable, use existing tool
 and document the limitation. Default to an editable PowerPoint and a PDF when the
 user has no format preference and the environment supports them.
 
-Write `slides/storyboard.md` before generating the deck. For each slide, record its
+Develop the presentation narrative from the thesis and claims in this stage;
+no separate analysis storyline is required. Write `slides/storyboard.md` before
+generating the deck. For each slide, record its
 purpose, takeaway title, visual plan, claim IDs, source locators, and speaker notes.
 Plan around the audience's background and the time available, reserving room for
 discussion. A useful arc is question → concepts → argument and evidence → strongest
 challenge → synthesis → open decisions. Adapt it rather than imposing a fixed
-slide count. Introduce technical concepts before relying on them.
+slide count. Introduce technical concepts before relying on them. Develop
+evidence-linked discussion questions that invite a decision, prediction, or
+disagreement. Omit minute-by-minute breakdowns unless requested.
 
 Use titles that state a supported takeaway. Give each slide one main idea and use
 mechanism diagrams, comparisons, timelines, plots, or concrete examples to explain

@@ -4,18 +4,24 @@
 
 ## Current materials
 
-- [Central thesis](analysis/thesis.md), [12-claim ledger](analysis/claims.md), and [45-minute storyline](analysis/storyline.md): current analysis and presentation handoff.
+- [Central thesis](analysis/thesis.md) and [12-claim ledger](analysis/claims.md): current analysis and presentation handoff.
 - [Ranked shortlist](research/shortlist.md): ten priority resources and reasoned alternatives.
 - [Landscape](research/landscape.md): topic questions, update surfaces, positive/negative evidence, and discussion prompts.
 - [Source register](research/sources.md) / [structured records](research/sources.json): candidate decisions, exact access depth, versions, and acquisition status.
 - [Reading notes](research/notes/), [originals guide](research/originals/README.md), and [acquisition manifest](research/originals/manifest.json): primary-source evidence and reproducibility limits.
 - [Search log](research/search-log.md): queries, lane reports, ranking changes, and audit outcomes.
 
-The session README and reading/practitioner routes point to the current corpus. Initial research notes remain historical context and are visibly superseded. The claim ledger and storyline now exist; no slide storyboard or deck exists, so no downstream slide edits are outstanding.
+The session README and reading/practitioner routes point to the current corpus. Initial research notes remain historical context and are visibly superseded. The thesis and claim ledger now exist; no slide storyboard or deck exists, so no downstream slide edits are outstanding.
 
 ## Analysis revision and checks
 
-The analysis distinguishes a dated expansion of editable components from evidence of capability growth or adoption. Its preferred thesis is useful bounded learning with unresolved durability, economics, and general recursive improvement. It explicitly weighs the extra-compute/task-specialization alternative and proposes a discriminating experiment. Inputs were the current README, landscape, register, shortlist, relevant source notes, and pivotal primary results. Claims C001–C012 map to storyline beats B1–B8.
+September 16 thesis-style revision: rewrote `analysis/thesis.md` as connected introduction, related-work synthesis, evaluation analysis, and implications. The central interpretation and C001–C012 remain unchanged. Primary citations and decisive result qualifications stay in the prose; internal claim mapping is in the ledger. Discussion planning is now deferred to presentation. The README points to the revised synthesis. The analyze skill now specifies scholarly narrative, conceptual comparisons, integrated counterarguments, and a continuous-prose review. Its installed path is a symlink to the edited repository skill, so the change is active.
+
+This editorial pass reused the September 16 corpus and reading notes without new discovery. Local original text was reopened for the pivotal WikiSkill, SEAL, harness-evaluation, R-Zero, and Hyperagents results; other statements retain the prior source-specific review scope. The skill validator passed in an isolated `uv` environment with PyYAML, the then-current relative file links were checked, and `git diff --check` passed. No new empirical findings or reproductions are claimed; existing evidence gaps below remain in force.
+
+September 16 stage-boundary correction: removed the analysis storyline and its beat references at the user’s request. Analysis delivers the thesis, claim ledger, and unresolved qualifications. The presentation skill develops the narrative, visuals, discussion prompts, and slide sequence in its storyboard. Updated both skills and the shared handoff contract. Research claims were not re-evaluated in this editorial pass.
+
+The analysis distinguishes a dated expansion of editable components from evidence of capability growth or adoption. Its preferred thesis is useful bounded learning with unresolved durability, economics, and general recursive improvement. It explicitly weighs the extra-compute/task-specialization alternative and proposes a discriminating experiment. Inputs were the current README, landscape, register, shortlist, relevant source notes, and pivotal primary results. Presentation will map claims C001–C012 to slides when requested.
 
 The source-access audit found all 36 retained originals present with matching sizes and SHA-256 hashes: 24 PDFs and 12 repository artifacts. Six shortlisted resources have retained originals; GEPA, AgentStream, FinEvo, and Shopify do not, per acquisition records. Local PDF extraction rechecked pivotal values in WikiSkill, the harness critique, SEAL, R-Zero, Hyperagents, and HarnessDev. Earlier in this analysis turn, canonical HTML was also reopened for pivotal sources; that duplicated local access unnecessarily for retained papers. The user requested a correction, and the analyze skill now explicitly checks local originals first and reuses the documented research cutoff. Its validator passed.
 

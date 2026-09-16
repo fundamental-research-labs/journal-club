@@ -2,14 +2,14 @@
 
 **Session:** Friday, September 18, 2026  
 **Research cutoff:** September 16, 2026  
-**Scope:** Topic-wide research for an audience familiar with LLM basics; working assumption of 45 minutes including discussion.
+**Scope:** Topic-wide research for an audience familiar with LLM basics.
 
 Central question: **How can agents turn experience into lasting improvements—and how can we tell whether those improvements generalize?**
 
 ## Start here
 
-- **[Trend and central thesis](analysis/thesis.md)** — the argument, competing explanations, practical implications, and discussion decisions.
-- [Claim ledger](analysis/claims.md) and [presentation storyline](analysis/storyline.md) — evidence, confidence, limits, and a 45-minute narrative.
+- **[Introduction and related work](analysis/thesis.md)** — a scholarly synthesis of the approaches, evidence, competing explanations, and open questions.
+- [Claim ledger](analysis/claims.md) — evidence, confidence, and limits.
 - **[Ranked shortlist: ten priority resources](research/shortlist.md)** — why each belongs, what to read, key results, limitations, and strong alternatives.
 - **[Research landscape](research/landscape.md)** — mechanisms, competing evidence, and discussion questions organized around the topic.
 - **[Source register](research/sources.md)** — 151 candidate/resource records with selection decisions, exact review depths, versions, and acquisition status; 48 substantive reading-note files.
@@ -24,20 +24,10 @@ The ranked ten are **WikiSkill; Rethinking the Evaluation of Harness Evolution f
 
 Strong alternatives include **Dream-RSI, EvoHarnessBench, Library Drift, NemoClaw, ACE, HGM/DGM, Absolute Zero, Agent-World, and Reef**. September frontier coverage includes ScienceBuddy, MetaRSI, and the Economics of Recursive Self-Improvement, with explicit distinctions between controlled results, provisional claims, and theory. Social/talk leads with unverified provenance or inaccessible content are not used as empirical evidence.
 
-## Possible discussion structure
-
-| Time | Question | Evidence route |
-| --- | --- | --- |
-| 0–5 min | What persists, and who controls the update? | State, feedback, selection, and the boundary of “self” |
-| 5–15 min | What can change? | Knowledge/skills, prompts/harnesses, weights, curricula |
-| 15–25 min | Do improvements generalize and last? | Held-out evaluation, reset controls, task order, forgetting, collapse |
-| 25–35 min | Are the feedback and economics credible? | Evaluator integrity, matched budgets, deployment loops |
-| 35–45 min | Can the improvement process itself improve? | Hyperagents/Dream-RSI, external anchors, open questions |
-
 ## Repository and review notes
 
 All reading-note filenames use `YYYY-short-title.md` in lowercase kebab-case, with the source publication year as the prefix. For SoL-Pi, `2026` identifies the reviewed repository snapshot year because first publication is unverified. Original-source folders use the same year-prefixed name as their reading notes, and retained filenames use `YYYY-short-title-artifact-version.ext`. Existing source keys are preserved; the source register maps them to the year-prefixed notes and originals. Canonical URLs, notes, and licensed originals are linked through the register. Original PDFs are unmodified; source-specific licenses and hashes are recorded. Temporary downloads, text extraction, and rendered inspection images remain outside this repository.
 
-Research used the journal-club-research skill's discovery → screening → coordinator-verification workflow. Primary methods/results, relevant appendices, first-party repositories, and original practitioner articles were inspected to the depths recorded. Selected tables were visually checked; AgentStream's published aggregates were reconstructed. No training experiments were reproduced. The journal-club-analyze pass is complete: thesis, claim ledger, and presentation storyline are ready with explicit qualifications. No slide deck has been created.
+Research used the journal-club-research skill's discovery → screening → coordinator-verification workflow. Primary methods/results, relevant appendices, first-party repositories, and original practitioner articles were inspected to the depths recorded. Selected tables were visually checked; AgentStream's published aggregates were reconstructed. No training experiments were reproduced. The journal-club-analyze pass is complete: thesis and claim ledger are ready with explicit qualifications. No slide deck has been created.
 
 [Initial research notes](research-notes.md) remain as historical context; the current shortlist, landscape, and source notes supersede their earlier reading-status and numerical qualifications.
