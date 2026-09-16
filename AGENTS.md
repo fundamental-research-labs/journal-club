@@ -16,6 +16,19 @@ over elaborate infrastructure.
 
 ## Research and discussion
 
+- Default to a topic-wide journal club: organize around the field's main questions,
+  concepts, approaches, evidence, and open problems, using individual papers as
+  supporting examples rather than making the session a sequence of paper reviews.
+  Use a single-paper focus only when requested.
+- Include the latest relevant research as of the preparation date. Search recent
+  primary sources and verify publication/version dates; distinguish recent work
+  from foundational background and preprints from peer-reviewed publications.
+- Search beyond papers and arXiv: include researcher X/Twitter posts and threads,
+  technical blogs, project writeups, code releases, and relevant talks or demos.
+  Treat original practitioner work as part of the topic, not just supplementary
+  links. Follow claims to first-party explanations, code, logs, or evaluations;
+  record dates and access limitations, and distinguish measured results, demos,
+  proposals, and opinions without treating publication format as evidence quality.
 - Read the relevant papers before describing their findings. Prefer primary
   sources and verify bibliographic details, links, and substantive claims.
 - Cite sources near the claims they support using stable URLs or DOIs. Record
