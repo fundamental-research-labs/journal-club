@@ -10,9 +10,11 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 - **[Ranked shortlist: ten priority resources](research/shortlist.md)** — why each belongs, what to read, key results, limitations, and strong alternatives.
 - **[Research landscape](research/landscape.md)** — mechanisms, competing evidence, and discussion questions organized around the topic.
-- **[Source register](research/sources.md)** — 132 candidate/resource records with selection decisions, exact review depths, versions, and acquisition status; 43 substantive reading-note files.
+- **[Source register](research/sources.md)** — 151 candidate/resource records with selection decisions, exact review depths, versions, and acquisition status; 48 substantive reading-note files.
 - [Reading routes](reading-list.md) and [practitioner resources](practitioner-sources.md) — ways to navigate the corpus by interest.
 - [Search and audit log](research/search-log.md), [originals guide](research/originals/README.md), and [research handoff](workflow.md) — provenance, checks, and remaining limits.
+
+- **[Recent-paper citation audit](research/citation-mining.md)** — seven seeds, parallel low-cost discovery, five newly read comparators, and retained top-ten decision.
 
 ## Selected supporting resources
 

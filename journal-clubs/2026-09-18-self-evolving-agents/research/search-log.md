@@ -1,5 +1,20 @@
 # Search log
 
+## Citation-mining refinement — September 16, 2026
+
+Scope: targeted backward-citation coverage audit requested by the user, reusing the
+132-record corpus and ten-source shortlist. Cutoff remains September 16. Three
+parallel `gpt-5.6-luna` low-reasoning workers cover meta-improvement, memory/skills,
+and harness/embodied work. Each has a budget of two required recent seeds plus one
+optional seed, up to 12 useful citation edges, and one consequential backward
+expansion. The coordinator updates the research skill, searches recent coverage,
+and verifies consequential omissions before merging. No deck or analysis thesis
+is requested. Prior open empirical-ledger questions remain in the workflow queue.
+
+Coordinator discovery queries: `"self-evolving agents" September 2026 research`;
+`"self evolving" agents recent survey 2026 related work`. Search results alone are
+leads; original sources and explicit citation contexts determine inclusion.
+
 > The opening sections preserve the earlier September 16 pass. The autonomous refinement and final audit below supersede their acquisition counts, review depths, and unresolved statistical questions.
 
 
@@ -106,3 +121,11 @@ The two final targeted challenges—selection redundancy and environment/curricu
 ## Requested format and commit follow-up — September 16, 2026
 
 Standardized all 43 notes to a shared five-section layout, retaining the original substantive blocks and every existing Markdown link. Added source-specific discussion questions where missing. Verified the section sequence for every note, 511 authored relative links, and retained-original hashes/readability. Commit scope is the session directory; the pre-existing root `AGENTS.md` modification is excluded. No new discovery or ranking changes.
+
+### Citation-mining completion
+
+Three parallel Luna low-reasoning discovery lanes read seven seeds and returned 29 selected citation edges. Two Luna medium-reasoning screening lanes read five omissions; coordinator primary-source checks reconciled recommendations. Added 19 records (five reviewed reserves, eleven watchlist, three excluded background), five notes, and three CC BY originals. Current total: 151 records, 48 notes, unchanged ten-source shortlist. [Audit and lane links](citation-mining.md). Additional coordinator query: `"SkillsBench" arxiv`; verified v4 metadata differs from old indexed abstracts and left it on watchlist.
+
+Primary sections and bibliography corrected several worker URL/attribution errors before merge. Original PDFs were title/version-checked with text extraction and validated with pdfinfo; saved bytes/hashes are in the manifest. A truncated Trace2Skill urllib download was retried successfully with curl from the same versioned arXiv endpoint. No second citation generation, saturation, experiment reproduction, or fresh social/talk review is claimed. Budget stop leaves harness-development and embodied follow-ups on the watchlist.
+
+Final refinement checks passed: 151 unique source records, 48 notes, ten unchanged shortlist records, 559 authored relative links, five new note section layouts, and title/version/size/SHA-256/readability checks for three new PDFs. Skill validation and `git diff --check` passed. No rendered artifact was generated in this research-only update.

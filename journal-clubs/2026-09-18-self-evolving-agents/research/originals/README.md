@@ -1,6 +1,6 @@
 # Retained primary originals
 
-Acquired September 16, 2026: **24 unmodified primary PDFs and 12 small unmodified repository artifacts**. These files support the [source notes](../sources.md); they are not reproduced experiments. The [manifest](manifest.json) records source URLs, versions/commit pins, license basis, retrieval date, bytes, and SHA-256 hashes.
+Acquired September 16, 2026: **27 unmodified primary PDFs and 12 small unmodified repository artifacts**. These files support the [source notes](../sources.md); they are not reproduced experiments. The [manifest](manifest.json) records source URLs, versions/commit pins, license basis, retrieval date, bytes, and SHA-256 hashes.
 
 ## Use and provenance
 
@@ -44,3 +44,7 @@ Acquired September 16, 2026: **24 unmodified primary PDFs and 12 small unmodifie
 | [Reward Hacking Benchmark: Measuring Exploits in LLM Agents with Tool Use](https://arxiv.org/abs/2605.02964v1) — Thaman, Kunvar | [2026-reward-hacking-benchmark-paper-v1.pdf](2026-reward-hacking-benchmark/2026-reward-hacking-benchmark-paper-v1.pdf) | http://creativecommons.org/licenses/by/4.0/ |
 
 For restricted copies and exact locations tried, see [manifest.json](manifest.json) and the [source register](../sources.md). The separate [practitioner acquisition record](acquisition-practitioner.json) documents that bounded acquisition pass; its artifacts are also integrated into the main manifest.
+
+## Citation-mining acquisitions
+
+Added unmodified CC BY 4.0 versions: [EvoX v2](2026-evox/2026-evox-paper-v2.pdf), [EvoSkill v1](2026-evoskill/2026-evoskill-paper-v1.pdf), and [Trace2Skill v5](2026-trace2skill/2026-trace2skill-paper-v5.pdf). Authors, versioned canonical links, and license URLs are in the [register](../sources.md); bytes and hashes are in the manifest. SkillOpt and MLEvolve remain linked rather than retained under their arXiv non-exclusive distribution licenses.

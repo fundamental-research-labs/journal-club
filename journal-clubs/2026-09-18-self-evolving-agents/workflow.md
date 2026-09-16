@@ -48,3 +48,17 @@ No training experiments, deployed systems, or benchmark evaluations were reprodu
 ## Note-format and commit follow-up
 
 All 43 reading notes now use the same five sections: Source and access; Question and methods; Results and evidence; Appraisal and limitations; Discussion and follow-up. Source-specific tables, numerical qualifications, citations, and audit findings are preserved. Discussion questions were added where absent. The formatting pass did not reopen research or change the shortlist.
+
+## Citation-mining refinement handoff — September 16, 2026
+
+Requested research and skill update completed. Inputs: seven recent seed versions, existing register/shortlist, five newly screened primary papers. [Audit](research/citation-mining.md) links every lane and selection decision. Corpus now has 151 records and 48 notes; the ten-source reading priorities remain unchanged. Three CC BY originals were added. Existing analysis/presentation claims should use the new direct baseline notes where relevant; no deck rebuild requested.
+
+| Key / requesting stage | Question / acceptance criterion | Owner / status |
+| --- | --- | --- |
+| `citation-baseline-coverage` / user | Read recent introductions/related work in parallel; verify consequential omissions and reconsider shortlist | Research; completed, five substantive additions |
+| `harness-citation-followup` / analysis | If harness evaluation becomes central, read HarnessOpt-Bench and Meta-Agent Challenge methods/results before comparative claims | Research; conditional watchlist |
+| `embodied-citation-followup` / analysis | If embodied adaptation becomes central, read EmbodiSkill, AutoHarness, AgentSpec and check matched controls | Research; conditional watchlist |
+
+The skill now explicitly requires recent-paper citation mining with cheap parallel workers, provenance, deduplication, primary verification, and bounded expansion. Its validator passed using an isolated uv dependency environment. The research pass stopped at its stated budget; remaining citation leads are not described as saturated or fully reviewed.
+
+Final refinement checks passed: 151 unique source records, 48 notes, ten unchanged shortlist records, 559 authored relative links, five new note section layouts, and title/version/size/SHA-256/readability checks for three new PDFs. Skill validation and `git diff --check` passed. No rendered artifact was generated in this research-only update.

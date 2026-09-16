@@ -1,17 +1,17 @@
 # Source register
 
-**Research cutoff and access date: September 16, 2026.** The [ranked ten](shortlist.md) are the reading priorities; the [landscape](landscape.md) organizes the topic. This register preserves 132 candidate/resource records, including companions, excluded leads, and metadata-only watchlist items. It is not a claim that all 132 were fully read. There are 43 substantive note files, with exact reading depth recorded individually.
+**Research cutoff and access date: September 16, 2026.** The [ranked ten](shortlist.md) are the reading priorities; the [landscape](landscape.md) organizes the topic. This register preserves 151 candidate/resource records, including companions, excluded leads, and metadata-only watchlist items. It is not a claim that all 151 were fully read. There are 48 substantive note files, with exact reading depth recorded individually.
 
 The structured [sources.json](sources.json) contains the same records with complete author lists, metadata histories where checked, screening provenance, rubric reasons, and acquisition records. Primary metadata was checked against current arXiv records for 85 modern-ID sources, plus STOP separately; one requested arXiv metadata response failed. Version **read** and latest **available** metadata are separate: a newly observed version is not silently treated as read.
 
 ## Status and scope
 
 - **Shortlist (10):** selected for the topic-wide reading set, with primary substantive notes.
-- **Reviewed reserve (34):** substantive reading, useful alternatives or challenge companions.
+- **Reviewed reserve (39):** substantive reading, useful alternatives or challenge companions.
 - **Screened reserve (25):** screened sufficiently to retain as a lead; depth varies and a standalone note may be absent.
-- **Watchlist (53):** incomplete/abstract/metadata-level support; not evidence for an empirical claim.
+- **Watchlist (64):** incomplete/abstract/metadata-level support; not evidence for an empirical claim.
 - **Companion (3):** related project or institutional communication; not independent replication.
-- **Excluded (7):** retained for traceability, including unverified or redundant leads.
+- **Excluded (10):** retained for traceability, including unverified or redundant leads.
 
 Rubric order is relevance / evidence / novelty / teaching / coverage, with H/M/L/U as defined in the [shortlist](shortlist.md#selection-rubric). A venue, brand, recent date, or functioning demo does not by itself establish evidence strength. The rationale and narrow claim matter more than a letter.
 
@@ -1225,3 +1225,178 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 - **Dates / version:** first 2026-03; latest metadata 2026-03; read/inspected March 2026 PDF. **Access:** 2026-09-16; full-text relevant sections read.
 - **Selection:** excluded; rubric H / L / H / M / M. Broadly relevant but self-scored, unauditable, and internally inconsistent on score totals and dimensions; several claimed components remain future or untrained. **Notes:** no standalone substantive note.
 - **Original:** not acquired: screening/navigation lead; not needed for selected evidence. License/permission: No redistribution license verified. [Download/source location](https://zeltrex.com/papers/the-living-agent-2026.pdf).
+
+## Citation-mining additions — September 16, 2026
+
+These newly discovered older works supplement the existing ten. Five received substantive primary-source screening; the other records remain explicitly limited. [Pass summary](citation-mining.md).
+
+<a id="2026-evox"></a>
+
+### [EvoX: Meta-Evolution for Automated Discovery](https://arxiv.org/abs/2602.23413v2)
+
+- **Key / family / type:** `2026-evox` / `2026-evox`; arXiv preprint record; venue not independently checked. **Authors:** Liu, Shu, Agarwal, Shubham, Maheswaran, Monishwaran et al.
+- **Dates / access:** first 2026-02-26; latest 2026-03-16 (v2); accessed September 16. primary methods/results and relevant appendices inspected.
+- **Decision:** reviewed-reserve; rubric H / M / H / H / M. Search-strategy evolution comparator to Dream-RSI; broad tasks, partial resource matching. [Discovery provenance](workers/citation-mining-meta.md). [Reading note](notes/2026-evox.md).
+- **Original:** [saved v2](originals/2026-evox/2026-evox-paper-v2.pdf); [download](https://arxiv.org/pdf/2602.23413v2); [license](http://creativecommons.org/licenses/by/4.0/).
+
+<a id="2026-mlevolve"></a>
+
+### [MLEvolve: A Self-Evolving Framework for Automated Machine Learning Algorithm Discovery](https://arxiv.org/abs/2606.06473v1)
+
+- **Key / family / type:** `2026-mlevolve` / `2026-mlevolve`; arXiv preprint record; venue not independently checked. **Authors:** Du, Shangheng, Yan, Xiangchao, Shi, Jinxin et al.
+- **Dates / access:** first 2026-06-04; latest 2026-06-04 (v1); accessed September 16. primary methods/results and relevant appendices inspected.
+- **Decision:** reviewed-reserve; rubric H / M / H / H / M. Cross-branch memory and adaptive ML engineering; heterogeneous baseline models/budgets. [Discovery provenance](workers/citation-mining-meta.md). [Reading note](notes/2026-mlevolve.md).
+- **Original:** retention-restricted — Canonical arXiv license permits arXiv distribution, not general redistribution; no original retained.; [download](https://arxiv.org/pdf/2606.06473v1); [license](http://arxiv.org/licenses/nonexclusive-distrib/1.0/).
+
+<a id="2026-skillopt"></a>
+
+### [SkillOpt: Executive Strategy for Self-Evolving Agent Skills](https://arxiv.org/abs/2605.23904v2)
+
+- **Key / family / type:** `2026-skillopt` / `2026-skillopt`; arXiv preprint record; venue not independently checked. **Authors:** Yang, Yifan, Gong, Ziyang, Huang, Weiquan et al.
+- **Dates / access:** first 2026-05-22; latest 2026-05-25 (v2); accessed September 16. primary methods/results and relevant appendices inspected.
+- **Decision:** reviewed-reserve; rubric H / M / H / H / M. Direct WikiSkill baseline and SHAPER predecessor; bounded skill edits with selection gates. [Discovery provenance](workers/citation-mining-memory.md). [Reading note](notes/2026-skillopt.md).
+- **Original:** retention-restricted — Canonical arXiv license permits arXiv distribution, not general redistribution; no original retained.; [download](https://arxiv.org/pdf/2605.23904v2); [license](http://arxiv.org/licenses/nonexclusive-distrib/1.0/).
+
+<a id="2026-evoskill"></a>
+
+### [EvoSkill: Automated Skill Discovery for Multi-Agent Systems](https://arxiv.org/abs/2603.02766v1)
+
+- **Key / family / type:** `2026-evoskill` / `2026-evoskill`; arXiv preprint record; venue not independently checked. **Authors:** Alzubi, Salaheddin, Provenzano, Noah, Bingham, Jaydon et al.
+- **Dates / access:** first 2026-03-03; latest 2026-03-03 (v1); accessed September 16. primary methods/results and relevant appendices inspected.
+- **Decision:** reviewed-reserve; rubric H / M / H / H / M. Direct WikiSkill baseline; single-run results and table/prose discrepancy. [Discovery provenance](workers/citation-mining-memory.md). [Reading note](notes/2026-evoskill.md).
+- **Original:** [saved v1](originals/2026-evoskill/2026-evoskill-paper-v1.pdf); [download](https://arxiv.org/pdf/2603.02766v1); [license](http://creativecommons.org/licenses/by/4.0/).
+
+<a id="2026-trace2skill"></a>
+
+### [Trace2Skill: Distill Trajectory-Local Lessons into Transferable Agent Skills](https://arxiv.org/abs/2603.25158v5)
+
+- **Key / family / type:** `2026-trace2skill` / `2026-trace2skill`; arXiv preprint record; venue not independently checked. **Authors:** Ni, Jingwei, Liu, Yihao, Liu, Xinpeng et al.
+- **Dates / access:** first 2026-03-26; latest 2026-06-04 (v5); accessed September 16. primary methods/results and relevant appendices inspected.
+- **Decision:** reviewed-reserve; rubric H / M / H / H / M. Direct WikiSkill baseline; trajectory distillation and cross-model/task transfer. [Discovery provenance](workers/citation-mining-memory.md). [Reading note](notes/2026-trace2skill.md).
+- **Original:** [saved v5](originals/2026-trace2skill/2026-trace2skill-paper-v5.pdf); [download](https://arxiv.org/pdf/2603.25158v5); [license](http://creativecommons.org/licenses/by/4.0/).
+
+<a id="2026-embodiskill"></a>
+
+### [EmbodiSkill: Skill-Aware Reflection for Self-Evolving Embodied Agents](https://arxiv.org/abs/2605.10332v2)
+
+- **Key / family / type:** `2026-embodiskill` / `2026-embodiskill`; arXiv preprint record; venue not independently checked. **Authors:** Ju, Ruofei, Wang, Xinrui, Ding, Xin et al.
+- **Dates / access:** first 2026-05-11; latest 2026-07-11 (v2); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** watchlist; rubric H / U / U / U / U. SHAPER skill-only comparator; primary abstract checked, efficacy not appraised. [Discovery provenance](workers/citation-mining-harness.md).
+- **Original:** retention-restricted — Canonical arXiv license permits arXiv distribution, not general redistribution; no original retained.; [download](https://arxiv.org/pdf/2605.10332v2); [license](http://arxiv.org/licenses/nonexclusive-distrib/1.0/).
+
+<a id="2026-autoharness"></a>
+
+### [AutoHarness: improving LLM agents by automatically synthesizing a code harness](https://arxiv.org/abs/2603.03329v1)
+
+- **Key / family / type:** `2026-autoharness` / `2026-autoharness`; arXiv preprint record; venue not independently checked. **Authors:** Lou, Xinghua, Lázaro-Gredilla, Miguel, Dedieu, Antoine et al.
+- **Dates / access:** first 2026-02-10; latest 2026-02-10 (v1); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** watchlist; rubric H / U / U / U / U. SHAPER harness-only comparator; primary abstract checked, efficacy not appraised. [Discovery provenance](workers/citation-mining-harness.md).
+- **Original:** pending — Discovery-only source; original acquisition deferred until substantive reading.; [download](https://arxiv.org/pdf/2603.03329v1); [license](http://creativecommons.org/licenses/by/4.0/).
+
+<a id="2026-agentspec"></a>
+
+### [AgentSpec: Understanding Embodied Agent Scaffolds Through Controlled Composition](https://arxiv.org/abs/2606.14674v1)
+
+- **Key / family / type:** `2026-agentspec` / `2026-agentspec`; arXiv preprint record; venue not independently checked. **Authors:** Chen, Jixuan, Shen, Jianzhi, Kang, Haoqiang et al.
+- **Dates / access:** first 2026-06-12; latest 2026-06-12 (v1); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** watchlist; rubric H / U / U / U / U. Controlled embodied scaffold composition; primary abstract checked, efficacy not appraised. [Discovery provenance](workers/citation-mining-harness.md).
+- **Original:** pending — Discovery-only source; original acquisition deferred until substantive reading.; [download](https://arxiv.org/pdf/2606.14674v1); [license](http://creativecommons.org/licenses/by/4.0/).
+
+<a id="2026-natural-language-agent-harnesses"></a>
+
+### [Natural-Language Agent Harnesses](https://arxiv.org/abs/2603.25723v2)
+
+- **Key / family / type:** `2026-natural-language-agent-harnesses` / `2026-natural-language-agent-harnesses`; arXiv preprint record; venue not independently checked. **Authors:** Pan, Linyue, Zou, Lexiao, Guo, Shuo et al.
+- **Dates / access:** first 2026-03-26; latest 2026-05-18 (v2); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** watchlist; rubric H / U / U / U / U. Harness representation predecessor identified in HarnessDev introduction. [Discovery provenance](workers/citation-mining-harness.md).
+- **Original:** retention-restricted — Canonical arXiv license permits arXiv distribution, not general redistribution; no original retained.; [download](https://arxiv.org/pdf/2603.25723v2); [license](http://arxiv.org/licenses/nonexclusive-distrib/1.0/).
+
+<a id="2026-aspire"></a>
+
+### [ASPIRE: Agentic /Skills Discovery for Robotics](https://arxiv.org/abs/2607.00272v1)
+
+- **Key / family / type:** `2026-aspire` / `2026-aspire`; arXiv preprint record; venue not independently checked. **Authors:** Lu, Runyu, Wu, Yubo, Kou, Ethan et al.
+- **Dates / access:** first 2026-06-30; latest 2026-06-30 (v1); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** watchlist; rubric H / U / U / U / U. SHAPER introduction cites robot skill discovery; robotics depth is secondary to current session. [Discovery provenance](workers/citation-mining-harness.md).
+- **Original:** pending — Discovery-only source; original acquisition deferred until substantive reading.; [download](https://arxiv.org/pdf/2607.00272v1); [license](http://creativecommons.org/licenses/by/4.0/).
+
+<a id="2024-swe-agent"></a>
+
+### [SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering](https://arxiv.org/abs/2405.15793v3)
+
+- **Key / family / type:** `2024-swe-agent` / `2024-swe-agent`; arXiv preprint record; venue not independently checked. **Authors:** Yang, John, Jimenez, Carlos E., Wettig, Alexander et al.
+- **Dates / access:** first 2024-05-06; latest 2024-11-11 (v3); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** excluded; rubric H / U / U / U / U. Foundational interface background; outside this update’s persistent self-evolution emphasis. [Discovery provenance](workers/citation-mining-harness.md).
+- **Original:** pending — Discovery-only source; original acquisition deferred until substantive reading.; [download](https://arxiv.org/pdf/2405.15793v3); [license](http://creativecommons.org/licenses/by/4.0/).
+
+<a id="2023-open-x-embodiment"></a>
+
+### [Open X-Embodiment: Robotic Learning Datasets and RT-X Models](https://arxiv.org/abs/2310.08864v9)
+
+- **Key / family / type:** `2023-open-x-embodiment` / `2023-open-x-embodiment`; arXiv preprint record; venue not independently checked. **Authors:** Embodiment Collaboration, O'Neill, Abby, Rehman, Abdul et al.
+- **Dates / access:** first 2023-10-13; latest 2025-05-14 (v9); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** excluded; rubric H / U / U / U / U. Robot data/weight-adaptation background; not prioritized for this topic-wide session. [Discovery provenance](workers/citation-mining-harness.md).
+- **Original:** pending — Discovery-only source; original acquisition deferred until substantive reading.; [download](https://arxiv.org/pdf/2310.08864v9); [license](http://creativecommons.org/licenses/by/4.0/).
+
+<a id="2022-code-as-policies"></a>
+
+### [Code as Policies: Language Model Programs for Embodied Control](https://arxiv.org/abs/2209.07753v4)
+
+- **Key / family / type:** `2022-code-as-policies` / `2022-code-as-policies`; arXiv preprint record; venue not independently checked. **Authors:** Liang, Jacky, Huang, Wenlong, Xia, Fei et al.
+- **Dates / access:** first 2022-09-16; latest 2023-05-25 (v4); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** excluded; rubric H / U / U / U / U. Embodied code-policy foundation; relevant lineage, but not a central self-evolution test. [Discovery provenance](workers/citation-mining-harness.md).
+- **Original:** retention-restricted — Canonical arXiv license permits arXiv distribution, not general redistribution; no original retained.; [download](https://arxiv.org/pdf/2209.07753v4); [license](http://arxiv.org/licenses/nonexclusive-distrib/1.0/).
+
+<a id="2023-memgpt"></a>
+
+### [MemGPT: Towards LLMs as Operating Systems](https://arxiv.org/abs/2310.08560v2)
+
+- **Key / family / type:** `2023-memgpt` / `2023-memgpt`; arXiv preprint record; venue not independently checked. **Authors:** Packer, Charles, Wooders, Sarah, Lin, Kevin et al.
+- **Dates / access:** first 2023-10-12; latest 2024-02-12 (v2); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** watchlist; rubric H / U / U / U / U. Memory-management foundation cited by SelfMem; useful historical framing. [Discovery provenance](workers/citation-mining-memory.md).
+- **Original:** pending — Discovery-only source; original acquisition deferred until substantive reading.; [download](https://arxiv.org/pdf/2310.08560v2); [license](http://creativecommons.org/licenses/by/4.0/).
+
+<a id="2026-seaevo"></a>
+
+### [SeaEvo: Advancing Algorithm Discovery with Strategy Space Evolution](https://arxiv.org/abs/2604.24372v2)
+
+- **Key / family / type:** `2026-seaevo` / `2026-seaevo`; arXiv preprint record; venue not independently checked. **Authors:** Luo, Sichun, Huang, Yi, Luo, Haochen et al.
+- **Dates / access:** first 2026-04-27; latest 2026-05-08 (v2); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** watchlist; rubric H / U / U / U / U. Related-search discovery, not a verified backward citation; strategy-space evolution lead. [Discovery provenance](workers/citation-mining-meta.md).
+- **Original:** retention-restricted — Canonical arXiv license permits arXiv distribution, not general redistribution; no original retained.; [download](https://arxiv.org/pdf/2604.24372v2); [license](http://arxiv.org/licenses/nonexclusive-distrib/1.0/).
+
+<a id="2026-skillsbench"></a>
+
+### [SkillsBench: Benchmarking How Well Agent Skills Work Across Diverse Tasks](https://arxiv.org/abs/2602.12670v4)
+
+- **Key / family / type:** `2026-skillsbench` / `2026-skillsbench`; arXiv preprint record; venue not independently checked. **Authors:** Li, Xiangyi, Liu, Yimin, Chen, Wenbo et al.
+- **Dates / access:** first 2026-02-13; latest 2026-06-14 (v4); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** watchlist; rubric H / U / U / U / U. Keyword-discovered skill-efficacy benchmark; v4 differs materially from v1 snippets; no outcome claim adopted. [Discovery provenance](search-log.md).
+- **Original:** pending — Discovery-only source; original acquisition deferred until substantive reading.; [download](https://arxiv.org/pdf/2602.12670v4); [license](http://creativecommons.org/licenses/by/4.0/).
+
+<a id="2026-meta-agent-challenge"></a>
+
+### [The Meta-Agent Challenge: Are Current Agents Capable of Autonomous Agent Development?](https://arxiv.org/abs/2606.04455v1)
+
+- **Key / family / type:** `2026-meta-agent-challenge` / `2026-meta-agent-challenge`; arXiv preprint record; venue not independently checked. **Authors:** Lu, Xinyu, Wang, Tianshu, Wang, Pengbo et al.
+- **Dates / access:** first 2026-06-03; latest 2026-06-03 (v1); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** watchlist; rubric H / U / U / U / U. HarnessDev §5 names it as closest Creation comparator; development benchmark priority. [Discovery provenance](workers/citation-mining-harness.md).
+- **Original:** retention-restricted — Canonical arXiv license permits arXiv distribution, not general redistribution; no original retained.; [download](https://arxiv.org/pdf/2606.04455v1); [license](http://arxiv.org/licenses/nonexclusive-distrib/1.0/).
+
+<a id="2026-harnessopt-bench"></a>
+
+### [HarnessOpt-Bench: Evaluating LLMs at Harness Optimization](https://arxiv.org/abs/2608.06301v1)
+
+- **Key / family / type:** `2026-harnessopt-bench` / `2026-harnessopt-bench`; arXiv preprint record; venue not independently checked. **Authors:** Ursekar, Varun, Shanker, Apaar, Maurya, Yash et al.
+- **Dates / access:** first 2026-08-06; latest 2026-08-06 (v1); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** watchlist; rubric H / U / U / U / U. HarnessDev §5 names closest concurrent Evolution benchmark; independent test partition lead. [Discovery provenance](workers/citation-mining-harness.md).
+- **Original:** pending — Discovery-only source; original acquisition deferred until substantive reading.; [download](https://arxiv.org/pdf/2608.06301v1); [license](http://creativecommons.org/licenses/by/4.0/).
+
+<a id="2026-self-harness"></a>
+
+### [Self-Harness: Harnesses That Improve Themselves](https://arxiv.org/abs/2606.09498v3)
+
+- **Key / family / type:** `2026-self-harness` / `2026-self-harness`; arXiv preprint record; venue not independently checked. **Authors:** Zhang, Hangfan, Zhang, Shao, Li, Kangcong et al.
+- **Dates / access:** first 2026-06-08; latest 2026-08-20 (v3); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
+- **Decision:** watchlist; rubric H / U / U / U / U. HarnessDev §5 names model-specific edits and regression testing; methods unread. [Discovery provenance](workers/citation-mining-harness.md).
+- **Original:** pending — Discovery-only source; original acquisition deferred until substantive reading.; [download](https://arxiv.org/pdf/2606.09498v3); [license](http://creativecommons.org/licenses/by/4.0/).

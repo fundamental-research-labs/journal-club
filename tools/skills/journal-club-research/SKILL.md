@@ -51,7 +51,8 @@ Search in complementary passes:
 - Counterevidence, negative results, replications, critiques, and alternative methods.
 
 Search with synonyms and competing framings, and follow citations backward and
-forward. Log queries, search dates, coverage, and gaps in `research/search-log.md`.
+forward. Run the recent-paper citation-mining pass below alongside keyword discovery.
+Log queries, search dates, coverage, and gaps in `research/search-log.md`.
 Avoid using the emerging thesis as the only vocabulary for discovery.
 
 ## Tier 1: broad parallel discovery
@@ -94,6 +95,37 @@ IDs. Group companion artifacts into one evidence family; revisions normally reta
 the same source ID, with older result/version provenance preserved in notes. Keep
 low-ranked candidates with short reasons to avoid repeating their discovery later.
 Discovery-only entries need no empty reading-note files.
+
+### Mine recent papers for important prior work
+
+Use several of the most recent relevant primary papers as seeds, spanning competing
+approaches and author groups. Verify first-publication and version dates; a recent
+revision alone does not make a paper a fresh seed. On updates, reuse the corpus and
+target missing citation coverage rather than restarting broad discovery.
+
+Assign disjoint seed sets to inexpensive discovery agents in parallel with each
+other and keyword-search lanes. Read the seeds' introductions and related-work
+sections, then resolve their bibliography entries. Prioritize works the authors
+highlight as foundations, direct predecessors, strong baselines, competing methods,
+or important limitations; do not merely copy entire reference lists. Give each lane
+a seed/edge budget and the existing source register. Workers must not recursively
+delegate or edit shared records.
+
+For each useful citation edge, record the seed's canonical URL/version, section and
+paragraph or page locator, cited work's title/canonical URL, its role in the seed's
+argument, and the existing source key or proposed new candidate. Attribute the
+characterization to the seed authors. Check the cited primary source's metadata and
+record access depth; a seed's summary does not verify the cited work's findings.
+Keep an auditable edge table in the lane report and link it from the search log.
+
+Merge and deduplicate against all existing families before screening. Record both
+new discoveries and important already-covered works, so the pass demonstrates
+coverage rather than rewarding only novelty. Expand another citation generation
+only for a consequential gap; stop after two expansions add no decision-relevant
+sources or the stated budget is reached. Report budget exhaustion separately from
+saturation. Citation frequency and repeated mentions are discovery signals, not
+evidence quality or independent confirmation. Preserve keyword, practitioner, and
+counterevidence searches to reduce citation-network and author-group bias.
 
 ## Tier 2: screen and prioritize
 
