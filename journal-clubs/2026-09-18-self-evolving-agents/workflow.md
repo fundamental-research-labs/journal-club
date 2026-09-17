@@ -15,6 +15,10 @@ The session README and reading/practitioner routes point to the current corpus. 
 
 ## Analysis revision and checks
 
+September 16 standalone-essay revision: strengthened the analyze skill to make the thesis readable outside the event, with subject-driven definitions, opening, and conclusion. Applied that guidance to `analysis/thesis.md`: removed the journal-club framing and preparation-date narration, revised the opening around reuse of experience, and kept the proposed experiment in conditional language. C001–C012 and their section mapping remain unchanged. The installed skill points to the repository copy, so the correction is active.
+
+This was an editorial pass using the existing corpus, not a research refresh. Rechecked the opening against the Reflexion/Voyager notes and retained Reflexion original. Empirical sections and all primary citation URLs are unchanged; thesis relative links resolve. The skill validator and `git diff --check` passed. No presentation artifacts require updates.
+
 September 16 readability revision: replaced the analyze skill’s conference-paper style target with accessible science writing: concrete mechanisms, familiar language, explanations before terminology, and a readability pass followed by an evidence check. Applied the guidance throughout `analysis/thesis.md`, preserving the central interpretation, numerical results, source URLs, and qualifications. Updated the README and thesis-section mapping in the claim ledger; C001–C012 remain unchanged. The installed skill is a symlink to the repository copy, so this update is active. No presentation artifacts exist to update.
 
 This editorial pass reused the existing research cutoff, landscape, register, acquisition manifest, and source notes. Reopened retained primary PDFs for WikiSkill, SEAL, the harness critique, R-Zero, and Hyperagents to check pivotal numbers; other findings retain their recorded review scope. No new discovery or experiments were performed. Skill validation, relative-link checks, citation-URL preservation, and `git diff --check` passed.

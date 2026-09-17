@@ -58,6 +58,15 @@ the experiments show, and what remains unknown. Preserve scholarly rigor without
 using conference-paper prose as the style target. Do not invent experiments,
 contributions, anecdotes, or scenes to make the writing more engaging.
 
+Write the thesis as a standalone essay about the subject. Use the session context
+to calibrate depth, but do not refer to “this journal club,” the audience's planned
+discussion, or the act of preparing the materials. Introduce definitions through
+their explanatory value, not as conventions chosen for an event. Let the opening
+establish a question worth understanding and the ending develop what the evidence
+means. A reader arriving without the README should have everything needed to follow
+the argument. Keep preparation dates, handoff notes, and review bookkeeping in the
+supporting records; include dates in the essay when they matter to the argument.
+
 Start with a concrete problem or a source-backed example before introducing an
 abstract category. Explain mechanisms through actors and actions: what the agent
 changes, how it chooses a change, and what happens next. Prefer familiar words and
@@ -111,7 +120,9 @@ transcript of every draft.
 
 Before finishing, read the thesis as continuous prose from the intended reader's
 perspective. Can they explain the central claim and how the main mechanisms work
-without the claim ledger or presentation outline? Revise sentences that need a
+without the claim ledger or presentation outline? Would the essay still read
+naturally if shared on its own with someone unaware of the journal club? Revise
+event-specific framing and process commentary along with sentences that need a
 second reading, abstract subjects, unexplained jargon, abrupt transitions, and
 paragraphs that merely enumerate sources. Then check the rewrite against the
 evidence: simpler language must preserve populations, comparators, units, causal
