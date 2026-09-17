@@ -28,3 +28,5 @@ Validation feedback and test evaluation are benchmark-specific; transfer is acro
 ## Discussion and follow-up
 
 Would the selected workflow remain useful on new domains after counting discovery, validation, and deployment costs? Does the system improve a fixed artifact or its own ability to design the next one?
+
+[Prominent citations and their roles](../prominent-citations.md#2024-aflow)

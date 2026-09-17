@@ -19,3 +19,5 @@ The authors argue that evolving reusable memory operations improves memory const
 ## Discussion and follow-up
 
 How much does evolving the operation bank add beyond a well-designed static bank under matched preparation and deployment cost? Would the selector preserve older skills when task similarity decreases?
+
+[Prominent citations and their roles](../prominent-citations.md#2026-memskill)

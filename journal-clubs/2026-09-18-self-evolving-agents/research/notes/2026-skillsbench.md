@@ -19,3 +19,5 @@ The authors' results support a curated-skill counterfactual, not a universal eff
 ## Discussion and follow-up
 
 Compare a continual learner with curated skills at matched lifetime cost, including authoring and selection. Check both weak procedures that can be improved and strong procedures that learning might damage. Earlier worker statistics from an obsolete 84-task snapshot are superseded; do not mix those numbers with v4.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-skillsbench)

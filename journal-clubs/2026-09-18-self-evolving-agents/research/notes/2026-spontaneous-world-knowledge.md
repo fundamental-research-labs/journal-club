@@ -86,3 +86,5 @@ This is a useful learned exploration-and-compression method, but “self-evoluti
 ### Useful visuals
 
 Figure 2 for training-versus-inference separation and Table 1 for the strongest control comparison. Label the guidebook as external context and include its generation budget if shown.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-spontaneous-world-knowledge)

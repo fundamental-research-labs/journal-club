@@ -23,3 +23,5 @@ ExpeL is an important foundation for inter-task, non-parametric learning: it com
 ## Discussion and follow-up
 
 Use ExpeL to establish the historical baseline that “learning” can mean external insight plus retrieval without weight updates. Its central challenge to the current thesis is positive forward transfer, but the decisive missing controls are static expert insights, equal-budget retries, larger task streams, stale/incorrect insight tests, and retention of earlier skills. No independent reproduction was performed.
+
+[Prominent citations and their roles](../prominent-citations.md#2023-expel)

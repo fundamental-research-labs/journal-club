@@ -29,3 +29,5 @@ Ablations expose harmful overcorrection as well as benefits. Forty selected eval
 ## Discussion and follow-up
 
 Table 1, Figure 2: how much evidence should precede retirement?
+
+[Prominent citations and their roles](../prominent-citations.md#library-drift)

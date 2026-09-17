@@ -47,3 +47,5 @@ Figures 8–10 and Appendix 7.2 information boundaries.
 ### Revised priority
 
 Retain as a frontier reserve and transparency case; do not rank its largest gain ahead of better-audited split/budget evidence solely because it is the newest paper.
+
+[Prominent citations and their roles](../prominent-citations.md#sciencebuddy)

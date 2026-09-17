@@ -41,3 +41,5 @@ Reported discovery cost counts **discovery-agent calls**. It does not supply a c
 ## Discussion and follow-up
 
 Which parts of history are sufficient for valid off-policy evaluation? What held-out history or online trials would distinguish a better controller from a controller specialized to its replay trees?
+
+[Prominent citations and their roles](../prominent-citations.md#2026-dream-rsi)

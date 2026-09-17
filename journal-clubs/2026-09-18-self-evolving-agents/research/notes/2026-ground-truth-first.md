@@ -37,3 +37,5 @@ This is unusually careful evaluation work: it includes trivial full-history base
 ## Discussion and follow-up
 
 Figure 2 plus §5.8 cleanly show the tension: bounded memory stays cheap by forgetting, while unbounded methods preserve early facts at increasing read cost; full history remains hard to beat until the history is genuinely long.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-ground-truth-first)

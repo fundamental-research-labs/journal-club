@@ -12,16 +12,18 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 - **[Open the HTML presentation](slides/index.html)** — 15 talk slides plus 3 appendices, citations, and speaker notes. Opens directly in a browser; no install or network required.
 
-- **[Central argument: what experience makes possible](analysis/thesis.md)** — a connected essay built around developed examples, drawing on 56 reviewed evidence families and citing 22 directly; the coverage audit preserves the broader evidence and counterarguments.
+- **[Central argument: what experience makes possible](analysis/thesis.md)** — a connected essay built around developed examples, drawing on 60 reviewed evidence families and citing 36 directly; the coverage audit preserves the broader evidence and counterarguments.
 - **[Thesis coverage audit](research/thesis-coverage.md)** — before/after counts, claims, omissions, source roles, and search limits.
 - [Claim ledger](analysis/claims.md) — evidence, confidence, and limits.
 - **[Ranked shortlist: ten priority resources](research/shortlist.md)** — why each belongs, what to read, key results, limitations, and strong alternatives.
 - **[Research landscape](research/landscape.md)** — mechanisms, competing evidence, and discussion questions organized around the topic.
-- **[Source register](research/sources.md)** — 153 candidate/resource records with selection decisions, exact review depths, versions, and acquisition status; 55 substantive reading-note files.
+- **[Source register](research/sources.md)** — 154 candidate/resource records with selection decisions, exact review depths, versions, and acquisition status; 59 substantive reading-note files.
 - [Reading routes](reading-list.md) and [practitioner resources](practitioner-sources.md) — ways to navigate the corpus by interest.
 - [Search and audit log](research/search-log.md), [originals guide](research/originals/README.md), and [research handoff](workflow.md) — provenance, checks, and remaining limits.
 
-- **[Recent-paper citation audit](research/citation-mining.md)** — seven seeds, parallel low-cost discovery, five newly read comparators, and retained top-ten decision.
+- **[Per-paper prominent citations](research/prominent-citations.md)** — 55 papers, 207 verified citation contexts, recurring-reference counts, and links from every reviewed paper note.
+
+- **[Earlier recent-paper citation audit](research/citation-mining.md)** — seven seeds, parallel low-cost discovery, five newly read comparators, and retained top-ten decision.
 
 ## Selected supporting resources
 

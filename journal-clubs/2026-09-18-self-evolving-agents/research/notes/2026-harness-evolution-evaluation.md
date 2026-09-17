@@ -29,3 +29,5 @@ Strong counterexample to weak baselines, limited to the tested implementation an
 ## Discussion and follow-up
 
 Figure 2; Table 3. How many future tasks must amortize evolution cost?
+
+[Prominent citations and their roles](../prominent-citations.md#harness-evolution-evaluation)

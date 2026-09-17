@@ -35,3 +35,5 @@ The paper offers a vivid mechanistic example and a useful admission-gate design.
 ## Discussion and follow-up
 
 Table 1 and Figure 4 distinguish deletion of a bad source from prevention of descendant formation. Ask what provenance and sealed replay set an admission gate needs in deployment.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-self-evolution-backfires)

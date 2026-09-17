@@ -37,3 +37,5 @@ ACE is a strong mechanism and efficiency comparison, and AgentStream supplies a 
 ### Useful discussion/figure
 
 The 18,282-token-to-122-token collapse example in §2.2 and Tables 1/4 cleanly motivate why update representation and cost accounting matter.
+
+[Prominent citations and their roles](../prominent-citations.md#2025-agentic-context-engineering)

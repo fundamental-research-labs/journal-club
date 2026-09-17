@@ -30,3 +30,5 @@ The optimizer is supplied a fixed framework and task-specific prompt text; the s
 ## Discussion and follow-up
 
 Would the selected workflow remain useful on new domains after counting discovery, validation, and deployment costs? Does the system improve a fixed artifact or its own ability to design the next one?
+
+[Prominent citations and their roles](../prominent-citations.md#2024-automated-design-agentic-systems)

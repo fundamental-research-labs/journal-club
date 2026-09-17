@@ -56,6 +56,7 @@ journal-clubs/YYYY-MM-DD-short-topic/     # undated-short-topic if unscheduled
     search-log.md                       # dated searches, coverage, run changes
     shortlist.md                        # current ranked selection and alternatives
     landscape.md                        # synthesis organized by topic
+    prominent-citations.md               # per-source edges and aggregate coverage
     originals/
       2026-agent-memory-evaluation/
         2026-agent-memory-evaluation-paper-v2.pdf
@@ -133,6 +134,8 @@ or unread leads. Dated search-log entries preserve material ranking changes and 
 - Authors' claims, reported evidence, and analyst interpretation in separate prose.
 - Strengths, limitations, confounds, independence, and reproducibility information.
 - Access limitations, contradictory evidence, and candidate figures or datasets.
+- A link to its prominent-citation list, with inspected sections/version and any
+  access gaps; see [the citation coverage check](prominent-citations.md).
 
 Use a concise record for an opinion or proposal; do not fabricate experimental
 fields that do not apply. Index inaccessible discoveries but never treat them as
@@ -159,7 +162,8 @@ framed hypothesis or open question, not in the deck as established findings.
 
 - Research → analysis: source register, ranked shortlist, retained originals with
   acquisition limitations, reading notes, landscape, search log with run changes,
-  and gaps.
+  per-source prominent citations and their aggregate, and gaps. Analysis reconciles
+  consequential citations against the final essay, including after condensation.
 - Analysis → presentation: thesis, claim ledger, unresolved qualifications. Presentation develops
   the narrative and slide sequence in its storyboard.
 - Presentation → completion: storyboard, editable source, final deck/exports,

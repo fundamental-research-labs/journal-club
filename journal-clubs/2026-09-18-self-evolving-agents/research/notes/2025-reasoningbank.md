@@ -21,3 +21,5 @@ ReasoningBank is distinct from ACE: it distills positive and negative reasoning 
 ## Discussion and follow-up
 
 Use this as a consequential foundation for the thesis's “memory versus extra compute” question. It supports the claim that structured failure memory can improve future tasks, but MaTTS makes the required counterfactual explicit: compare memory at fixed attempt/token budgets against a no-memory multi-attempt baseline, then test novel domains, old-task retention, and many update cycles. No independent reproduction was performed.
+
+[Prominent citations and their roles](../prominent-citations.md#2025-reasoningbank)

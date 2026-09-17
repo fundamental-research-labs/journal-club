@@ -29,3 +29,5 @@ Strong separation of visible feedback, declared selection, and post-freeze tests
 ## Discussion and follow-up
 
 Figure 8 and Table 6. How should an agent select a version when feedback is noisy?
+
+[Prominent citations and their roles](../prominent-citations.md#harnessdev)

@@ -19,3 +19,5 @@ This supplies both a failure and a positive counterexample: a researcher-designe
 ## Discussion and follow-up
 
 Would the final recipe preserve earlier tasks, work beyond web reasoning, and beat a fixed recipe or additional inference under equal total cost? Separate improvements in executing a task from improvements in producing the next training signal.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-rethink-continual-internalization)

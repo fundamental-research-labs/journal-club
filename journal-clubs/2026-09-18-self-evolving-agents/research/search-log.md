@@ -1,5 +1,13 @@
 # Search log
 
+## Per-paper prominent citations and synthesis repair — September 16, 2026
+
+User requested a reusable list for each paper and application of the omission fix. Scope: all 51 originally reviewed paper families plus four promoted sources (Dynamic Cheatsheet, A-MEM, SICA, and Gödel Machines), yielding 55 papers and 207 selected edges in a 60-family reviewed evidence base; five practitioner/code families retain their existing first-party notes. Cutoff unchanged. Inspect one selected citation generation, introductions/related work and methods/baselines; no fresh field-wide discovery or automatic recursive expansion. Sources already reviewed remain eligible, independent of shortlist rank.
+
+Four `gpt-5.6-luna` low-reasoning discovery lanes proposed edges. Coordinator checks exposed unsupported topic-based edges, incorrect titles/keys, and impossible chronology. Those outputs were rejected as evidence. Three `gpt-5.6-sol` medium-reasoning screening lanes re-inspected memory, learning, and meta-search seeds; the coordinator re-inspected all 13 evaluation seeds, including both integrity papers sharing one note. The final map contains only the corrected selected edges. The skill now assigns substantive citation extraction to the screening tier and requires actual-context/version checks.
+
+Local retained PDFs were read first with Poppler text extraction. For link-only sources, canonical versioned primary HTML/PDF was reopened; temporary text/PDF files remain outside the repository. AgentStream PDF returned HTTP 406, so primary HTML supplied its citation contexts. No experiments or new visual artifacts were generated. Final counts, remaining limits, source-level locators and essay reconciliation are in [prominent citations](prominent-citations.md) and [thesis coverage](thesis-coverage.md). This pass ends after the defined seed set; it is not citation saturation.
+
 ## Citation-mining refinement — September 16, 2026
 
 Scope: targeted backward-citation coverage audit requested by the user, reusing the

@@ -51,3 +51,5 @@ Strengths are the explicit sequence structures, variable-slot transfer, interfer
 ### Candidate figures
 
 Redraw the correlated/orthogonal sequence design from Table 1 and pair it with selected raw trajectories from Figures 4–5. Do not reproduce the composite radar chart without explaining normalization.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-sea-eval)

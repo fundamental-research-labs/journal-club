@@ -35,3 +35,5 @@ The degradation is a credible counterexample to monotonic reflective optimizatio
 ## Discussion and follow-up
 
 Table 1 and the labeled optimization trees ask whether an optimizer is learning from feedback or merely searching within failure concepts its designer already supplied.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-reflection-in-the-dark)

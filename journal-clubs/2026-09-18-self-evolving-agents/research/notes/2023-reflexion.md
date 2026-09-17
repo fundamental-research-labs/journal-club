@@ -37,3 +37,5 @@ Strengths are modular attribution (actor/evaluator/reflection), interpretable st
 ## Discussion and follow-up
 
 How would the conclusion change if every evaluation used a new task instead of another attempt on the same task?
+
+[Prominent citations and their roles](../prominent-citations.md#2023-reflexion)

@@ -37,3 +37,5 @@ Useful complement to AgentStream: change the interface as well as task distribut
 ## Discussion and follow-up
 
 Table 2 and forward/backward-transfer plots. Can added capability make an old task harder even with unchanged weights?
+
+[Prominent citations and their roles](../prominent-citations.md#evoharnessbench)

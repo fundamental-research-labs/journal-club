@@ -21,3 +21,5 @@ Coordinator: concrete predecessor for WikiSkill’s persistent-wiki contrast, bu
 Can skill merging be evaluated with a fixed selection budget and untouched test set? Would the transfer gain survive repeated runs and a larger task sample?
 
 Results above are author-reported; appraisal is coordinator interpretation. No experiments reproduced. [Screening detail](../workers/citation-screening-skills.md).
+
+[Prominent citations and their roles](../prominent-citations.md#2026-evoskill)

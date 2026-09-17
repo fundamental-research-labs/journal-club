@@ -63,3 +63,7 @@ RHA demonstrates that editable evaluation and readable held-out data are indepen
 ### Candidate teaching visual
 
 RHA's 2×2 defense matrix beside RHB's baseline-versus-hardened 6.5%→0.8% result, labeled with the distinct task/model scopes.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-reward-hacking-agents)
+
+[Prominent citations and their roles](../prominent-citations.md#2026-reward-hacking-benchmark)

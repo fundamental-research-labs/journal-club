@@ -1,5 +1,7 @@
 # Recent-paper citation audit
 
+**Historical seven-seed pass.** The later [per-paper prominent-citation map](prominent-citations.md) expands the citation check across reviewed papers, and the [coverage audit](thesis-coverage.md) records its application to the final thesis. The selection discussion below concerns the reading shortlist, not permission to omit a direct comparator from the essay.
+
 **September 16, 2026; cutoff unchanged.** This targeted update mines what recent papers identify as predecessors, baselines, competitors, and limitations. It extends the existing corpus rather than restarting discovery. Three parallel `gpt-5.6-luna` low-reasoning discovery agents read seven seeds across three lanes; two additional `gpt-5.6-luna` medium-reasoning agents screened five consequential omissions. The coordinator checked primary sections/results, bibliographic identities, and selection decisions.
 
 ## What changed

@@ -1,0 +1,1043 @@
+# Prominent citations
+
+Reviewed 2026-09-16; research cutoff 2026-09-16.
+
+**55 citing papers; 207 selected edges; 107 cited families.** These are selected, context-verified references, not complete bibliographies or a field-wide influence ranking.
+
+Each paper below has its own list. Counts deduplicate citing and cited evidence families; repeated mentions and versions do not add votes. Distinct papers are not necessarily independent research groups. Author/project independence has not been comprehensively classified. DGM and Hyperagents share a lineage; benchmark reuse and shared models also limit independence.
+
+The citation context is a paraphrase of the citing authors’ use. A verified edge does not verify the cited work’s findings. “Directly cited” below is a URL check; explanatory integration requires the [thesis coverage audit](thesis-coverage.md). Unregistered leads remain citation discoveries, not reviewed evidence.
+
+Edit [structured data](prominent-citations.json); rebuild with `python3 research/build-prominent-citations.py` from the session directory (standard library only). Add `--check` to detect stale output.
+
+## Recurring citations
+
+| Cited work | Citing families | Citing papers | Essay citation |
+| --- | ---: | --- | --- |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366) | 12 | [2023-expel](#2023-expel), [2023-voyager](#2023-voyager), [2025-agentic-context-engineering](#2025-agentic-context-engineering), [2025-dynamic-cheatsheet](#2025-dynamic-cheatsheet), [2026-finevo-bench](#2026-finevo-bench), [2026-memrl](#2026-memrl), [2026-reflection-in-the-dark](#2026-reflection-in-the-dark), [2026-rethink-continual-internalization](#2026-rethink-continual-internalization), [2026-sea-eval](#2026-sea-eval), [2026-selfmem](#2026-selfmem), [2026-skillsbench](#2026-skillsbench), [2026-trace2skill](#2026-trace2skill) | Directly cited |
+| [Voyager: An Open-Ended Embodied Agent with Large Language Models](https://arxiv.org/abs/2305.16291) | 9 | [2023-stop](#2023-stop), [2026-evoskill](#2026-evoskill), [2026-finevo-bench](#2026-finevo-bench), [2026-sea-eval](#2026-sea-eval), [2026-self-evolution-backfires](#2026-self-evolution-backfires), [2026-selfmem](#2026-selfmem), [2026-skillsbench](#2026-skillsbench), [2026-trace2skill](#2026-trace2skill), [library-drift](#library-drift) | Directly cited |
+| [Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents](https://arxiv.org/abs/2505.22954v3) | 8 | [2025-huxley-godel-machine](#2025-huxley-godel-machine), [2026-agentic-harness-engineering](#2026-agentic-harness-engineering), [2026-dream-rsi](#2026-dream-rsi), [2026-escher-loop](#2026-escher-loop), [2026-sia](#2026-sia), [hyperagents](#hyperagents), [metarsi](#metarsi), [sciencebuddy](#sciencebuddy) | Directly cited |
+| [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning](https://arxiv.org/abs/2507.19457) | 8 | [2025-agentic-context-engineering](#2025-agentic-context-engineering), [2026-agentic-harness-engineering](#2026-agentic-harness-engineering), [2026-evoskill](#2026-evoskill), [2026-evox](#2026-evox), [2026-reflection-in-the-dark](#2026-reflection-in-the-dark), [2026-skillopt](#2026-skillopt), [harness-evolution-evaluation](#harness-evolution-evaluation), [sciencebuddy](#sciencebuddy) | Directly cited |
+| [Automated Design of Agentic Systems](https://arxiv.org/abs/2408.08435v2) | 7 | [2024-aflow](#2024-aflow), [2025-darwin-godel-machine](#2025-darwin-godel-machine), [2025-self-improving-coding-agent](#2025-self-improving-coding-agent), [2026-sia](#2026-sia), [harnessdev](#harnessdev), [hyperagents](#hyperagents), [metarsi](#metarsi) | Directly cited |
+| [A-MEM: Agentic Memory for LLM Agents](https://arxiv.org/abs/2502.12110) | 6 | [2025-agentic-context-engineering](#2025-agentic-context-engineering), [2026-ground-truth-first](#2026-ground-truth-first), [2026-memrl](#2026-memrl), [2026-memskill](#2026-memskill), [2026-selfmem](#2026-selfmem), [agentstream](#agentstream) | Directly cited |
+| [Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models](https://arxiv.org/abs/2510.04618) | 6 | [2026-agentic-harness-engineering](#2026-agentic-harness-engineering), [2026-evo-harness](#2026-evo-harness), [2026-spontaneous-world-knowledge](#2026-spontaneous-world-knowledge), [agentstream](#agentstream), [harness-evolution-evaluation](#harness-evolution-evaluation), [sciencebuddy](#sciencebuddy) | Directly cited |
+| [ExpeL: LLM Agents Are Experiential Learners](https://arxiv.org/abs/2308.10144) | 6 | [2025-reasoningbank](#2025-reasoningbank), [2026-memskill](#2026-memskill), [2026-rethink-continual-internalization](#2026-rethink-continual-internalization), [2026-sea-eval](#2026-sea-eval), [2026-self-evolution-backfires](#2026-self-evolution-backfires), [library-drift](#library-drift) | Directly cited |
+| [AlphaEvolve: A Coding Agent for Scientific and Algorithmic Discovery](https://arxiv.org/abs/2506.13131v1) | 4 | [2026-dream-rsi](#2026-dream-rsi), [2026-evoskill](#2026-evoskill), [2026-evox](#2026-evox), [2026-mlevolve](#2026-mlevolve) | Directly cited |
+| [Gödel Machines: Self-Referential Universal Problem Solvers Making Provably Optimal Self-Improvements](https://doi.org/10.1007/978-3-540-68677-4_7) | 4 | [2023-stop](#2023-stop), [2025-darwin-godel-machine](#2025-darwin-godel-machine), [2025-huxley-godel-machine](#2025-huxley-godel-machine), [hyperagents](#hyperagents) | Directly cited |
+| [ReasoningBank: Scaling Agent Self-Evolving with Reasoning Memory](https://arxiv.org/abs/2509.25140) | 4 | [2026-memskill](#2026-memskill), [2026-spontaneous-world-knowledge](#2026-spontaneous-world-knowledge), [2026-trace2skill](#2026-trace2skill), [agentstream](#agentstream) | Directly cited |
+| [Self-Taught Optimizer (STOP): Recursively Self-Improving Code Generation](https://arxiv.org/abs/2310.02304v3) | 4 | [2025-darwin-godel-machine](#2025-darwin-godel-machine), [2025-self-improving-coding-agent](#2025-self-improving-coding-agent), [2026-escher-loop](#2026-escher-loop), [metarsi](#metarsi) | Directly cited |
+| [Agentic Harness Engineering: Observability-Driven Automatic Evolution of Coding-Agent Harnesses](https://arxiv.org/abs/2604.25850) | 3 | [2026-self-evolution-backfires](#2026-self-evolution-backfires), [agentstream](#agentstream), [harness-evolution-evaluation](#harness-evolution-evaluation) | No direct citation; review disposition |
+| [AutoSkill: Experience-Driven Lifelong Learning via Skill Self-Evolution](https://arxiv.org/abs/2603.01145) | 3 | [2026-trace2skill](#2026-trace2skill), [agentstream](#agentstream), [library-drift](#library-drift) | No direct citation; review disposition |
+| [DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models](https://arxiv.org/abs/2402.03300) | 3 | [2025-gepa](#2025-gepa), [2025-r-zero](#2025-r-zero), [2025-test-time-reinforcement-learning](#2025-test-time-reinforcement-learning) | No direct citation; review disposition |
+| [Dynamic Cheatsheet: Test-Time Learning with Adaptive Memory](https://arxiv.org/abs/2504.07952) | 3 | [2025-agentic-context-engineering](#2025-agentic-context-engineering), [2025-reasoningbank](#2025-reasoningbank), [2026-evo-harness](#2026-evo-harness) | Directly cited |
+| [EvoSkill: Automated Skill Discovery for Multi-Agent Systems](https://arxiv.org/abs/2603.02766) | 3 | [2026-skillopt](#2026-skillopt), [2026-trace2skill](#2026-trace2skill), [wikiskill](#wikiskill) | Directly cited |
+| [Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory](https://arxiv.org/abs/2504.19413) | 3 | [2026-memrl](#2026-memrl), [2026-memskill](#2026-memskill), [2026-selfmem](#2026-selfmem) | No direct citation; review disposition |
+| [OpenEvolve: An Open-Source Evolutionary Coding Agent](https://github.com/algorithmicsuperintelligence/openevolve) | 3 | [2026-escher-loop](#2026-escher-loop), [2026-evox](#2026-evox), [2026-mlevolve](#2026-mlevolve) | No direct citation; review disposition |
+| [Optimizing Generative AI by Backpropagating Language Model Feedback (TextGrad)](https://arxiv.org/abs/2406.07496) | 3 | [2025-gepa](#2025-gepa), [2026-reflection-in-the-dark](#2026-reflection-in-the-dark), [2026-skillopt](#2026-skillopt) | No direct citation; review disposition |
+| [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) | 3 | [2023-expel](#2023-expel), [2023-reflexion](#2023-reflexion), [2023-voyager](#2023-voyager) | No direct citation; review disposition |
+| [Self-Refine: Iterative Refinement with Self-Feedback](https://arxiv.org/abs/2303.17651) | 3 | [2023-reflexion](#2023-reflexion), [2025-dynamic-cheatsheet](#2025-dynamic-cheatsheet), [2026-evoskill](#2026-evoskill) | No direct citation; review disposition |
+| [Trace2Skill: Distill Trajectory-Local Lessons into Transferable Agent Skills](https://arxiv.org/abs/2603.25158) | 3 | [2026-skillopt](#2026-skillopt), [library-drift](#library-drift), [wikiskill](#wikiskill) | Directly cited |
+| [A Self-Improving Coding Agent](https://arxiv.org/abs/2504.15228) | 2 | [2025-darwin-godel-machine](#2025-darwin-godel-machine), [2025-huxley-godel-machine](#2025-huxley-godel-machine) | Directly cited |
+| [AFlow: Automating Agentic Workflow Generation](https://arxiv.org/abs/2410.10762v4) | 2 | [harnessdev](#harnessdev), [metarsi](#metarsi) | Directly cited |
+| [AutoFlow: Automated Workflow Generation for Large Language Model Agents](https://arxiv.org/abs/2407.12821) | 2 | [2024-aflow](#2024-aflow), [2024-automated-design-agentic-systems](#2024-automated-design-agentic-systems) | No direct citation; review disposition |
+| [MLAgentBench: Evaluating Language Agents on Machine Learning Experimentation](https://arxiv.org/abs/2310.03302) | 2 | [2026-mlevolve](#2026-mlevolve), [2026-reward-hacking-agents](#2026-reward-hacking-agents) | No direct citation; review disposition |
+| [MLE-bench: Evaluating Machine Learning Agents on Machine Learning Engineering](https://arxiv.org/abs/2410.07095) | 2 | [2026-mlevolve](#2026-mlevolve), [2026-reward-hacking-agents](#2026-reward-hacking-agents) | No direct citation; review disposition |
+| [Mathematical Discoveries from Program Search with Large Language Models](https://doi.org/10.1038/s41586-023-06924-6) | 2 | [2024-automated-design-agentic-systems](#2024-automated-design-agentic-systems), [2025-alphaevolve](#2025-alphaevolve) | No direct citation; review disposition |
+| [MemGPT: Towards LLMs as Operating Systems](https://arxiv.org/abs/2310.08560) | 2 | [2025-a-mem](#2025-a-mem), [2026-ground-truth-first](#2026-ground-truth-first) | No direct citation; review disposition |
+| [Meta-Harness: End-to-End Optimization of Model Harnesses](https://arxiv.org/abs/2603.28052) | 2 | [harness-evolution-evaluation](#harness-evolution-evaluation), [sciencebuddy](#sciencebuddy) | No direct citation; review disposition |
+| [Promptbreeder: Self-Referential Self-Improvement via Prompt Evolution](https://arxiv.org/abs/2309.16797) | 2 | [2023-stop](#2023-stop), [2024-automated-design-agentic-systems](#2024-automated-design-agentic-systems) | No direct citation; review disposition |
+| [SkillOpt: Executive Strategy for Self-Evolving Agent Skills](https://arxiv.org/abs/2605.23904v2) | 2 | [2026-shaper](#2026-shaper), [wikiskill](#wikiskill) | Directly cited |
+| [TTRL: Test-Time Reinforcement Learning](https://arxiv.org/abs/2504.16084) | 2 | [2025-r-zero](#2025-r-zero), [2026-sia](#2026-sia) | No direct citation; review disposition |
+| [The Surprising Effectiveness of Test-Time Training for Few-Shot Learning](https://arxiv.org/abs/2411.07279) | 2 | [2025-self-adapting-language-models](#2025-self-adapting-language-models), [2025-test-time-reinforcement-learning](#2025-test-time-reinforcement-learning) | No direct citation; review disposition |
+
+Single-seed direct predecessors and decisive baselines still require review; recurrence is not an inclusion threshold.
+
+## Paper index
+
+- [Gödel Machines: Self-Referential Universal Problem Solvers Making Provably Optimal Self-Improvements](#2003-goedel-machines)
+- [ExpeL: LLM Agents Are Experiential Learners](#2023-expel)
+- [Reflexion: Language Agents with Verbal Reinforcement Learning](#2023-reflexion)
+- [Self-Taught Optimizer (STOP): Recursively Self-Improving Code Generation](#2023-stop)
+- [Voyager: An Open-Ended Embodied Agent with Large Language Models](#2023-voyager)
+- [AFlow: Automating Agentic Workflow Generation](#2024-aflow)
+- [Automated Design of Agentic Systems](#2024-automated-design-agentic-systems)
+- [A-MEM: Agentic Memory for LLM Agents](#2025-a-mem)
+- [Absolute Zero: Reinforced Self-play Reasoning with Zero Data](#2025-absolute-zero)
+- [Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models](#2025-agentic-context-engineering)
+- [AlphaEvolve: A Coding Agent for Scientific and Algorithmic Discovery](#2025-alphaevolve)
+- [Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents](#2025-darwin-godel-machine)
+- [Dynamic Cheatsheet: Test-Time Learning with Adaptive Memory](#2025-dynamic-cheatsheet)
+- [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning](#2025-gepa)
+- [Huxley-Gödel Machine: Human-Level Coding Agent Development by an Approximation of the Optimal Self-Improving Machine](#2025-huxley-godel-machine)
+- [R-Zero: Self-Evolving Reasoning LLM from Zero Data](#2025-r-zero)
+- [ReasoningBank: Scaling Agent Self-Evolving with Reasoning Memory](#2025-reasoningbank)
+- [Self-Adapting Language Models](#2025-self-adapting-language-models)
+- [A Self-Improving Coding Agent](#2025-self-improving-coding-agent)
+- [TTRL: Test-Time Reinforcement Learning](#2025-test-time-reinforcement-learning)
+- [Agent-World: Scaling Real-World Environment Synthesis for Evolving General Agent Intelligence](#2026-agent-world)
+- [Agentic Harness Engineering: Observability-Driven Automatic Evolution of Coding-Agent Harnesses](#2026-agentic-harness-engineering)
+- [Dream-RSI: Recursive Self-Improvement through Evolving Worlds](#2026-dream-rsi)
+- [The Economics of Recursive Self-Improvement](#2026-economics-rsi)
+- [Escher-Loop: Mutual Evolution by Closed-Loop Self-Referential Optimization](#2026-escher-loop)
+- [Evo-Harness: Context-to-Harness Skill Compilation for Self-Evolving Agents](#2026-evo-harness)
+- [EvoSkill: Automated Skill Discovery for Multi-Agent Systems](#2026-evoskill)
+- [EvoX: Meta-Evolution for Automated Discovery](#2026-evox)
+- [FinEvo-Bench: A Longitudinal Benchmark for Self-Evolving Agents in Professional Financial Workflows](#2026-finevo-bench)
+- [Ground Truth First: A Longitudinal Evaluation Instrument for Agent Memory, and the Tenure Crossover in Memory-Architecture Rankings](#2026-ground-truth-first)
+- [MemRL: Self-Evolving Agents via Runtime Reinforcement Learning on Episodic Memory](#2026-memrl)
+- [MemSkill: Learning and Evolving Memory Skills for Self-Evolving Agents](#2026-memskill)
+- [MLEvolve: A Self-Evolving Framework for Automated Machine Learning Algorithm Discovery](#2026-mlevolve)
+- [Reflection in the Dark: Exposing and Escaping the Black Box in Reflective Prompt Optimization](#2026-reflection-in-the-dark)
+- [Rethinking Continual Experience Internalization for Self-Evolving LLM Agents](#2026-rethink-continual-internalization)
+- [RewardHackingAgents: Benchmarking Evaluation Integrity for LLM ML-Engineering Agents](#2026-reward-hacking-agents)
+- [Reward Hacking Benchmark: Measuring Exploits in LLM Agents with Tool Use](#2026-reward-hacking-benchmark)
+- [SEA-Eval: A Benchmark for Evaluating Self-Evolving Agents Beyond Episodic Assessment](#2026-sea-eval)
+- [When Self-Evolution Backfires: Pre-Commit Gating against Skill Contamination in LLM Agents](#2026-self-evolution-backfires)
+- [SelfMem: Self-Optimizing Memory for AI Agents](#2026-selfmem)
+- [SHAPER: Self-Evolving Embodied Agents via Skill-Harness Evolution](#2026-shaper)
+- [SIA: Self Improving AI with Harness & Weight Updates](#2026-sia)
+- [SkillOpt: Executive Strategy for Self-Evolving Agent Skills](#2026-skillopt)
+- [SkillsBench: Benchmarking How Well Agent Skills Work Across Diverse Tasks](#2026-skillsbench)
+- [Training LLM Agents for Spontaneous, Reward-Free Self-Evolution via World Knowledge Exploration](#2026-spontaneous-world-knowledge)
+- [Trace2Skill: Distill Trajectory-Local Lessons into Transferable Agent Skills](#2026-trace2skill)
+- [AgentStream: How Well Do Self-Evolving LLM Agents Perform Under Streaming Tasks?](#agentstream)
+- [EvoHarnessBench: Can Your Agents Keep Pace with an Evolving Harness?](#evoharnessbench)
+- [Rethinking the Evaluation of Harness Evolution for Agents](#harness-evolution-evaluation)
+- [HarnessDev: Can LLMs Create and Evolve Their Own Agent Harness?](#harnessdev)
+- [Hyperagents](#hyperagents)
+- [Library Drift: Diagnosing and Fixing a Silent Failure Mode in Self-Evolving LLM Skill Libraries](#library-drift)
+- [MetaRSI / RSI2: A Meta-Recursive Self-Improving System for Recursive Self-Improving Systems Themselves](#metarsi)
+- [ScienceBuddy: Recursive-in-Recursive Self-Improvement for Interactive Scientific Agents](#sciencebuddy)
+- [WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution](#wikiskill)
+
+<a id="2003-goedel-machines"></a>
+
+## Gödel Machines: Self-Referential Universal Problem Solvers Making Provably Optimal Self-Improvements
+
+[Inspected version](https://arxiv.org/abs/cs/0309048v5) · [Reading note](notes/2003-goedel-machines.md)
+
+**Inspection:** arXiv PDF v5; abstract, proof-search mechanism, global-optimality theorem, related-work comparison, and bibliography inspected; temporary copy only Sections: Abstract; §2.2–2.3; §3.2; §4.1–4.4; §5; §6.4; References.
+
+**Scope:** The guarantee is conditional on the encoded axioms, utility, resources, and proof-search process; useful target theorems may be difficult or impossible to prove in time.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Towards a Universal Theory of Artificial Intelligence Based on Algorithmic Probability and Sequential Decisions](https://arxiv.org/abs/cs/0004001) | foundation | §6.4, item 3; bibliography [16]: Hutter's AIXI lineage supplies a universal expected-reward problem solver whose meta-algorithm remains hardwired; the Gödel machine makes its proof searcher and all other software rewritable. | Bibliographic identity/context only; no substantive review in this pass |
+| [The Fastest and Shortest Algorithm for All Well-Defined Problems](https://arxiv.org/abs/cs/0206022) | foundation | §6.4, item 3; bibliography [17]: HSEARCH is a non-self-referential proof-search predecessor with asymptotic optimality; the paper contrasts it with a proof searcher that may rewrite itself and improve large constants. | Bibliographic identity/context only; no substantive review in this pass |
+| [Reinforcement Learning with Self-Modifying Policies](https://people.idsia.ch/~juergen/metalearner.html) | predecessor | §6.4, item 5; bibliography [53]: Earlier self-modifying-policy work uses empirical success-history backtracking; the Gödel machine is distinguished by proof-gated changes under its formal utility criterion. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2023-expel"></a>
+
+## ExpeL: LLM Agents Are Experiential Learners
+
+[Inspected version](https://arxiv.org/abs/2308.10144v3) · [Reading note](notes/2023-expel.md)
+
+**Inspection:** Full v3/AAAI paper PDF inspected locally. Sections: §1 Introduction; §2 Related Work; §4 ExpeL; §5 Experiments; §6 Conclusion and Limitations.
+
+**Scope:** The paper predates the 2025–2026 memory/skill systems. Its decisive comparison is against ReAct and Reflexion; later systems cannot be cited by this version.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366) | direct predecessor; method component; tested baseline | §1, §2 (Self-improvement and Memory), Fig. 1, §4.1, §5.2 and Fig. 5: The ExpeL authors contrast Reflexion's within-task retry memory with ExpeL's cross-task retention, use Reflexion to gather retry trajectories, and compare against it in the cross-task analysis. | [primary methods/results read](notes/2023-reflexion.md) |
+| [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) | foundation; base agent; tested baseline | §2 (ReAct and Reflexion), §4.1, §5.1 and Fig. 5: The authors use ReAct as ExpeL's base planning algorithm and as the main no-learning comparison in all three evaluation domains. | Bibliographic identity/context only; no substantive review in this pass |
+| [Generative Agents: Interactive Simulacra of Human Behavior](https://arxiv.org/abs/2304.03442) | memory foundation | §2 (Self-improvement and Memory for LLM Agents): The authors cite Generative Agents as evidence that persistent memory can support multi-agent behavior, then position ExpeL around task solving with self-generated examples and abstracted insights. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2023-reflexion"></a>
+
+## Reflexion: Language Agents with Verbal Reinforcement Learning
+
+[Inspected version](https://arxiv.org/abs/2303.11366v4) · [Reading note](notes/2023-reflexion.md)
+
+**Inspection:** Full v4/NeurIPS paper PDF inspected locally. Sections: §1 Introduction; §2 Related Work; §3 Reflexion; §4 Experiments; §5 Limitations.
+
+**Scope:** The paper's memory is a bounded window of one to three reflections, and its main experimental baselines test generation/acting strategies rather than later structured-memory systems.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) | foundation; actor; tested baseline | §1, §3 (Actor), §4.1 and §4.2, Figs. 3–4: The authors instantiate Reflexion with ReAct as an actor and directly compare ReAct-only agents with ReAct plus Reflexion on ALFWorld and HotPotQA. | Bibliographic identity/context only; no substantive review in this pass |
+| [Self-Refine: Iterative Refinement with Self-Feedback](https://arxiv.org/abs/2303.17651) | direct predecessor; competing method | §2 Related Work and Fig. 1 related-work table: The authors describe Self-Refine as iterative self-evaluation for single generations and distinguish Reflexion by persisting feedback as memory across decision-making trials. | abstract and prior paper excerpts |
+| [In-Context Policy Iteration](https://arxiv.org/abs/2210.03821) | method foundation | §3 (Actor): The authors say their memory-augmented actor adaptation was inspired by Brooks et al.'s policy-iteration approach using in-context learning. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2023-stop"></a>
+
+## Self-Taught Optimizer (STOP): Recursively Self-Improving Code Generation
+
+[Inspected version](https://arxiv.org/abs/2310.02304v3) · [Reading note](notes/2023-stop.md)
+
+**Inspection:** arXiv PDF v3; selected introduction, related work, formulation, and bibliography inspected Sections: §1; §2 Related Work; §3; References.
+
+**Scope:** The model weights do not change, so the paper explicitly distinguishes STOP from full recursive self-improvement.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Gödel Machines: Self-Referential Universal Problem Solvers Making Provably Optimal Self-Improvements](https://doi.org/10.1007/978-3-540-68677-4_7) | foundation | §2, Recursive Self-Improvement; bibliography: The authors use the Gödel-machine line as the rigorous formal precedent, while stressing that STOP neither proves optimality nor changes its underlying language model. | [primary §§2.2/3.2/4.1–4.4 proof criterion and qualifications read; selected citation contexts checked](notes/2003-goedel-machines.md) |
+| [Promptbreeder: Self-Referential Self-Improvement via Prompt Evolution](https://arxiv.org/abs/2309.16797) | competing-method | §2, Language Models as Prompt Engineers; bibliography: Promptbreeder is grouped with prompt optimizers and contrasted with STOP's recursively applicable code scaffold. | Bibliographic identity/context only; no substantive review in this pass |
+| [Voyager: An Open-Ended Embodied Agent with Large Language Models](https://arxiv.org/abs/2305.16291) | competing-method | §2, Language Model Self-Improvement; bibliography: Voyager is related work in which an LM optimizes programs available to an embodied agent, rather than the optimizer-code loop used by STOP. | [primary methods/results reviewed in notes/2023-voyager.md](notes/2023-voyager.md) |
+
+<a id="2023-voyager"></a>
+
+## Voyager: An Open-Ended Embodied Agent with Large Language Models
+
+[Inspected version](https://arxiv.org/abs/2305.16291v2) · [Reading note](notes/2023-voyager.md)
+
+**Inspection:** Full arXiv v2 PDF retrieved temporarily and inspected. Sections: §1 Introduction; §2 Method; §3 Experiments; §5 Related Work; §6 Conclusion.
+
+**Scope:** The ReAct, Reflexion, and AutoGPT baselines were reimplemented for Minecraft because they did not work out of the box; this is a system-level rather than component-matched comparison.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366) | tested baseline; competing method | §1; §3.2 Baselines; §3.3 and Tables 1–2; §5 Related Work: The Voyager authors adapt Reflexion to Minecraft with execution errors and self-verification, then compare it on exploration, tech-tree progress, and unseen tasks. | [primary methods/results read](notes/2023-reflexion.md) |
+| [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) | tested baseline; foundation | §1; §3.2 Baselines; §3.3 and Tables 1–2; §5 Related Work: The authors adapt ReAct's reasoning/action loop to MineDojo and use it as a main baseline lacking Voyager's curriculum and persistent skill library. | Bibliographic identity/context only; no substantive review in this pass |
+| [AutoGPT](https://github.com/Significant-Gravitas/AutoGPT) | tested baseline; competing method | §1; §3.2 Baselines; §3.3 and Tables 1–2: The authors reimplement AutoGPT's subgoal decomposition and contrast it with Voyager's automatic curriculum, verification, and cumulative skill library. | Bibliographic identity/context only; no substantive review in this pass |
+| [MineDojo: Building Open-Ended Embodied Agents with Internet-Scale Knowledge](https://arxiv.org/abs/2206.08853) | environment foundation | §1, §3.1 and §5 (Decision-making Agents in Minecraft): Voyager is implemented and evaluated in MineDojo, which supplies the open Minecraft environment and prior open-ended-agent context. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2024-aflow"></a>
+
+## AFlow: Automating Agentic Workflow Generation
+
+[Inspected version](https://arxiv.org/abs/2410.10762v4) · [Reading note](notes/2024-aflow.md)
+
+**Inspection:** arXiv PDF v4; selected introduction, method framing, baseline discussion, appendix, and bibliography inspected Sections: §1; §3.1–3.2; §4; Appendix B.2; References.
+
+**Scope:** The search fixes the model, temperature, output format, and operator set; benchmark configurations differ across comparisons.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Automated Design of Agentic Systems](https://arxiv.org/abs/2408.08435v2) | direct-predecessor | §1; §3.2; §4/Table 1; Appendix B.2: AFlow adopts ADAS's code representation and argues that MCTS searches it more efficiently than ADAS's linear heuristic; ADAS is also an experimental baseline. | [primary methods/results read; coordinator metadata and methods checked](notes/2024-automated-design-agentic-systems.md) |
+| [AutoFlow: Automated Workflow Generation for Large Language Model Agents](https://arxiv.org/abs/2407.12821) | competing-method | §1 and References: AutoFlow is cited among prior attempts to automate workflow generation before AFlow motivates its graph/code search space. | provisional metadata/abstract only |
+| [DSPy: Compiling Declarative Language Model Calls into State-of-the-Art Pipelines](https://arxiv.org/abs/2310.03714) | competing-method | §1 and §3.2; References: DSPy illustrates methods requiring a human-specified workflow before prompt optimization, motivating search over workflow structure. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2024-automated-design-agentic-systems"></a>
+
+## Automated Design of Agentic Systems
+
+[Inspected version](https://arxiv.org/abs/2408.08435v2) · [Reading note](notes/2024-automated-design-agentic-systems.md)
+
+**Inspection:** retained arXiv PDF v2; selected introduction, framing, related work, and bibliography inspected Sections: §1; §2; §5 Related Work; §6; References.
+
+**Scope:** Meta Agent Search uses a fixed meta-agent and a small benchmark set; it is not a self-modifying system.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Mathematical Discoveries from Program Search with Large Language Models](https://doi.org/10.1038/s41586-023-06924-6) | foundation | §2 and §5, FM-guided code search; bibliography: FunSearch is the precedent for foundation-model code generation inside evolutionary search; ADAS transfers that idea to whole agent systems. | Bibliographic identity/context only; no substantive review in this pass |
+| [Promptbreeder: Self-Referential Self-Improvement via Prompt Evolution](https://arxiv.org/abs/2309.16797) | competing-method | §2 and §5, Existing Attempts to ADAS; bibliography: Promptbreeder represents the narrower prompt-only search space contrasted with representing all agent components in code. | Bibliographic identity/context only; no substantive review in this pass |
+| [AutoFlow: Automated Workflow Generation for Large Language Model Agents](https://arxiv.org/abs/2407.12821) | competing-method | §5, Existing Attempts to ADAS; bibliography: AutoFlow is cited as a workflow optimizer with a specialized representation; ADAS claims a broader code-defined design space. | provisional metadata/abstract only |
+
+<a id="2025-a-mem"></a>
+
+## A-MEM: Agentic Memory for LLM Agents
+
+[Inspected version](https://arxiv.org/abs/2502.12110v11) · [Reading note](notes/2025-a-mem.md)
+
+**Inspection:** Full arXiv v11/conference-version PDF (stamp: 2025-10-08) retrieved temporarily and inspected; arXiv records its non-exclusive distribution license. Sections: §1 Introduction; §2 Related Work; §§3.1–3.4 Methodology; §§4.1–4.7 Experiments and Analyses; §6 Limitations; Appendix A.1 baseline details.
+
+**Scope:** The evaluation centers on long-conversation QA (LoCoMo and DialSim) and relies on lexical-overlap and embedding-style metrics alongside category results. Section 6 limits generality further: organization quality depends on the underlying LLM, and the implementation is text-only.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [MemGPT: Towards LLMs as Operating Systems](https://arxiv.org/abs/2310.08560) | tested baseline; memory-architecture predecessor | §2.1; §4.1; Table 1; §4.3; Appendix A.1: The authors identify MemGPT's fixed cache-like hierarchy as prior memory architecture and compare it with A-MEM across LoCoMo and DialSim. | primary abstract and metadata only; seed citation context where applicable |
+| [MemoryBank: Enhancing Large Language Models with Long-Term Memory](https://arxiv.org/abs/2305.10250) | tested baseline; long-term-memory predecessor | §2.1; §4.1; Table 1; §4.3; §4.6 and Table 4; Appendix A.1: The authors compare against MemoryBank's dense retrieval and predefined update rules, including both QA performance and retrieval scaling, to motivate dynamic linking and evolution. | Bibliographic identity/context only; no substantive review in this pass |
+| [A Human-Inspired Reading Agent with Gist Memory of Very Long Contexts](https://arxiv.org/abs/2402.09727) | tested baseline; competing memory method | §4.1; Table 1; §4.3; §4.6 and Table 4; Appendix A.1: The authors test ReadAgent's page gists and interactive lookup against A-MEM and also compare retrieval time as the memory collection scales. | Bibliographic identity/context only; no substantive review in this pass |
+| [Evaluating Very Long-Term Conversational Memory of LLM Agents](https://arxiv.org/abs/2402.17753) | benchmark foundation; tested full-context baseline | §4.1; Tables 1–2; §4.3; Appendix A.1: The paper supplies the LoCoMo benchmark and a full-conversation prompting baseline used to evaluate whether A-MEM's constructed notes preserve information across long dialogues. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2025-absolute-zero"></a>
+
+## Absolute Zero: Reinforced Self-play Reasoning with Zero Data
+
+[Inspected version](https://arxiv.org/abs/2505.03335v3) · [Reading note](notes/2025-absolute-zero.md)
+
+**Inspection:** full retained CC BY v3 PDF inspected Sections: Introduction; §2 Paradigm; §3.3 Learning Algorithm; §4 Experiments and Baselines; §5 Related Work; Limitations.
+
+**Scope:** Compared models use different initializations and training corpora; edges preserve author framing only.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [AlphaZero: Mastering the Game of Go without Human Knowledge](https://doi.org/10.1038/nature24270) | self-play foundation | PDF p. 2 Introduction; §5: AlphaZero motivates supervision-free self-play; AZR seeks an open-ended task-proposal analogue. | Bibliographic identity/context only; no substantive review in this pass |
+| [REINFORCE++: A Simple and Efficient Approach for Aligning Large Language Models](https://arxiv.org/abs/2501.03262) | method predecessor | PDF p. 8 §3.3.5: Task-Relative REINFORCE++ replaces its global baseline with six task-role baselines. | Bibliographic identity/context only; no substantive review in this pass |
+| [Open-Reasoner-Zero: An Open Source Approach to Scaling Up Reinforcement Learning on the Base Model](https://arxiv.org/abs/2503.24290) | tested baseline | PDF p. 9 §4, Table 1 and Baselines: ORZ is a zero-style math reasoner in the main comparison. | Bibliographic identity/context only; no substantive review in this pass |
+| [SimpleRL-Zoo: Investigating and Taming Zero Reinforcement Learning for Open Base Models in the Wild](https://arxiv.org/abs/2503.18892) | tested baseline | PDF p. 9 §4 Table 1; Figure 9: SimpleRL-Zoo supplies zero-RL checkpoints, including the matched Llama-family comparison. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2025-agentic-context-engineering"></a>
+
+## Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models
+
+[Inspected version](https://arxiv.org/abs/2510.04618v3) · [Reading note](notes/2025-agentic-context-engineering.md)
+
+**Inspection:** Full arXiv v3/ICLR 2026 paper PDF (stamp: 2026-03-29) inspected locally; arXiv records CC BY 4.0. Sections: §1 Introduction; §2 Background and Motivation; §3 ACE; §4 Experiments and Ablations; §5 Discussion; Appendix B.1 Agent Memory.
+
+**Scope:** ACE's AppWorld comparisons share the official ReAct substrate. Dynamic Cheatsheet is the decisive online comparator; A-MEM is a mechanism precedent rather than a tested ACE baseline.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Dynamic Cheatsheet: Test-Time Learning with Adaptive Memory](https://arxiv.org/abs/2504.07952) | direct predecessor; architectural inspiration; tested baseline | §2.2; §3 and Fig. 4; §3.1; §4.2; §4.3 and Table 1; §4.6; §5: The ACE authors explicitly say their generator/reflector/curator design is inspired by Dynamic Cheatsheet, adopt a similar memory-entry unit, and compare against it in online adaptation. | [selected primary methods §§2.1–2.3, evaluation setup and §§4.5–5 limitations read; citation contexts checked](notes/2025-dynamic-cheatsheet.md) |
+| [A-MEM: Agentic Memory for LLM Agents](https://arxiv.org/abs/2502.12110) | memory-unit foundation | §3.1 and Appendix B.1: The authors compare ACE's structured bullet to a memory entry in A-MEM and summarize A-MEM's linked, dynamically updated note organization as prior memory-system work. | [selected primary methods §§3.1–3.4, evaluation scope and §6 limitations read; citation contexts checked](notes/2025-a-mem.md) |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366) | natural-language feedback predecessor | §2.1 (Context Adaptation), natural-language-feedback paragraph: The authors place Reflexion in the line of language-feedback methods that inspect outcomes and produce text used to improve subsequent agent behavior. | [primary methods/results read](notes/2023-reflexion.md) |
+| [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning](https://arxiv.org/abs/2507.19457) | tested baseline; competing method | §2.1; §4.2; §4.3 and Table 1; §4.7 and Table 4: The authors use GEPA as the main offline reflective prompt-optimization baseline and compare ACE's accuracy, rollout use, latency, and cost against it. | [full text](notes/2025-gepa.md) |
+
+<a id="2025-alphaevolve"></a>
+
+## AlphaEvolve: A Coding Agent for Scientific and Algorithmic Discovery
+
+[Inspected version](https://arxiv.org/abs/2506.13131v1) · [Reading note](notes/2025-alphaevolve.md)
+
+**Inspection:** retained arXiv PDF v1; selected introduction, system description, related work, and bibliography inspected Sections: §1; §2; §5 Related Work; §6; References.
+
+**Scope:** The white paper covers machine-gradable problems and selected discoveries; the system was not released in the inspected version.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Mathematical Discoveries from Program Search with Large Language Models](https://doi.org/10.1038/s41586-023-06924-6) | direct-predecessor | §1/Table 1; §5 Related Work: AlphaEvolve is called a substantial enhancement of FunSearch, moving from short single functions to larger multi-file, multi-objective code evolution. | Bibliographic identity/context only; no substantive review in this pass |
+| [Discovering Faster Matrix Multiplication Algorithms with Reinforcement Learning](https://doi.org/10.1038/s41586-022-05172-4) | competing-method | §1; §5, Superoptimization and Algorithm Discovery: AlphaTensor is the specialized matrix-multiplication predecessor; AlphaEvolve positions itself as a general-purpose method. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2025-darwin-godel-machine"></a>
+
+## Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents
+
+[Inspected version](https://arxiv.org/abs/2505.22954v3) · [Reading note](notes/2025-darwin-godel-machine.md)
+
+**Inspection:** retained arXiv PDF v3; selected introduction, related work, method framing, and bibliography inspected Sections: §1; §2 Related Work; §3; References.
+
+**Scope:** The empirical loop is confined to coding-agent repositories and replaces formal proof with benchmark evidence.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Gödel Machines: Fully Self-Referential Optimal Universal Self-Improvers](https://doi.org/10.1007/978-3-540-68677-4_7) | foundation | §1; §2 Self-Improving AI; §3: The theoretical Gödel machine is the explicit starting point; DGM relaxes proof and accepts empirically benchmarked changes. | [primary §§2.2/3.2/4.1–4.4 proof criterion and qualifications read; selected citation contexts checked](notes/2003-goedel-machines.md) |
+| [Automated Design of Agentic Systems](https://arxiv.org/abs/2408.08435v2) | direct-predecessor | §2, Meta-Learning FM Agents: ADAS is the fixed-meta-agent predecessor; DGM instead uses one system to solve tasks and modify its own implementation. | [primary methods/results read; coordinator metadata and methods checked](notes/2024-automated-design-agentic-systems.md) |
+| [Self-Taught Optimizer (STOP): Recursively Self-Improving Code Generation](https://arxiv.org/abs/2310.02304v3) | direct-predecessor | §2, Self-Improving AI; bibliography: STOP is cited as an FM self-improvement system using a meta-agent and meta-utility; DGM distinguishes its self-modifying open-ended archive. | [full PDF methods, experiments, safety, and limitations](notes/2023-stop.md) |
+| [A Self-Improving Coding Agent](https://arxiv.org/abs/2504.15228) | competing-method | §2, Self-Improving AI; bibliography: The authors call SICA the most similar concurrent work and distinguish DGM by archive-based open-ended exploration. | [primary §3/Algorithm 1 and §§5.1–6 mechanism/limitations read; selected citation contexts checked](notes/2025-self-improving-coding-agent.md) |
+
+<a id="2025-dynamic-cheatsheet"></a>
+
+## Dynamic Cheatsheet: Test-Time Learning with Adaptive Memory
+
+[Inspected version](https://arxiv.org/abs/2504.07952v1) · [Reading note](notes/2025-dynamic-cheatsheet.md)
+
+**Inspection:** Full arXiv v1/ICML 2025 PDF (stamp: 2025-04-10) retrieved temporarily and inspected; arXiv records CC BY 4.0. Sections: §1 Introduction; §2 Dynamic Cheatsheet Methodology, including §§2.1–2.3; §3.3 Evaluation Protocol; §§4.1–4.6 Results and Analyses; §5 Additional Analyses and Discussions; Appendix A Background and Related Work.
+
+**Scope:** The paper has no separate limitations section. Its §§4.5–5 analyses bound the claim: effective curation depends on a capable base model and sufficiently similar or favorably ordered test items; faulty heuristics, retrieval noise, whole-memory rewrites, and sequential updates can propagate errors or impede scaling.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366) | feedback-loop predecessor | Appendix A.1 (Test-time learning), paragraph beginning 'In the broader test-time learning literature': The authors group Reflexion with feedback and verification loops that correct a current solution, then distinguish Dynamic Cheatsheet by retaining generalizable lessons in a persistent store across different queries. | [primary methods/results read](notes/2023-reflexion.md) |
+| [Self-Refine: Iterative Refinement with Self-Feedback](https://arxiv.org/abs/2303.17651) | iterative-refinement predecessor | Appendix A.1 (Test-time learning), paragraph beginning 'In the broader test-time learning literature': The authors cite Self-Refine among iterative feedback methods and contrast single-solution correction with Dynamic Cheatsheet's reusable cross-query memory. | abstract and prior paper excerpts |
+| [Thought-Retriever: Don't Just Retrieve Raw Data, Retrieve Thoughts](https://openreview.net/forum?id=SkDNQbMQba) | reasoning-memory predecessor | Appendix A.3 (Memory-augmented generation and reasoning), paragraph beginning 'Another line of research': The authors describe Thought-Retriever as logging prior chains of thought for analogous queries; Dynamic Cheatsheet instead curates compact strategies and can revise or remove entries as experience accumulates. | Bibliographic identity/context only; no substantive review in this pass |
+| [Buffer of Thoughts: Thought-Augmented Reasoning with Large Language Models](https://arxiv.org/abs/2406.04271) | reasoning-template memory predecessor | Appendix A.3 (Memory-augmented generation and reasoning), paragraph beginning 'Another line of research': The authors cite Buffer of Thoughts for distilling reusable high-level thought templates, while noting that its templates are predefined for the studied task types; Dynamic Cheatsheet curates and revises its store online. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2025-gepa"></a>
+
+## GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning
+
+[Inspected version](https://arxiv.org/abs/2507.19457v2) · [Reading note](notes/2025-gepa.md)
+
+**Inspection:** full official v2 PDF inspected temporarily; not retained Sections: Introduction; Related Work; §4 Evaluation; Appendix E.2 Baselines; Limitations.
+
+**Scope:** Baseline roles verified from v2. MIPROv2, TextGrad, and GRPO mechanisms were also checked in their primary papers; cited findings were not otherwise reappraised.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Optimizing Instructions and Demonstrations for Multi-Stage Language Model Programs (MIPROv2)](https://aclanthology.org/2024.emnlp-main.525/) | tested baseline; prompt-optimization predecessor | PDF pp. 8, 26; §4 and Appendix E.2: GEPA compares with MIPROv2 under per-benchmark rollout caps; MIPROv2 jointly searches instructions and bootstrapped demonstrations with a surrogate-guided optimizer. | Bibliographic identity/context only; no substantive review in this pass |
+| [Optimizing Generative AI by Backpropagating Language Model Feedback (TextGrad)](https://arxiv.org/abs/2406.07496) | tested baseline; competing prompt optimizer | PDF pp. 8, 26; §4 and Appendix E.2: TextGrad is implemented in Trace and evaluated with the same data, metric, feedback, and optimizer rollout budget; its own method propagates natural-language feedback over a computation graph. | Bibliographic identity/context only; no substantive review in this pass |
+| [Trace is the Next AutoDiff: Generative Optimization with Rich Feedback, Execution Traces, and LLMs](https://arxiv.org/abs/2406.16218) | tested baseline framework | PDF pp. 8, 26; §4 and Appendix E.2: GEPA evaluates Trace with OptoPrime as an execution-trace optimizer and uses Trace to implement TextGrad. | Bibliographic identity/context only; no substantive review in this pass |
+| [DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models](https://arxiv.org/abs/2402.03300) | tested weight-update baseline through GRPO | PDF pp. 7–8, 26; Table 1 and Appendix E.2: GRPO is GEPA's weight-space RL comparator; it estimates advantages from response-group scores without a critic. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2025-huxley-godel-machine"></a>
+
+## Huxley-Gödel Machine: Human-Level Coding Agent Development by an Approximation of the Optimal Self-Improving Machine
+
+[Inspected version](https://arxiv.org/abs/2510.21614v3) · [Reading note](notes/2025-huxley-godel-machine.md)
+
+**Inspection:** retained arXiv PDF v3; selected introduction, formalization, related work, baseline discussion, and bibliography inspected Sections: §1; §2; §3.1–3.2; §5 Related Work; References.
+
+**Scope:** Its Gödel-machine analogy depends on explicit assumptions and an estimated clade-metaproductivity proxy.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Gödel Machines: Self-Referential Universal Problem Solvers Making Provably Optimal Self-Improvements](https://doi.org/10.1007/978-3-540-68677-4_7) | foundation | §3.1 and Appendix A: HGM specializes Gödel-machine acceptance to coding-agent development and substitutes estimated clade-metaproductivity for an inaccessible proof/oracle criterion. | [primary §§2.2/3.2/4.1–4.4 proof criterion and qualifications read; selected citation contexts checked](notes/2003-goedel-machines.md) |
+| [Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents](https://arxiv.org/abs/2505.22954v3) | tested-baseline | §1; §2; experiments: DGM is a principal baseline and a member of the tree-search class HGM formalizes; HGM replaces immediate benchmark guidance with long-run clade productivity. | [primary full text: methods, results, transfer, cost appendix](notes/2025-darwin-godel-machine.md) |
+| [A Self-Improving Coding Agent](https://arxiv.org/abs/2504.15228) | tested-baseline | §1; §2; experiments: SICA is the second main coding-agent baseline and is modeled as a greedy branch of the same search tree. | [primary §3/Algorithm 1 and §§5.1–6 mechanism/limitations read; selected citation contexts checked](notes/2025-self-improving-coding-agent.md) |
+
+<a id="2025-r-zero"></a>
+
+## R-Zero: Self-Evolving Reasoning LLM from Zero Data
+
+[Inspected version](https://arxiv.org/abs/2508.05004v4) · [Reading note](notes/2025-r-zero.md)
+
+**Inspection:** full retained CC BY-NC-ND v4 PDF inspected Sections: Introduction; §2 Framework; §3 Experiments; §5 Related Work; §6 Limitations; Appendix I.
+
+**Scope:** Many bibliography entries give only arXiv IDs; canonical links use those IDs.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Absolute Zero: Reinforced Self-play Reasoning with Zero Data](https://arxiv.org/abs/2505.03335) | direct predecessor; tested baseline | PDF p. 5 §3 Tables 1–2; §5.2: R-Zero compares against AZR and distinguishes challenger-solver co-evolution from a single-model proposer-solver. | [full paper and appendices](notes/2025-absolute-zero.md) |
+| [DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models](https://arxiv.org/abs/2402.03300) | method foundation | PDF p. 2 Introduction and §2: Both Challenger and Solver are updated with GRPO. | Bibliographic identity/context only; no substantive review in this pass |
+| [Self-Play Fine-Tuning Converts Weak Language Models to Strong Language Models](https://arxiv.org/abs/2401.01335) | self-play predecessor | PDF p. 10 §5.2: The seed places R-Zero in the LM self-play lineage while distinguishing removal of seed tasks. | Bibliographic identity/context only; no substantive review in this pass |
+| [TTRL: Test-Time Reinforcement Learning](https://arxiv.org/abs/2504.16084) | competing label-free method | PDF p. 10 §5.1; bibliography p. 13: TTRL is among label-free methods that still start from an existing unlabeled problem set. | [full paper and appendices](notes/2025-test-time-reinforcement-learning.md) |
+
+<a id="2025-reasoningbank"></a>
+
+## ReasoningBank: Scaling Agent Self-Evolving with Reasoning Memory
+
+[Inspected version](https://arxiv.org/abs/2509.25140v2) · [Reading note](notes/2025-reasoningbank.md)
+
+**Inspection:** Full arXiv v2 PDF retrieved temporarily and inspected. Sections: §1 Introduction; §2 Related Work; §3 Methodology; §4 Experiments; Appendix B experiment details; Discussion.
+
+**Scope:** The main tested memory baselines, Synapse and AWM, are absent from the local source register. A-MEM and Dynamic Cheatsheet occur in related-work groupings but are not tested in the main comparison.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Synapse: Trajectory-as-Exemplar Prompting with Memory for Computer Control](https://openreview.net/forum?id=Pc8AU1aF5e) | tested baseline; direct comparator | §4.1; Tables 1–3; Appendix B (Baselines): The authors use Synapse as the trajectory-memory baseline and distinguish ReasoningBank's abstracted reasoning items and ability to extract lessons from failures. | Bibliographic identity/context only; no substantive review in this pass |
+| [Agent Workflow Memory](https://openreview.net/forum?id=NTAhi2JEEE) | tested baseline; direct comparator | §4.1; Tables 1 and 3; Appendix B (Baselines): The authors use AWM as the workflow-abstraction baseline and contrast its success-only procedural routines with ReasoningBank's success-and-failure reasoning strategies. | Bibliographic identity/context only; no substantive review in this pass |
+| [ExpeL: LLM Agents Are Experiential Learners](https://arxiv.org/abs/2308.10144) | experience-learning predecessor | §2 (Memory for LLM Agents): The authors include ExpeL in the line of systems that learn from past experiences as external memory, then distinguish ReasoningBank's reusable reasoning units and use of failures. | [primary methods/results read; coordinator metadata and methods checked](notes/2023-expel.md) |
+| [Dynamic Cheatsheet: Test-Time Learning with Adaptive Memory](https://arxiv.org/abs/2504.07952) | competing memory formulation | §2 (Memory for LLM Agents): The authors group Dynamic Cheatsheet with instance-level concepts and distinguish ReasoningBank's higher-level strategies and reasoning hints. | [selected primary methods §§2.1–2.3, evaluation setup and §§4.5–5 limitations read; citation contexts checked](notes/2025-dynamic-cheatsheet.md) |
+
+<a id="2025-self-adapting-language-models"></a>
+
+## Self-Adapting Language Models
+
+[Inspected version](https://arxiv.org/abs/2506.10943v2) · [Reading note](notes/2025-self-adapting-language-models.md)
+
+**Inspection:** full retained CC BY v2 PDF inspected Sections: §2 Related Work; §3 Methods; §4 Experiments; §5 Discussion and Limitations; Appendix B.11.
+
+**Scope:** The text calls the framework SEAL. Cited results were not reproduced.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Synthetic Continued Pretraining](https://openreview.net/forum?id=07yvxWDSla) | tested baseline; knowledge-internalization predecessor | PDF p. 3 §2; Appendix B.11 Table 8: SEAL builds on generated training data for small corpora and later compares against Entigraph/SCPT. | Bibliographic identity/context only; no substantive review in this pass |
+| [The Surprising Effectiveness of Test-Time Training for Few-Shot Learning](https://arxiv.org/abs/2411.07279) | tested protocol and direct predecessor | PDF pp. 3, 6; §2 and §4.1: SEAL adopts its abstract-reasoning protocol and uses its human-crafted configuration as Oracle TTT. | Bibliographic identity/context only; no substantive review in this pass |
+| [Beyond Human Data: Scaling Self-Training for Problem-Solving with Language Models](https://openreview.net/forum?id=lNAyUngGFK) | method foundation | PDF p. 4 §3: After unstable GRPO/PPO trials, SEAL adopts ReSTEM filtered behavior cloning to reinforce successful self-edits. | Bibliographic identity/context only; no substantive review in this pass |
+| [Test-Time Training with Self-Supervision for Generalization under Distribution Shifts](https://proceedings.mlr.press/v119/sun20b.html) | foundation | PDF p. 3 §2: SEAL places its temporary inner-loop updates in the TTT lineage while learning the update data and settings. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2025-self-improving-coding-agent"></a>
+
+## A Self-Improving Coding Agent
+
+[Inspected version](https://arxiv.org/abs/2504.15228v2) · [Reading note](notes/2025-self-improving-coding-agent.md)
+
+**Inspection:** arXiv PDF v2; selected introduction, related work, method, Algorithm 1, limitations, and bibliography inspected; temporary copy only Sections: §1; §2 Related Work; §3; Algorithm 1; §5.1–5.2; References.
+
+**Scope:** The archive informs proposals, but each iteration expands from the current best-scoring agent; proposal anchoring, path dependence, static benchmarks, and time/cost-sensitive utility constrain the evidence.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Automated Design of Agentic Systems](https://arxiv.org/abs/2408.08435v2) | direct-predecessor | §1; §2; §3 opening paragraphs; bibliography [16]: SICA adopts ADAS's archive-and-evaluate loop but makes the best archived agent the next meta-agent, whereas ADAS keeps a fixed meta-agent and archives only target agents. | [primary methods/results read; coordinator metadata and methods checked](notes/2024-automated-design-agentic-systems.md) |
+| [Self-Taught Optimizer (STOP): Recursively Self-Improving Code Generation](https://arxiv.org/abs/2310.02304v3) | predecessor | §2 Related Work; bibliography [47]: STOP is cited as recursively improving optimizer code on algorithmic tasks; SICA distinguishes its general coding-agent scaffold and self-editing software-engineering setting. | [full PDF methods, experiments, safety, and limitations](notes/2023-stop.md) |
+| [Gödel Agent: A Self-Referential Agent Framework for Recursive Self-Improvement](https://arxiv.org/abs/2410.04444) | competing-method | §2 Related Work; bibliography [44]: Gödel Agent is cited as a self-referential predecessor with specialized tools and non-general coding evaluations, against which SICA positions its editable general coding scaffold. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2025-test-time-reinforcement-learning"></a>
+
+## TTRL: Test-Time Reinforcement Learning
+
+[Inspected version](https://arxiv.org/abs/2504.16084v3) · [Reading note](notes/2025-test-time-reinforcement-learning.md)
+
+**Inspection:** full retained CC BY v3 PDF inspected Sections: Introduction; §2 Method; §3.1 Setup and Baselines; §3.3 Algorithm Comparison; §5 Related Work; Appendix C.
+
+**Scope:** Main experiments primarily compare to the starting backbone; PPO and PRIME are compatibility tests, not full matched systems.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Self-Consistency Improves Chain of Thought Reasoning in Language Models](https://arxiv.org/abs/2203.11171) | reward-estimation foundation | PDF pp. 4–5 §2.2; p. 13 §5.1: TTRL turns majority agreement across samples into pseudo-labels and rewards. | Bibliographic identity/context only; no substantive review in this pass |
+| [The Surprising Effectiveness of Test-Time Training for Few-Shot Learning](https://arxiv.org/abs/2411.07279) | TTT predecessor | PDF p. 14 §5.1; Appendix C.1: Prior inference-time gradient adaptation anchors TTRL's combination of TTT, RL, and test-time scaling. | Bibliographic identity/context only; no substantive review in this pass |
+| [DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models](https://arxiv.org/abs/2402.03300) | method foundation | PDF p. 6 §3.1; pp. 14–15 §5.2: TTRL independently applies GRPO on each benchmark. | Bibliographic identity/context only; no substantive review in this pass |
+| [Process Reinforcement through Implicit Rewards](https://arxiv.org/abs/2502.01456) | tested alternative RL algorithm | PDF p. 8 §3.3 Figure 5: PRIME is tested beside GRPO and PPO to probe reward compatibility. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-agent-world"></a>
+
+## Agent-World: Scaling Real-World Environment Synthesis for Evolving General Agent Intelligence
+
+[Inspected version](https://arxiv.org/abs/2604.18292v1) · [Reading note](notes/2026-agent-world.md)
+
+**Inspection:** full official v1 PDF inspected temporarily; not retained Sections: Introduction; §3 Methodology; §4.1 Settings and Baselines; §5 Related Work.
+
+**Scope:** Systems use different environment-generation pipelines; edges identify comparators without claiming causal equivalence.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Simulating Environments with Reasoning Models for Agent Training](https://arxiv.org/abs/2511.01824) | tested environment-scaling baseline | PDF pp. 12–13 §4.1 Table 1: Simulator-8B represents LLM-simulated environment feedback. | Bibliographic identity/context only; no substantive review in this pass |
+| [EnvScaler: Scaling Tool-Interactive Environments for LLM Agent via Programmatic Synthesis](https://arxiv.org/abs/2601.05808) | tested baseline; direct predecessor | PDF pp. 12–13 §4.1 Table 1; §5.1: EnvScaler is a programmatic executable-environment comparator. | Bibliographic identity/context only; no substantive review in this pass |
+| [Agent World Model: Infinity Synthetic Environments for Agentic Reinforcement Learning](https://arxiv.org/abs/2602.10090) | tested baseline; direct predecessor | PDF pp. 12–13 §4.1 Table 1; §5.1: AWM represents programmatically synthesized environment families. | Bibliographic identity/context only; no substantive review in this pass |
+| [ScaleEnv: Scaling Environment Synthesis from Scratch for Generalist Interactive Tool-Use Agent Training](https://arxiv.org/abs/2602.06820) | tested environment-scaling baseline | PDF pp. 12–13 §4.1 Table 1; §5.1: ScaleEnv is another main programmatic-environment baseline. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-agentic-harness-engineering"></a>
+
+## Agentic Harness Engineering: Observability-Driven Automatic Evolution of Coding-Agent Harnesses
+
+[Inspected version](https://arxiv.org/abs/2604.25850v4) · [Reading note](notes/2026-agentic-harness-engineering.md)
+
+**Inspection:** full official v4 PDF inspected temporarily; not retained Sections: Introduction; §2 Related Work; §3 Method; §4.2 Main Results; §4.3 Transfer; Limitations.
+
+**Scope:** Direct external baselines are ACE and Training-Free GRPO. GEPA is related-work context, not an implemented predecessor.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models](https://arxiv.org/abs/2510.04618) | tested self-evolution baseline | PDF p. 6 §4.2 Tables 1–2: ACE shares the seed and evolves a playbook, isolating AHE's edits to tools, middleware, and memory. | [full text](notes/2025-agentic-context-engineering.md) |
+| [Training-Free Group Relative Policy Optimization](https://arxiv.org/abs/2510.08191) | tested self-evolution baseline | PDF p. 6 §4.2 Tables 1–2: TF-GRPO reinforces successful tool trajectories without editing the surrounding harness. | Bibliographic identity/context only; no substantive review in this pass |
+| [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning](https://arxiv.org/abs/2507.19457) | related competing prompt optimizer | PDF p. 3 §2.2: GEPA is classified as reflective prompt updating from Pareto-frontier traces, a narrower surface than AHE. | [full text](notes/2025-gepa.md) |
+| [Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents](https://arxiv.org/abs/2505.22954) | program/archive evolution predecessor | PDF p. 3 §2.2: DGM represents mutation of scored program and agent archives. | [primary full text: methods, results, transfer, cost appendix](notes/2025-darwin-godel-machine.md) |
+
+<a id="2026-dream-rsi"></a>
+
+## Dream-RSI: Recursive Self-Improvement through Evolving Worlds
+
+[Inspected version](https://arxiv.org/abs/2609.14858v1) · [Reading note](notes/2026-dream-rsi.md)
+
+**Inspection:** arXiv PDF v1; selected introduction, method, evaluation comparison, related work, and bibliography inspected; temporary copy only Sections: §1; §3; §5; §6 Related Work; References.
+
+**Scope:** The replay world is built from completed discovery histories, so off-policy scores inherit their coverage and counterfactual limits.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents](https://arxiv.org/abs/2505.22954v3) | foundation | §1, agent self-improvement survey sentence; §6, Self-Evolving Agents: DGM is cited as an example of agent self-improvement and harness evolution. Dream-RSI does not discuss it as a tested comparator or a direct exploration-controller predecessor. | [primary full text: methods, results, transfer, cost appendix](notes/2025-darwin-godel-machine.md) |
+| [AlphaEvolve: A Coding Agent for Scientific and Algorithmic Discovery](https://arxiv.org/abs/2506.13131v1) | tested-baseline | §5/Table 1; §6, AI-Driven Scientific and Algorithmic Discovery: AlphaEvolve is a representative fixed discovery loop and a reported algorithm-discovery comparator. | [primary full text: architecture, results, ablations, limitations](notes/2025-alphaevolve.md) |
+| [EvoX: Meta-Evolution for Automated Discovery](https://arxiv.org/abs/2602.23413v2) | competing-method | §5/Table 1; §6, AI-Driven Scientific and Algorithmic Discovery: EvoX explicitly optimizes search strategy and is a comparator; Dream-RSI adds reusable off-policy replay from accumulated histories. | [primary methods/results and relevant appendices inspected](notes/2026-evox.md) |
+| [MLEvolve: A Self-Evolving Framework for Automated Machine Learning Algorithm Discovery](https://arxiv.org/abs/2606.06473v1) | competing-method | §6, AI-Driven Scientific and Algorithmic Discovery; Memory, History, and Experience Reuse: MLEvolve reuses cross-branch information for future search; Dream-RSI turns completed histories into replay environments for alternative controllers. | [primary methods/results and relevant appendices inspected](notes/2026-mlevolve.md) |
+
+<a id="2026-economics-rsi"></a>
+
+## The Economics of Recursive Self-Improvement
+
+[Inspected version](https://arxiv.org/abs/2609.15802v1) · [Reading note](notes/2026-economics-rsi.md)
+
+**Inspection:** retained arXiv PDF v1; selected introduction, model framing, literature positioning, calibration discussion, and bibliography inspected Sections: §1; §2; §3; §4; References.
+
+**Scope:** This is theoretical modeling and calibration; conclusions depend on poorly measured elasticities and bottlenecks rather than an implemented recursive agent.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [When Does Automating AI Research Produce Explosive Growth? Feedback Loops in Innovation Networks](https://www.nber.org/papers/w35155) | direct-predecessor | §1, Position in the Literature; §2–3; bibliography: The network models build on Davidson et al.'s theory of innovation networks and economic feedback loops, specialized here to recursive AI improvement and measurement. | Bibliographic identity/context only; no substantive review in this pass |
+| [What a Compute-Centric Framework Says About Takeoff Speeds](https://www.openphilanthropy.org/research/what-a-compute-centric-framework-says-about-takeoff-speeds/) | foundation | §1, Position in the Literature; bibliography: Davidson's compute-centric framework is credited as an early formal model of AI takeoff dynamics broadened here with multiple inputs and bottlenecks. | Bibliographic identity/context only; no substantive review in this pass |
+| [Artificial Intelligence, Automation, and Work](https://doi.org/10.7208/chicago/9780226613475.003.0007) | foundation | §1, Position in the Literature; bibliography: Aghion et al. are identified as foundational economics work on conditions for AI automation to generate accelerating or explosive growth. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-escher-loop"></a>
+
+## Escher-Loop: Mutual Evolution by Closed-Loop Self-Referential Optimization
+
+[Inspected version](https://arxiv.org/abs/2604.23472v2) · [Reading note](notes/2026-escher-loop.md)
+
+**Inspection:** arXiv PDF v2; selected introduction, method, related work, and bibliography inspected; temporary copy only Sections: §1; §2; §3; §4 Related Works; References.
+
+**Scope:** The implementation starts from OpenEvolve and reports bounded-domain optimization; it does not establish unbounded self-improvement.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [OpenEvolve: An Open-Source Evolutionary Coding Agent](https://github.com/algorithmicsuperintelligence/openevolve) | direct-predecessor | §2.1; §3; §4, Language Models as Optimizers: The system is instantiated on OpenEvolve, then a population of optimizer programs replaces its fixed search heuristic. | Bibliographic identity/context only; no substantive review in this pass |
+| [Self-Taught Optimizer (STOP): Recursively Self-Improving Code Generation](https://arxiv.org/abs/2310.02304v3) | direct-predecessor | §4, Recursive Self-Improvement; bibliography: STOP is among empirical LLM systems that remove the target/meta-agent boundary by rewriting their own code or scaffold. | [full PDF methods, experiments, safety, and limitations](notes/2023-stop.md) |
+| [Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents](https://arxiv.org/abs/2505.22954v3) | competing-method | §4, Recursive Self-Improvement; bibliography: DGM replaces greedy updates with a tree of historical variants; Escher-Loop co-evolves optimizer populations with solutions. | [primary full text: methods, results, transfer, cost appendix](notes/2025-darwin-godel-machine.md) |
+
+<a id="2026-evo-harness"></a>
+
+## Evo-Harness: Context-to-Harness Skill Compilation for Self-Evolving Agents
+
+[Inspected version](https://arxiv.org/abs/2608.15071v2) · [Reading note](notes/2026-evo-harness.md)
+
+**Inspection:** full retained CC BY v2 PDF inspected Sections: Introduction; §2 Related Work; §3 Method; §4.1 Baselines; §4.2 Results; Limitations.
+
+**Scope:** All edges are actual Table 1 baselines under the seed protocol.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Agent Workflow Memory](https://arxiv.org/abs/2409.07429) | tested baseline | PDF p. 5 §4.1 Table 1: AWM supplies working-memory reuse. | Bibliographic identity/context only; no substantive review in this pass |
+| [Dynamic Cheatsheet: Test-Time Learning with Adaptive Memory](https://arxiv.org/abs/2504.07952) | tested baseline | PDF p. 5 §4.1 Table 1: Cumulative and retrieval-selection variants test adaptive external notes. | [selected primary methods §§2.1–2.3, evaluation setup and §§4.5–5 limitations read; citation contexts checked](notes/2025-dynamic-cheatsheet.md) |
+| [Evo-Memory: Benchmarking LLM Agent Test-Time Learning with Self-Evolving Memory](https://arxiv.org/abs/2511.20857) | tested baseline | PDF p. 5 §4.1 Table 1: Evo-Memory is the evolving-memory comparator. | Bibliographic identity/context only; no substantive review in this pass |
+| [Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models](https://arxiv.org/abs/2510.04618) | tested baseline | PDF p. 5 §4.1 Table 1: ACE is the evolving-context comparator. | [full text](notes/2025-agentic-context-engineering.md) |
+| [XSkill: Continual Learning from Experience and Skills in Multimodal Agents](https://arxiv.org/abs/2603.12056) | tested baseline; closest skill comparator | PDF p. 5 §4.1 Table 1: XSkill separates experiences from reusable skills and is the strongest reported Table 1 baseline. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-evoskill"></a>
+
+## EvoSkill: Automated Skill Discovery for Multi-Agent Systems
+
+[Inspected version](https://arxiv.org/abs/2603.02766v1) · [Reading note](notes/2026-evoskill.md)
+
+**Inspection:** Full arXiv v1 PDF inspected locally. Sections: §1 Introduction; §2 Method; §3 Experiments; §4 Related Work; §5 Conclusion.
+
+**Scope:** EvoSkill's experiments compare evolved skills with the unevolved base rather than reproducing the named evolutionary predecessors. The edges below are mechanism lineage, not head-to-head baselines.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Voyager: An Open-Ended Embodied Agent with Large Language Models](https://arxiv.org/abs/2305.16291) | skill-library foundation | §4.1 and §4.3: The authors use Voyager as the early precedent for persistent executable skill libraries and cross-world skill transfer. | [primary methods/results reviewed in notes/2023-voyager.md](notes/2023-voyager.md) |
+| [Self-Refine: Iterative Refinement with Self-Feedback](https://arxiv.org/abs/2303.17651) | textual-feedback predecessor | §4.2: The authors cite Self-Refine's generate-critique-refine loop as a precursor, distinguishing EvoSkill's accumulation of skill knowledge across iterations. | abstract and prior paper excerpts |
+| [Feedback Descent: Open-Ended Text Optimization via Pairwise Comparison](https://arxiv.org/abs/2511.07919) | direct optimization predecessor | §4.2: The authors state that EvoSkill builds directly on Feedback Descent's frontier and accumulated textual feedback, applying that paradigm to skill discovery. | Bibliographic identity/context only; no substantive review in this pass |
+| [AlphaEvolve: A Coding Agent for Scientific and Algorithmic Discovery](https://arxiv.org/abs/2506.13131) | evolutionary foundation | §1 and §4.2: The authors cite AlphaEvolve as evidence for LLM-driven evolution of code artifacts, then distinguish EvoSkill's higher-level portable skill artifacts. | [primary full text: architecture, results, ablations, limitations](notes/2025-alphaevolve.md) |
+| [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning](https://arxiv.org/abs/2507.19457) | evolutionary prompt predecessor | §1 and §4.2: The authors cite GEPA's reflective mutations and Pareto selection as a prompt-evolution precedent, contrasting prompt optimization with reusable skill discovery. | [full text](notes/2025-gepa.md) |
+
+<a id="2026-evox"></a>
+
+## EvoX: Meta-Evolution for Automated Discovery
+
+[Inspected version](https://arxiv.org/abs/2602.23413v2) · [Reading note](notes/2026-evox.md)
+
+**Inspection:** retained arXiv PDF v2; selected introduction, related work, method, evaluation, and bibliography inspected Sections: §1; §2 Related Work; §3; §5; References.
+
+**Scope:** Comparisons use fixed iteration budgets but heterogeneous implementations; AlphaEvolve values are imported rather than rerun.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [AlphaEvolve: A Coding Agent for Scientific and Algorithmic Discovery](https://arxiv.org/abs/2506.13131v1) | tested-baseline | §1; §2; §5: AlphaEvolve exemplifies a manually specified MAP-Elites search strategy and supplies published comparison results for mathematical tasks. | [primary full text: architecture, results, ablations, limitations](notes/2025-alphaevolve.md) |
+| [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning](https://arxiv.org/abs/2507.19457) | tested-baseline | §2, LLM-Guided Evolutionary Search; §5: GEPA selects candidates along Pareto frontiers and is rerun as a baseline against EvoX's evolving search strategy. | [full text](notes/2025-gepa.md) |
+| [OpenEvolve: An Open-Source Evolutionary Coding Agent](https://github.com/algorithmicsuperintelligence/openevolve) | tested-baseline | §1; §2; §5: OpenEvolve uses static elite/diversity heuristics and is run as a baseline for EvoX's adaptive strategy. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-finevo-bench"></a>
+
+## FinEvo-Bench: A Longitudinal Benchmark for Self-Evolving Agents in Professional Financial Workflows
+
+[Inspected version](https://arxiv.org/abs/2608.06144v1) · [Reading note](notes/2026-finevo-bench.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: §2 Related Work, PDF p.2; §4.1 frameworks; References.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366v4) | foundation | §2 Self-evolution, PDF p.2: Example of retaining reflections from task outcomes. | [primary methods/results read](notes/2023-reflexion.md) |
+| [Voyager: An Open-Ended Embodied Agent with Large Language Models](https://arxiv.org/abs/2305.16291) | foundation | §2 Self-evolution, PDF p.2: Skill accumulation predecessor. | [primary methods/results reviewed in notes/2023-voyager.md](notes/2023-voyager.md) |
+| [SEA-Eval: A Benchmark for Evaluating Self-Evolving Agents Beyond Episodic Assessment](https://arxiv.org/abs/2604.08988v3) | competing-method | §2 Longitudinal evaluation, PDF p.2: Contrasts correlated/orthogonal streams and token trajectories with professional workflow evaluation. | [full primary methods/results and selected appendix read](notes/2026-sea-eval.md) |
+
+<a id="2026-ground-truth-first"></a>
+
+## Ground Truth First: A Longitudinal Evaluation Instrument for Agent Memory, and the Tenure Crossover in Memory-Architecture Rankings
+
+[Inspected version](https://arxiv.org/abs/2607.21962v1) · [Reading note](notes/2026-ground-truth-first.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: §§2.1–2.3, PDF pp.3–5; §5.8, PDF pp.14–15; References.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [MemGPT: Towards LLMs as Operating Systems](https://arxiv.org/abs/2310.08560v2) | foundation | §2.1 Agent memory architectures, PDF p.3: Working context over a larger store is a memory-architecture lineage. | primary abstract and metadata only; seed citation context where applicable |
+| [A-MEM: Agentic Memory for LLM Agents](https://arxiv.org/abs/2502.12110) | foundation | §2.1 Agent memory architectures, PDF p.3; Xu et al. 2025: Graph-structured memory is one lineage of unbounded storage. | [selected primary methods §§3.1–3.4, evaluation scope and §6 limitations read; citation contexts checked](notes/2025-a-mem.md) |
+| [ConvoMem Benchmark: Why Your First 150 Conversations Don’t Need RAG](https://arxiv.org/abs/2511.10523) | limitation | §2.2, PDF p.4; §5.8, PDF p.14; bibliography p.21: Short-history full-context competitiveness motivates matched history controls. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-memrl"></a>
+
+## MemRL: Self-Evolving Agents via Runtime Reinforcement Learning on Episodic Memory
+
+[Inspected version](https://arxiv.org/abs/2601.03192v2) · [Reading note](notes/2026-memrl.md)
+
+**Inspection:** Full arXiv v2 PDF retrieved temporarily and inspected. Sections: §1 Introduction; §2 Related Works; §4 Method; §5 Experiments; Appendix D Baselines; Appendix G Discussion.
+
+**Scope:** The paper tests memory implementations in a unified frozen-backbone harness; Reflexion appears as a conceptual single-task ablation rather than a separately reproduced full system.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [MemP: Exploring Agent Procedural Memory](https://arxiv.org/abs/2508.06433) | strongest tested baseline; direct comparator | §5.1; §5.2; §5.3.1; Tables 1–2; Appendix D.1; Appendix F: The authors treat MemP as the strongest procedural-memory baseline and contrast its heuristic retrieval with MemRL's learned utility values under matched interaction loops. | Bibliographic identity/context only; no substantive review in this pass |
+| [Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory](https://arxiv.org/abs/2504.19413) | tested baseline; competing memory system | §5.1; Tables 1–2; Appendix D.1: The authors include Mem0 as a structured agentic-memory baseline using add, retrieve, and update operations. | Bibliographic identity/context only; no substantive review in this pass |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366) | memory foundation; ablation analogue | §2 (Agentic Memory) and §5.3.3: The authors cite Reflexion as an early reflection-memory system and describe MemRL's single-task-only retrieval ablation as conceptually equivalent to Reflexion. | [primary methods/results read](notes/2023-reflexion.md) |
+| [A-MEM: Agentic Memory for LLM Agents](https://arxiv.org/abs/2502.12110) | structured-memory predecessor | §2 (Agentic Memory): The authors cite A-MEM among systems that move beyond static RAG toward structured indexing and memory lifecycle management, which MemRL augments with learned utility. | [selected primary methods §§3.1–3.4, evaluation scope and §6 limitations read; citation contexts checked](notes/2025-a-mem.md) |
+
+<a id="2026-memskill"></a>
+
+## MemSkill: Learning and Evolving Memory Skills for Self-Evolving Agents
+
+[Inspected version](https://arxiv.org/abs/2602.02474v2) · [Reading note](notes/2026-memskill.md)
+
+**Inspection:** Full arXiv v2 PDF inspected locally. Sections: §1 Introduction; §2 Related Work; §3 Method; §4 Experiments; §5 Conclusion.
+
+**Scope:** ReasoningBank and ExpeL are lineage references, while the decisive tested comparisons are fixed memory pipelines such as A-MEM and Mem0. MemSkill does not cite MemRL in the inspected v2 text.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [A-MEM: Agentic Memory for LLM Agents](https://arxiv.org/abs/2502.12110) | tested baseline; competing method | §2.1; §4.1 and Table 1; §4.2; §4.3 and Fig. 3; Table 3: The authors compare MemSkill with A-MEM across conversational, embodied, transfer, and cost settings and contrast A-MEM's fixed note-graph procedure with learned, evolving memory skills. | [selected primary methods §§3.1–3.4, evaluation scope and §6 limitations read; citation contexts checked](notes/2025-a-mem.md) |
+| [Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory](https://arxiv.org/abs/2504.19413) | tested baseline; competing method | §2.1; §4.1 and Table 1: The authors test Mem0 as a strong fixed memory pipeline and use it to motivate learning memory-management behavior rather than hard-coding operations. | Bibliographic identity/context only; no substantive review in this pass |
+| [ReasoningBank: Scaling Agent Self-Evolving with Reasoning Memory](https://arxiv.org/abs/2509.25140) | competing self-evolving memory method | §2.1: The authors identify ReasoningBank as concurrent self-evolving-memory work that distills reasoning strategies, distinguishing MemSkill's evolution of the memory operations themselves. | [primary methods/results read; coordinator metadata and methods checked](notes/2025-reasoningbank.md) |
+| [ExpeL: LLM Agents Are Experiential Learners](https://arxiv.org/abs/2308.10144) | experience-learning predecessor | §2.2: The authors use ExpeL as the precedent for distilling trajectories into editable insights and retrieving experience for future tasks. | [primary methods/results read; coordinator metadata and methods checked](notes/2023-expel.md) |
+
+<a id="2026-mlevolve"></a>
+
+## MLEvolve: A Self-Evolving Framework for Automated Machine Learning Algorithm Discovery
+
+[Inspected version](https://arxiv.org/abs/2606.06473v1) · [Reading note](notes/2026-mlevolve.md)
+
+**Inspection:** arXiv PDF v1; selected introduction, related work, method, main comparison tables, and bibliography inspected; temporary copy only Sections: §1; §2 Related Work; §3; §4/Table 1–2; References.
+
+**Scope:** Self-evolution means experience/search adaptation within fixed machinery; comparisons involve heterogeneous systems and budgets.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [MLE-bench: Evaluating Machine Learning Agents on Machine Learning Engineering](https://arxiv.org/abs/2410.07095) | foundation | §2.1; §4/Table 1; References [24]: MLE-bench supplies the 75-task substrate and human medal thresholds used for the main results. | Bibliographic identity/context only; no substantive review in this pass |
+| [MLAgentBench: Evaluating Language Agents on Machine Learning Experimentation](https://arxiv.org/abs/2310.03302) | foundation | §2.1 and References [11]: MLAgentBench is an early benchmark/system in the lineage of coding agents for machine-learning experimentation. | Bibliographic identity/context only; no substantive review in this pass |
+| [AlphaEvolve: A Coding Agent for Scientific and Algorithmic Discovery](https://arxiv.org/abs/2506.13131v1) | tested-baseline | §1; §4/Table 2; References [6]: AlphaEvolve supplies the mathematical task set and a reported baseline testing generalization beyond ML engineering. | [primary full text: architecture, results, ablations, limitations](notes/2025-alphaevolve.md) |
+| [OpenEvolve: An Open-Source Evolutionary Coding Agent](https://github.com/algorithmicsuperintelligence/openevolve) | tested-baseline | §4/Table 2; References [38]: OpenEvolve is a specialized algorithm-discovery baseline on the AlphaEvolve mathematical task suite. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-reflection-in-the-dark"></a>
+
+## Reflection in the Dark: Exposing and Escaping the Black Box in Reflective Prompt Optimization
+
+[Inspected version](https://arxiv.org/abs/2603.18388v2) · [Reading note](notes/2026-reflection-in-the-dark.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: §§2.1–2.2, PDF pp.2–3; §3.1; References.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning](https://arxiv.org/abs/2507.19457) | baseline | §3.1 Seed Trap, PDF p.3; Figure 1: Direct target of the defective-seed diagnosis and evaluation. | [full text](notes/2025-gepa.md) |
+| [TextGrad: Automatic Differentiation via Text](https://arxiv.org/abs/2406.07496) | foundation | §2.1 Automatic Prompt Optimization, PDF p.2; bibliography p.11: Textual-gradient lineage for reflection-based prompt updates. | Bibliographic identity/context only; no substantive review in this pass |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366v4) | foundation | §2.2 LLM Self-Correction and Its Limits, PDF p.3: Prior iterative feedback-and-revision approach. | [primary methods/results read](notes/2023-reflexion.md) |
+| [Large Language Models Cannot Self-Correct Reasoning Yet](https://arxiv.org/abs/2310.01798) | limitation | §2.2 LLM Self-Correction and Its Limits, PDF p.3; Huang et al. 2024: External-feedback limitation motivates diagnosing reflection failures. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-rethink-continual-internalization"></a>
+
+## Rethinking Continual Experience Internalization for Self-Evolving LLM Agents
+
+[Inspected version](https://arxiv.org/abs/2606.04703v1) · [Reading note](notes/2026-rethink-continual-internalization.md)
+
+**Inspection:** full official v1 PDF inspected temporarily; not retained Sections: Introduction; §2 Related Work; §3 Formulation; §4 Setup; §5 Results; Limitations.
+
+**Scope:** This seed does not cite SEAL. Its empirical comparison is between internally defined distillation regimes.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Learning by Distilling Context](https://arxiv.org/abs/2209.15189) | foundation | PDF p. 2 §2.1: Context distillation trains an experience-free student to match an experience-aware teacher. | Bibliographic identity/context only; no substantive review in this pass |
+| [On-Policy Context Distillation for Language Models](https://arxiv.org/abs/2602.12275) | direct method predecessor | PDF p. 2 §2.1: The seed tests this recent single-round regime across repeated internalization cycles. | Bibliographic identity/context only; no substantive review in this pass |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366) | context-experience predecessor | PDF p. 2 §2.1: Reflexion exemplifies refining stored experience through self-feedback while retaining it in context. | [primary methods/results read](notes/2023-reflexion.md) |
+| [ExpeL: LLM Agents Are Experiential Learners](https://arxiv.org/abs/2308.10144) | context-experience predecessor | PDF p. 2 §2.1: ExpeL abstracts trajectories into reusable experiential knowledge, motivating later weight internalization. | [primary methods/results read; coordinator metadata and methods checked](notes/2023-expel.md) |
+
+<a id="2026-reward-hacking-agents"></a>
+
+## RewardHackingAgents: Benchmarking Evaluation Integrity for LLM ML-Engineering Agents
+
+[Inspected version](https://arxiv.org/abs/2603.11337v1) · [Reading note](notes/2026-reward-hacking-agents.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: §I Introduction, PDF p.1; Related work/positioning, PDF p.7; References, PDF pp.7–8.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [MLAgentBench: Evaluating Language Agents on Machine Learning Experimentation](https://arxiv.org/abs/2310.03302) | foundation | §I Introduction refs.1–3, PDF p.1; bibliography pp.7–8: ML experimentation benchmark lineage whose measurement integrity is questioned. | Bibliographic identity/context only; no substantive review in this pass |
+| [MLE-bench: Evaluating Machine Learning Agents on Machine Learning Engineering](https://arxiv.org/abs/2410.07095) | foundation | §I Introduction refs.1–3, PDF p.1; bibliography pp.7–8: ML-engineering evaluation motivates treating score channels as mutable. | Bibliographic identity/context only; no substantive review in this pass |
+| [Reward Tampering Problems and Solutions in Reinforcement Learning: A Causal Influence Diagram Perspective](https://arxiv.org/abs/1908.04734) | foundation | §I Introduction refs.4–6; Positioning and implications refs.5/22, PDF p.7: Reward-tampering theory motivates separate trusted metrics. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-reward-hacking-benchmark"></a>
+
+## Reward Hacking Benchmark: Measuring Exploits in LLM Agents with Tool Use
+
+[Inspected version](https://arxiv.org/abs/2605.02964v1) · [Reading note](notes/2026-reward-hacking-agents.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: §§1–2, PDF pp.1–3; References.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Specification gaming: the flip side of AI ingenuity](https://deepmind.google/discover/blog/specification-gaming-the-flip-side-of-ai-ingenuity/) | foundation | §2.1 Specification Gaming, PDF p.2: Foundational distinction between literal objective satisfaction and intended behavior. | Bibliographic identity/context only; no substantive review in this pass |
+| [Recent frontier models are reward hacking](https://metr.org/blog/2025-06-05-recent-reward-hacking/) | limitation | Introduction; §2; bibliography Arx et al. 2025: First-party observations motivate agent reward-hacking evaluation. | Bibliographic identity/context only; no substantive review in this pass |
+| [Emergent Misalignment: Narrow finetuning can produce broadly misaligned LLMs](https://arxiv.org/abs/2502.17424) | foundation | §2.2 Reward Hacking and Emergent Misalignment, PDF p.2; Betley et al.: Narrow training can have broader behavioral consequences; cited as adjacent motivation. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-sea-eval"></a>
+
+## SEA-Eval: A Benchmark for Evaluating Self-Evolving Agents Beyond Episodic Assessment
+
+[Inspected version](https://arxiv.org/abs/2604.08988v3) · [Reading note](notes/2026-sea-eval.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: §§2.1–2.3, PDF pp.2–3; Introduction footnotes; References.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Voyager: An Open-Ended Embodied Agent with Large Language Models](https://arxiv.org/abs/2305.16291) | foundation | §2.2 Technical Foundations, PDF p.3: Skill-library example for the Execution Hub. | [primary methods/results reviewed in notes/2023-voyager.md](notes/2023-voyager.md) |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366v4) | foundation | §2.2 Technical Foundations, PDF p.3: Reflection/memory example for the Cognition Hub. | [primary methods/results read](notes/2023-reflexion.md) |
+| [ExpeL: LLM Agents Are Experiential Learners](https://arxiv.org/abs/2308.10144v3) | foundation | §2.2 Technical Foundations, PDF p.3: Experiential memory predecessor. | [primary methods/results read; coordinator metadata and methods checked](notes/2023-expel.md) |
+| [GenericAgent](https://github.com/lsdefine/GenericAgent) | baseline | Introduction footnote 1, PDF p.1; framework comparisons: Evaluated framework motivating the longitudinal efficiency comparison. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-self-evolution-backfires"></a>
+
+## When Self-Evolution Backfires: Pre-Commit Gating against Skill Contamination in LLM Agents
+
+[Inspected version](https://arxiv.org/abs/2608.05810v1) · [Reading note](notes/2026-self-evolution-backfires.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: §2 Related Work, PDF p.2; References.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Voyager: An Open-Ended Embodied Agent with Large Language Models](https://arxiv.org/abs/2305.16291) | predecessor | §2 Self-Evolving Agents and Skill Distillation, PDF p.2: Authors distinguish verifying the target task from checking harm to other tasks. | [primary methods/results reviewed in notes/2023-voyager.md](notes/2023-voyager.md) |
+| [ExpeL: LLM Agents Are Experiential Learners](https://arxiv.org/abs/2308.10144v3) | predecessor | §2 Self-Evolving Agents and Skill Distillation, PDF p.2: Experience distilled into persistent guidance motivates admission checks. | [primary methods/results read; coordinator metadata and methods checked](notes/2023-expel.md) |
+| [Agentic Harness Engineering: Observability-Driven Automatic Evolution of Coding-Agent Harnesses](https://arxiv.org/abs/2604.25850) | competing-method | §2 Self-Evolving Agents and Skill Distillation, PDF p.2: Whole-harness evolution contrasts with guarding individual skill admission. | [primary full text: methods, Tables 1-3, Figures 3-4, limitations](notes/2026-agentic-harness-engineering.md) |
+
+<a id="2026-selfmem"></a>
+
+## SelfMem: Self-Optimizing Memory for AI Agents
+
+[Inspected version](https://arxiv.org/abs/2607.03726v1) · [Reading note](notes/2026-selfmem.md)
+
+**Inspection:** Full arXiv v1 PDF inspected locally. Sections: §1 Introduction; §2 Related Work; §3 SelfMem; §4 Experiments; §5 Limitations; Appendix A baseline details.
+
+**Scope:** SelfMem evaluates shared-harness reproductions of memory baselines rather than each system's native production implementation; its optimization study is limited to 100K-token histories.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [A-MEM: Agentic Memory for LLM Agents](https://arxiv.org/abs/2502.12110) | closest predecessor; tested baseline | §1; §2; §4 (Baselines) and Table 1; Appendix A and Table 2: The authors call A-MEM closest in spirit, reproduce its linked-note design as a baseline, and distinguish SelfMem's ability to revise the memory strategy rather than operate within a fixed note graph. | [selected primary methods §§3.1–3.4, evaluation scope and §6 limitations read; citation contexts checked](notes/2025-a-mem.md) |
+| [Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory](https://arxiv.org/abs/2504.19413) | tested baseline; competing method | §2; §4 (Baselines) and Table 1; Appendix A: The authors evaluate Mem0's extraction, consolidation, and retrieval pipeline in the common BEAM harness and contrast fixed pipeline choices with agent-controlled memory strategy. | Bibliographic identity/context only; no substantive review in this pass |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366) | self-improvement predecessor | §2 (Self-improving Agent): The authors cite Reflexion as showing that task feedback can become episodic verbal memory that improves later trials without weight updates. | [primary methods/results read](notes/2023-reflexion.md) |
+| [Voyager: An Open-Ended Embodied Agent with Large Language Models](https://arxiv.org/abs/2305.16291) | self-improvement and persistent-skill predecessor | §2 (Self-improving Agent): The authors cite Voyager as evidence that feedback, execution errors, and self-verification can build an expanding reusable skill library. | [primary methods/results reviewed in notes/2023-voyager.md](notes/2023-voyager.md) |
+
+<a id="2026-shaper"></a>
+
+## SHAPER: Self-Evolving Embodied Agents via Skill-Harness Evolution
+
+[Inspected version](https://arxiv.org/abs/2608.11350v2) · [Reading note](notes/2026-shaper.md)
+
+**Inspection:** full official v2 PDF inspected temporarily; not retained Sections: Introduction; §2 Related Work; §3 Method; §4 Experiments and Compared Methods; Limitations.
+
+**Scope:** These four are related-work comparisons, not implemented experiment baselines. Experiments test seed, skill-only, harness-only, full evolution, same-data SFT, and test-time-scaling variants.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [SkillOpt: Executive Strategy for Self-Evolving Agent Skills](https://arxiv.org/abs/2605.23904v2) | direct skill-evolution predecessor | PDF p. 3 §2 Self-Evolving Agents: SkillOpt uses bounded, validation-gated edits to a persistent skill while keeping the harness fixed; SHAPER adds context-code evolution. | [primary methods/results and relevant appendices inspected](notes/2026-skillopt.md) |
+| [EmbodiSkill: Skill-Aware Reflection for Self-Evolving Embodied Agents](https://arxiv.org/abs/2605.10332v2) | direct embodied skill predecessor | PDF p. 3 §2: EmbodiSkill separates defective skill content from execution lapses but updates only the skill. | primary abstract and metadata only; seed citation context where applicable |
+| [AutoHarness: Improving LLM Agents by Automatically Synthesizing a Code Harness](https://arxiv.org/abs/2603.03329v1) | direct harness-synthesis predecessor | PDF p. 3 §2: AutoHarness synthesizes code harnesses or policies without co-optimizing reusable procedural guidance. | primary abstract and metadata only; seed citation context where applicable |
+| [AgentSpec: Understanding Embodied Agent Scaffolds Through Controlled Composition](https://arxiv.org/abs/2606.14674v1) | competing scaffold representation | PDF p. 3 §2: AgentSpec uses typed swappable scaffold components for analysis rather than rollout-driven optimization. | primary abstract and metadata only; seed citation context where applicable |
+
+<a id="2026-sia"></a>
+
+## SIA: Self Improving AI with Harness & Weight Updates
+
+[Inspected version](https://arxiv.org/abs/2605.27276v2) · [Reading note](notes/2026-sia.md)
+
+**Inspection:** full retained CC BY-SA v2 PDF inspected Sections: Introduction; §4 Related Work; §5 Method; §6.2 Baselines; §7 Ablations; Limitations.
+
+**Scope:** SIA does not cite SEAL. External works position editable surfaces; the primary empirical baseline is its own initial/harness-only trajectory.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents](https://arxiv.org/abs/2505.22954) | harness/code-evolution predecessor | PDF p. 4 §4.1: DGM represents code evolution with fixed model weights. | [primary full text: methods, results, transfer, cost appendix](notes/2025-darwin-godel-machine.md) |
+| [Hyperagents](https://arxiv.org/abs/2603.19461) | direct competing multi-level harness method | PDF p. 4 §4.1: Called the closest concurrent work; it edits the meta-mechanism but leaves weights fixed. | [primary methods/results inspected](notes/2026-hyperagents.md) |
+| [Automated Design of Agentic Systems](https://arxiv.org/abs/2408.08435) | agent-architecture search predecessor | PDF p. 4 §4.1: ADAS searches compositions of subagents, tools, and prompts with a fixed model. | [primary methods/results read; coordinator metadata and methods checked](notes/2024-automated-design-agentic-systems.md) |
+| [Learning to Discover at Test Time](https://arxiv.org/abs/2601.16175) | weight-update method foundation | PDF p. 5 §4.2: SIA reuses its entropic-utility objective and LoRA test-time training stack. | Bibliographic identity/context only; no substantive review in this pass |
+| [TTRL: Test-Time Reinforcement Learning](https://arxiv.org/abs/2504.16084) | competing weight-update method | PDF p. 5 §4.2 and Table 1: TTRL represents weight-only test-time RL on unlabeled single-prompt tasks. | [full paper and appendices](notes/2025-test-time-reinforcement-learning.md) |
+
+<a id="2026-skillopt"></a>
+
+## SkillOpt: Executive Strategy for Self-Evolving Agent Skills
+
+[Inspected version](https://arxiv.org/abs/2605.23904v2) · [Reading note](notes/2026-skillopt.md)
+
+**Inspection:** Full arXiv v2 PDF retrieved temporarily and inspected. Sections: §1 Introduction; §2 Related Work; §3 SkillOpt; §4 Experiments; §5 Conclusion; Appendix C protocol details.
+
+**Scope:** The exact inspected v2 is dated 2026-05-25, three months before WikiSkill v1 (2026-08-27); it contains no WikiSkill occurrence. Any SkillOpt-to-WikiSkill edge is chronologically impossible for this version and was removed.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Trace2Skill: Distill Trajectory-Local Lessons into Transferable Agent Skills](https://arxiv.org/abs/2603.25158) | tested baseline; direct predecessor | §1; §2 (Skill construction and evolution); §4 Baselines; Table 1; §4.1; §5: The authors compare against Trace2Skill across the aligned protocol and distinguish trajectory distillation from SkillOpt's bounded updates and held-out validation gate. | [primary methods/results and relevant appendices inspected](notes/2026-trace2skill.md) |
+| [EvoSkill: Automated Skill Discovery for Multi-Agent Systems](https://arxiv.org/abs/2603.02766) | tested baseline; direct predecessor | §1; §2; §4 Baselines; Table 1; §4.1; §5: The authors use EvoSkill as the harness-side skill-evolution competitor and contrast its failure-analysis loop with SkillOpt's edit budgets, rejected-edit memory, and validation gating. | [primary methods/results and relevant appendices inspected](notes/2026-evoskill.md) |
+| [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning](https://arxiv.org/abs/2507.19457) | tested baseline; prompt-evolution predecessor | §2; §4 Baselines; Table 1; §4.1; §5: The authors test GEPA as a Pareto reflective prompt optimizer and distinguish prompt evolution from optimization of a persistent procedural skill artifact. | [full text](notes/2025-gepa.md) |
+| [TextGrad: Automatic Differentiation via Text](https://arxiv.org/abs/2406.07496) | tested baseline; textual-optimization predecessor | §4 Baselines; Table 1; §4.1; §5: The authors test TextGrad as a gradient-style natural-language prompt optimizer and contrast it with training a persistent skill artifact. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-skillsbench"></a>
+
+## SkillsBench: Benchmarking How Well Agent Skills Work Across Diverse Tasks
+
+[Inspected version](https://arxiv.org/abs/2602.12670v4) · [Reading note](notes/2026-skillsbench.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: §7 Related Work, PDF pp.8–9; §2 skills definition; References.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Voyager: An Open-Ended Embodied Agent with Large Language Models](https://arxiv.org/abs/2305.16291) | foundation | §7 Procedural augmentation and tool use, PDF p.9: Prior reusable procedural augmentation. | [primary methods/results reviewed in notes/2023-voyager.md](notes/2023-voyager.md) |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366v4) | foundation | §7 Procedural augmentation and tool use, PDF p.9: Earlier multi-step reflection used to situate procedural guidance. | [primary methods/results read](notes/2023-reflexion.md) |
+| [Anthropic Agent Skills](https://www.anthropic.com/news/skills) | foundation | §7 Skills ecosystems and evaluation methodology, PDF p.9; Anthropic 2025a: Specification of the skill packages being evaluated. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-spontaneous-world-knowledge"></a>
+
+## Training LLM Agents for Spontaneous, Reward-Free Self-Evolution via World Knowledge Exploration
+
+[Inspected version](https://arxiv.org/abs/2604.18131v1) · [Reading note](notes/2026-spontaneous-world-knowledge.md)
+
+**Inspection:** full retained CC BY v1 PDF inspected Sections: Introduction; §2 Related Works; §3 Method; §4 Experiments; Conclusion.
+
+**Scope:** These are taxonomy/predecessor edges, not tested baselines. The experiment compares system variants and unassisted backbones.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models](https://arxiv.org/abs/2510.04618) | competing external-context method | PDF p. 2 §2.1 ref. [8]: ACE represents task/reward-driven context evolution, contrasted with unguided world exploration. | [full text](notes/2025-agentic-context-engineering.md) |
+| [ReasoningBank: Scaling Agent Self-Evolving with Reasoning Memory](https://arxiv.org/abs/2509.25140) | competing external-memory method | PDF p. 2 §2.1 ref. [13]: ReasoningBank represents retained task-conditioned experience. | [primary methods/results read; coordinator metadata and methods checked](notes/2025-reasoningbank.md) |
+| [SkillWeaver: Web Agents Can Self-Improve by Discovering and Honing Skills](https://arxiv.org/abs/2504.07079) | competing skill-learning method | PDF p. 2 §2.1 ref. [20]: SkillWeaver represents trajectory-driven skill-library expansion. | Bibliographic identity/context only; no substantive review in this pass |
+| [WebEvolver: Enhancing Web Agent Self-Improvement with Coevolving World Model](https://arxiv.org/abs/2504.21024) | direct web-agent predecessor | PDF p. 2 §2.1 ref. [24]: WebEvolver fine-tunes from task interactions; the seed contrasts this with external reward-free world knowledge. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="2026-trace2skill"></a>
+
+## Trace2Skill: Distill Trajectory-Local Lessons into Transferable Agent Skills
+
+[Inspected version](https://arxiv.org/abs/2603.25158v5) · [Reading note](notes/2026-trace2skill.md)
+
+**Inspection:** Full arXiv v5 PDF inspected locally. Sections: §1 Introduction; §2 Trace2Skill; §3 Experiments; §4 Analysis; §5 Related Work; Appendix G head-to-head comparison.
+
+**Scope:** The seed is v5 dated 2026-06-04. It can cite March 2026 EvoSkill and AutoSkill, but not August 2026 WikiSkill. The ReasoningBank comparison is a same-pool retrieval-style instantiation; full-system concurrent comparisons are relegated to Appendix G because of confounding.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [ReasoningBank: Scaling Agent Self-Evolving with Reasoning Memory](https://arxiv.org/abs/2509.25140) | tested baseline; competing memory reuse method | §1; §4.1 (Holistic Skill vs. Retrieval) and Table 5; §5: The authors instantiate ReasoningBank-style retrieval on the same trajectory pool and use it to contrast a single consolidated skill with retrieving isolated memories at inference. | [primary methods/results read; coordinator metadata and methods checked](notes/2025-reasoningbank.md) |
+| [EvoSkill: Automated Skill Discovery for Multi-Agent Systems](https://arxiv.org/abs/2603.02766) | concurrent method; reproduced baseline | §4.1 closing paragraph; §5; Appendix G and Fig. 7: The authors include EvoSkill among concurrent skill-evolution systems and reproduce it under a shared model and SpreadsheetBench slice in the appendix. | [primary methods/results and relevant appendices inspected](notes/2026-evoskill.md) |
+| [AutoSkill: Experience-Driven Lifelong Learning via Skill Self-Evolution](https://arxiv.org/abs/2603.01145) | concurrent skill-evolution method | §1 and §5 (Skill and Policy Evolution): The authors place AutoSkill in the closest concurrent line that evolves reusable skills from agent interaction, then distinguish Trace2Skill's static cross-model artifact. | Bibliographic identity/context only; no substantive review in this pass |
+| [Reflexion: Language Agents with Verbal Reinforcement Learning](https://arxiv.org/abs/2303.11366) | experience-memory foundation | §4.1 (Holistic Skill vs. Retrieval) and §5: The authors cite Reflexion as an early experience-memory approach that retains local reflections for retrieval, contrasting that pattern with many-to-one skill consolidation. | [primary methods/results read](notes/2023-reflexion.md) |
+| [Voyager: An Open-Ended Embodied Agent with Large Language Models](https://arxiv.org/abs/2305.16291) | experience and skill-library foundation | §4.1 (Holistic Skill vs. Retrieval) and §5: The authors include Voyager in the lineage of systems that store accumulated behaviors for later reuse, which Trace2Skill compresses into a portable skill directory. | [primary methods/results reviewed in notes/2023-voyager.md](notes/2023-voyager.md) |
+
+<a id="agentstream"></a>
+
+## AgentStream: How Well Do Self-Evolving LLM Agents Perform Under Streaming Tasks?
+
+[Inspected version](https://arxiv.org/abs/2608.00155v1) · [Reading note](notes/2026-agentstream.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: Introduction; Related Work; Experimental Settings: Self-Evolving Methods; References 4–11.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models](https://arxiv.org/abs/2510.04618) | baseline | §4 Self-Evolving Methods; Tables 1/5–6; ref. 4: Tested context-playbook method. | [full text](notes/2025-agentic-context-engineering.md) |
+| [A-MEM: Agentic Memory for LLM Agents](https://arxiv.org/abs/2502.12110) | baseline | §4 Self-Evolving Methods; Tables 1/5–6; ref. 6: Tested retrieval-based memory method. | [selected primary methods §§3.1–3.4, evaluation scope and §6 limitations read; citation contexts checked](notes/2025-a-mem.md) |
+| [ReasoningBank: Scaling Agent Self-Evolving with Reasoning Memory](https://arxiv.org/abs/2509.25140v2) | baseline | §4 Self-Evolving Methods; Tables 1/5–6; ref. 9: Tested reasoning-memory method. | [primary methods/results read; coordinator metadata and methods checked](notes/2025-reasoningbank.md) |
+| [AutoSkill: Experience-Driven Lifelong Learning via Skill Self-Evolution](https://arxiv.org/abs/2603.01145) | baseline | §4 Self-Evolving Methods; ref. 8: Tested reusable-skill method. | Bibliographic identity/context only; no substantive review in this pass |
+| [Harness Updating Is Not Harness Benefit: Disentangling Evolution Capabilities in Self-Evolving LLM Agents](https://arxiv.org/abs/2605.30621) | baseline | §4 Self-Evolving Methods; refs. 5/11: One of two sources for the tested Harness method. | Bibliographic identity/context only; no substantive review in this pass |
+| [Agentic Harness Engineering: Observability-Driven Automatic Evolution of Coding-Agent Harnesses](https://arxiv.org/abs/2604.25850) | baseline | §4 Self-Evolving Methods; refs. 5/11: The other source for the tested Harness method. | [primary full text: methods, Tables 1-3, Figures 3-4, limitations](notes/2026-agentic-harness-engineering.md) |
+
+<a id="evoharnessbench"></a>
+
+## EvoHarnessBench: Can Your Agents Keep Pace with an Evolving Harness?
+
+[Inspected version](https://arxiv.org/abs/2609.04280v2) · [Reading note](notes/2026-evoharnessbench.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: §2/Table 1, PDF p.3; Appendix A, PDF p.17; References.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [SkillsBench: Benchmarking How Well Agent Skills Work Across Diverse Tasks](https://arxiv.org/abs/2602.12670v4) | competing-method | §2/Table 1, PDF p.3: Static skill augmentation benchmark used to distinguish changing harnesses. | [primary methods/results and relevant appendices read; tier2/coordinator verified 2026-09-16](notes/2026-skillsbench.md) |
+| [SkillLearnBench: Benchmarking Continual Learning Methods for Agent Skill Generation on Real-World Tasks](https://arxiv.org/abs/2604.20087) | competing-method | Appendix A, PDF p.17; Zhong et al. bibliography p.15: Agent-generated skill growth differs from externally changing available capabilities. | Bibliographic identity/context only; no substantive review in this pass |
+| [AgentCL: Toward Rigorous Evaluation of Continual Learning in Language Agents](https://arxiv.org/abs/2606.02461) | competing-method | Appendix A, PDF p.17; Shu et al. bibliography p.14: Task-stream transfer and interference evaluation keeps the available harness fixed. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="harness-evolution-evaluation"></a>
+
+## Rethinking the Evaluation of Harness Evolution for Agents
+
+[Inspected version](https://arxiv.org/abs/2607.12227v2) · [Reading note](notes/2026-harness-evolution-evaluation.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: §2 Related Work, PDF p.2; §3/Figure 1; References.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning](https://arxiv.org/abs/2507.19457) | predecessor | §2 Automatic Harness Evolution, PDF p.2: Reflective prompt optimization is an earlier editable-surface approach. | [full text](notes/2025-gepa.md) |
+| [Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models](https://arxiv.org/abs/2510.04618) | predecessor | §2 Automatic Harness Evolution, PDF p.2; Zhang et al. 2025 bibliography entry: Context accumulation is distinguished from full-harness search. | [full text](notes/2025-agentic-context-engineering.md) |
+| [Agentic Harness Engineering: Observability-Driven Automatic Evolution of Coding-Agent Harnesses](https://arxiv.org/abs/2604.25850) | competing-method | §2 Automatic Harness Evolution, PDF p.2: Observability-driven whole-harness evolution motivates the evaluation critique. | [primary full text: methods, Tables 1-3, Figures 3-4, limitations](notes/2026-agentic-harness-engineering.md) |
+| [Meta-Harness: End-to-End Optimization of Model Harnesses](https://arxiv.org/abs/2603.28052) | competing-method | §2 Automatic Harness Evolution, PDF p.2; Lee et al. 2026 bibliography entry: Harness code search using prior candidates, scores, and traces. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="harnessdev"></a>
+
+## HarnessDev: Can LLMs Create and Evolve Their Own Agent Harness?
+
+[Inspected version](https://arxiv.org/abs/2609.01437v1) · [Reading note](notes/2026-harnessdev.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: §5 Related Work, PDF pp.14–15; References.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [HarnessOpt-Bench: Evaluating LLMs at Harness Optimization](https://arxiv.org/abs/2608.06301v1) | competing-method | §5 Agent benchmarks and harness development, PDF p.14; ref.47: Named closest concurrent benchmark to the Evolution phase. | primary abstract and metadata only; seed citation context where applicable |
+| [The Meta-Agent Challenge: Are Current Agents Capable of Autonomous Agent Development?](https://arxiv.org/abs/2606.04455v1) | competing-method | §5 Agent benchmarks and harness development, PDF p.14; ref.27: Named closest agent-construction evaluation to Creation. | primary abstract and metadata only; seed citation context where applicable |
+| [Automated Design of Agentic Systems](https://arxiv.org/abs/2408.08435v2) | predecessor | §5 Automated agent design and evolution, PDF p.15; ref.15: Earlier search over agent design. | [primary methods/results read; coordinator metadata and methods checked](notes/2024-automated-design-agentic-systems.md) |
+| [AFlow: Automating Agentic Workflow Generation](https://arxiv.org/abs/2410.10762v4) | predecessor | §5 Automated agent design and evolution, PDF p.15; ref.57: Earlier workflow search contrasted with evaluation of general-purpose developers. | [primary methods/results read; coordinator metadata and methods checked](notes/2024-aflow.md) |
+| [Rethinking the Evaluation of Harness Evolution for Agents](https://arxiv.org/abs/2607.12227v2) | limitation | §5 Evaluating harness evolution, PDF p.15; ref.50: Matched-budget critique motivates separating final gains from informed diagnosis. | [primary methods/results inspected](notes/2026-harness-evolution-evaluation.md) |
+
+<a id="hyperagents"></a>
+
+## Hyperagents
+
+[Inspected version](https://arxiv.org/abs/2603.19461v1) · [Reading note](notes/2026-hyperagents.md)
+
+**Inspection:** retained arXiv PDF v1; selected introduction, related work, method, baseline, and bibliography sections inspected Sections: §1; §2 Related Work; §3; §4.1 Baselines; References.
+
+**Scope:** The system starts from human-written task and meta-agents, and compounding evidence is bounded to reported domains and budgets.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents](https://arxiv.org/abs/2505.22954v3) | direct-predecessor | §1; §2; §3; §4.1 Baselines: Hyperagents replaces DGM's fixed instruction-generation mechanism with a modifiable meta-agent; original and manually customized DGM are baselines. | [primary full text: methods, results, transfer, cost appendix](notes/2025-darwin-godel-machine.md) |
+| [Gödel Machines: Self-Referential Universal Problem Solvers Making Provably Optimal Self-Improvements](https://doi.org/10.1007/978-3-540-68677-4_7) | foundation | §2, Self-improving AI; References: The Gödel machine is the formal historical example of provably beneficial self-rewriting, contrasted with empirical modifiable meta-agents. | [primary §§2.2/3.2/4.1–4.4 proof criterion and qualifications read; selected citation contexts checked](notes/2003-goedel-machines.md) |
+| [Automated Design of Agentic Systems](https://arxiv.org/abs/2408.08435v2) | tested-baseline | §4.1 Baselines: The fixed-meta-agent ablation is said to replicate ADAS in this setting, isolating improvement of the improvement process. | [primary methods/results read; coordinator metadata and methods checked](notes/2024-automated-design-agentic-systems.md) |
+
+<a id="library-drift"></a>
+
+## Library Drift: Diagnosing and Fixing a Silent Failure Mode in Self-Evolving LLM Skill Libraries
+
+[Inspected version](https://arxiv.org/abs/2605.19576v3) · [Reading note](notes/2026-library-drift.md)
+
+**Inspection:** Current-pass selected primary citation contexts and bibliography inspected; not a new full-paper empirical review. Sections: §2 Background and Related Work, PDF p.2; References, PDF pp.6–7.
+
+**Scope:** Selective prominent references, not an exhaustive bibliography. Cited findings are not verified by this edge audit.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Voyager: An Open-Ended Embodied Agent with Large Language Models](https://arxiv.org/abs/2305.16291) | predecessor | §2 Self-evolving skill libraries, PDF p.2: Ever-growing executable libraries motivate lifecycle management. | [primary methods/results reviewed in notes/2023-voyager.md](notes/2023-voyager.md) |
+| [ExpeL: LLM Agents Are Experiential Learners](https://arxiv.org/abs/2308.10144v3) | predecessor | §2 Self-evolving skill libraries, PDF p.2: Textual insight extraction contrasted with outcome-driven retirement. | [primary methods/results read; coordinator metadata and methods checked](notes/2023-expel.md) |
+| [Trace2Skill: Distill Trajectory-Local Lessons into Transferable Agent Skills](https://arxiv.org/abs/2603.25158v5) | competing-method | §2 Self-evolving skill libraries, PDF p.2: Concurrent trajectory-to-skill induction addresses a different part of the lifecycle. | [primary methods/results and relevant appendices inspected](notes/2026-trace2skill.md) |
+| [AutoSkill: Experience-Driven Lifelong Learning via Skill Self-Evolution](https://arxiv.org/abs/2603.01145) | competing-method | §2 Self-evolving skill libraries, PDF p.2; bibliography p.7: Versioned skills contrasted with retirement based on measured contribution. | Bibliographic identity/context only; no substantive review in this pass |
+
+<a id="metarsi"></a>
+
+## MetaRSI / RSI2: A Meta-Recursive Self-Improving System for Recursive Self-Improving Systems Themselves
+
+[Inspected version](https://arxiv.org/abs/2609.06396v2) · [Reading note](notes/2026-metarsi.md)
+
+**Inspection:** full retained CC BY v2 PDF inspected Sections: §2 Related Work; §4 Framework; §5 Protocol; §6 Results; §8 Limitations; Appendix Table 7.
+
+**Scope:** The 45-system taxonomy is author-coded and empirical accounting remains provisional; edges verify intellectual roles only.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [Self-Taught Optimizer (STOP): Recursively Self-Improving Code Generation](https://arxiv.org/abs/2310.02304) | recursive-optimizer predecessor | PDF p. 4 §2.2: STOP improves the program that improves programs on a code surface. | [full PDF methods, experiments, safety, and limitations](notes/2023-stop.md) |
+| [Automated Design of Agentic Systems](https://arxiv.org/abs/2408.08435) | scaffold-search predecessor | PDF p. 4 §2.2: ADAS represents agent-architecture search on the scaffold surface. | [primary methods/results read; coordinator metadata and methods checked](notes/2024-automated-design-agentic-systems.md) |
+| [AFlow: Automating Agentic Workflow Generation](https://arxiv.org/abs/2410.10762) | workflow-search predecessor | PDF p. 4 §2.2: AFlow represents graph/workflow search on the scaffold surface. | [primary methods/results read; coordinator metadata and methods checked](notes/2024-aflow.md) |
+| [Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents](https://arxiv.org/abs/2505.22954) | self-rewriting code predecessor | PDF p. 5 §2.2: DGM is empirical self-rewriting under selection, contrasted with typed cross-surface composition. | [primary full text: methods, results, transfer, cost appendix](notes/2025-darwin-godel-machine.md) |
+| [SIA: Self Improving AI with Harness & Weight Updates](https://arxiv.org/abs/2605.27276) | direct cross-surface predecessor | PDF p. 5 §2.2: SIA crosses harness and weight surfaces; MetaRSI claims evidence-driven ordering and scheduler improvement as the gap. | [Primary PDF: methods, all results, discussion, and limitations read; project/code not audited; experiments not reproduced.](notes/2026-sia.md) |
+
+<a id="sciencebuddy"></a>
+
+## ScienceBuddy: Recursive-in-Recursive Self-Improvement for Interactive Scientific Agents
+
+[Inspected version](https://arxiv.org/abs/2609.17523v1) · [Reading note](notes/2026-sciencebuddy.md)
+
+**Inspection:** full official v1 PDF inspected temporarily; paper not retained; MIT guides retained separately Sections: Introduction; §2 System; §3 Method; §4 Case Studies; §5 Related Work; §6 Conclusion.
+
+**Scope:** Posted 2026-09-15, within cutoff. Case studies are not broad comparative evaluations.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning](https://arxiv.org/abs/2507.19457) | persistent prompt-adaptation predecessor | PDF p. 17 §5: GEPA supplies trajectory-reflection-based prompt search. | [full text](notes/2025-gepa.md) |
+| [Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models](https://arxiv.org/abs/2510.04618) | persistent context-adaptation predecessor | PDF p. 17 §5: ACE supplies incrementally maintained contextual playbooks. | [full text](notes/2025-agentic-context-engineering.md) |
+| [Meta-Harness: End-to-End Optimization of Model Harnesses](https://arxiv.org/abs/2603.28052) | direct harness-optimization predecessor | PDF p. 17 §5: Meta-Harness searches harness code; ScienceBuddy adds a model-training recursion. | Bibliographic identity/context only; no substantive review in this pass |
+| [Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents](https://arxiv.org/abs/2505.22954) | recursive-improvement predecessor | PDF p. 17 §5: DGM evolves an archive of agents, contrasted with ScienceBuddy's nested harness/model dependency. | [primary full text: methods, results, transfer, cost appendix](notes/2025-darwin-godel-machine.md) |
+| [Self-Adapting Language Models](https://arxiv.org/abs/2506.10943) | parameter-adaptation predecessor | PDF p. 17 §5: SEAL generates data and update directives for parameter adaptation. | [full paper and appendices](notes/2025-self-adapting-language-models.md) |
+
+<a id="wikiskill"></a>
+
+## WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution
+
+[Inspected version](https://arxiv.org/abs/2608.27454v1) · [Reading note](notes/2026-wikiskill.md)
+
+**Inspection:** Full arXiv v1 PDF inspected locally. Sections: §1 Introduction; §3 Methodology; §4 Experiments; §5 Related Work; §6 Limitations.
+
+**Scope:** The three selected edges are both the prominently named predecessors and the directly reproduced skill-evolution baselines. WikiSkill postdates all three; no reverse edge should be inferred.
+
+| Prominent reference | Role in this paper | Locator and citation context | Cited-work reading status |
+| --- | --- | --- | --- |
+| [EvoSkill: Automated Skill Discovery for Multi-Agent Systems](https://arxiv.org/abs/2603.02766) | direct predecessor; tested baseline | §1; §4.1 Baselines; Table 1: The authors describe EvoSkill as maintaining proposal/evaluation history without a separate evolving knowledge representation and reproduce it as a skill-evolution baseline. | [primary methods/results and relevant appendices inspected](notes/2026-evoskill.md) |
+| [Trace2Skill: Distill Trajectory-Local Lessons into Transferable Agent Skills](https://arxiv.org/abs/2603.25158) | direct predecessor; tested baseline | §1; §4.1 Baselines; Table 1: The authors characterize Trace2Skill as consolidating trajectory lessons into skill updates without a persistent knowledge layer and reproduce it as a baseline. | [primary methods/results and relevant appendices inspected](notes/2026-trace2skill.md) |
+| [SkillOpt: Executive Strategy for Self-Evolving Agent Skills](https://arxiv.org/abs/2605.23904) | direct predecessor; tested baseline | §1; §4.1 Baselines; Table 1: The authors describe SkillOpt's rejected-edit feedback and epoch-wise meta guidance as skill-evolution state that remains separate from an explicit knowledge representation, then reproduce it as a baseline. | [primary methods/results and relevant appendices inspected](notes/2026-skillopt.md) |
+
+## Limits and exclusions
+
+- The 55 paper families span the original 51 reviewed papers plus Dynamic Cheatsheet, A-MEM, SICA, and Gödel Machines. Five other reviewed families are Shopify, autoresearch, Reef, NemoClaw, and SoL-Pi; their first-party notes remain in the 60-family evidence base.
+- Each list selects argument-relevant citation contexts from the inspected version; absence from the list is not proof that the paper never cites a work. Independent keyword/practitioner discovery is preserved in prior search records.
+- Named predecessors, actual baselines, and conceptual foundations are different roles. A cited method is not labeled an experimental comparator unless the inspected source supports that role.
+- Counts reflect this bounded selection, not all incoming citations in the literature. Independence of author groups has not been comprehensively assessed; repeated citations do not establish empirical confirmation.
+- Raw low-cost worker proposals contained false titles, impossible chronology and inferred edges. The published worker reports and this merged map replace those proposals with primary-context inspections; see workers/prominent-citations-quality.md.
+- Inspection paths in the structured file identify temporary extraction provenance and may not exist on another machine. Exact primary-version URLs and retained originals remain the portable sources. No restricted PDFs or temporary text dumps are stored here.
+- The preparation cutoff is unchanged. This is a selected backward-citation audit and thesis repair, not a fresh field-wide search or proof of saturation. Four consequential leads received bounded mechanism/theory review; other cited leads retain their recorded access limits.

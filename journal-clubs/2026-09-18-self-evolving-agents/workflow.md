@@ -2,7 +2,17 @@
 
 **Updated September 16, 2026. Stage: revised analysis complete; existing HTML presentation requires reconciliation.** The user requested presentation development, then specified HTML instead of PowerPoint and requested that preference in the presentation skill. Materials remain local. Subsequent research changes should be reconciled before presenting.
 
-## Current analysis revision — September 16, 2026
+## Current citation-coverage repair — September 16, 2026
+
+Completed the per-paper citation lists and applied them to the analysis. The [citation map](research/prominent-citations.md) contains 55 reviewed papers, 207 context-verified edges, and 107 cited families. Each paper note links to its own list. The [coverage audit](research/thesis-coverage.md) records inclusion and exclusion decisions against the final essay. Current totals: 154 source records, 60 reviewed evidence families, 59 notes, 36 directly cited essay families; the ten-resource shortlist is unchanged.
+
+Restored the missing mechanism lineage and meaningful comparisons: Reflexion/Voyager, the WikiSkill skill-learning comparators, Dynamic Cheatsheet/ACE/A-MEM, AFlow, SICA/DGM/Gödel Machines, and AlphaEvolve/EvoX. Corrected the WikiSkill improvement to distinguish its no-skill baseline from the stronger EvoSkill comparator. Four previously uncovered sources received bounded mechanism/theory review; no new performance results are inferred from bibliography inspection.
+
+Updated the research and analysis skills in place. Research now records versioned, role-labeled citation contexts and aggregates distinct families; analysis reconciles them after condensation. Repeated citations trigger review, not automatic inclusion. The renderer checks identities, required provenance, duplicates, and stale output. Source-specific limits remain in the notes and register. Presentation reconciliation remains pending; this analysis pass preserves the existing deck.
+
+Validation: both skills passed their validators; 814 relative links resolved; the map rebuild check, identity/duplicate checks, 154 unique source keys, 59 note files, 36 essay citation URLs, and both new PDF readability checks passed. WikiSkill Table 1 was visually inspected. No experiments were reproduced.
+
+## Earlier condensed analysis revision — September 16, 2026
 
 Completed the user-requested skill improvement and applied it to the thesis. The essay now develops WikiSkill's rejected-edit/retained-knowledge mechanism before testing future-task value, durability, and improvement-method transfer. It replaces method enumeration with a connected argument, retaining decisive positive evidence, competing explanations, and limitations. Research breadth remains 56 reviewed families; 22 are cited in prose. The coverage audit records all source dispositions and the claim ledger maps the new sections. The earlier expansion below is historical provenance, not a current citation-count requirement.
 

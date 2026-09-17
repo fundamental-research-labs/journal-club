@@ -41,3 +41,5 @@ More direct evidence about improving the improver than editing skills alone. Fin
 ## Discussion and follow-up
 
 Figures 3–4: transferred improvement process versus ordinary task warm-start.
+
+[Prominent citations and their roles](../prominent-citations.md#hyperagents)

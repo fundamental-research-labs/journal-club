@@ -70,3 +70,5 @@ The most defensible use is to turn “does this recursively improve?” into emp
 ### Useful figures
 
 Figures 2 and 4 for the core loop and narrow/broad split; Figure 5 for component bottlenecks and temporary spurts; the §3 data-ask tables for a discussion of what labs would need to publish.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-economics-rsi)

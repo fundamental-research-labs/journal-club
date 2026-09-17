@@ -89,3 +89,5 @@ Promote from unreviewed lead to **reviewed reserve**. It fills autonomous enviro
 ### Useful visuals
 
 Figure 2 for environment/task construction; Figure 5 for the arena loop; Table 1 for broad evaluation. Avoid Figure 8 as a clean scaling law because training data and compute are not controlled.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-agent-world)

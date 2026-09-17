@@ -29,3 +29,9 @@ Useful controlled positive evidence with regressions. Small validation sets risk
 ## Discussion and follow-up
 
 Figure 2; Tables 1, 3, 6. Should an unvalidated wiki persist when a skill is rejected?
+
+## Comparator clarification — September 16, 2026
+
+Reopened retained v1 §1, §4.1, Table 1 and Appendix D.1. The direct comparators are EvoSkill, Trace2Skill, and SkillOpt. For Qwen-3.5-9B, Table 1 reports macro accuracy 29.9 without skills, 42.3 for EvoSkill (strongest competing method for this model), and 47.4 for WikiSkill: +17.5 percentage points versus no skills, +5.1 versus EvoSkill. These whole-method comparisons do not isolate the wiki component. SkillOpt already retains rejected-edit feedback; WikiSkill’s proposed distinction is its separately maintained knowledge representation, not the first use of failed attempts. [Primary v1](https://arxiv.org/abs/2608.27454v1).
+
+[Prominent citations and their roles](../prominent-citations.md#wikiskill)

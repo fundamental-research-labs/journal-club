@@ -21,3 +21,5 @@ Coordinator: important direct baseline, with useful transfer and optimizer ablat
 How much does bounded editing add beyond a validation gate? Does a persistent skill retain value under a new task distribution and a matched lifetime token budget?
 
 Results above are author-reported; appraisal is coordinator interpretation. No experiments reproduced. [Screening detail](../workers/citation-screening-skills.md).
+
+[Prominent citations and their roles](../prominent-citations.md#2026-skillopt)

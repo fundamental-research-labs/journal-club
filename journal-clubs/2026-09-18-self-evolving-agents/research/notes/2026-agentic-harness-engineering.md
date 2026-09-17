@@ -29,3 +29,5 @@ One evolution campaign, no repeated-run interval, repeated selection on the same
 ## Discussion and follow-up
 
 Would the evolved components remain useful on unseen repositories under a matched total budget?
+
+[Prominent citations and their roles](../prominent-citations.md#2026-agentic-harness-engineering)

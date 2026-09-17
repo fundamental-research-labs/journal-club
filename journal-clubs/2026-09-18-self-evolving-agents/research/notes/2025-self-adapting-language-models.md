@@ -54,3 +54,5 @@ This is strong teaching evidence that model-generated data can be optimized for 
 ## Discussion and follow-up
 
 How should a self-edit be evaluated jointly for new-task benefit and retention of previously learned knowledge?
+
+[Prominent citations and their roles](../prominent-citations.md#2025-self-adapting-language-models)

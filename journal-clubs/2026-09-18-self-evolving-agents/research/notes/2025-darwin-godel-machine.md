@@ -6,7 +6,7 @@
 
 **Originals and source links:** [register](../sources.md#2025-darwin-godel-machine); [canonical source](https://arxiv.org/abs/2505.22954). Retained unmodified: [2025-darwin-godel-machine-paper-v3.pdf](../originals/2025-darwin-godel-machine/2025-darwin-godel-machine-paper-v3.pdf). Paper license: http://creativecommons.org/licenses/by/4.0/. [Manifest](../originals/manifest.json).
 
-**Source/key:** `2025-darwin-godel-machine` — Jenny Zhang et al., *Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents*. [arXiv](https://arxiv.org/abs/2505.22954), [versioned PDF](https://arxiv.org/pdf/2505.22954v3), [first-party Sakana project article](https://sakana.ai/dgm/). First submitted 2025-05-29; latest and read version **v3, 2026-03-12**, verified from the arXiv submission history and the PDF stamp `arXiv:2505.22954v3 [cs.AI] 12 Mar 2026`; ICLR 2026. Read 2026-09-16: §§3–6, Figures 2–4, Appendices C–E. Temporary PDF inspected; no paper copy retained because its reuse license was not verified. [Code](https://github.com/jennyzzt/dgm) is Apache-2.0.
+**Source/key:** `2025-darwin-godel-machine` — Jenny Zhang et al., *Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents*. [arXiv](https://arxiv.org/abs/2505.22954), [versioned PDF](https://arxiv.org/pdf/2505.22954v3), [first-party Sakana project article](https://sakana.ai/dgm/). First submitted 2025-05-29; latest and read version **v3, 2026-03-12**, verified from the arXiv submission history and the PDF stamp `arXiv:2505.22954v3 [cs.AI] 12 Mar 2026`; ICLR 2026. Read 2026-09-16: §§3–6, Figures 2–4, Appendices C–E. The inspected v3 PDF is retained under CC BY 4.0, as recorded in the acquisition manifest above. [Code](https://github.com/jennyzzt/dgm) is Apache-2.0.
 
 ## Question and methods
 
@@ -35,3 +35,5 @@ Single search runs, adaptive repeated exposure to fixed task subsets, stochastic
 ## Discussion and follow-up
 
 How would held-out task families and a fixed lifetime budget change selection among evolved agents?
+
+[Prominent citations and their roles](../prominent-citations.md#2025-darwin-godel-machine)

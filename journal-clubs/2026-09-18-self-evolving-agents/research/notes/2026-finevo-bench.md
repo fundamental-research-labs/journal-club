@@ -64,3 +64,5 @@ Strengths: matched reset controls, common backbone, three independent permutatio
 ### Candidate figures
 
 Table 3 with paired gain and cost, plus a simple diagram of the stateful/reset stream. Avoid implying that the skill-only ordering generalizes beyond Claude Code and this benchmark.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-finevo-bench)

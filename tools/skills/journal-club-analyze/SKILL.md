@@ -30,6 +30,14 @@ scope; do not create an authoritative thesis from titles or abstracts alone.
 
 ## Build and challenge interpretations
 
+Read the [prominent-citation coverage check](../journal-club-research/references/prominent-citations.md)
+and the session's per-source lists and aggregate. Before choosing anchors, review
+recurring substantive citations, each anchor's direct predecessors and decisive
+baselines, and the strongest challenges. Existing corpus coverage does not establish
+essay coverage. If the lists are missing, build them for consequential sources within
+scope and record remaining gaps; do not silently equate missing edges with no relevant
+prior work. Read cited originals before adding substantive findings.
+
 Group evidence by research question, mechanism, and tradeoff. Compare like with like:
 check task, dataset, split, metric definition, baseline, sample size, model version,
 and resource budget before comparing results. Do not create pooled numbers or
@@ -136,6 +144,12 @@ A concise thesis can rest on broad research. Remove repetitive examples, not
 consequential counterevidence; reopen research when a substantive gap could change
 the conclusion. Integrate sources where they do argumentative work, without
 padding or counting companion artifacts as independent evidence.
+Reconcile prominent citations against the final prose after every material rewrite
+or condensation. Record where consequential works do explanatory work, or a specific
+reason and representative source for omitting them. Generic “additional comparator”
+or shortlist rank is insufficient. Check that the reader can explain what each
+anchor inherits, what it adds, and what its main comparison establishes. Keep these
+checks in supporting records rather than turning the essay into a citation inventory.
 If no thesis-driven audit exists, queue one; perform it when authorized by the request.
 
 Send missing evidence, conflicting results, or uncertain provenance back to research

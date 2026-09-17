@@ -80,3 +80,5 @@ Escher-Loop is the strongest new empirical example in this batch of changing the
 ### Useful figures
 
 Figure 1 for the two populations and feedback; Table 1 for the mechanism audit. Pair any Figure 2 peak-performance slide with the fixed-instance and best-of-search qualifications.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-escher-loop)

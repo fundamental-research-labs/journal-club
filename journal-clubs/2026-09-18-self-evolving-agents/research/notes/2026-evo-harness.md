@@ -29,3 +29,5 @@ Main results are sequential online streams, so adaptation and later evaluation s
 ## Discussion and follow-up
 
 How much of the gain survives replacing oracle feedback with self-generated feedback on held-out tasks?
+
+[Prominent citations and their roles](../prominent-citations.md#2026-evo-harness)

@@ -37,3 +37,5 @@ The separation of frozen weights and plastic memory makes the mechanism easy to 
 ### Useful discussion/figure
 
 Tables 1–3 support a stability/plasticity discussion: should memory retain a successful but semantically distant failure lesson, and how would one assign its credit?
+
+[Prominent citations and their roles](../prominent-citations.md#2026-memrl)

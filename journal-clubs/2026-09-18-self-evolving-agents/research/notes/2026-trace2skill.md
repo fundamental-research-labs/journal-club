@@ -21,3 +21,5 @@ Coordinator: valuable transfer companion to WikiSkill, with explicit task/model 
 When should success versus failure traces be trusted? How should patch selection balance validation expense, negative transfer, and independence of final evaluation?
 
 Results above are author-reported; appraisal is coordinator interpretation. No experiments reproduced. [Screening detail](../workers/citation-screening-skills.md).
+
+[Prominent citations and their roles](../prominent-citations.md#2026-trace2skill)

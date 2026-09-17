@@ -47,3 +47,5 @@ A useful factorial evaluation, not a causal demonstration that model scale deter
 ## Discussion and follow-up
 
 Table 1 and per-seed Tables 11–13. Can retained experience improve one domain while hurting another?
+
+[Prominent citations and their roles](../prominent-citations.md#agentstream)

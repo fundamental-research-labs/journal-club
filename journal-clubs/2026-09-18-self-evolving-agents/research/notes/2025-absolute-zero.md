@@ -51,3 +51,5 @@ AZR is a high-value case study of autonomous curriculum generation, not a demons
 ## Discussion and follow-up
 
 When does an executable verifier provide genuinely new learning signal, and when does it merely reinforce the pretrained model’s existing coverage?
+
+[Prominent citations and their roles](../prominent-citations.md#2025-absolute-zero)

@@ -21,3 +21,5 @@ Coordinator: substantive experience-reuse evidence, with heterogeneous leaderboa
 Which improvement comes from memory, which from search scheduling, and which from backbone capability? What would a same-model, same-resource, cross-task reset control show?
 
 Results above are author-reported; appraisal is coordinator interpretation. No experiments reproduced. [Screening detail](../workers/citation-screening-meta.md).
+
+[Prominent citations and their roles](../prominent-citations.md#2026-mlevolve)

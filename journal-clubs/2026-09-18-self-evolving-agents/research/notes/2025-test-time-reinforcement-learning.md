@@ -51,3 +51,5 @@ TTRL is strong evidence that repeated sampling plus RL can exploit an unlabeled 
 ## Discussion and follow-up
 
 What evidence would distinguish adaptation to a fixed test batch from learning that transfers to future unseen inputs?
+
+[Prominent citations and their roles](../prominent-citations.md#2025-test-time-reinforcement-learning)

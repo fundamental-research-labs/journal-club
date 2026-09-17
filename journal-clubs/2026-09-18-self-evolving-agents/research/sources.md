@@ -1,17 +1,17 @@
 # Source register
 
-**Research cutoff and access date: September 16, 2026.** The [ranked ten](shortlist.md) are the reading priorities; the [landscape](landscape.md) organizes the topic. This register preserves 153 candidate/resource records, including companions, excluded leads, and metadata-only watchlist items. It is not a claim that all 151 were fully read. There are 55 substantive note files, with exact reading depth recorded individually.
+**Research cutoff and access date: September 16, 2026.** The [ranked ten](shortlist.md) are the reading priorities; the [landscape](landscape.md) organizes the topic. This register preserves 154 candidate/resource records, including companions, excluded leads, and metadata-only watchlist items. It is not a claim that all records were fully read. There are 59 substantive note files, with exact reading depth recorded individually.
 
 The structured [sources.json](sources.json) contains the same records with complete author lists, metadata histories where checked, screening provenance, rubric reasons, and acquisition records. Primary metadata was checked against current arXiv records for 85 modern-ID sources, plus STOP separately; one requested arXiv metadata response failed. Version **read** and latest **available** metadata are separate: a newly observed version is not silently treated as read.
 
-The [thesis-driven coverage audit](thesis-coverage.md) maps 56 references actually used in the argument. The ten reading priorities do not cap the evidence base.
+The [thesis-driven coverage audit](thesis-coverage.md) maps the 60 reviewed evidence families and distinguishes the 36 directly cited in the essay. The ten reading priorities do not cap the evidence base. The [prominent-citation map](prominent-citations.md) exposes per-paper predecessors and baselines; unreviewed cited leads remain distinct from this evidence base.
 
 ## Status and scope
 
 - **Shortlist (10):** selected for the topic-wide reading set, with primary substantive notes.
-- **Reviewed reserve (46):** substantive reading, useful alternatives or challenge companions.
-- **Screened reserve (21):** screened sufficiently to retain as a lead; depth varies and a standalone note may be absent.
-- **Watchlist (63):** incomplete/abstract/metadata-level support; not evidence for an empirical claim.
+- **Reviewed reserve (50):** substantive reading, useful alternatives or challenge companions.
+- **Screened reserve (20):** screened sufficiently to retain as a lead; depth varies and a standalone note may be absent.
+- **Watchlist (61):** incomplete/abstract/metadata-level support; not evidence for an empirical claim.
 - **Companion (3):** related project or institutional communication; not independent replication.
 - **Excluded (10):** retained for traceability, including unverified or redundant leads.
 
@@ -431,13 +431,12 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 <a id="2025-self-improving-coding-agent"></a>
 
-### [A Self-Improving Coding Agent](https://arxiv.org/abs/2504.15228)
+### [A Self-Improving Coding Agent](https://arxiv.org/abs/2504.15228v2)
 
 - **Key / type / family:** `2025-self-improving-coding-agent`; preprint/workshop paper and code; `2025-self-improving-coding-agent`. **Authors:** Robeyns, Maxime, Szummer, Martin, Aitchison, Laurence.
-- **Dates / version:** first 2025-04-21; latest metadata 2025-05-16; read/inspected v2 metadata checked; full version not read. **Access:** 2026-09-16; existing corpus sections-read status; not newly reread.
-- **Selection:** screened-reserve; rubric H / M / M / H / M. Clean minimal single-lineage ancestor and control, but substantially covered by DGM/HGM. **Notes:** no standalone substantive note.
-- **Original:** not acquired: screening/navigation lead; not needed for selected evidence. License/permission: http://creativecommons.org/licenses/by/4.0/. [Download/source location](https://arxiv.org/pdf/2504.15228).
-- **Relationship:** DGM/SICA/HGM/Hyperagents: related methods; distinct experiments, not independent replications.
+- **Dates / version:** first 2025-04-21; revision 2025-05-16; read v2. **Access:** 2026-09-16; primary §3/Algorithm 1 and §§5.1–6 mechanism/limitations read; selected citation contexts checked.
+- **Selection:** reviewed-reserve. Direct DGM comparator: best-agent archive expansion versus broader stepping-stone search. **Notes:** [reading record](notes/2025-self-improving-coding-agent.md).
+- **Originals:** saved. License/permission: CC BY 4.0. [Original PDF](originals/2025-self-improving-coding-agent/2025-self-improving-coding-agent-paper-v2.pdf).
 
 <a id="2024-aflow"></a>
 
@@ -668,12 +667,12 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 <a id="2025-a-mem"></a>
 
-### [A-MEM: Agentic Memory for LLM Agents](https://arxiv.org/abs/2502.12110)
+### [A-MEM: Agentic Memory for LLM Agents](https://arxiv.org/abs/2502.12110v11)
 
-- **Key / type / family:** `2025-a-mem`; peer-reviewed conference paper; `2025-a-mem`. **Authors:** Xu, Wujiang, Liang, Zujie, Mei, Kai et al..
-- **Dates / version:** first 2025-02-17; latest metadata 2025-10-08; read/inspected conference version. **Access:** 2026-09-16; abstract/metadata only in this run.
-- **Selection:** watchlist; rubric M / U / M / M / H. Older peer-reviewed foundation; full methods audit required for quantitative claims. **Notes:** no standalone substantive note.
-- **Original:** not acquired: screening/navigation lead; not needed for selected evidence. License/permission: http://arxiv.org/licenses/nonexclusive-distrib/1.0/. [Download/source location](https://papers.neurips.cc/paper_files/paper/2025/file/19909c36f51abc4856b4560aff3d36d6-Paper-Conference.pdf).
+- **Key / type / family:** `2025-a-mem`; peer-reviewed conference paper; `2025-a-mem`. **Authors:** Xu, Wujiang, Liang, Zujie, Mei, Kai, Gao, Hang, Tan, Juntao, Zhang, Yongfeng.
+- **Dates / version:** first 2025-02-17; revision 2025-10-08; read arXiv v11 read; NeurIPS 2025. **Access:** 2026-09-16; selected primary methods §§3.1–3.4, evaluation scope and §6 limitations read; citation contexts checked.
+- **Selection:** reviewed-reserve. Linked-note memory explains retrieval-based alternative to ACE and an actual AgentStream comparator; no new numerical claim. **Notes:** [reading record](notes/2025-a-mem.md).
+- **Originals:** retention-restricted; arXiv non-exclusive license; temporary v11 PDF inspected. License/permission: http://arxiv.org/licenses/nonexclusive-distrib/1.0/.
 
 <a id="2025-agent0"></a>
 
@@ -875,12 +874,12 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 <a id="2003-goedel-machines"></a>
 
-### [Goedel Machines: Self-Referential Universal Problem Solvers Making Provably Optimal Self-Improvements](https://arxiv.org/abs/cs/0309048)
+### [Goedel Machines: Self-Referential Universal Problem Solvers Making Provably Optimal Self-Improvements](https://arxiv.org/abs/cs/0309048v5)
 
 - **Key / type / family:** `2003-goedel-machines`; technical report and theoretical preprint; `2003-goedel-machines`. **Authors:** Jürgen Schmidhuber.
-- **Dates / version:** first 2003; latest metadata not yet verified; read/inspected arXiv cs/0309048. **Access:** 2026-09-16; metadata and author primary page; conceptual reserve.
-- **Selection:** watchlist; rubric M / U / M / H / M. Conceptual antecedent only; no LLM-agent experiment or practical benchmark evidence. **Notes:** [reading record](notes/2023-stop.md).
-- **Original:** not acquired: author-page/metadata conceptual background, not a full empirical reading. License/permission: author PDF access; redistribution permission not verified. [Download/source location](https://people.idsia.ch/~juergen/gmweb1/).
+- **Dates / version:** first 2003-09-25; revision 2006-12-17; read v5. **Access:** 2026-09-16; primary §§2.2/3.2/4.1–4.4 proof criterion and qualifications read; selected citation contexts checked.
+- **Selection:** reviewed-reserve. Formal proof-gated foundation clarifies which guarantee empirical DGM does not inherit. **Notes:** [reading record](notes/2003-goedel-machines.md).
+- **Originals:** retention-restricted; temporary versioned PDF inspected. License/permission: arXiv assumed non-exclusive distribution license.
 
 <a id="2026-hyperstruck-learning-failures"></a>
 
@@ -1421,3 +1420,12 @@ These newly discovered older works supplement the existing ten. Five received su
 - **Dates / version:** first 2023-08-20; latest metadata 2024-12-20; read v3. **Access:** 2026-09-16; primary methods/results read; coordinator metadata and methods checked.
 - **Selection:** reviewed-reserve; rubric H / M / M / H / H. Thesis foundation: cross-task insight and episodic retrieval predate newer memory systems. **Notes:** [reading record](notes/2023-expel.md).
 - **Originals:** [2023-expel-paper-v3.pdf](originals/2023-expel/2023-expel-paper-v3.pdf) License/permission: CC BY 4.0. Metadata and preparation costs remain source-specific.
+
+<a id="2025-dynamic-cheatsheet"></a>
+
+### [Dynamic Cheatsheet: Test-Time Learning with Adaptive Memory](https://arxiv.org/abs/2504.07952v1)
+
+- **Key / type / family:** `2025-dynamic-cheatsheet`; arXiv preprint; `2025-dynamic-cheatsheet`. **Authors:** Mirac Suzgun, Mert Yuksekgonul, Federico Bianchi, Dan Jurafsky, James Zou.
+- **Dates / version:** first 2025-04-10; revision 2025-04-10; read v1. **Access:** 2026-09-16; selected primary methods §§2.1–2.3, evaluation setup and §§4.5–5 limitations read; citation contexts checked.
+- **Selection:** reviewed-reserve. ACE explicitly credits Dynamic Cheatsheet as architectural inspiration and tests it as an online baseline. **Notes:** [reading record](notes/2025-dynamic-cheatsheet.md).
+- **Originals:** saved. License/permission: CC BY 4.0. [Original PDF](originals/2025-dynamic-cheatsheet/2025-dynamic-cheatsheet-paper-v1.pdf).

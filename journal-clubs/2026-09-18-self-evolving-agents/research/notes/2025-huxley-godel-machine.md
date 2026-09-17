@@ -29,3 +29,5 @@ One run per method and no uncertainty intervals. HGM changes both parent selecti
 ## Discussion and follow-up
 
 Does a better parent-selection score still help when total compute and execution scheduling are matched?
+
+[Prominent citations and their roles](../prominent-citations.md#2025-huxley-godel-machine)

@@ -151,13 +151,21 @@ Discovery-only entries need no empty reading-note files.
 
 ### Mine recent papers for important prior work
 
+Maintain per-source prominent-citation lists throughout substantive reading, not
+only during a one-off discovery pass. Follow [the citation coverage check](references/prominent-citations.md)
+for edge provenance, aggregation across sources, and reconciliation with the final
+thesis. Recent seeds prioritize discovery; they do not replace lists for older
+reviewed anchors and relevant competing approaches.
+
 Use several of the most recent relevant primary papers as seeds, spanning competing
 approaches and author groups. Verify first-publication and version dates; a recent
 revision alone does not make a paper a fresh seed. On updates, reuse the corpus and
 target missing citation coverage rather than restarting broad discovery.
 
-Assign disjoint seed sets to inexpensive discovery agents in parallel with each
-other and keyword-search lanes. Read the seeds' introductions and related-work
+Assign disjoint seed sets in parallel with each other and keyword-search lanes.
+Citation-context extraction is substantive reading: use the screening tier for
+that work; inexpensive discovery workers can locate seed sections and bibliography
+leads. Read the seeds' introductions and related-work
 sections, then resolve their bibliography entries. Prioritize works the authors
 highlight as foundations, direct predecessors, strong baselines, competing methods,
 or important limitations; do not merely copy entire reference lists. Give each lane
@@ -169,7 +177,8 @@ paragraph or page locator, cited work's title/canonical URL, its role in the see
 argument, and the existing source key or proposed new candidate. Attribute the
 characterization to the seed authors. Check the cited primary source's metadata and
 record access depth; a seed's summary does not verify the cited work's findings.
-Keep an auditable edge table in the lane report and link it from the search log.
+Keep an auditable edge table in the lane report, merge verified edges into the
+per-source citation record, and link it from the search log and reading notes.
 
 Merge and deduplicate against all existing families before screening. Record both
 new discoveries and important already-covered works, so the pass demonstrates
@@ -261,6 +270,9 @@ results, strengths, limitations, and exact result locators. Preserve sample size
 units, denominators, uncertainty, baselines, and compute or cost where relevant.
 Distinguish author claims from measurements and your interpretation. Use “not
 reported” for missing information; never fill gaps with plausible numbers.
+
+Record its prominent citations with roles and locators using the linked coverage
+check. Track cited-source reading depth separately from verification of an edge.
 
 Judge evidence by how well it supports a particular claim: controls, measurement
 validity, comparison fairness, uncertainty, contamination, independence, replication,

@@ -37,3 +37,5 @@ The shared harness and explicit cost columns make this a strong BEAM comparison.
 ### Useful discussion/figure
 
 Pair Table 1 with Figure 4: a flexible memory environment improves the benchmark, yet more optimization iterations do not monotonically improve the held-out score.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-selfmem)

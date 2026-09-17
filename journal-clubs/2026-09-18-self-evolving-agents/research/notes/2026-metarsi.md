@@ -41,3 +41,5 @@ Tables 1–3; audit splits, budget ledgers, and multi-term controls before a str
 ### Status of open question
 
 Not resolved by an inspectable empirical ledger. Cite matching as the authors' stated protocol; do not call it independently verified compute parity. Five outer seeds do not repair unspecified split membership or unreported intervals. The claim that composition causally dominates individual operators remains provisional.
+
+[Prominent citations and their roles](../prominent-citations.md#metarsi)

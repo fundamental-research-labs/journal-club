@@ -29,3 +29,5 @@ Proprietary infrastructure and incomplete budgets impede reproduction. Many indu
 ## Discussion and follow-up
 
 Which discoveries depend on a faithful automatic evaluator, and how far can that evaluation model extend?
+
+[Prominent citations and their roles](../prominent-citations.md#2025-alphaevolve)

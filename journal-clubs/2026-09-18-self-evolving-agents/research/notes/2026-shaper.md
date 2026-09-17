@@ -62,3 +62,5 @@ Limits: one optimization result can benefit from stochastic selection on a fixed
 ### Candidate figures
 
 Redraw the two-stage skill/harness update boundary and use the four VLABench cells to show where gains transfer. Pair aggregate improvement with the ESI category regressions.
+
+[Prominent citations and their roles](../prominent-citations.md#2026-shaper)

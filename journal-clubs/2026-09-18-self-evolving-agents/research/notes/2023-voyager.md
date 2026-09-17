@@ -6,7 +6,9 @@
 
 **Originals and source links:** [register](../sources.md#2023-voyager); [canonical source](https://arxiv.org/abs/2305.16291). retention-restricted. [Manifest](../originals/manifest.json).
 
-**Source:** Guanzhi Wang, Yuqi Xie, Yunfan Jiang, Ajay Mandlekar, Chaowei Xiao, Yuke Zhu, Linxi “Jim” Fan, Anima Anandkumar, “Voyager: An Open-Ended Embodied Agent with Large Language Models,” arXiv:2305.16291, 2023, [canonical record](https://arxiv.org/abs/2305.16291), [full HTML](https://arxiv.org/html/2305.16291), [PDF](https://arxiv.org/pdf/2305.16291), [project](https://voyager.minedojo.org). Accessed 16 September 2026; full HTML methods, experiments, ablations, and limitations reviewed. The arXiv HTML page exposes a CC BY 4.0 license link; repository/code license should be verified before retaining copies.
+**Version rechecked for citation audit:** v2, October 19, 2023, [versioned HTML](https://arxiv.org/html/2305.16291v2); selected method/transfer sections reopened September 16, 2026.
+
+**Source:** Guanzhi Wang, Yuqi Xie, Yunfan Jiang, Ajay Mandlekar, Chaowei Xiao, Yuke Zhu, Linxi “Jim” Fan, Anima Anandkumar, “Voyager: An Open-Ended Embodied Agent with Large Language Models,” arXiv:2305.16291, 2023, [canonical record](https://arxiv.org/abs/2305.16291), [full HTML](https://arxiv.org/html/2305.16291), [PDF](https://arxiv.org/pdf/2305.16291), [project](https://voyager.minedojo.org). Accessed 16 September 2026; full HTML methods, experiments, ablations, and limitations reviewed. The rechecked v2 HTML identifies the arXiv perpetual non-exclusive license; no paper copy is retained under the session’s redistribution rule. The prior CC BY statement was incorrect. Repository/code licensing is separate.
 
 ## Question and methods
 
@@ -35,3 +37,5 @@ The authors report significant GPT-4 API cost, occasional stuck skill generation
 ## Discussion and follow-up
 
 Which control would separate reusable skill learning from the benefit of additional GPT-4 calls?
+
+[Prominent citations and their roles](../prominent-citations.md#2023-voyager)

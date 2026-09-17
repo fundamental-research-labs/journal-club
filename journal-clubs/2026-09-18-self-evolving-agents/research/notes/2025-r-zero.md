@@ -54,3 +54,5 @@ R-Zero is useful because it exposes both the promise and instability of self-gen
 ## Discussion and follow-up
 
 What stopping or validation rule would detect curriculum deterioration before benchmark performance falls?
+
+[Prominent citations and their roles](../prominent-citations.md#2025-r-zero)
