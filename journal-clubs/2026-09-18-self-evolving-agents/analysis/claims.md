@@ -152,13 +152,15 @@ September 16, 2026. Confidence is an analytic judgment about the scoped claim, n
 
 ## Thesis section mapping
 
-The [coverage audit](../research/thesis-coverage.md) maps all 56 cited references to their paragraph roles and substantive notes. The original C001–C012 identifiers remain stable; C013–C019 cover the expanded mechanisms and counterevidence. Related families and shared evaluation suites are not independent confirmations.
+The [coverage audit](../research/thesis-coverage.md) preserves all 56 reviewed evidence families and identifies the 22 cited in the current essay. C001–C019 remain stable, including supporting claims no longer illustrated individually in prose. Citation selection does not change a claim's status or turn related sources into independent confirmations.
 
 | Thesis section | Supporting claims |
 | --- | --- |
-| Learning that lasts | C001–C002, C011 |
-| What an agent can change | C001–C004, C013–C014 |
-| Where the learning signal comes from | C008–C010, C015, C017, C019 |
-| How much of the gain comes from learning? | C005–C008, C013, C016, C018 |
-| Improving the search, or improving the ability to search? | C009, C017 |
-| What would make the case stronger? | C011–C012, informed by C013–C019 |
+| A failed change can still teach something | C001, C003, C011 |
+| How an experience becomes a working procedure | C001, C003–C004, C013–C014 |
+| What does learning add to a good starting agent? | C005–C006, C011–C013, C018 |
+| The next task can change the verdict | C004, C007–C008, C010, C013, C015–C016, C019 |
+| Can the agent learn a better way to learn? | C009, C011, C013–C014, C017 |
+| What would distinguish the achievements? | C011–C012 |
+
+The WikiSkill mechanism explanation is grounded in v1 §3 and Figure 2: immutable traces, a persistent wiki, proposed skills, and validation/rollback. The conclusion that retained interpretations need scrutiny is analyst inference, not a measured contamination result. The proposed final experiment remains a recommendation under C012. This editorial revision adds no experimental result and does not reclassify the uncertainty recorded above.

@@ -50,6 +50,14 @@ additional evidence supports a broader direction.
 
 ## Write the analysis
 
+Before drafting, sketch the argument in a few sentences: the central claim, the
+questions needed to establish it, and how each answer creates the next question.
+Use this as a working outline, not a required deliverable or a slide sequence.
+Choose anchor examples that deserve explanation and comparisons that could change
+the conclusion. A mechanism taxonomy can support the argument, but should not
+silently become its structure. Introduce another approach when it resolves a
+problem, exposes a tradeoff, or challenges what the reader has just learned.
+
 Write `analysis/thesis.md` with the clarity and explanatory care of excellent science
 writing. Assume a curious reader with the session's stated background, not a
 specialist in every subfield. Build an evidence-backed argument the reader can
@@ -75,6 +83,14 @@ active verbs to noun clusters and compressed labels. For example, replace
 had learned than when their memory was reset.” Introduce technical terms after
 explaining the idea, and retain them when they add precision. Use analogies only
 when they clarify a mechanism, and make their limits clear.
+
+Develop consequential examples long enough for the reader to follow the decisions:
+what happened, what the system retained or changed, why that choice could help,
+and what evidence tests the explanation. Use documented details; label hypothetical
+examples explicitly. Avoid compressing every method into a name, a feature, and a
+caveat. An additional source earns space by changing the reasoning, not merely by
+belonging to the same category. Keep representative positive evidence and the
+strongest challenges even when they complicate the preferred argument.
 
 Give each paragraph a main job and each sentence a manageable amount of new
 information. Vary sentence length naturally; avoid both dense qualification chains
@@ -113,10 +129,13 @@ plausibility and evidence. Do not hide uncertainty to make the story cleaner.
 ## Iterate and finish
 
 Check the thesis against the research coverage audit, not just the reading shortlist.
-For a broad topic, roughly 50 relevant reviewed references is a useful coverage
-diagnostic; a substantially thinner thesis warrants checking omitted approaches
-and counterevidence. Integrate sources where they do argumentative work, without
-padding, counting companion artifacts twice, or turning the essay into paper reviews.
+Assess breadth in the reviewed evidence base, not by a citation quota in the essay.
+The coverage audit should show which important approaches and counterarguments
+were considered, including sources retained only in supporting records and why.
+A concise thesis can rest on broad research. Remove repetitive examples, not
+consequential counterevidence; reopen research when a substantive gap could change
+the conclusion. Integrate sources where they do argumentative work, without
+padding or counting companion artifacts as independent evidence.
 If no thesis-driven audit exists, queue one; perform it when authorized by the request.
 
 Send missing evidence, conflicting results, or uncertain provenance back to research
@@ -125,7 +144,14 @@ Revise affected claims and the thesis after the response. Retain rejected theses
 briefly when their rejection explains an important tradeoff; do not accumulate a
 transcript of every draft.
 
-Before finishing, read the thesis as continuous prose from the intended reader's
+Before finishing, test the structure: can the reader explain why each section
+follows the previous one? If several paragraphs can trade places without affecting
+the reasoning, check whether they are a catalog that needs synthesis or pruning.
+Do not force a linear dependency where a comparison genuinely requires parallel
+cases. Consolidate recurring limitations around the conclusion they constrain;
+keep source-specific qualifications beside the results whose meaning they change.
+
+Read the thesis as continuous prose from the intended reader's
 perspective. Can they explain the central claim and how the main mechanisms work
 without the claim ledger or presentation outline? Would the essay still read
 naturally if shared on its own with someone unaware of the journal club? Revise

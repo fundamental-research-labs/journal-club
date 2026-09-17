@@ -67,14 +67,16 @@ claim-specific terms and independent field terminology. A general claim about wh
 the field has not established requires broader checking than the examples cited.
 
 For a broad, fast-moving topic such as self-evolving agents, expect roughly **50
-substantively relevant, reviewed references in the thesis**, adjusting to field size
+substantively relevant, reviewed references in the evidence base**, adjusting to field size
 and explicit user scope. This is a coverage diagnostic, not a quota or a requirement
 for a short single-paper session. Distinguish four counts: discovery records,
 reviewed evidence families, sources actually used in the thesis, and reading
 priorities. A ten-source shortlist is a reading route, never a ceiling on research
 or thesis references. Companion paper/blog/code artifacts count as one underlying
 family for breadth; metadata leads and an unused bibliography do not count as
-reviewed thesis support. If coverage is materially below the target, investigate
+reviewed support. Sources can inform or challenge the analysis without appearing in
+the essay; record their role and disposition in the coverage audit. The thesis has
+no citation quota. If reviewed coverage is materially below the diagnostic, investigate
 why and record consequential gaps before declaring the research sufficient.
 
 Build `research/thesis-coverage.md` (or update an equivalent record) with:
@@ -101,8 +103,10 @@ marginal sources to make the count. Hand off concrete paragraph/claim revisions.
 When the user requests applying the research fix to an existing thesis, integrate
 the verified additions into connected, claim-cited prose and update traceability
 within that scope. Otherwise mark affected analysis stale and queue the revision.
-Keep a readable argument; neither a citation dump nor a sequence of paper reviews
-fulfills the breadth target.
+Select additions that change or clarify the argument; supporting records can retain
+redundant examples and specialist detail. Do not remove consequential counterevidence
+for narrative convenience. Neither a citation dump nor a sequence of paper reviews
+demonstrates adequate research coverage.
 
 ## Tier 1: broad parallel discovery
 

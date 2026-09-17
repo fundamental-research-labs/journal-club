@@ -1,8 +1,16 @@
 # Research, analysis, and presentation handoff
 
-**Updated September 16, 2026. Stage: HTML presentation complete for the September 16 thesis and C001–C012 handoff, with explicit source limitations.** The user requested presentation development, then specified HTML instead of PowerPoint and requested that preference in the presentation skill. Materials remain local. Subsequent research changes should be reconciled before presenting.
+**Updated September 16, 2026. Stage: revised analysis complete; existing HTML presentation requires reconciliation.** The user requested presentation development, then specified HTML instead of PowerPoint and requested that preference in the presentation skill. Materials remain local. Subsequent research changes should be reconciled before presenting.
 
-## Current research revision
+## Current analysis revision — September 16, 2026
+
+Completed the user-requested skill improvement and applied it to the thesis. The essay now develops WikiSkill's rejected-edit/retained-knowledge mechanism before testing future-task value, durability, and improvement-method transfer. It replaces method enumeration with a connected argument, retaining decisive positive evidence, competing explanations, and limitations. Research breadth remains 56 reviewed families; 22 are cited in prose. The coverage audit records all source dispositions and the claim ledger maps the new sections. The earlier expansion below is historical provenance, not a current citation-count requirement.
+
+Updated the analyze skill to plan section dependencies, develop anchor examples, and test for interchangeable catalog paragraphs. Corrected the research skill and shared workflow so the breadth diagnostic applies to reviewed evidence, not essay citation counts. The installed skill symlinks activate the repository changes. No presentation files were edited; the current deck remains stale for this argument and the previously recorded claim updates.
+
+Verification used the September 16 cutoff and existing notes/ledger, reopened local WikiSkill v1, SEAL v2, Hyperagents v1, and harness-evaluation v2 PDFs, and checked canonical HTML for non-retained FinEvo v1, AgentStream v1, Shopify, continual internalization v1, Dream-RSI v1, and ReasoningBank v2. GEPA v2 HTML exceeded the access tool's size limit; its unchanged mechanism description retains the prior review scope. No broad discovery, experiment reproduction, or visual artifact generation was performed. Final checks passed: both edited skills validated; 107 relative file links resolved across the eight affected files; all six essay sections map to stable claims; all 22 cited families appear in the 56-family coverage audit; `git diff --check` passed. Continuous-prose review checked section dependencies, numerical qualifications, and preservation of the strongest counterarguments. Essay length fell from about 4,460 to 2,850 words, excluding URL targets.
+
+## Prior research expansion
 
 The research skill now reads the thesis and claim ledger, audits support/challenges/omitted approaches, distinguishes candidate/reviewed/thesis/shortlist counts, and treats roughly 50 references as a broad-topic coverage diagnostic. The shared workflow and analyze skill carry the same handoff expectation. Installed skills are symlinks to these repository files.
 

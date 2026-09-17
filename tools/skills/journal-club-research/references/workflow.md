@@ -115,8 +115,11 @@ Discovery-only entries may omit a notes link until substantive reading occurs. K
 screened-out candidates and family relationships for incremental reruns.
 `research/shortlist.md` holds the current ranked selection (about 10 evidence families
 by default), not the size of the thesis evidence base. For broad topics, aim for
-roughly 50 relevant reviewed references substantively used in the thesis, with
-field-appropriate exceptions explained. Track discovery, reviewed-family, thesis-use,
+roughly 50 relevant reviewed references in the evidence base as a breadth diagnostic,
+with field-appropriate exceptions explained; this is not a thesis citation quota.
+The essay selects sources for their explanatory and argumentative value. Record
+consequential evidence considered but kept in supporting records, with its role and
+reason for omission from the essay. Track discovery, reviewed-family, thesis-use,
 and shortlist counts separately in a thesis coverage audit; never pad with companions
 or unread leads. Dated search-log entries preserve material ranking changes and coverage.
 
