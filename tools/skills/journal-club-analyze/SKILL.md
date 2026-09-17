@@ -83,8 +83,18 @@ means. A reader arriving without the README should have everything needed to fol
 the argument. Keep preparation dates, handoff notes, and review bookkeeping in the
 supporting records; include dates in the essay when they matter to the argument.
 
-Start with a concrete problem or a source-backed example before introducing an
-abstract category. Explain mechanisms through actors and actions: what the agent
+Give the reader a reason to care before asking them to learn a method. Open the
+essay with the practical or intellectual problem and what resolving it would make
+possible. At section openings, develop the unresolved question, consequence, or
+tension left by the preceding reasoning. Establish why it matters before introducing
+the paper that helps answer it. A concrete example can supply that motivation, but
+a paper name followed by its mechanism is not itself a motivating opening. Avoid
+generic importance claims and mechanical recaps; the connection should advance the
+argument. For example, after explaining how an agent retains a procedure, motivate
+the next section by asking whether learning it adds value beyond supplying good
+instructions beforehand, then introduce the comparison that tests this.
+
+Explain mechanisms through actors and actions: what the agent
 changes, how it chooses a change, and what happens next. Prefer familiar words and
 active verbs to noun clusters and compressed labels. For example, replace
 “positive persistence controls” with “agents did better when they kept what they
@@ -158,9 +168,12 @@ Revise affected claims and the thesis after the response. Retain rejected theses
 briefly when their rejection explains an important tradeoff; do not accumulate a
 transcript of every draft.
 
-Before finishing, test the structure: can the reader explain why each section
-follows the previous one? If several paragraphs can trade places without affecting
-the reasoning, check whether they are a catalog that needs synthesis or pruning.
+Before finishing, read the section openings together, temporarily setting aside
+paper names and citations. Can the reader explain what question each section takes
+up, why its answer matters, and how the preceding section made it worth asking?
+Repair missing motivation in the prose, not just in the heading or a transition
+word. Then test the full structure: if several paragraphs can trade places without
+affecting the reasoning, check whether they are a catalog that needs synthesis or pruning.
 Do not force a linear dependency where a comparison genuinely requires parallel
 cases. Consolidate recurring limitations around the conclusion they constrain;
 keep source-specific qualifications beside the results whose meaning they change.

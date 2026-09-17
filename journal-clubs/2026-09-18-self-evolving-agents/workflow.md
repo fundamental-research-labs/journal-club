@@ -2,6 +2,12 @@
 
 **Updated September 16, 2026. Stage: revised analysis complete; existing HTML presentation requires reconciliation.** The user requested presentation development, then specified HTML instead of PowerPoint and requested that preference in the presentation skill. Materials remain local. Subsequent research changes should be reconciled before presenting.
 
+## Section-motivation revision — September 16, 2026
+
+Improved the analyze skill and applied it to the thesis. The skill now distinguishes a motivating problem from a paper-first example and checks the section openings together for purpose and progression. The essay establishes why later work should benefit from experience, then develops retention, comparative value, durability, learning-method revision, and the experiments needed to distinguish them. Updated the opening's claim mapping and reconciled the existing citation-coverage audit. The installed skill symlink activates the repository edit.
+
+Reviewed the six openings together and the revised prose in context. Reopened the retained WikiSkill v1 original for the relocated rollback example; empirical result paragraphs retain their existing review scope. Citation-target and numeric-token preservation checks passed, retaining all 36 source URLs; the skill validator passed using `uv run --with pyyaml`. No new research or experiments were performed. Presentation reconciliation remains pending as previously recorded.
+
 ## Current citation-coverage repair — September 16, 2026
 
 Completed the per-paper citation lists and applied them to the analysis. The [citation map](research/prominent-citations.md) contains 55 reviewed papers, 207 context-verified edges, and 107 cited families. Each paper note links to its own list. The [coverage audit](research/thesis-coverage.md) records inclusion and exclusion decisions against the final essay. Current totals: 154 source records, 60 reviewed evidence families, 59 notes, 36 directly cited essay families; the ten-resource shortlist is unchanged.

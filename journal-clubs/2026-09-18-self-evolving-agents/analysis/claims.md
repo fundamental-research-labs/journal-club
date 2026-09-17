@@ -158,7 +158,7 @@ The [coverage audit](../research/thesis-coverage.md) preserves all 60 reviewed e
 
 | Thesis section | Supporting claims |
 | --- | --- |
-| A failed change can still teach something | C001, C003, C011 |
+| Why should the next task be easier? | C001, C003, C011 |
 | How an experience becomes a working procedure | C001, C003–C004, C013–C014 |
 | What does learning add to a good starting agent? | C005–C006, C011–C013, C018 |
 | The next task can change the verdict | C004, C007–C008, C010, C013, C015–C016, C019 |

@@ -2,6 +2,10 @@
 
 **Prepared September 16, 2026; cutoff unchanged.** The question is whether experience produces reusable future-task value beyond strong static procedures and additional inference, and whether the update procedure itself becomes better. The thesis is a hypothesis to challenge; the search also used independent field vocabulary and earlier method lineages.
 
+## Section-motivation revision — September 16, 2026
+
+The essay now opens with the value of experience for future work, before introducing WikiSkill in the mechanism section. Each section establishes the question left by the preceding reasoning before developing its paper examples. The final section motivates the proposed controls through the competing explanations already encountered. All 36 cited source families, numerical results, and source-specific limitations remain; the prominent-citation roles and inclusion/omission decisions below still apply. The renamed opening is mapped in the claim ledger. This is an editorial revision using the existing research cutoff, with no new empirical claims or discovery.
+
 ## Current argument revision — September 16, 2026
 
 The essay now develops the path from an experience to a working procedure, then asks what learning adds, whether its benefits survive later work, and whether the improvement method itself learns. WikiSkill is the developed mechanism example; FinEvo and the harness critique establish the competing baselines; Hyperagents distinguishes useful transfer from sustained acceleration. The central conclusion remains qualified bounded learning, with promising improver transfer and no demonstrated sustained compounding.
