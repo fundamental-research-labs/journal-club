@@ -78,12 +78,37 @@ Include speaker notes with the explanation, caveats, and transitions needed to
 present the argument. Put readable citations near empirical claims and fuller
 references and result locators in notes or the appendix.
 
-Use original source figures when legible and permitted; otherwise create clearly
-labeled adaptations from verified data. Record source URLs, locators, adaptations,
-and permission information where known in `slides/figures/provenance.md` when figures
-are used. Label illustrative diagrams and synthetic data explicitly. Do not use
-invented values, decorative charts, or generated imagery as empirical evidence.
-Retain units, relevant uncertainty, baseline definitions, and meaningful axis scales.
+### Use the source's evidence visuals first
+
+For a result from one source, default to its original figure or table, not a new
+chart made from a few headline numbers. Inspect the exact source version and
+caption before choosing the visual. If the result is in a table, a readable table
+excerpt is preferable to inventing a plot. Preserve competing methods, negative
+results, and uncertainty needed to interpret the claim.
+
+Try a high-resolution extraction, a labeled panel/row crop, a larger evidence area,
+or an extra slide before deciding an original is unreadable. Preserve aspect ratio,
+axes, units, legends, row/column headers, and relevant baselines. Do not recolor or
+rebuild empirical artwork just to match the deck theme. Keep explanatory callouts
+outside the original; identify any overlays as added annotations. Label crops and
+omitted panels/rows, and link the complete source. Keep source-caption qualifications
+in notes even when the caption itself will not fit.
+
+Redraw when it serves a concrete purpose: cross-source synthesis, a new calculation,
+an unavailable/unusable source visual after inspection, or a specific reuse
+restriction. Record that reason per visual; aesthetic consistency alone is not a
+reason. Label the result “Adapted from…” or “Calculated from…” and retain verified
+data and calculations. Keep conceptual diagrams clearly labeled as illustrations.
+Never present synthetic or generated imagery as empirical evidence.
+
+Record each evidence visual's source/creator, stable URL, exact version, PDF page
+and figure/table/panel, local asset, crop or other transformations, and reuse/license
+information where known in `slides/figures/provenance.md`. Unknown permission is
+not a claimed license; follow the user's authorized scope and any concrete source
+restrictions without inventing a separate approval workflow. Preserve original
+assets separately from editable slide annotations; embed assets for offline use.
+For revisions, audit existing result visuals and replace unjustified redraws rather
+than merely relabeling them. Record intentional exceptions.
 
 ## Review and iterate
 
@@ -91,7 +116,9 @@ Open the HTML in a browser and visually inspect every slide, including appendice
 at presentation size. Check keyboard navigation, source links, notes, direct slide
 links, and the print layout; inspect exported PDFs as well when delivered.
 Check clipping, overlap, font substitution, contrast, citation
-legibility, visual hierarchy, figure quality, and export consistency. Fix defects
+legibility, visual hierarchy, figure quality, and export consistency. Compare extracted figures against the
+original page and check readability at actual presentation size, including headers,
+legends, error bars, and crop boundaries. Fix defects
 and re-render changed slides; recheck the entire deck after global layout changes.
 
 Audit factual claims and numbers against the claim ledger and sources. Check links,

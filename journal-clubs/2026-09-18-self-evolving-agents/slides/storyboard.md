@@ -6,8 +6,8 @@ Warm ivory pages, dark forest opening and synthesis, deep teal evidence accents,
 and muted sage baselines. Georgia headlines pair with system sans-serif body text;
 all typography works offline. A small running topic/section line provides orientation.
 The opening pairs an oversized title with an explicitly conceptual orbit motif;
-the evidence pages use generous whitespace, direct chart labels, and prominent
-result callouts. Discussion uses a dark page and numbered prompts; appendices use
+the evidence pages give original source figures and tables a large white area,
+with separate interpretation and result callouts. Discussion uses a dark page and numbered prompts; appendices use
 compact ruled rows. Presenter and company credits come from `content.json` metadata
 and appear on the opening and closing. Source citations remain in a separate footer.
 
@@ -22,7 +22,7 @@ By the end, participants should distinguish retained experience, extra computati
 
 Arc: question → mechanisms → evidence → competing explanations → regressions → meta-improvement and practice → proposed experiment → discussion and synthesis.
 
-Design: white canvas, blue emphasis, large system sans-serif type, editable SVG charts, semantic HTML tables, one illustrative mechanism. Keyboard navigation, direct links, notes, overview, and print CSS are included. Initial composition references were Codex Grid 01, 05, 14, and 22; the deliverable is HTML and has no Office dependency.
+Design: ivory canvas, forest/teal emphasis, serif headlines and sans-serif body text; original source excerpts, semantic synthesis tables, and one illustrative mechanism. Keyboard navigation, direct links, notes, overview, and print CSS are included. Initial composition references were Codex Grid 01, 05, 14, and 22; the deliverable is HTML and has no Office dependency.
 
 ## 01. Self-evolving agents
 
@@ -74,46 +74,46 @@ Speaker notes: These are editable components, not levels on a universal capabili
 ## 04. Retained knowledge can improve skills
 
 - Purpose: Establish a positive retained-state result.
-- Visual: Inline SVG column chart with zero baseline; interpretation rail, Codex Grid 22.
+- Visual: Original source extraction; Tang et al. · WikiSkill v1 · Table 1, p. 8 · Qwen 4B / 9B excerpt. Interpretation below, separate from source artwork.
 - Claims: C003
 
 - Source: `wikiskill` — [WikiSkill](https://arxiv.org/abs/2608.27454v1); Table 1; Appendix B, Table 6; Appendix C. Aug 27, 2026 preprint, v1.
 
 
-Speaker notes: WikiSkill separates traces, accumulated wiki knowledge, and deployed skills. When a candidate skill is rejected, knowledge from the attempt can still persist. Qwen-3.5-9B gains 17.5 percentage points in macro accuracy across five benchmarks with equal benchmark weighting and three evolution runs. Test sizes are 124, 85, 280, 172, and 134. Table 1 gives no numerical confidence intervals. Skills are directly injected, validation sets are small, and OfficeQA has reference-page assistance. Qwen-3.5-4B declines from 30.2 to 28.5 on OfficeQA. The result supports useful benchmark learning, not universal improvement. Transition: experience can also be stored inside weights.
+Speaker notes: WikiSkill separates traces, accumulated wiki knowledge, and deployed skills. When a candidate skill is rejected, knowledge from the attempt can still persist. Qwen-3.5-9B gains 17.5 percentage points in macro accuracy across five benchmarks with equal benchmark weighting and three evolution runs. Test sizes are 124, 85, 280, 172, and 134. Table 1 gives no numerical confidence intervals. Skills are directly injected, validation sets are small, and OfficeQA has reference-page assistance. Qwen-3.5-4B declines from 30.2 to 28.5 on OfficeQA. The result supports useful benchmark learning, not universal improvement. Transition: experience can also be stored inside weights. Visual: Tang et al. · WikiSkill v1 · Table 1, p. 8 · Qwen 4B / 9B excerpt. Extracted without redrawing or recoloring; caption omitted from image. Original Table 1 excerpt, including all methods for Qwen-3.5-4B and 9B. Qwen-3.5-9B average rises from 29.9 to 47.4; Qwen-3.5-4B OfficeQA falls from 30.2 to 28.5. Original Table 1 caption: scores average three full evolution runs; all methods start with an empty skill set and evolved skills are directly injected. Bold denotes the best or results not significantly different from it under the authors’ paired bootstrap test (1,000 resamples, p < .05); yellow highlighting is the authors’ own.
 
 ## 05. A model can learn to write better update data
 
 - Purpose: Explain weight adaptation with the strongest scoped comparison.
-- Visual: Inline SVG column chart including the stronger-model comparator.
+- Visual: Original source extraction; Zweiger et al. · SEAL v2 · Table 2, p. 8 · Complete table. Interpretation below, separate from source artwork.
 - Claims: C004
 
 - Source: `2025-self-adapting-language-models` — [Self-Adapting Language Models (SEAL)](https://arxiv.org/abs/2506.10943v2); Table 2; Appendix B; §5, Figure 6. NeurIPS 2025; arXiv v2 reviewed.
 
 
-Speaker notes: SEAL has an outer loop that rewards self-generated edits when an inner weight update helps downstream performance. This example is single-passage SQuAD incorporation with Qwen2.5-7B, not the curated ARC experiment. The tested learned policy reaches 47.0 versus 39.7 for base-model synthetic data, a 7.3 percentage-point difference. A stronger external generator, GPT-4.1, reaches 46.3; SEAL does not generally dominate it and loses to it in the larger incorporation conditions. There are 974 questions clustered within 200 held-out passages. Final-score repeated-run uncertainty is not supplied. Figure 6 shows forgetting across sequential edits. Transition: an improvement still needs strong controls.
+Speaker notes: SEAL has an outer loop that rewards self-generated edits when an inner weight update helps downstream performance. This example is single-passage SQuAD incorporation with Qwen2.5-7B, not the curated ARC experiment. The tested learned policy reaches 47.0 versus 39.7 for base-model synthetic data, a 7.3 percentage-point difference. A stronger external generator, GPT-4.1, reaches 46.3; SEAL does not generally dominate it and loses to it in the larger incorporation conditions. There are 974 questions clustered within 200 held-out passages. Final-score repeated-run uncertainty is not supplied. Figure 6 shows forgetting across sequential edits. Transition: an improvement still needs strong controls. Visual: Zweiger et al. · SEAL v2 · Table 2, p. 8 · Complete table. Extracted without redrawing or recoloring; caption omitted from image. Original SEAL Table 2, all five methods and three passage settings. Single-passage SEAL scores 47.0 versus 39.7 for untrained synthetic data and 46.3 for GPT-4.1 data. GPT-4.1 wins in both continued-pretraining settings.
 
 ## 06. A strong fixed skill captures much of the gain
 
 - Purpose: Present the strongest specialization alternative.
-- Visual: Inline SVG three-column comparison, same metric and scaffold.
+- Visual: Original source extraction; Deng et al. · FinEvo-Bench v1 · Table 5, PDF p. 6 · Complete table. Interpretation below, separate from source artwork.
 - Claims: C005
 
 - Source: `2026-finevo-bench` — [FinEvo-Bench](https://arxiv.org/html/2608.06144v1); §§4.1–4.3; Tables 3 and 5. Aug 6, 2026 preprint, v1.
 
 
-Speaker notes: FinEvo tests recurring professional procedures with 120 financial tasks in 20 scenes and three shuffled task orders. Four scaffolds use the same Qwen3.7-Max backbone. Paired gains over reset range from 9.33 to 19.37 rubric points. The displayed Table 5 ablation is only the Claude Code scaffold: these labels are software frameworks, not vendor model identities. Reset is 71.58, fixed expert skill 86.67, unrestricted evolution 89.47. The 2.80-point difference is descriptive, not a tested causal advantage at matched cost. No across-run intervals are reported. Scoring and feedback share rubric design. Strong recurring-procedure evidence; novel procedures and full cost remain unresolved.
+Speaker notes: FinEvo tests recurring professional procedures with 120 financial tasks in 20 scenes and three shuffled task orders. Four scaffolds use the same Qwen3.7-Max backbone. Paired gains over reset range from 9.33 to 19.37 rubric points. The displayed Table 5 ablation is only the Claude Code scaffold: these labels are software frameworks, not vendor model identities. Reset is 71.58, fixed expert skill 86.67, unrestricted evolution 89.47. The 2.80-point difference is descriptive, not a tested causal advantage at matched cost. No across-run intervals are reported. Scoring and feedback share rubric design. Strong recurring-procedure evidence; novel procedures and full cost remain unresolved. Visual: Deng et al. · FinEvo-Bench v1 · Table 5, PDF p. 6 · Complete table. Extracted without redrawing or recoloring; caption omitted from image. Original FinEvo Table 5, all five conditions, score, compliance, execution and reflection costs. Reset 71.58, fixed expert skill 86.67, full evolution 89.47, memory only 90.42, skill only 93.71. Source table definitions: Score is the rubric score; Comp. is compliance issues per task; costs are 10^4 tokens per task. Table 5 is on PDF page 6 in the retrieved v1; earlier reading notes said page 7.
 
 ## 07. More attempts are a serious competing baseline
 
 - Purpose: Test reusable changes against extra inference.
-- Visual: Column chart for matched rollout count; separate held-out result in notes and rail.
+- Visual: Original source extraction; Wang et al. · Harness evaluation v2 · Table 1, p. 6 · Complete table. Interpretation below, separate from source artwork.
 - Claims: C006
 
 - Source: `harness-evolution-evaluation` — [Rethinking the Evaluation of Harness Evolution for Agents](https://arxiv.org/abs/2607.12227v2); §§4.1–4.4; Tables 1–3. 2026 preprint; Aug 27 revision, v2.
 
 
-Speaker notes: This is a counterexample from one tested harness-evolution implementation, not a universal negative result. Table 1 compares five rollouts on 89 Terminal-Bench 2.1 tasks, three models, two runs, without test feedback. Retain the printed averages 67.4 and 72.3 despite rounded-cell arithmetic. A separate train/validation/test partition of 45/10/34 yields 68.3 for evolved versus 67.7 for initial harness on the 34 held-out tasks. Do not combine those experimental populations. No numerical CIs in the tables. Equal rollouts are not equal dollars or tokens; a reused harness could repay development cost across future tasks. Transition: follow the system beyond development and watch for damage.
+Speaker notes: This is a counterexample from one tested harness-evolution implementation, not a universal negative result. Table 1 compares five rollouts on 89 Terminal-Bench 2.1 tasks, three models, two runs, without test feedback. Retain the printed averages 67.4 and 72.3 despite rounded-cell arithmetic. A separate train/validation/test partition of 45/10/34 yields 68.3 for evolved versus 67.7 for initial harness on the 34 held-out tasks. Do not combine those experimental populations. No numerical CIs in the tables. Equal rollouts are not equal dollars or tokens; a reused harness could repay development cost across future tasks. Transition: follow the system beyond development and watch for damage. Visual: Wang et al. · Harness evaluation v2 · Table 1, p. 6 · Complete table. Extracted without redrawing or recoloring; caption omitted from image. Original Table 1 showing per-model results and printed averages for direct sampling, parallel sampling, sequential refinement, harness evolution and harness scaling. Reported averages: parallel sampling 72.3, harness evolution 67.4. Source caption: unit tests unavailable, pass@1; bold is best and underline is second best. The displayed 67.4 is the printed average, without correcting the source’s rounded-cell arithmetic.
 
 ## 08. Mixed task streams expose uneven gains
 
@@ -140,7 +140,7 @@ Speaker notes: R-Zero alternates a Challenger that invents math problems and a S
 ## 10. A better improver still has to transfer
 
 - Purpose: Explain meta-improvement and present its strongest challenge fairly.
-- Visual: Two-column comparison with finite positive results and precise limits.
+- Visual: Original source extraction; Zhang et al. · Hyperagents v1 · Figure 4, p. 13 · Both panels. Interpretation below, separate from source artwork.
 - Claims: C009
 
 - Source: `hyperagents` — [Hyperagents](https://arxiv.org/abs/2603.19461v1); §§3, 5.2–5.3; Figure 4. Mar 19, 2026 preprint, v1.
@@ -148,7 +148,7 @@ Speaker notes: R-Zero alternates a Challenger that invents math problems and a S
 - Source: `2026-dream-rsi` — [Dream-RSI](https://arxiv.org/html/2609.14858v1); §§3–4; Figure 3; Equation 1. Sep 14, 2026 preprint, v1.
 
 
-Speaker notes: Hyperagents shares editable task-agent and meta-agent code, while outer controls such as parent selection remain designed. Its math grading endpoint after 200 iterations is median 0.640 transferred versus 0.610 fresh over five runs, p>0.05 as reported. Bootstrap 95% intervals are 0.550–0.720 and 0.510–0.680; they resample runs, not task populations. Dream-RSI revises an exploration controller using replay of historical search trees. In the same-model Gemini-3.1-Pro Lasso comparison it uses 317 versus 550 discovery-agent calls, with mean solver runtime 2,931.0 versus 3,587.1 ms on six held-out datasets. The datasets test the discovered solver, not six independent controller runs. Replay guarantees only concern recorded paths; full meta-development cost and repeat uncertainty are missing. These positive mechanisms challenge blanket skepticism, without establishing sustained domain-general acceleration.
+Speaker notes: Hyperagents shares editable task-agent and meta-agent code, while outer controls such as parent selection remain designed. Its math grading endpoint after 200 iterations is median 0.640 transferred versus 0.610 fresh over five runs, p>0.05 as reported. Bootstrap 95% intervals are 0.550–0.720 and 0.510–0.680; they resample runs, not task populations. Dream-RSI revises an exploration controller using replay of historical search trees. In the same-model Gemini-3.1-Pro Lasso comparison it uses 317 versus 550 discovery-agent calls, with mean solver runtime 2,931.0 versus 3,587.1 ms on six held-out datasets. The datasets test the discovered solver, not six independent controller runs. Replay guarantees only concern recorded paths; full meta-development cost and repeat uncertainty are missing. These positive mechanisms challenge blanket skepticism, without establishing sustained domain-general acceleration. Visual: Zhang et al. · Hyperagents v1 · Figure 4, p. 13 · Both panels. Extracted without redrawing or recoloring; caption omitted from image. Original Hyperagents Figure 4: training trajectories and held-out math-grading scores with uncertainty bars. DGM-H transfer endpoint 0.640 versus fresh 0.610; five runs, p greater than .05. The plot also includes the ProofAutoGrader initialization. Figure 4 caption claims accumulation; the displayed endpoint comparison is nonsignificant, as §5.3 states. Bands and bars retain the source’s 95% run-bootstrap intervals. Dream-RSI remains a cited numerical summary, not a reconstructed plot.
 
 ## 11. Production learning combines several loops
 
@@ -281,3 +281,15 @@ Speaker notes: References supporting the main talk. Source versions and access d
 
 
 Speaker notes: References supporting the main talk. Source versions and access depth are recorded in research/sources.md. The majority of 2026 experimental sources here are preprints; SEAL and R-Zero have conference versions. Source notes are based on primary methods/results and relevant appendices to their stated depth. No inaccessible social thread or unverified demo is used as evidence.
+
+## Original-source evidence revision — September 16, 2026
+
+Slides 4–7 replace all four reconstructed bar charts with source table excerpts.
+Slide 10 adds the original Hyperagents Figure 4. The source's typography, colors,
+scales and uncertainty remain intact; explanatory text stays outside the artwork.
+WikiSkill shows the first two complete model blocks with headers, rather than
+isolating the favorable 9B mean. SEAL, FinEvo and harness evaluation show complete
+tables. Source captions are represented in notes; attribution identifies excerpt
+scope and exact PDF pages. Other diagrams/tables remain explanatory synthesis or
+explicit calculations, as detailed in figure provenance. This is a visual-evidence
+revision, not completion of the separate expanded-thesis reconciliation.

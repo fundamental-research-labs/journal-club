@@ -41,7 +41,7 @@ Research used the journal-club-research skill's discovery → screening → coor
 
 Open [slides/index.html](slides/index.html). Arrow keys or Space navigate; **N** opens notes, **O** opens the overview, and Home/End go to the first/last slide. The slide menu and buttons provide the same controls. URLs such as `index.html#slide-6` open a specific slide. **All slides** provides a continuous reading view; browser printing uses one slide per page. Speaker notes are for on-screen use and are excluded from printing.
 
-The default scope is approximately 25–30 minutes plus discussion for an audience familiar with LLM basics. Edit [content.json](slides/content.json) for presenter/company metadata, copy, chart values, citations, and speaker notes; edit [theme.css](slides/theme.css) for the visual theme and [build.py](slides/build.py) for markup, base layout, and navigation. The build embeds the theme so the delivered HTML remains standalone. Rebuild from the repository root with Python 3 (standard library only):
+The default scope is approximately 25–30 minutes plus discussion for an audience familiar with LLM basics. Edit [content.json](slides/content.json) for presenter/company metadata, copy, source-figure metadata, citations, and speaker notes; edit [theme.css](slides/theme.css) for the visual theme and [build.py](slides/build.py) for markup, base layout, and navigation. The build embeds the theme and original-source PNG excerpts so the delivered HTML remains standalone. Source extraction is optional; its command and PyMuPDF dependency are recorded in [figure provenance](slides/figures/provenance.md). Rebuild from the repository root with Python 3 (standard library only):
 
 ```sh
 python3 journal-clubs/2026-09-18-self-evolving-agents/slides/build.py

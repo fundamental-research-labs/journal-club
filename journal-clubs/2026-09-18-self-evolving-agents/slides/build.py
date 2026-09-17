@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build a standalone, offline HTML deck from content.json (Python standard library)."""
-import html,json
+import base64,html,json
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent
 data=json.loads((ROOT/'content.json').read_text())
@@ -8,15 +8,11 @@ e=lambda s:html.escape(str(s))
 def paras(s):return e(s).replace('\n','<br>')
 def table(s):
  return '<table><thead><tr>'+''.join('<th>'+e(h)+'</th>' for h in s['headers'])+'</tr></thead><tbody>'+''.join('<tr>'+''.join('<td>'+e(c)+'</td>' for c in row)+'</tr>' for row in s['rows'])+'</tbody></table>'
-def chart(s):
- n=len(s['values']);w=650;left=55;right=630;top=30;bottom=355;bw=110 if n==3 else 145;step=(right-left)/n
- a=[f'<svg viewBox="0 0 650 425" role="img" aria-label="{e(s["unit"])}: {e(", ".join(f"{k} {v}" for k,v in zip(s["categories"],s["values"])))}"><title>{e(s["unit"])}</title>']
- for v in [0,25,50,75,100]:
-  y=bottom-v/100*(bottom-top);a.append(f'<line x1="{left}" y1="{y}" x2="{right}" y2="{y}" stroke="#d8ddd6"/><text x="{left-12}" y="{y+6}" text-anchor="end" class="tick">{v}</text>')
- for i,(label,v) in enumerate(zip(s['categories'],s['values'])):
-  x=left+step*(i+.5);y=bottom-v/100*(bottom-top)
-  a.append(f'<rect x="{x-bw/2}" y="{y}" width="{bw}" height="{bottom-y}" fill="{"#187364" if i==n-1 else "#9baea4"}"/><text x="{x}" y="{y-13}" text-anchor="middle" class="value">{v:g}</text><text x="{x}" y="390" text-anchor="middle" class="category">{e(label)}</text>')
- return ''.join(a)+'</svg>'
+def source_figure(s):
+ f=s['figure'];asset=ROOT/f['asset']
+ encoded=base64.b64encode(asset.read_bytes()).decode('ascii')
+ url=data['sources'][f['sourceRef']]['url']
+ return f'<figure class="source-figure"><div class="source-image"><img src="data:image/png;base64,{encoded}" alt="{e(f["alt"])}"></div><figcaption>Original source · <a href="{e(url)}" target="_blank" rel="noopener">{e(f["caption"])}</a></figcaption></figure>'
 def source(r):
  a=data['sources'][r];return f'<a href="{e(a["url"])}" target="_blank" rel="noopener">{e(a["name"] if len(a["name"])<45 else "Harness-evaluation critique")}</a>'
 def credit():
@@ -33,7 +29,7 @@ for i,s in enumerate(data['slides'],1):
  else:
   body='<header><h2>'+e(s['title'])+'</h2>'+(f'<p class="subtitle">{e(s["subtitle"])}</p>' if s.get('subtitle') else '')+'</header>'
   if kind=='loop':body+='<div class="loop-flow">'+''.join(f'<div><span class="step-number">0{j+1}</span><strong>{e(x)}</strong></div>'+('<span class="arrow" aria-hidden="true">→</span>' if j<3 else '') for j,x in enumerate(s['steps']))+'</div><p class="takeaway">'+e(s['bottom'])+'</p>'
-  elif kind=='chart':body+=f'<div class="evidence"><div class="chart"><p class="unit">{e(s["unit"])}</p>{chart(s)}<small>Adapted from reported data</small></div><div class="interpretation"><p class="metric">{e(s["callout"])}</p><p class="body">{e(s["body"])}</p><p class="detail">{e(s["detail"])}</p></div></div>'
+  elif kind=='source-evidence':body+=source_figure(s)+f'<div class="source-reading"><p class="metric">{e(s["callout"])}</p><div><p class="body">{e(s["body"])}</p><p class="detail">{e(s["detail"])}</p></div></div>'
   elif kind=='table':body+='<div class="table-wrap">'+table(s)+'</div>'
   elif kind=='twocol':body+=f'<div class="columns"><div><h3>{e(s["leftTitle"])}</h3><p>{paras(s["leftBody"])}</p></div><div><h3>{e(s["rightTitle"])}</h3><p>{paras(s["rightBody"])}</p></div></div>'
   elif kind=='stream':body+=f'<div class="stream-metric"><p class="metric">{e(s["callout"])}</p><p>{e(s["body"])}</p></div>'+table(s)

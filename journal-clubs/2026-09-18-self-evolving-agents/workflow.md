@@ -143,3 +143,14 @@ Research Labs on opening and closing, plus editable theme source. Visual and
 interaction verification passed in local Chromium; see `slides/review.md`.
 This is a styling revision with unchanged C001–C012 content; the existing expanded
 thesis/C013–C019 reconciliation remains pending.
+
+
+### Presentation source-figure revision — September 16, 2026
+
+Completed the requested original-source visual pass: replaced slides 4–7's four
+recreated charts with source table excerpts and added Hyperagents Figure 4 on
+slide 10. Source assets, extraction recipe, exact locators, transformations and
+intentional synthesis exceptions are in `slides/figures/provenance.md`. All 18
+slides visually reviewed; offline images, navigation, notes and printing checked.
+Updated the presentation skill and applied it to this deck. This closes the
+source-figure task; the separate expanded-thesis reconciliation remains pending.

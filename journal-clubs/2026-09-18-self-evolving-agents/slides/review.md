@@ -58,3 +58,45 @@ This completes the styling/attribution revision. The existing content reconcilia
 with expanded claims C013–C019 remains outstanding; this revision does not claim
 to incorporate the expanded thesis. Cross-browser and assistive-technology testing
 remain outside the verified scope.
+
+## Original-source evidence revision — September 16, 2026
+
+Replaced all four recreated bar charts (slides 4–7) with original source tables:
+WikiSkill Table 1 excerpt, SEAL Table 2, FinEvo Table 5, and harness-evaluation
+Table 1. Added original Hyperagents Figure 4 on slide 10. No source colors, scales,
+uncertainty, or table entries were redrawn. WikiSkill's crop retains complete 4B/9B
+blocks and headers; the other tables and the two-panel plot are complete except
+for captions, whose relevant qualifications are in notes. Original captions and
+source pages were inspected before extraction. FinEvo is PDF page 6, correcting
+the earlier page locator. Its full PDF remains temporary; the user explicitly
+requested original-artwork reuse for this local deck.
+
+The original-source preference is now an actionable skill decision: inspect first,
+try cropping/enlargement before redrawing, and record a concrete reason for each
+adaptation. The installed skill resolves to the repository copy. Skill validation
+passed. The AgentStream calculated summary is explicitly labeled; the conceptual
+illustrations and cited numerical summaries remain intentional exceptions.
+
+Verification:
+- Opened standalone HTML in local headless Chromium at 1440 × 900 and visually
+  inspected all 18 slides, including each changed evidence slide at presentation
+  size. Inspected slide 8 again after its calculated-summary label changed.
+- All five original images decode offline, have descriptive alt text, retain
+  proportional scaling, and have source links. Compared excerpts against the
+  rendered source pages. Checked table headers, crop boundaries, baselines, legend,
+  error bars, typography, interpretation, citations and caveats.
+- All 18 navigation states have one active slide. Arrow/Home navigation, deep
+  linking, notes open/close, overview selection, continuous reading view, and print
+  visibility pass. No page JavaScript errors. Changed evidence bodies end above
+  the caveat region with more than 30 screen pixels of clearance.
+- Scratch print output contains 18 pages; visually checked the FinEvo page with
+  its source table. No PDF deliverable was added. Source images and theme are
+  embedded in HTML; normal build remains Python-standard-library only.
+- The in-app browser bootstrap failed with `Cannot redefine property: process`;
+  the local Chromium fallback provided the visual and interaction checks.
+
+No fresh full-literature review or benchmark reproduction is claimed. This pass
+uses the existing evidence claims and source versions. Broader reconciliation
+with the expanded thesis remains a separate pending task. Remote link availability
+was checked for FinEvo during acquisition; other links retain the prior source
+records. Cross-browser and assistive-technology checks were not performed.
