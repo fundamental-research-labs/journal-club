@@ -50,11 +50,28 @@ additional evidence supports a broader direction.
 
 ## Write the analysis
 
-Write `analysis/thesis.md` as a clear scholarly synthesis, with the narrative quality
-of the introduction and related-work sections of a strong NeurIPS paper. Lead the
-reader from the problem and its significance through the relevant approaches to
-the unresolved question and your evidence-backed position. This is a literature
-argument, not an original research paper: do not invent contributions or experiments.
+Write `analysis/thesis.md` with the clarity and explanatory care of excellent science
+writing. Assume a curious reader with the session's stated background, not a
+specialist in every subfield. Build an evidence-backed argument the reader can
+understand on the first pass: what the problem is, how the approaches work, what
+the experiments show, and what remains unknown. Preserve scholarly rigor without
+using conference-paper prose as the style target. Do not invent experiments,
+contributions, anecdotes, or scenes to make the writing more engaging.
+
+Start with a concrete problem or a source-backed example before introducing an
+abstract category. Explain mechanisms through actors and actions: what the agent
+changes, how it chooses a change, and what happens next. Prefer familiar words and
+active verbs to noun clusters and compressed labels. For example, replace
+“positive persistence controls” with “agents did better when they kept what they
+had learned than when their memory was reset.” Introduce technical terms after
+explaining the idea, and retain them when they add precision. Use analogies only
+when they clarify a mechanism, and make their limits clear.
+
+Give each paragraph a main job and each sentence a manageable amount of new
+information. Vary sentence length naturally; avoid both dense qualification chains
+and a choppy series of slogans. Explain why a result matters before adding the next
+paper or number. Make uncertainty concrete—what was not tested, what comparison is
+missing, or which other explanation fits—instead of relying on vague hedges.
 
 Use connected paragraphs with informative topic sentences, concrete subjects, and
 explicit transitions. Define unfamiliar terms when first needed. Organize related
@@ -92,10 +109,13 @@ Revise affected claims and the thesis after the response. Retain rejected theses
 briefly when their rejection explains an important tradeoff; do not accumulate a
 transcript of every draft.
 
-Before finishing, read the thesis as continuous prose: can a reader follow the
-problem, relationships among approaches, evidence gap, and conclusion without the
-claim ledger or presentation outline? Revise abrupt transitions, unexplained jargon,
-and paragraphs that merely enumerate sources.
+Before finishing, read the thesis as continuous prose from the intended reader's
+perspective. Can they explain the central claim and how the main mechanisms work
+without the claim ledger or presentation outline? Revise sentences that need a
+second reading, abstract subjects, unexplained jargon, abrupt transitions, and
+paragraphs that merely enumerate sources. Then check the rewrite against the
+evidence: simpler language must preserve populations, comparators, units, causal
+limits, and the distinction between a reported result and your interpretation.
 
 The analysis is ready when the central argument is traceable, serious objections
 are addressed, confidence matches the evidence, and remaining gaps are either

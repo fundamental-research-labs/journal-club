@@ -1,6 +1,6 @@
 # Research and analysis handoff
 
-**Updated September 16, 2026. Stage: analysis complete, ready for presentation development with explicit source limitations.** Scope is the existing September 18 topic-wide journal club. The subsequent user request authorized the analyze skill and clarification of its local-source workflow. Slides and external publication are not requested.
+**Updated September 16, 2026. Stage: analysis complete, ready for presentation development with explicit source limitations.** Scope is the existing September 18 topic-wide journal club. The current user request authorized improving the analysis skill’s writing guidance and applying it to the thesis. Slides and external publication are not requested.
 
 ## Current materials
 
@@ -14,6 +14,10 @@
 The session README and reading/practitioner routes point to the current corpus. Initial research notes remain historical context and are visibly superseded. The thesis and claim ledger now exist; no slide storyboard or deck exists, so no downstream slide edits are outstanding.
 
 ## Analysis revision and checks
+
+September 16 readability revision: replaced the analyze skill’s conference-paper style target with accessible science writing: concrete mechanisms, familiar language, explanations before terminology, and a readability pass followed by an evidence check. Applied the guidance throughout `analysis/thesis.md`, preserving the central interpretation, numerical results, source URLs, and qualifications. Updated the README and thesis-section mapping in the claim ledger; C001–C012 remain unchanged. The installed skill is a symlink to the repository copy, so this update is active. No presentation artifacts exist to update.
+
+This editorial pass reused the existing research cutoff, landscape, register, acquisition manifest, and source notes. Reopened retained primary PDFs for WikiSkill, SEAL, the harness critique, R-Zero, and Hyperagents to check pivotal numbers; other findings retain their recorded review scope. No new discovery or experiments were performed. Skill validation, relative-link checks, citation-URL preservation, and `git diff --check` passed.
 
 September 16 thesis-style revision: rewrote `analysis/thesis.md` as connected introduction, related-work synthesis, evaluation analysis, and implications. The central interpretation and C001–C012 remain unchanged. Primary citations and decisive result qualifications stay in the prose; internal claim mapping is in the ledger. Discussion planning is now deferred to presentation. The README points to the revised synthesis. The analyze skill now specifies scholarly narrative, conceptual comparisons, integrated counterarguments, and a continuous-prose review. Its installed path is a symlink to the edited repository skill, so the change is active.
 

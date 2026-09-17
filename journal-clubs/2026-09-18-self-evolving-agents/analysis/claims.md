@@ -93,7 +93,7 @@ The thesis uses primary-source citations in its prose; this map preserves the in
 
 | Thesis section | Supporting claims |
 | --- | --- |
-| Introduction | C001–C002, C011 |
-| Related work | C001–C004, C008–C010 |
-| What the evaluations establish | C005–C009 |
-| Implications and open questions | C011–C012, grounded in C003–C010 |
+| Learning that lasts | C001–C002, C011 |
+| What an agent can change | C001–C004, C008–C010 |
+| How much of the gain comes from learning? | C005–C009 |
+| What would make the case stronger? | C011–C012, grounded in C003–C010 |

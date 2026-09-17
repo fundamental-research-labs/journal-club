@@ -8,7 +8,7 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 ## Start here
 
-- **[Introduction and related work](analysis/thesis.md)** — a scholarly synthesis of the approaches, evidence, competing explanations, and open questions.
+- **[Central argument: when experience helps with the next task](analysis/thesis.md)** — an accessible explanation of how agents learn, what the evidence shows, and what remains uncertain.
 - [Claim ledger](analysis/claims.md) — evidence, confidence, and limits.
 - **[Ranked shortlist: ten priority resources](research/shortlist.md)** — why each belongs, what to read, key results, limitations, and strong alternatives.
 - **[Research landscape](research/landscape.md)** — mechanisms, competing evidence, and discussion questions organized around the topic.
