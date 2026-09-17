@@ -1,0 +1,648 @@
+{
+  "title": "Self-evolving agents",
+  "audience": "Audience familiar with LLM basics",
+  "durationAssumption": "25–30 minute talk plus discussion",
+  "researchCutoff": "2026-09-16",
+  "sources": {
+    "reflexion": {
+      "name": "Reflexion",
+      "url": "https://arxiv.org/abs/2303.11366v4",
+      "locator": "Algorithm 1; §§3–4",
+      "status": "NeurIPS 2023; v4 reviewed",
+      "key": "2023-reflexion"
+    },
+    "voyager": {
+      "name": "Voyager",
+      "url": "https://arxiv.org/abs/2305.16291",
+      "locator": "§§2–3",
+      "status": "Foundational 2023 work",
+      "key": "2023-voyager"
+    },
+    "stop": {
+      "name": "STOP",
+      "url": "https://arxiv.org/abs/2310.02304v3",
+      "locator": "Algorithm 1; §3",
+      "status": "2023 origin; v3 reviewed",
+      "key": "2023-stop"
+    },
+    "gepa": {
+      "name": "GEPA",
+      "url": "https://arxiv.org/abs/2507.19457v2",
+      "locator": "Algorithm 1; §4",
+      "status": "2025 origin; v2 reviewed",
+      "key": "2025-gepa"
+    },
+    "wiki": {
+      "name": "WikiSkill",
+      "url": "https://arxiv.org/abs/2608.27454v1",
+      "locator": "Table 1; Appendix B, Table 6; Appendix C",
+      "status": "Aug 27, 2026 preprint, v1",
+      "key": "wikiskill"
+    },
+    "seal": {
+      "name": "Self-Adapting Language Models (SEAL)",
+      "url": "https://arxiv.org/abs/2506.10943v2",
+      "locator": "Table 2; Appendix B; §5, Figure 6",
+      "status": "NeurIPS 2025; arXiv v2 reviewed",
+      "key": "2025-self-adapting-language-models"
+    },
+    "finevo": {
+      "name": "FinEvo-Bench",
+      "url": "https://arxiv.org/html/2608.06144v1",
+      "locator": "§§4.1–4.3; Tables 3 and 5",
+      "status": "Aug 6, 2026 preprint, v1",
+      "key": "2026-finevo-bench"
+    },
+    "harness": {
+      "name": "Rethinking the Evaluation of Harness Evolution for Agents",
+      "url": "https://arxiv.org/abs/2607.12227v2",
+      "locator": "§§4.1–4.4; Tables 1–3",
+      "status": "2026 preprint; Aug 27 revision, v2",
+      "key": "harness-evolution-evaluation"
+    },
+    "stream": {
+      "name": "AgentStream",
+      "url": "https://arxiv.org/html/2608.00155v1",
+      "locator": "Table 2; per-seed Tables 11–13",
+      "status": "Jul 31, 2026 preprint, v1",
+      "key": "agentstream"
+    },
+    "rzero": {
+      "name": "R-Zero",
+      "url": "https://arxiv.org/abs/2508.05004v4",
+      "locator": "§2; Appendix D, Table 6; Appendix E",
+      "status": "ICLR 2026; Feb 13 revision, v4",
+      "key": "2025-r-zero"
+    },
+    "hyper": {
+      "name": "Hyperagents",
+      "url": "https://arxiv.org/abs/2603.19461v1",
+      "locator": "§§3, 5.2–5.3; Figure 4",
+      "status": "Mar 19, 2026 preprint, v1",
+      "key": "hyperagents"
+    },
+    "dream": {
+      "name": "Dream-RSI",
+      "url": "https://arxiv.org/html/2609.14858v1",
+      "locator": "§§3–4; Figure 3; Equation 1",
+      "status": "Sep 14, 2026 preprint, v1",
+      "key": "2026-dream-rsi"
+    },
+    "shopify": {
+      "name": "Sidekick’s continual learning loop",
+      "url": "https://shopify.engineering/sidekicks-continual-learning-loop",
+      "locator": "Harness optimization; trajectory repair; training; GraphQL sections",
+      "status": "Shopify Engineering, Aug 5, 2026; company report",
+      "key": "2026-shopify-sidekick"
+    }
+  },
+  "slides": [
+    {
+      "title": "Self-evolving agents",
+      "kind": "cover",
+      "claims": [
+        "C001",
+        "C011"
+      ],
+      "refs": [],
+      "purpose": "Open the central question.",
+      "visual": "Large typographic cover; Codex Grid 01.",
+      "notes": "For an audience familiar with LLM basics. Working assumption: 25–30 minutes of presentation with room for discussion. This is a topic-wide argument using the September 16 corpus. The question is whether solving one task improves future work. Preview the conclusion: useful bounded learning is supported; durable general improvement and its economics need stronger tests.",
+      "subtitle": "When does experience help with the next task?",
+      "eyebrow": "JOURNAL CLUB  /  SEPTEMBER 18, 2026",
+      "footer": "Evidence reviewed through September 16, 2026"
+    },
+    {
+      "title": "Learning has to survive the next task",
+      "kind": "loop",
+      "claims": [
+        "C001"
+      ],
+      "refs": [
+        "reflexion",
+        "voyager",
+        "seal"
+      ],
+      "purpose": "Define retained change before introducing methods.",
+      "visual": "One simple HTML diagram: experience → proposed change → selection → retained state; later-task test below.",
+      "notes": "Use this as an explicit operational definition, not a consensus boundary. Reflexion keeps written feedback for later attempts; Voyager accumulates executable skills. Retaining something is not evidence that it helps. A retry can improve the current answer without establishing transfer. The outer objective, feedback and acceptance rule may remain human-designed. Transition: what exactly is being retained?",
+      "subtitle": "Working definition: experience changes retained state that affects later behavior.",
+      "steps": [
+        "Experience",
+        "Propose a change",
+        "Select or reject",
+        "Retain state"
+      ],
+      "bottom": "The test: does the changed agent do better on future work?",
+      "caveat": "Illustrative mechanism. People may still set goals, feedback, and acceptance rules."
+    },
+    {
+      "title": "“Self” depends on what the agent can edit",
+      "kind": "table",
+      "claims": [
+        "C001",
+        "C002"
+      ],
+      "refs": [
+        "voyager",
+        "wiki",
+        "gepa",
+        "seal",
+        "rzero",
+        "stop",
+        "hyper"
+      ],
+      "purpose": "Give a map of update mechanisms.",
+      "visual": "Editable four-row comparison table, Codex Grid 14.",
+      "notes": "These are editable components, not levels on a universal capability ladder. A harness is the instructions and software that organize model calls and tool use. Weight updates change numerical model parameters. Improver code chooses how candidate changes are generated or searched. STOP already edited improver code in 2023, so avoid presenting meta-improvement as a new 2026 invention. Ask which decisions remain outside the loop. GEPA uses traces to propose prompts and keeps complementary candidates; it is an example of harness/prompt search, not a numerical comparison here.",
+      "subtitle": "Different systems move the boundary between the agent and its learning machinery.",
+      "headers": [
+        "Retained change",
+        "What changes next time",
+        "Examples"
+      ],
+      "rows": [
+        [
+          "Memory / skills",
+          "Facts, lessons, executable procedures",
+          "Voyager · WikiSkill"
+        ],
+        [
+          "Prompt / harness",
+          "Instructions and tool orchestration",
+          "GEPA"
+        ],
+        [
+          "Model weights",
+          "The model’s learned parameters",
+          "SEAL · R-Zero"
+        ],
+        [
+          "Improver code",
+          "How candidate changes are proposed",
+          "STOP · Hyperagents"
+        ]
+      ],
+      "caveat": "More editable components do not, by themselves, establish more general learning."
+    },
+    {
+      "title": "Retained knowledge can improve skills",
+      "kind": "chart",
+      "claims": [
+        "C003"
+      ],
+      "refs": [
+        "wiki"
+      ],
+      "purpose": "Establish a positive retained-state result.",
+      "visual": "Inline SVG column chart with zero baseline; interpretation rail, Codex Grid 22.",
+      "notes": "WikiSkill separates traces, accumulated wiki knowledge, and deployed skills. When a candidate skill is rejected, knowledge from the attempt can still persist. Qwen-3.5-9B gains 17.5 percentage points in macro accuracy across five benchmarks with equal benchmark weighting and three evolution runs. Test sizes are 124, 85, 280, 172, and 134. Table 1 gives no numerical confidence intervals. Skills are directly injected, validation sets are small, and OfficeQA has reference-page assistance. Qwen-3.5-4B declines from 30.2 to 28.5 on OfficeQA. The result supports useful benchmark learning, not universal improvement. Transition: experience can also be stored inside weights.",
+      "subtitle": "WikiSkill · Qwen-3.5-9B · mean accuracy across five benchmarks",
+      "categories": [
+        "No skills",
+        "WikiSkill"
+      ],
+      "values": [
+        29.9,
+        47.4
+      ],
+      "unit": "Accuracy (%)",
+      "max": 100,
+      "callout": "+17.5 pp",
+      "body": "Knowledge from an attempt can survive even when its skill edit is rejected.",
+      "detail": "Three evolution runs; separate development and test data.",
+      "caveat": "Injected skills bypass retrieval. Small validation sets; no numerical CI in Table 1.",
+      "resultLocator": "Table 1"
+    },
+    {
+      "title": "A model can learn to write better update data",
+      "kind": "chart",
+      "claims": [
+        "C004"
+      ],
+      "refs": [
+        "seal"
+      ],
+      "purpose": "Explain weight adaptation with the strongest scoped comparison.",
+      "visual": "Inline SVG column chart including the stronger-model comparator.",
+      "notes": "SEAL has an outer loop that rewards self-generated edits when an inner weight update helps downstream performance. This example is single-passage SQuAD incorporation with Qwen2.5-7B, not the curated ARC experiment. The tested learned policy reaches 47.0 versus 39.7 for base-model synthetic data, a 7.3 percentage-point difference. A stronger external generator, GPT-4.1, reaches 46.3; SEAL does not generally dominate it and loses to it in the larger incorporation conditions. There are 974 questions clustered within 200 held-out passages. Final-score repeated-run uncertainty is not supplied. Figure 6 shows forgetting across sequential edits. Transition: an improvement still needs strong controls.",
+      "subtitle": "SEAL · Qwen2.5-7B · single-passage knowledge incorporation",
+      "categories": [
+        "Untrained data",
+        "GPT-4.1 data",
+        "SEAL"
+      ],
+      "values": [
+        39.7,
+        46.3,
+        47.0
+      ],
+      "unit": "Accuracy (%)",
+      "max": 100,
+      "callout": "+7.3 pp",
+      "body": "The learned policy creates data that produces more useful weight updates.",
+      "detail": "974 questions from 200 held-out passages.",
+      "caveat": "Final-score uncertainty unreported. Later edits still degrade earlier knowledge.",
+      "resultLocator": "Table 2; Appendix B"
+    },
+    {
+      "title": "A strong fixed skill captures much of the gain",
+      "kind": "chart",
+      "claims": [
+        "C005"
+      ],
+      "refs": [
+        "finevo"
+      ],
+      "purpose": "Present the strongest specialization alternative.",
+      "visual": "Inline SVG three-column comparison, same metric and scaffold.",
+      "notes": "FinEvo tests recurring professional procedures with 120 financial tasks in 20 scenes and three shuffled task orders. Four scaffolds use the same Qwen3.7-Max backbone. Paired gains over reset range from 9.33 to 19.37 rubric points. The displayed Table 5 ablation is only the Claude Code scaffold: these labels are software frameworks, not vendor model identities. Reset is 71.58, fixed expert skill 86.67, unrestricted evolution 89.47. The 2.80-point difference is descriptive, not a tested causal advantage at matched cost. No across-run intervals are reported. Scoring and feedback share rubric design. Strong recurring-procedure evidence; novel procedures and full cost remain unresolved.",
+      "subtitle": "FinEvo-Bench · Claude Code scaffold · common Qwen3.7-Max model",
+      "categories": [
+        "Reset",
+        "Fixed expert skill",
+        "Full evolution"
+      ],
+      "values": [
+        71.58,
+        86.67,
+        89.47
+      ],
+      "unit": "Rubric score (0–100)",
+      "max": 100,
+      "callout": "2.80 points",
+      "body": "The remaining gap between a fixed expert skill and unrestricted evolution.",
+      "detail": "120 tasks · 20 recurring procedures · 3 task orders.",
+      "caveat": "One scaffold’s ablation; no across-run intervals. Rubric points are not accuracy.",
+      "resultLocator": "Table 5"
+    },
+    {
+      "title": "More attempts are a serious competing baseline",
+      "kind": "chart",
+      "claims": [
+        "C006"
+      ],
+      "refs": [
+        "harness"
+      ],
+      "purpose": "Test reusable changes against extra inference.",
+      "visual": "Column chart for matched rollout count; separate held-out result in notes and rail.",
+      "notes": "This is a counterexample from one tested harness-evolution implementation, not a universal negative result. Table 1 compares five rollouts on 89 Terminal-Bench 2.1 tasks, three models, two runs, without test feedback. Retain the printed averages 67.4 and 72.3 despite rounded-cell arithmetic. A separate train/validation/test partition of 45/10/34 yields 68.3 for evolved versus 67.7 for initial harness on the 34 held-out tasks. Do not combine those experimental populations. No numerical CIs in the tables. Equal rollouts are not equal dollars or tokens; a reused harness could repay development cost across future tasks. Transition: follow the system beyond development and watch for damage.",
+      "subtitle": "Harness-evaluation critique · 89 Terminal-Bench 2.1 tasks · 5 rollouts",
+      "categories": [
+        "Harness evolution",
+        "Parallel sampling"
+      ],
+      "values": [
+        67.4,
+        72.3
+      ],
+      "unit": "Reported mean pass@1 (%)",
+      "max": 100,
+      "callout": "68.3 vs 67.7",
+      "body": "Evolved versus initial harness on a separate set of 34 held-out tasks.",
+      "detail": "Sampling wins at the matched rollout count in this test.",
+      "caveat": "Equal rollouts ≠ equal lifetime cost. One implementation; table CIs absent.",
+      "resultLocator": "Tables 1 and 3"
+    },
+    {
+      "title": "Mixed task streams expose uneven gains",
+      "kind": "stream",
+      "claims": [
+        "C007"
+      ],
+      "refs": [
+        "stream"
+      ],
+      "purpose": "Show why aggregate improvement can hide regressions.",
+      "visual": "Prominent mean and flat three-row table, adapted Codex Grid 14.",
+      "notes": "AgentStream evaluates six benchmarks with 50 tasks each: 300 distinct tasks, reused across three order seeds. The three models and five methods make 45 model–method–seed cells per stream condition. For interleaving, 28 cells are positive and 17 negative. The local audit reproduces the means and the printed variability as sample SD of three seed means, not a confidence interval or SD over 45 independent datasets. Methods share tasks; benchmark metrics differ. FinEvo and AgentStream use different tasks and feedback, so their effect sizes are not a head-to-head ranking. The uncertainty about causes remains: retrieval, interference, and feedback quality require controlled ablations.",
+      "subtitle": "AgentStream · 3 models × 5 methods × 3 task-order seeds",
+      "callout": "+0.90 pp",
+      "body": "Mean gain when six benchmarks are interleaved.",
+      "headers": [
+        "Task stream",
+        "Mean gain",
+        "Positive / negative / tie"
+      ],
+      "rows": [
+        [
+          "Isolated",
+          "+1.37 pp",
+          "34 / 11 / 0"
+        ],
+        [
+          "Sequential",
+          "+0.75 pp",
+          "28 / 16 / 1"
+        ],
+        [
+          "Interleaved",
+          "+0.90 pp",
+          "28 / 17 / 0"
+        ]
+      ],
+      "caveat": "45 cells per row share 300 tasks. These are descriptive counts, not independent datasets.",
+      "resultLocator": "Table 2; Tables 11–13"
+    },
+    {
+      "title": "Further self-training can reverse a gain",
+      "kind": "twocol",
+      "claims": [
+        "C008"
+      ],
+      "refs": [
+        "rzero"
+      ],
+      "purpose": "Challenge monotonic improvement using a scoped counterexample.",
+      "visual": "Two checkpoint scores as typography plus explanatory column, Codex Grid 05.",
+      "notes": "R-Zero alternates a Challenger that invents math problems and a Solver that learns from generated pseudo-labels. Both start pretrained, with fixed rewards, prompts, filters and evaluators. Appendix D Table 6 is the audited result: two-model math average peaks at step 45, then declines at 60. These are checkpoints in a trajectory, not independent runs. Main-table and prose aggregates disagree in v4, so they are not used here. Missing training-run uncertainty prevents claims about typical collapse rates. Label degradation is not an established cause because difficulty and diversity also change. The math average combines benchmark metrics, so call it a reported math score. Ask what signal would trigger rollback before a test score fell.",
+      "leftTitle": "49.12 → 46.52",
+      "leftBody": "Reported math score\nSolver step 45 → step 60\nTwo-model R-Zero",
+      "rightTitle": "The curriculum also changes",
+      "rightBody": "A Challenger invents problems.\nA Solver trains on generated labels.\n\nMore iterations need not mean\nbetter future performance.",
+      "caveat": "One reported trajectory; training-run intervals absent. The cause of decline is unresolved.",
+      "resultLocator": "Appendix D, Table 6"
+    },
+    {
+      "title": "A better improver still has to transfer",
+      "kind": "twocol",
+      "claims": [
+        "C009"
+      ],
+      "refs": [
+        "hyper",
+        "dream"
+      ],
+      "purpose": "Explain meta-improvement and present its strongest challenge fairly.",
+      "visual": "Two-column comparison with finite positive results and precise limits.",
+      "notes": "Hyperagents shares editable task-agent and meta-agent code, while outer controls such as parent selection remain designed. Its math grading endpoint after 200 iterations is median 0.640 transferred versus 0.610 fresh over five runs, p>0.05 as reported. Bootstrap 95% intervals are 0.550–0.720 and 0.510–0.680; they resample runs, not task populations. Dream-RSI revises an exploration controller using replay of historical search trees. In the same-model Gemini-3.1-Pro Lasso comparison it uses 317 versus 550 discovery-agent calls, with mean solver runtime 2,931.0 versus 3,587.1 ms on six held-out datasets. The datasets test the discovered solver, not six independent controller runs. Replay guarantees only concern recorded paths; full meta-development cost and repeat uncertainty are missing. These positive mechanisms challenge blanket skepticism, without establishing sustained domain-general acceleration.",
+      "leftTitle": "Hyperagents",
+      "leftBody": "Edits the improvement code.\n\n0.640 transferred vs 0.610 fresh\nMath grading; five runs, p > .05\n\nTransfer is tested, but this\nendpoint is inconclusive.",
+      "rightTitle": "Dream-RSI",
+      "rightBody": "Revises an exploration controller.\n\n550 → 317 discovery-agent calls\nSame-model Lasso comparison\n\nCheaper search here; full cost\nand controller transfer remain open.",
+      "caveat": "Both are finite preprint results. Solver transfer and improver transfer are different tests.",
+      "resultLocator": "Hyperagents Figure 4; Dream-RSI Figure 3"
+    },
+    {
+      "title": "Production learning combines several loops",
+      "kind": "twocol",
+      "claims": [
+        "C010"
+      ],
+      "refs": [
+        "shopify"
+      ],
+      "purpose": "Integrate first-party practice into the core argument.",
+      "visual": "Flat sequence of changing components opposite the fixed external support.",
+      "notes": "Shopify describes a production pipeline rather than releasing a controlled longitudinal evaluation. Product criteria become rubric judges. Harness search modifies prompts, tool descriptions and orchestration. Frontier models repair low-scoring trajectories; unresolved cases go to human annotators. Repaired trajectories feed SFT and GRPO; old and new trajectories are reused in daily full-parameter training. Serving compression learns gist tokens. Treat all as company-described architecture. The article supplies no component ablations or cycle-by-cycle held-out quality. A shared judge can propagate a blind spot across stages, but that possibility is not proof of reward hacking. We deliberately omit the estimated 96% cost saving because it does not measure the total causal value of continual learning.",
+      "leftTitle": "What Shopify describes",
+      "leftBody": "1   Revise prompts and harness\n2   Repair failed trajectories\n3   Train on old and new data\n4   Compress the serving prompt",
+      "rightTitle": "What the loop still depends on",
+      "rightBody": "Product rubrics and judge models\nFrontier models that repair failures\nHuman annotation and release gates\n\nNo public cycle-by-cycle quality\ncurve isolates continual learning.",
+      "caveat": "Shopify Engineering, August 5, 2026. Company-described architecture; efficacy not isolated."
+    },
+    {
+      "title": "Four controls would separate the explanations",
+      "kind": "table",
+      "claims": [
+        "C012"
+      ],
+      "refs": [
+        "finevo",
+        "harness",
+        "hyper"
+      ],
+      "purpose": "Propose the discriminating experiment.",
+      "visual": "Editable four-arm table; clearly labeled proposed experiment.",
+      "notes": "This is our proposed protocol, not a published result or proven universal optimum. Use the same initial model, task stream, feedback access and lifetime resource budget. A strong fixed skill controls for prior expertise, a reset agent with extra attempts controls for inference compute, fixed-improver retained state tests experience reuse, and revisable-improver state adds meta-improvement. The fourth versus third comparison is particularly important: task performance improving alone does not establish that the improvement algorithm got better. Implementation differences can still confound these comparisons, so predeclare the update interface and allocation rules. Move to the next slide for the external test.",
+      "subtitle": "Proposed experiment · same starting agent, task stream, feedback, and total budget",
+      "headers": [
+        "Arm",
+        "What it can use",
+        "What it tests"
+      ],
+      "rows": [
+        [
+          "A  Fixed expertise",
+          "Strong expert procedure",
+          "Value of a good starting method"
+        ],
+        [
+          "B  Reset + more attempts",
+          "Extra inference; no retained state",
+          "Value of more computation"
+        ],
+        [
+          "C  Fixed improver",
+          "Retained state; unchanged update rule",
+          "Value of accumulated experience"
+        ],
+        [
+          "D  Editable improver",
+          "Retained state and a revised update rule",
+          "Added value of learning to improve"
+        ]
+      ],
+      "caveat": "D must beat C on future work to support a benefit from revising the improver."
+    },
+    {
+      "title": "Test the next task, the old task, and the bill",
+      "kind": "table",
+      "claims": [
+        "C011",
+        "C012"
+      ],
+      "refs": [
+        "stream",
+        "rzero",
+        "harness"
+      ],
+      "purpose": "Specify success criteria instead of leaving evaluation abstract.",
+      "visual": "Four-row decision table, Codex Grid 14.",
+      "notes": "Hold out new task families and a later time period before optimizing the system. Revisit earlier tasks to measure retention, failures and regressions, not only the best checkpoint. Count search, weight updates, execution and evaluation: cheap deployment can hide expensive optimization. Use independent repeated runs and a separately designed evaluator. An evaluator can still be wrong; report calibration and the unit of uncertainty. To claim acceleration rather than improvement, repeated cycles would need increasingly efficient gains, not just a higher score. These are recommendations grounded in the observed limitations, not empirical guarantees.",
+      "subtitle": "Proposed evaluation · commit to the test before optimizing the system",
+      "headers": [
+        "Question",
+        "Measure",
+        "Failure it can reveal"
+      ],
+      "rows": [
+        [
+          "Does it transfer?",
+          "New task families and a later time period",
+          "Specialization to development tasks"
+        ],
+        [
+          "Does it retain?",
+          "Earlier-task quality and regression counts",
+          "New learning that erases old abilities"
+        ],
+        [
+          "Does it pay?",
+          "Search + training + execution + judging",
+          "Gains bought by hidden computation"
+        ],
+        [
+          "Does it repeat?",
+          "Independent runs and independent evaluation",
+          "Lucky runs or rubric-specific behavior"
+        ]
+      ],
+      "caveat": "A rising best score alone establishes neither durable learning nor accelerating improvement."
+    },
+    {
+      "title": "Which result would change your mind?",
+      "kind": "discussion",
+      "claims": [
+        "C005",
+        "C008",
+        "C009",
+        "C012"
+      ],
+      "refs": [
+        "finevo",
+        "rzero",
+        "hyper"
+      ],
+      "purpose": "Invite decisions tied to the evidence.",
+      "visual": "Three spacious numbered prompts with a concrete evidence anchor.",
+      "notes": "Invite a prediction before discussing experimental design. First, would the small remaining gap over expert skills matter after lifetime cost, and which held-out procedure would test it? Second, participants should choose an actual stop or rollback signal for a self-generated curriculum and say how they would distinguish label noise from difficulty or diversity. Third, ask what fourth-versus-third-arm result would convince them the improver itself generalizes. There is no supplied correct answer. Use the appendix for denominators and source references.",
+      "prompts": [
+        [
+          "01",
+          "When is evolution worth the extra cost?",
+          "FinEvo: 86.67 for a fixed skill; 89.47 for unrestricted evolution."
+        ],
+        [
+          "02",
+          "What would trigger a rollback?",
+          "R-Zero: the reported math score falls after further training."
+        ],
+        [
+          "03",
+          "What would prove the improver learned?",
+          "Choose the new domain and the control that D must beat."
+        ]
+      ],
+      "caveat": "Decide on a prediction, a measurement, and a result that would falsify your view."
+    },
+    {
+      "title": "The value appears in the work that comes after",
+      "kind": "closing",
+      "claims": [
+        "C011"
+      ],
+      "refs": [],
+      "purpose": "Resolve the opening question without claiming general recursion.",
+      "visual": "Large synthesis plus three short evaluation questions, Codex Grid 01.",
+      "notes": "The synthesis is ours. Positive retained-state and learned-update experiments justify interest in bounded learning loops. Static expertise, extra inference, regressions and finite transfer limit the stronger interpretation. Ask whether an update helps on future work, keeps earlier abilities, and justifies its total cost. Broad repeated economical transfer of the improver would change the conclusion. The reviewed corpus does not establish sustained domain-general acceleration.",
+      "subtitle": "Useful learning loops are real in bounded settings.\nTheir broader value depends on what survives reuse.",
+      "bottom": "Does it transfer?     Does it retain?     Does it pay?",
+      "footer": "Interpretation of the reviewed evidence · research cutoff September 16, 2026"
+    },
+    {
+      "title": "Appendix · read each number with its denominator",
+      "kind": "table",
+      "claims": [
+        "C003",
+        "C004",
+        "C005",
+        "C006",
+        "C007",
+        "C008",
+        "C009"
+      ],
+      "refs": [
+        "wiki",
+        "seal",
+        "finevo",
+        "harness",
+        "stream",
+        "rzero",
+        "hyper"
+      ],
+      "purpose": "Keep uncertainty and independence available during discussion.",
+      "visual": "Concise methods table; no pooled effect.",
+      "notes": "All values are source-reported or the documented AgentStream reconstruction; none were independently reproduced. These rows are different experiments, with different metrics and costs, and must not be pooled. WikiSkill is a five-benchmark equal-weight average. SEAL questions share passages. FinEvo order permutations reuse tasks. Harness tests include distinct main and held-out populations. AgentStream cell counts share tasks. R-Zero checkpoints share a training trajectory. Hyperagents run uncertainty does not represent task-population uncertainty. Full limitations and result locators are in the local claim ledger and source notes.",
+      "subtitle": "Different tasks, metrics, and budgets prevent a pooled effect size.",
+      "headers": [
+        "Evidence",
+        "Unit / repeated structure",
+        "Uncertainty limit"
+      ],
+      "rows": [
+        [
+          "WikiSkill",
+          "5 benchmarks; 3 evolution runs",
+          "No numerical Table 1 CI"
+        ],
+        [
+          "SEAL",
+          "974 questions / 200 passages",
+          "No final-score repeat interval"
+        ],
+        [
+          "FinEvo",
+          "120 tasks / 3 shuffled orders",
+          "No main-effect run intervals"
+        ],
+        [
+          "Harness critique",
+          "89 tasks; separate 34-task holdout",
+          "Two runs; no table CIs"
+        ],
+        [
+          "AgentStream",
+          "300 tasks; 45 shared-task cells",
+          "Printed ± is SD of 3 seed means"
+        ],
+        [
+          "R-Zero / Hyperagents",
+          "Checkpoints / five independent runs",
+          "No run CI / run-bootstrap CIs"
+        ]
+      ],
+      "caveat": "See the claim ledger for exact comparison limits and source-specific access depth."
+    },
+    {
+      "title": "Appendix · mechanisms and positive evidence",
+      "kind": "references",
+      "claims": [],
+      "refs": [],
+      "purpose": "Provide stable primary links and publication status.",
+      "visual": "Spacious source list with short labels and stable URLs.",
+      "notes": "References supporting the main talk. Source versions and access depth are recorded in research/sources.md. The majority of 2026 experimental sources here are preprints; SEAL and R-Zero have conference versions. Source notes are based on primary methods/results and relevant appendices to their stated depth. No inaccessible social thread or unverified demo is used as evidence.",
+      "referenceIds": [
+        "reflexion",
+        "voyager",
+        "stop",
+        "gepa",
+        "wiki",
+        "seal"
+      ]
+    },
+    {
+      "title": "Appendix · controls, persistence, and practice",
+      "kind": "references",
+      "claims": [],
+      "refs": [],
+      "purpose": "Provide stable primary links and publication status.",
+      "visual": "Spacious source list with short labels and stable URLs.",
+      "notes": "References supporting the main talk. Source versions and access depth are recorded in research/sources.md. The majority of 2026 experimental sources here are preprints; SEAL and R-Zero have conference versions. Source notes are based on primary methods/results and relevant appendices to their stated depth. No inaccessible social thread or unverified demo is used as evidence.",
+      "referenceIds": [
+        "finevo",
+        "harness",
+        "stream",
+        "rzero",
+        "hyper",
+        "dream",
+        "shopify"
+      ]
+    }
+  ],
+  "presenter": {
+    "author": "Robert Yang",
+    "company": "Fundamental Research Labs"
+  }
+}

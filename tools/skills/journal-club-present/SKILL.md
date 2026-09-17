@@ -16,11 +16,13 @@ or record the prerequisite; do not silently replace analysis with paper summarie
 
 ## Design the argument
 
-Use the requested format and existing session tooling. For PowerPoint or Google
-Slides, use the available presentations skill; for PDF inspection or creation, use
-the PDF skill when available. If those skills are unavailable, use existing tools
-and document the limitation. Default to an editable PowerPoint and a PDF when the
-user has no format preference and the environment supports them.
+Default to a local HTML presentation with editable HTML/CSS/JavaScript sources.
+It should open directly in a browser without a build service or network dependency.
+Provide keyboard navigation, readable source links, accessible speaker notes, and
+a print layout. Prefer existing session tooling and a small implementation over
+adding a presentation framework. Do not create PowerPoint files or launch Office
+apps unless the user explicitly requests that format. Export a PDF only when
+requested; use the PDF skill to inspect it when available.
 
 Develop the presentation narrative from the thesis and claims in this stage;
 no separate analysis storyline is required. Write `slides/storyboard.md` before
@@ -40,6 +42,34 @@ large, legible text, strong contrast, and visual emphasis that guides attention.
 Avoid turning source notes into dense bullet slides; put supporting detail in notes
 or the appendix. Visual polish should make the reasoning easier to follow.
 
+## Establish a visual direction
+
+When revising a deck, inspect its current renders and any supplied references
+before changing the design. Identify the actual weakness—such as repetitive
+layouts, weak hierarchy, crowded evidence, or absent attribution—and preserve
+the existing argument, citations, and interactions unless content changes are
+needed. Record the chosen direction in the storyboard: palette, typography,
+spacing, and the visual roles of opening, evidence, synthesis, and appendix slides.
+
+Treat the deck as a designed sequence. Give the opening a distinctive composition;
+vary layout and emphasis with the argument rather than repeating a template.
+Use restrained accents with consistent meanings, generous whitespace, and a clear
+type contrast. A chart's key comparison should be apparent before its caveats are
+read. Avoid decoration that implies unmeasured progress, invented data, or causal
+relationships. References can inspire visual treatment, not supply unverified data.
+Keep fonts and assets available offline; use deliberate fallback fonts.
+
+Store presenter/author and company/affiliation in editable deck metadata. Use
+confirmed spelling on the title slide and, when useful, a restrained closing or
+running credit. Keep presenter attribution distinct from research citations.
+If either identity is missing, ask one concise question while continuing design
+work; do not infer an employer from a username, email domain, or cited company.
+
+Render representative slides (opening, densest evidence, and synthesis) early to
+test the direction, then apply it consistently. Review the full sequence as well
+as individual slides: rhythm, hierarchy, and readability matter beyond the absence
+of overflow. Record concrete design changes and observed verification results.
+
 ## Build with provenance
 
 Keep editable slide sources, generated deliverables, and relevant figure assets
@@ -57,9 +87,10 @@ Retain units, relevant uncertainty, baseline definitions, and meaningful axis sc
 
 ## Review and iterate
 
-Render and visually inspect every slide, including appendices, at presentation
-size. Use the presentation tooling's render workflow and inspect exported PDFs as
-well when delivered. Check clipping, overlap, font substitution, contrast, citation
+Open the HTML in a browser and visually inspect every slide, including appendices,
+at presentation size. Check keyboard navigation, source links, notes, direct slide
+links, and the print layout; inspect exported PDFs as well when delivered.
+Check clipping, overlap, font substitution, contrast, citation
 legibility, visual hierarchy, figure quality, and export consistency. Fix defects
 and re-render changed slides; recheck the entire deck after global layout changes.
 

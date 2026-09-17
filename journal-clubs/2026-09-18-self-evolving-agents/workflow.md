@@ -133,3 +133,13 @@ Pivotal local PDF values were reopened for WikiSkill, SEAL, the harness critique
 User requested sharpening after review. Preserved the expanded research coverage while revising the central argument: specialization can be useful learning; transfer and economic value are separate tests; bounded improver transfer has positive evidence without establishing sustained acceleration. Expanded the WikiSkill selection/retention explanation. Reopened Hyperagents v1 §§5.2–5.3 in the review and carried both distinct experiments into the thesis, C009, and source note. Updated C011–C012 and section mapping. The proposed experiment now matches starting code/state for fixed-versus-editable improvers and separates frozen reuse, resumed adaptation, and transfer of a fixed learned improver onto an identical task agent. Existing research notes also support narrower Dream-RSI, Escher-Loop, and harness token-cost wording.
 
 Used the existing September 16 research cutoff, coverage review, reading notes, and retained primary original; no freshness search or experiments. This is a targeted argument revision, not a new audit of every expanded citation. Existing slides are **stale for the revised framing, Hyperagents evidence, and experiment**; synchronize C009/C011/C012 and related narrative before presenting. Slide rebuilding is outside this analysis request.
+
+
+### Presentation styling revision — September 16, 2026
+
+Updated the presentation skill's design-direction, attribution, and visual-review
+guidance and applied it to all 18 existing HTML slides. Added Robert Yang / Fundamental
+Research Labs on opening and closing, plus editable theme source. Visual and
+interaction verification passed in local Chromium; see `slides/review.md`.
+This is a styling revision with unchanged C001–C012 content; the existing expanded
+thesis/C013–C019 reconciliation remains pending.
