@@ -112,6 +112,13 @@ plausibility and evidence. Do not hide uncertainty to make the story cleaner.
 
 ## Iterate and finish
 
+Check the thesis against the research coverage audit, not just the reading shortlist.
+For a broad topic, roughly 50 relevant reviewed references is a useful coverage
+diagnostic; a substantially thinner thesis warrants checking omitted approaches
+and counterevidence. Integrate sources where they do argumentative work, without
+padding, counting companion artifacts twice, or turning the essay into paper reviews.
+If no thesis-driven audit exists, queue one; perform it when authorized by the request.
+
 Send missing evidence, conflicting results, or uncertain provenance back to research
 with a precise question and an explanation of which conclusion it could change.
 Revise affected claims and the thesis after the response. Retain rejected theses

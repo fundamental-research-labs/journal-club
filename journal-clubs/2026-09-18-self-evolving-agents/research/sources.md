@@ -1,15 +1,17 @@
 # Source register
 
-**Research cutoff and access date: September 16, 2026.** The [ranked ten](shortlist.md) are the reading priorities; the [landscape](landscape.md) organizes the topic. This register preserves 151 candidate/resource records, including companions, excluded leads, and metadata-only watchlist items. It is not a claim that all 151 were fully read. There are 48 substantive note files, with exact reading depth recorded individually.
+**Research cutoff and access date: September 16, 2026.** The [ranked ten](shortlist.md) are the reading priorities; the [landscape](landscape.md) organizes the topic. This register preserves 153 candidate/resource records, including companions, excluded leads, and metadata-only watchlist items. It is not a claim that all 151 were fully read. There are 55 substantive note files, with exact reading depth recorded individually.
 
 The structured [sources.json](sources.json) contains the same records with complete author lists, metadata histories where checked, screening provenance, rubric reasons, and acquisition records. Primary metadata was checked against current arXiv records for 85 modern-ID sources, plus STOP separately; one requested arXiv metadata response failed. Version **read** and latest **available** metadata are separate: a newly observed version is not silently treated as read.
+
+The [thesis-driven coverage audit](thesis-coverage.md) maps 56 references actually used in the argument. The ten reading priorities do not cap the evidence base.
 
 ## Status and scope
 
 - **Shortlist (10):** selected for the topic-wide reading set, with primary substantive notes.
-- **Reviewed reserve (39):** substantive reading, useful alternatives or challenge companions.
-- **Screened reserve (25):** screened sufficiently to retain as a lead; depth varies and a standalone note may be absent.
-- **Watchlist (64):** incomplete/abstract/metadata-level support; not evidence for an empirical claim.
+- **Reviewed reserve (46):** substantive reading, useful alternatives or challenge companions.
+- **Screened reserve (21):** screened sufficiently to retain as a lead; depth varies and a standalone note may be absent.
+- **Watchlist (63):** incomplete/abstract/metadata-level support; not evidence for an empirical claim.
 - **Companion (3):** related project or institutional communication; not independent replication.
 - **Excluded (10):** retained for traceability, including unverified or redundant leads.
 
@@ -439,12 +441,12 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 <a id="2024-aflow"></a>
 
-### [AFlow: Automating Agentic Workflow Generation](https://arxiv.org/abs/2410.10762)
+### [AFlow: Automating Agentic Workflow Generation](https://arxiv.org/abs/2410.10762v4)
 
-- **Key / type / family:** `2024-aflow`; ICLR 2025 conference paper and code; `2024-aflow`. **Authors:** Zhang, Jiayi, Xiang, Jinyu, Yu, Zhaoyang et al..
-- **Dates / version:** first 2024-10-14; latest metadata 2025-04-15; read/inspected latest arXiv revision verified 2025-04-15. **Access:** 2026-09-16; primary full text: setup, Tables 1-2, Appendix D cost data.
-- **Selection:** screened-reserve; rubric M / M / M / H / M. Useful held-out workflow-search and cost comparator, less direct than persistent self-evolution. **Notes:** no standalone substantive note.
-- **Original:** not acquired: screening/navigation lead; not needed for selected evidence. License/permission: http://arxiv.org/licenses/nonexclusive-distrib/1.0/. [Download/source location](https://arxiv.org/pdf/2410.10762).
+- **Key / type / family:** `2024-aflow`; ICLR 2025 paper; arXiv v4 read; `2024-aflow`. **Authors:** Zhang, Jiayi, Xiang, Jinyu, Yu, Zhaoyang et al..
+- **Dates / version:** first 2024-10-14; latest metadata 2025-04-15; read v4. **Access:** 2026-09-16; primary methods/results read; coordinator metadata and methods checked.
+- **Selection:** reviewed-reserve; rubric H / M / M / H / H. Thesis foundation: workflow optimization yields reusable fixed artifacts and makes execution/search cost distinction explicit. **Notes:** [reading record](notes/2024-aflow.md).
+- **Originals:** Official versioned HTML read; arXiv non-exclusive distribution license does not establish redistribution permission. License/permission: arXiv non-exclusive distribution license. Metadata and preparation costs remain source-specific.
 
 <a id="2024-curse-of-recursion-model-collapse"></a>
 
@@ -457,12 +459,12 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 <a id="2024-automated-design-agentic-systems"></a>
 
-### [Automated Design of Agentic Systems](https://arxiv.org/abs/2408.08435)
+### [Automated Design of Agentic Systems](https://arxiv.org/abs/2408.08435v2)
 
-- **Key / type / family:** `2024-automated-design-agentic-systems`; ICLR 2025 conference paper and code; `2024-automated-design-agentic-systems`. **Authors:** Hu, Shengran, Lu, Cong, Clune, Jeff.
-- **Dates / version:** first 2024-08-15; latest metadata 2025-03-02; read/inspected arXiv revision 2025-03-02. **Access:** 2026-09-16; primary full text: experimental methods, Tables 1-3, costs.
-- **Selection:** screened-reserve; rubric M / M / H / H / M. Foundational code-defined architecture search with held-out tests and cross-model/domain transfer; no continual deployment. **Notes:** no standalone substantive note.
-- **Original:** not acquired: screening/navigation lead; not needed for selected evidence. License/permission: http://creativecommons.org/licenses/by/4.0/. [Download/source location](https://arxiv.org/pdf/2408.08435).
+- **Key / type / family:** `2024-automated-design-agentic-systems`; ICLR 2025 paper; arXiv v2 read; `2024-automated-design-agentic-systems`. **Authors:** Hu, Shengran, Lu, Cong, Clune, Jeff.
+- **Dates / version:** first 2024-08-15; latest metadata 2025-03-02; read v2. **Access:** 2026-09-16; primary methods/results read; coordinator metadata and methods checked.
+- **Selection:** reviewed-reserve; rubric H / M / M / H / H. Thesis foundation: code-defined design search with fixed meta-agent is a predecessor to recursive improver editing. **Notes:** [reading record](notes/2024-automated-design-agentic-systems.md).
+- **Originals:** [2024-automated-design-agentic-systems-paper-v2.pdf](originals/2024-automated-design-agentic-systems/2024-automated-design-agentic-systems-paper-v2.pdf) License/permission: CC BY 4.0. Metadata and preparation costs remain source-specific.
 
 <a id="2026-nist-evaluation-cheating-background"></a>
 
@@ -550,9 +552,9 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 ### [MemSkill: Learning and Evolving Memory Skills for Self-Evolving Agents](https://arxiv.org/abs/2602.02474)
 
 - **Key / type / family:** `2026-memskill`; preprint; `2026-memskill`. **Authors:** Zhang, Haozhen, Long, Quanyu, Bao, Jianzhu et al..
-- **Dates / version:** first 2026-02-02; latest metadata 2026-05-24; read/inspected v2. **Access:** 2026-09-16; full text.
-- **Selection:** screened-reserve; rubric H / M / H / H / M. Strong mechanism but overlaps WikiSkill/SelfMem and compounds LLM executor/designer/judge dependence. **Notes:** no standalone substantive note.
-- **Original:** not acquired: screening/navigation lead; not needed for selected evidence. License/permission: http://creativecommons.org/licenses/by/4.0/. [Download/source location](https://arxiv.org/pdf/2602.02474v2).
+- **Dates / version:** first 2026-02-02; latest metadata 2026-05-24; read v2. **Access:** 2026-09-16; primary methods/results and relevant appendices read; tier2/coordinator verified 2026-09-16.
+- **Selection:** reviewed-reserve; rubric H / M / H / H / H. Thesis coverage: evolving memory-operation bank separates learning what to retain from learning how to retain it. **Notes:** [reading record](notes/2026-memskill.md).
+- **Originals:** [2026-memskill-paper-v2.pdf](originals/2026-memskill/2026-memskill-paper-v2.pdf) License/permission: http://creativecommons.org/licenses/by/4.0/. Metadata and preparation costs remain source-specific.
 
 <a id="2024-rate-model-collapse-recursive-training"></a>
 
@@ -565,12 +567,12 @@ The [originals manifest](originals/manifest.json) records immutable source URLs,
 
 <a id="2025-reasoningbank"></a>
 
-### [ReasoningBank: Scaling Agent Self-Evolving with Reasoning Memory](https://arxiv.org/abs/2509.25140)
+### [ReasoningBank: Scaling Agent Self-Evolving with Reasoning Memory](https://arxiv.org/abs/2509.25140v2)
 
-- **Key / type / family:** `2025-reasoningbank`; preprint; `2025-reasoningbank`. **Authors:** Ouyang, Siru, Yan, Jun, Hsu, I-Hung et al..
-- **Dates / version:** first 2025-09-29; latest metadata 2026-03-16; read/inspected v2. **Access:** 2026-09-16; full text.
-- **Selection:** screened-reserve; rubric H / M / M / H / M. Relevant multi-benchmark comparator, but self-judging and k=5 compute complicate causal attribution. **Notes:** no standalone substantive note.
-- **Original:** not acquired: screening/navigation lead; not needed for selected evidence. License/permission: http://arxiv.org/licenses/nonexclusive-distrib/1.0/. [Download/source location](https://arxiv.org/pdf/2509.25140v2).
+- **Key / type / family:** `2025-reasoningbank`; ICLR 2026 paper; arXiv v2 read; `2025-reasoningbank`. **Authors:** Ouyang, Siru, Yan, Jun, Hsu, I-Hung et al..
+- **Dates / version:** first 2025-09-29; latest metadata 2026-03-16; read v2. **Access:** 2026-09-16; primary methods/results read; coordinator metadata and methods checked.
+- **Selection:** reviewed-reserve; rubric H / M / M / H / H. Thesis foundation: memory and extra inference jointly generate learning signal; controls must separate their costs. **Notes:** [reading record](notes/2025-reasoningbank.md).
+- **Originals:** Official versioned HTML read; arXiv non-exclusive distribution license does not establish redistribution permission. License/permission: arXiv non-exclusive distribution license. Metadata and preparation costs remain source-specific.
 
 <a id="2025-self-evolving-curriculum"></a>
 
@@ -1369,10 +1371,10 @@ These newly discovered older works supplement the existing ten. Five received su
 
 ### [SkillsBench: Benchmarking How Well Agent Skills Work Across Diverse Tasks](https://arxiv.org/abs/2602.12670v4)
 
-- **Key / family / type:** `2026-skillsbench` / `2026-skillsbench`; arXiv preprint record; venue not independently checked. **Authors:** Li, Xiangyi, Liu, Yimin, Chen, Wenbo et al.
-- **Dates / access:** first 2026-02-13; latest 2026-06-14 (v4); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
-- **Decision:** watchlist; rubric H / U / U / U / U. Keyword-discovered skill-efficacy benchmark; v4 differs materially from v1 snippets; no outcome claim adopted. [Discovery provenance](search-log.md).
-- **Original:** pending — Discovery-only source; original acquisition deferred until substantive reading.; [download](https://arxiv.org/pdf/2602.12670v4); [license](http://creativecommons.org/licenses/by/4.0/).
+- **Key / type / family:** `2026-skillsbench`; arXiv preprint record; venue not independently checked; `2026-skillsbench`. **Authors:** Li, Xiangyi, Liu, Yimin, Chen, Wenbo et al..
+- **Dates / version:** first 2026-02-13; latest metadata 2026-06-14; read v4. **Access:** 2026-09-16; primary methods/results and relevant appendices read; tier2/coordinator verified 2026-09-16.
+- **Selection:** reviewed-reserve; rubric H / M / H / H / H. Thesis coverage: paired curated/no-skill and self-authoring controls materially qualify the fixed-expertise comparison; v4 replaces obsolete snapshot. **Notes:** [reading record](notes/2026-skillsbench.md).
+- **Originals:** [2026-skillsbench-paper-v4.pdf](originals/2026-skillsbench/2026-skillsbench-paper-v4.pdf) License/permission: http://creativecommons.org/licenses/by/4.0/. Metadata and preparation costs remain source-specific.
 
 <a id="2026-meta-agent-challenge"></a>
 
@@ -1400,3 +1402,22 @@ These newly discovered older works supplement the existing ten. Five received su
 - **Dates / access:** first 2026-06-08; latest 2026-08-20 (v3); accessed September 16. primary abstract and metadata only; seed citation context where applicable.
 - **Decision:** watchlist; rubric H / U / U / U / U. HarnessDev §5 names model-specific edits and regression testing; methods unread. [Discovery provenance](workers/citation-mining-harness.md).
 - **Original:** pending — Discovery-only source; original acquisition deferred until substantive reading.; [download](https://arxiv.org/pdf/2606.09498v3); [license](http://creativecommons.org/licenses/by/4.0/).
+
+<a id="2026-rethink-continual-internalization"></a>
+
+### [Rethinking Continual Experience Internalization for Self-Evolving LLM Agents](https://arxiv.org/abs/2606.04703v1)
+
+- **Key / type / family:** `2026-rethink-continual-internalization`; arXiv preprint; `2026-rethink-continual-internalization`. **Authors:** Jingwen Chen, Wenkai Yang, Shengda Fan et al..
+- **Dates / version:** first 2026-06-03; latest metadata 2026-06-03; read v1. **Access:** 2026-09-16; full primary methods/results and relevant appendices; tier2 verification; coordinator HTML §§2–5.
+- **Selection:** reviewed-reserve; rubric H / M / H / H / H. Tests repeated weight updates with both on-policy deterioration and bounded gains for a fixed off-policy recipe. New thesis-relevant omission. **Notes:** [reading record](notes/2026-rethink-continual-internalization.md).
+- **Originals:** Official HTML inspected; arXiv non-exclusive distribution license does not establish permission to retain redistributed paper. License/permission: http://arxiv.org/licenses/nonexclusive-distrib/1.0/. Metadata and preparation costs remain source-specific.
+
+
+<a id="2023-expel"></a>
+
+### [ExpeL: LLM Agents Are Experiential Learners](https://arxiv.org/abs/2308.10144v3)
+
+- **Key / type / family:** `2023-expel`; AAAI 2024 paper; arXiv v3 read; `2023-expel`. **Authors:** Andrew Zhao, Daniel Huang, Quentin Xu et al..
+- **Dates / version:** first 2023-08-20; latest metadata 2024-12-20; read v3. **Access:** 2026-09-16; primary methods/results read; coordinator metadata and methods checked.
+- **Selection:** reviewed-reserve; rubric H / M / M / H / H. Thesis foundation: cross-task insight and episodic retrieval predate newer memory systems. **Notes:** [reading record](notes/2023-expel.md).
+- **Originals:** [2023-expel-paper-v3.pdf](originals/2023-expel/2023-expel-paper-v3.pdf) License/permission: CC BY 4.0. Metadata and preparation costs remain source-specific.

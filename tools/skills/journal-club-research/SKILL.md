@@ -1,6 +1,6 @@
 ---
 name: journal-club-research
-description: Research a journal club topic with tiered parallel discovery, evidence-based screening, and a ranked shortlist of about 10 sources. Refine existing research incrementally. Use for initial literature discovery, research updates, or targeted evidence gaps from analysis and presentation.
+description: Research a journal club field with parallel discovery, primary-source screening, and thesis-driven coverage audits. Build a broad evidence base and a compact reading shortlist. Use for initial discovery, research updates, or re-research after analysis.
 ---
 
 # Journal Club Research
@@ -15,14 +15,17 @@ instructions and reuse the existing session and source identifiers.
 ## Resume before searching
 
 Inspect the existing README, workflow queue, search log, source register, reading
-notes, shortlist, and landscape before launching agents. Reuse equivalent existing
-filenames and stable IDs; do not create a parallel corpus because its layout differs.
+notes, shortlist, landscape, and any existing thesis and claim ledger before
+launching agents. Reuse equivalent existing filenames and stable IDs; do not create a parallel corpus because its layout differs.
 
 Choose scope from the request and existing coverage:
 - **Initial discovery:** build broad coverage when little research exists.
 - **Refinement/update (default with an existing corpus):** search since the previous
   cutoff, fill gaps, screen promising pending candidates, and revisit weak or
   conflicting evidence. Preserve useful foundational coverage.
+- **Thesis-driven coverage audit:** after analysis forms or materially revises a thesis,
+  test its coverage against the broader field using the procedure below. Reuse the
+  corpus; reopen discovery across missing approaches, not just recent dates.
 - **Targeted follow-up:** resolve the queued question; widen only when it exposes
   a missed approach or the user changes scope.
 
@@ -54,6 +57,52 @@ Search with synonyms and competing framings, and follow citations backward and
 forward. Run the recent-paper citation-mining pass below alongside keyword discovery.
 Log queries, search dates, coverage, and gaps in `research/search-log.md`.
 Avoid using the emerging thesis as the only vocabulary for discovery.
+
+## Re-research from an existing thesis
+
+Treat the thesis as a hypothesis to test, not a search filter. Read its actual
+argument and claim ledger, then map each major claim to supporting evidence,
+credible challenges, competing explanations, and omitted approaches. Search both
+claim-specific terms and independent field terminology. A general claim about what
+the field has not established requires broader checking than the examples cited.
+
+For a broad, fast-moving topic such as self-evolving agents, expect roughly **50
+substantively relevant, reviewed references in the thesis**, adjusting to field size
+and explicit user scope. This is a coverage diagnostic, not a quota or a requirement
+for a short single-paper session. Distinguish four counts: discovery records,
+reviewed evidence families, sources actually used in the thesis, and reading
+priorities. A ten-source shortlist is a reading route, never a ceiling on research
+or thesis references. Companion paper/blog/code artifacts count as one underlying
+family for breadth; metadata leads and an unused bibliography do not count as
+reviewed thesis support. If coverage is materially below the target, investigate
+why and record consequential gaps before declaring the research sufficient.
+
+Build `research/thesis-coverage.md` (or update an equivalent record) with:
+- Thesis claim/question, current sources, strongest challenge or alternative,
+  uncovered mechanism/population/evaluation, and the search that could change it.
+- Selected references and their exact role: support, challenge, mechanism,
+  foundation, or scope boundary. Link primary URLs and substantive reading notes.
+- Actual before/after counts, deduplication basis, access limits, and disposition
+  of important omissions; distinguish a missing citation from missing research.
+
+Use complementary discovery lanes for omitted foundations and methods, strongest
+positive/negative evidence, recent primary-paper citation neighborhoods, and original
+practitioner work. Reconsider previously screened reserves and watchlist sources
+against the thesis; ranking outside the ten is not grounds for exclusion. Read
+primary methods/results for consequential additions before promoting them. Trace
+selected backward/forward citation edges, but keep independent keyword discovery
+to counter the thesis's vocabulary and citation-network biases.
+
+Screen for the contribution to a specific argument, including evidence that would
+force a narrower or different thesis. Stop when major coverage gaps are addressed
+and further expansions add little decision-relevant evidence, or report the actual
+budget/access limit; reaching 50 alone does not establish saturation. Do not add
+marginal sources to make the count. Hand off concrete paragraph/claim revisions.
+When the user requests applying the research fix to an existing thesis, integrate
+the verified additions into connected, claim-cited prose and update traceability
+within that scope. Otherwise mark affected analysis stale and queue the revision.
+Keep a readable argument; neither a citation dump nor a sequence of paper reviews
+fulfills the breadth target.
 
 ## Tier 1: broad parallel discovery
 
@@ -144,7 +193,8 @@ recency, and source format are not substitutes for appraisal. Include substantiv
 practitioner work and foundations on their merits, without a paper-only or format quota.
 
 The coordinator compares across batches, resolves inconsistent judgments, and builds
-a provisional shortlist of about 10 evidence families, adapting to the request and
+a provisional reading shortlist of about 10 evidence families, distinct from the
+broader reviewed thesis evidence base and adapting to the request and
 topic. Select a representative source and link companions for each. Cover the main
 questions, competing approaches, and credible challenges; explain gaps rather than
 padding the list. Retain close alternatives for replacements after verification.

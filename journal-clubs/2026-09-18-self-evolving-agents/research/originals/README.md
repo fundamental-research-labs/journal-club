@@ -50,3 +50,7 @@ For restricted copies and exact locations tried, see [manifest.json](manifest.js
 ## Citation-mining acquisitions
 
 Added unmodified CC BY 4.0 versions: [EvoX v2](2026-evox/2026-evox-paper-v2.pdf), [EvoSkill v1](2026-evoskill/2026-evoskill-paper-v1.pdf), and [Trace2Skill v5](2026-trace2skill/2026-trace2skill-paper-v5.pdf). Authors, versioned canonical links, and license URLs are in the [register](../sources.md); bytes and hashes are in the manifest. SkillOpt and MLEvolve remain linked rather than retained under their arXiv non-exclusive distribution licenses.
+
+## Thesis coverage acquisition — September 16
+
+Added four unmodified CC BY 4.0 PDFs: MemSkill v2, SkillsBench v4, ExpeL v3 and ADAS v2. Their exact URLs, bytes and SHA-256 are in the manifest and linked notes. Each passed title/version extraction and `pdfinfo`. ExpeL urllib retrieval returned HTTP 406; curl succeeded from the same versioned official endpoint. ReasoningBank, AFlow and continual experience internalization were read via official HTML and remain retention-restricted under the arXiv non-exclusive license.

@@ -1,0 +1,42 @@
+# Thesis evaluation coverage (targeted omission search)
+
+**Run date and cutoff:** 2026-09-16. **Scope:** bounded challenge search for the thesis that lasting future-task value is not yet shown to exceed fixed expertise or extra compute, and that no general accelerating improvement has been established. Existing `research/sources.json`, evaluation workers, and notes were inspected first; existing SEA-Eval, FinEvo-Bench, harness-evolution, and reward-hacking families were treated as covered. Eight keyword searches were run, followed by two recent seed inspections (Anthropic eval guidance and Microsoft STATE-Bench). No shared source register was edited.
+
+## Search log and coverage
+
+Queries (2026-09-16): `METR task horizon agent reliability`; `agent continual learning production system memory evaluation`; `LLM judge verifier reliability reward hacking agent evaluation`; `test-time compute cost scaling agents`; `continual learning production online adaptation AI agent`; `longitudinal agent benchmark transfer interference`; `researcher self-improving coding agent production evaluation`; `Anthropic OpenAI agent evaluation verifier reliability`.
+
+The search saturated quickly around evaluation infrastructure, cost-aware inference, and memory benchmarks. It found little independent rerun evidence for the existing self-evolution papers. X/Twitter results were inaccessible or secondary; they remain leads only and are not used as evidence. Practitioner sources were inspected as design evidence, not as causal efficacy claims.
+
+## Consequential source families
+
+| Source | Date/type/access | Evidence contribution and thesis implication |
+|---|---|---|
+| [METR, Task-Completion Time Horizons](https://metr.org/time-horizons/) | Updated 2026-05-08; first-party measurement page, methods and data/code links read | Fits logistic success curves against human task duration across 100+ software tasks and reports 50%/80% reliability horizons. It supplies a future-task reliability axis for “lasting value,” while its software-task scope and model-selection gaps limit generalization. |
+| [Anthropic, Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) | 2026-01-09; first-party engineering article, full page read | Defines transcript, environment outcome, and harness separately. Reports CORE-Bench rising from 42% to 95% after fixing grading/specification/reproducibility bugs. This is a direct challenge to interpreting score changes as agent improvement without evaluator audits. |
+| [Microsoft, STATE-Bench](https://opensource.microsoft.com/blog/2026/05/19/introducing-state-bench-a-benchmark-for-ai-agent-memory/) | 2026-05-19; first-party project article, methods/results sections read | Stateful enterprise tasks, five repeated runs, deterministic state scoring where possible, and pass^5 reliability. GPT-5.1 without memory completed fewer than half reliably; travel pass^5 was about 30%. Strong operationalization of retention/reliability, but vendor baseline and LLM-judge components need independent replication. |
+| [Google Research, Cost-effective Agent Test-Time Scaling (CATS)](https://research.google/pubs/cost-effective-agent-test-time-scaling/) | 2025-10-?? (page says published 8 months before cutoff); first-party abstract read | Budget-aware allocation between sequential and parallel exploration; reports higher accuracy with fewer tool calls/lower cost on search benchmarks. Supports the competing explanation that resource allocation can yield gains without durable learning. Full paper and exact date should be verified before citation. |
+| [The Cost of Dynamic Reasoning](https://arxiv.org/abs/2506.04301) | 2025-06-04; arXiv paper, HTML methods/results read | System-level analysis of Llama-3.1 8B/70B agent designs. LATS averages 71 LLM calls/request; prefix caching cuts end-to-end latency 15.7%; agent workflows consume 62.1–136.5× single-turn GPU energy in the reported HotpotQA setup. Makes full-cost accounting non-optional, though hardware/workload assumptions are narrow. |
+| [Letta, Evaluating Memory in Production Agents](https://letta.one/blog/evaluating-memory-in-production-agents/) | 2026-08; first-party practitioner article, full page read | Stateful multi-turn scenarios with user simulator, initialized memories, and judge scoring distinguish memory generation from memory adherence. Reports weaker models may log feedback without generalizing it and warns of memory rot. Useful production failure modes; no independent or human-validated effect estimate. |
+| [Agenture AI Lab, Agent memory is a search system](https://agenture.org/blog/260823-agent-memory-is-a-search-system/) | 2026-08-23; practitioner blog, abstract/page read | Frames production memory as retrieval/ranking plus controlled updates. Relevant architecture lead for retrieval cost and stale-memory maintenance; no causal benchmark result reviewed. |
+| [Microsoft Foundry, production-ready agent memory](https://devblogs.microsoft.com/foundry/memory-build2026/) | 2026-06-03; vendor engineering blog, page read | Reports STATE-Bench and combines design-time prompt/tool optimization with runtime learning. Useful production integration lead, but vendor-originated and not an independent evaluation. |
+
+## Selected citation edges / locators
+
+1. Anthropic eval article, definitions at lines 34–36: transcript, outcome, and evaluation harness are distinct objects. This supports requiring environment-state and process checks alongside final answer scores.
+2. Anthropic eval article, CORE-Bench example at line 263: 42% became 95% after fixing rigid grading, ambiguous specs, and irreproducible stochastic tasks. This is a concrete evaluator-induced score swing, not evidence of model learning.
+3. STATE-Bench article, methods at lines 145–158: five trials, deterministic final-state scoring for state-mutating tasks, pass^5 reliability, and GPT-5.1 baseline below half reliable (travel about 30%). This supports repeated-run reliability and stateful evaluation.
+4. METR page, methods at lines 31 and 50–52: 100+ diverse software tasks; logistic fit maps human duration to 50%/80% agent success. This offers a longitudinal capability measure but does not measure self-evolution.
+5. Cost of Dynamic Reasoning, §§IV–V and lines 134, 177, 275–297: call counts, caching, accuracy/cost Pareto curves, and energy multipliers. These locators support equalizing inference and tool cost when comparing learned changes with extra attempts.
+
+## Implications for the thesis
+
+These omissions strengthen the thesis’s burden of proof. Evaluation infrastructure can create large apparent gains (42→95%) through grading repair, while cost-aware search can improve accuracy under a fixed task without any persistent update. Stateful benchmarks make the right outcome observable—future task success, repeated-run reliability, and environment state—but current vendor baselines do not establish cross-system generality. Production memory accounts suggest that retaining experience introduces retrieval, adherence, and memory-rot costs that should be included in lifetime value. METR’s time-horizon framework is a useful independent axis for “work made possible afterward,” but it has not been applied to self-evolution cycles.
+
+The evidence does **not** show that memory or adaptive systems are ineffective. It shows that durable improvement must beat a strong fixed procedure and budget-matched test-time search on held-out future tasks, under independent scoring, repeated runs, preserved old-task performance, and full token/tool/maintenance cost accounting. No source found here establishes a general accelerating improvement rate across domains.
+
+SkillsBench adds a strong static baseline: curated procedures help substantially, but one-shot self-generated procedures do not. The result makes longitudinal comparison against a fixed curated library essential.
+
+## Limitations and handoff
+
+Only three sources (Anthropic evals, STATE-Bench, and Cost of Dynamic Reasoning) received substantive note files in this lane. CATS was first-party abstract-level only; METR was methods-page level; practitioner sources are design leads. Dates marked approximate must be verified from the primary paper. No original files were retained because the inspected web pages and arXiv links did not establish redistribution permission; canonical links and notes are preserved. Independent reruns, judge-human agreement, and self-evolution-specific applications of METR horizons remain open gaps.

@@ -1,5 +1,8 @@
 # Priority resources: self-evolving agents
 
+
+**Thesis coverage update (September 16):** these ten remain reading priorities. The [expanded thesis](../analysis/thesis.md) uses 56 reviewed source families; the [coverage audit](thesis-coverage.md) explains their roles. SkillsBench v4 is the key new fixed-expertise companion, continual experience internalization the key multi-cycle companion, and ExpeL/ADAS/AFlow/ReasoningBank restore foundations. Ranking outside the ten is not exclusion from the argument.
+
 **Prepared September 16, 2026 for the September 18 session.** This is a ranked research selection for a topic-wide journal club, not ten consecutive paper reviews. Priority reflects complementary mechanisms, useful controls, teaching value, and evidence quality. Newness alone does not determine rank. All ten have substantive primary-source reading notes; author claims remain distinct from the interpretation below.
 
 **Start with WikiSkill, the harness-evaluation critique, SEAL, and Hyperagents.** Together they establish persistent experience, a meaningful counterfactual, weight adaptation, and improvement of the improver. Add AgentStream and R-Zero to test whether progress lasts. Shopify supplies a production systems perspective with limited public causal evidence.

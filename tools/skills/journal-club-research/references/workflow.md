@@ -32,8 +32,9 @@ can inspect the underlying evidence without knowing the workflow.
 
 On a return to an earlier stage, do a targeted pass, update the affected evidence,
 and propagate substantive changes through thesis, claims, storyboard, and deck.
-Mark dependent artifacts stale until updated. Reopen broad discovery only when the
-scope changes or the gap reveals a missed approach.
+Mark dependent artifacts stale until updated. After a thesis is formed or materially
+revised, audit its field coverage and strongest counterevidence; reopen discovery
+when that audit reveals thin support or omitted approaches, or the user requests it.
 
 Stop iterating when the requested artifacts meet their stage checks and no unresolved
 gap would materially alter the central conclusion. Narrow unsupported claims instead
@@ -113,7 +114,11 @@ Access depth is separate from disposition: shortlisted sources may be provisiona
 Discovery-only entries may omit a notes link until substantive reading occurs. Keep
 screened-out candidates and family relationships for incremental reruns.
 `research/shortlist.md` holds the current ranked selection (about 10 evidence families
-by default); dated search-log entries preserve material ranking changes and coverage.
+by default), not the size of the thesis evidence base. For broad topics, aim for
+roughly 50 relevant reviewed references substantively used in the thesis, with
+field-appropriate exceptions explained. Track discovery, reviewed-family, thesis-use,
+and shortlist counts separately in a thesis coverage audit; never pad with companions
+or unread leads. Dated search-log entries preserve material ranking changes and coverage.
 
 `research/notes/2026-agent-memory-evaluation.md` records:
 - Source title/ID, canonical URL, local-original link if retained, exact version read,

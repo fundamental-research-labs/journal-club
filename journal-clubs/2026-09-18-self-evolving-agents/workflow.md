@@ -1,17 +1,36 @@
-# Research and analysis handoff
+# Research, analysis, and presentation handoff
 
-**Updated September 16, 2026. Stage: analysis complete, ready for presentation development with explicit source limitations.** Scope is the existing September 18 topic-wide journal club. The current user request authorized improving the analysis skill’s writing guidance and applying it to the thesis. Slides and external publication are not requested.
+**Updated September 16, 2026. Stage: HTML presentation complete for the September 16 thesis and C001–C012 handoff, with explicit source limitations.** The user requested presentation development, then specified HTML instead of PowerPoint and requested that preference in the presentation skill. Materials remain local. Subsequent research changes should be reconciled before presenting.
+
+## Current research revision
+
+The research skill now reads the thesis and claim ledger, audits support/challenges/omitted approaches, distinguishes candidate/reviewed/thesis/shortlist counts, and treats roughly 50 references as a broad-topic coverage diagnostic. The shared workflow and analyze skill carry the same handoff expectation. Installed skills are symlinks to these repository files.
+
+Applied the revised workflow: 151→153 records, 48→55 notes, 13→56 distinct references in thesis prose; ten reading priorities retained. ExpeL and continual experience internalization are new register entries; five known candidates receive substantive notes/promotion. Four licensed original PDFs were retained. Existing source IDs, original claims and useful notes were preserved.
+
+[Coverage audit](research/thesis-coverage.md) records questions, source roles, counts and remaining scope. Independent screening caught an obsolete SkillsBench version and overbroad MemSkill transfer; the thesis review corrected mixed Escher-Loop/Dream-RSI outcomes and AHE version/cost scope. The source register and claim ledger now include the additions. A concurrently created HTML deck/storyboard uses the earlier C001–C012 thesis. Its coverage is stale relative to this expansion; reconcile C013–C019 and the narrowed meta-search/learning-versus-compute comparisons before treating the deck as current. Presentation files were preserved.
+
+| Queue ID | Request / affected claims | Acceptance criterion | Status |
+| --- | --- | --- | --- |
+| R-THESIS-COVERAGE | Thesis-wide support, alternative explanations and omissions; C001–C019 | Approximately 50 relevant reviewed references used in prose; source/claim map; independent keyword and citation passes; gaps disclosed | Complete: 56 references; bounded search, not exhaustive recall |
+| R-MULTICYCLE | C004/C008/C019: can repeated internalization work? | Primary methods/results, both failure and positive recipe, cost/uncertainty limits | Complete with three-cycle scope |
+| R-STATIC-SKILLS | C005/C018: fixed expertise vs self-authoring | Current SkillsBench version and protocol limitations | Complete: v4; older worker snapshot rejected |
+| P-RESEARCH-REFRESH | Existing storyboard/deck; C009/C011 and new C013–C019 | Presentation owner reviews expanded mechanisms, SkillsBench, internalization and mixed meta-search results; updates sources/notes as appropriate | Pending presentation scope; existing deck coverage stale |
+
+Remaining evidence limits are empirical: independent long-term production replications, full lifetime budgets, untouched future task families, broader embodied/multi-agent coverage and theory foundations. They narrow claims and are not represented as completed searches or experiments. Historical revisions below remain provenance, not the current count/status.
+
+Verification: both edited skills passed validation; 153 source keys, 56 thesis references, 55 notes, seven new note layouts, 525 affected-material relative links, all 43 saved-original hashes and four new PDF readability checks passed. No experimental reproduction or deck visual review was performed in this research pass.
 
 ## Current materials
 
-- [Central thesis](analysis/thesis.md) and [12-claim ledger](analysis/claims.md): current analysis and presentation handoff.
+- [Central thesis](analysis/thesis.md) and [19-claim ledger](analysis/claims.md): current analysis and presentation handoff.
 - [Ranked shortlist](research/shortlist.md): ten priority resources and reasoned alternatives.
 - [Landscape](research/landscape.md): topic questions, update surfaces, positive/negative evidence, and discussion prompts.
 - [Source register](research/sources.md) / [structured records](research/sources.json): candidate decisions, exact access depth, versions, and acquisition status.
 - [Reading notes](research/notes/), [originals guide](research/originals/README.md), and [acquisition manifest](research/originals/manifest.json): primary-source evidence and reproducibility limits.
 - [Search log](research/search-log.md): queries, lane reports, ranking changes, and audit outcomes.
 
-The session README and reading/practitioner routes point to the current corpus. Initial research notes remain historical context and are visibly superseded. The thesis and claim ledger now exist; no slide storyboard or deck exists, so no downstream slide edits are outstanding.
+The session README and reading/practitioner routes point to the current corpus. Initial research notes remain historical context and are visibly superseded. The [HTML deck](slides/index.html), [storyboard](slides/storyboard.md), and [review](slides/review.md) now provide the presentation handoff. Historical entries below describe earlier stages.
 
 ## Analysis revision and checks
 
@@ -93,6 +112,21 @@ The skill now explicitly requires recent-paper citation mining with cheap parall
 Final refinement checks passed: 151 unique source records, 48 notes, ten unchanged shortlist records, 559 authored relative links, five new note section layouts, and title/version/size/SHA-256/readability checks for three new PDFs. Skill validation and `git diff --check` passed. No rendered artifact was generated in this research-only update.
 
 September 16 originals filename cleanup: renamed nine source folders and 14 retained files to match the year-prefixed reading notes; updated references and acquisition records. Original bytes and source keys are preserved.
+
+## HTML presentation handoff — September 16, 2026
+
+Created 15 main slides and 3 appendices from the existing thesis, C001–C012, and source notes. The talk covers retained state, update mechanisms, controlled positives, static-skill and extra-inference alternatives, regressions, finite meta-improvement, Shopify’s first-party architecture, and a proposed four-arm test. Each slide has notes and source links. Empirical figures and proposal slides are distinguished.
+
+The user selected HTML. `tools/skills/journal-club-present/SKILL.md` now defaults to standalone HTML with browser review; its installed symlink makes the change active. A preliminary PowerPoint build was superseded and moved outside the repository. Current deliverables are `slides/index.html`, `content.json`, `build.py`, `storyboard.md`, figure provenance, and review notes.
+
+Pivotal local PDF values were reopened for WikiSkill, SEAL, the harness critique, R-Zero, and Hyperagents. Other evidence retains the recorded primary-source review scope. No new literature search, benchmark run, or independent reproduction was performed. The work reuses the existing September 16 cutoff. Research worker additions appearing concurrently were not silently promoted into this presentation; reconcile any changes to the thesis or C001–C012 before revising the talk.
+
+| Key / requesting stage | Question / acceptance criterion | Owner / status |
+| --- | --- | --- |
+| `presentation-html` / user | Replace Office output with offline HTML and make HTML the skill default | Presentation; complete |
+| `presentation-browser-review` / presentation | Inspect all slides and verify navigation, notes, links, and print behavior | Presentation; see [review](slides/review.md) |
+| `presentation-research-sync` / presentation | If ongoing research changes the thesis or ledger, propagate affected claims into content and storyboard | Analysis/presentation; conditional follow-up |
+
 
 ## Thesis sharpening — September 16, 2026
 

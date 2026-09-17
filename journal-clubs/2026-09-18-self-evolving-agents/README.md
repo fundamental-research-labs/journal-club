@@ -8,11 +8,12 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 ## Start here
 
-- **[Central argument: when experience helps with the next task](analysis/thesis.md)** — an accessible explanation of how agents learn, what the evidence shows, and what remains uncertain.
+- **[Central argument: when experience helps with the next task](analysis/thesis.md)** — an expanded, accessible field synthesis using 56 distinct references, with stronger foundations and counterevidence.
+- **[Thesis coverage audit](research/thesis-coverage.md)** — before/after counts, claims, omissions, source roles, and search limits.
 - [Claim ledger](analysis/claims.md) — evidence, confidence, and limits.
 - **[Ranked shortlist: ten priority resources](research/shortlist.md)** — why each belongs, what to read, key results, limitations, and strong alternatives.
 - **[Research landscape](research/landscape.md)** — mechanisms, competing evidence, and discussion questions organized around the topic.
-- **[Source register](research/sources.md)** — 151 candidate/resource records with selection decisions, exact review depths, versions, and acquisition status; 48 substantive reading-note files.
+- **[Source register](research/sources.md)** — 153 candidate/resource records with selection decisions, exact review depths, versions, and acquisition status; 55 substantive reading-note files.
 - [Reading routes](reading-list.md) and [practitioner resources](practitioner-sources.md) — ways to navigate the corpus by interest.
 - [Search and audit log](research/search-log.md), [originals guide](research/originals/README.md), and [research handoff](workflow.md) — provenance, checks, and remaining limits.
 

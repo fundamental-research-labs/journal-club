@@ -2,6 +2,16 @@
 
 **Cutoff: September 16, 2026.** This topic map supports a 45-minute, technically literate journal club. It organizes evidence and open questions rather than prescribing a final thesis. Start with the [ranked shortlist](shortlist.md); consult [source records](sources.md) and linked notes for exact versions and access depth. This revision supersedes earlier numerical/access qualifications where the new primary-source audit resolves them.
 
+## Thesis-driven coverage revision — September 16
+
+The [coverage audit](thesis-coverage.md) separates 153 discovery records, 56 reviewed families used in the thesis, and ten reading priorities. This pass restores earlier mechanisms and evaluates counterexamples instead of searching only for confirmation of the existing argument.
+
+[ExpeL](notes/2023-expel.md) establishes cross-task insight/retrieval in 2023; [ADAS](notes/2024-automated-design-agentic-systems.md) and [AFlow](notes/2024-aflow.md) establish fixed-meta-agent workflow search. [ReasoningBank](notes/2025-reasoningbank.md) makes memory and extra test-time compute complementary, so they should not always be framed as rival explanations. [MemSkill](notes/2026-memskill.md) adds evolving memory operations, with fixed designer/executor and preparation-cost limits.
+
+[SkillsBench v4](notes/2026-skillsbench.md) strengthens the static-procedure comparison: curated skills help in aggregate, while self-generation underperforms in three configurations. Task filtering, human curation, executable resources and one-shot design limit that inference. [Continual experience internalization](notes/2026-rethink-continual-internalization.md) supplies both deterioration and a successful bounded three-update recipe; the positive result prevents reducing the field to collapse examples.
+
+The central interpretation remains conditional future-task value. It is now grounded in broader positive and negative evidence, with clearer distinctions between artifact search, learning a fixed procedure, changing the update rule and sustained acceleration. The following topic map retains the earlier detailed questions and quantitative audits.
+
 ## 1. What persists, and who changes it?
 
 For this session, an operational definition is: **an agent uses experience or feedback to change state that affects subsequent behavior**. This separates a successful task attempt from improvement across attempts or tasks. “Self” is a matter of which decisions the agent controls; it does not imply absence of human-designed objectives, pretrained knowledge, rewards, or infrastructure.
