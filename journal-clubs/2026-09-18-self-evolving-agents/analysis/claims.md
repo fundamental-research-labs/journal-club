@@ -61,9 +61,9 @@ September 16, 2026. Confidence is an analytic judgment about the scoped claim, n
 
 ## C009
 
-- **Claim / type:** Explicit meta-improvement has promising finite results, but these studies do not demonstrate sustained domain-general acceleration. Evidence synthesis.
-- **Support:** `hyperagents`, [v1 §§3/5.2–5.3, Figure 4](https://arxiv.org/abs/2603.19461v1): transferred/fresh math scores 0.640/0.610, authors report p>0.05, five runs. `2026-dream-rsi`, [v1 §§3–4, Figure 3](https://arxiv.org/html/2609.14858v1): same-model Lasso discovery 550→317 calls, downstream mean runtime 3,587.1→2,931.0 ms across six held-out datasets.
-- **Challenge / comparability:** These positive mechanisms challenge blanket skepticism. However, Hyperagents retains outer controls; Dream-RSI omits complete meta-optimization costs/repeat uncertainty and replay covers recorded branches. Its six datasets evaluate discovered solvers, not six independent controller-training runs. Distinct systems, not replications.
+- **Claim / type:** Learned improvement behavior transfers in a bounded Hyperagents experiment; a separate continued-evolution experiment leaves the added transfer benefit uncertain. These studies do not demonstrate sustained domain-general acceleration. Evidence synthesis.
+- **Support:** `hyperagents`, [v1 §§3/5.2–5.3, Figures 3–4](https://arxiv.org/abs/2603.19461v1): §5.2 holds the meta agent fixed for 50 iterations: transferred median improvement@50 0.630 (95% run-bootstrap CI 0.540–0.630), initial median 0.0 (CI 0.0–0.130); authors report p<0.05 over five runs. §5.3 permits continued meta-level changes for 200 iterations: transferred/fresh math scores 0.640/0.610, p>0.05 over five runs. `2026-dream-rsi`, [v1 §§3–4, Figure 3](https://arxiv.org/html/2609.14858v1): same-model Lasso discovery 550→317 calls, downstream mean runtime 3,587.1→2,931.0 ms across six held-out datasets.
+- **Challenge / comparability:** These positive mechanisms challenge blanket skepticism. However, Hyperagents transfers the whole implementation, not only improvement code; the initial task agent has formatting failures. The §5.2 comparison does not isolate pure meta-code transfer. Run-level bootstrap intervals omit task-sampling uncertainty; the audited tests are one-sided with pairing/multiplicity limitations. Hyperagents also retains outer controls; Dream-RSI omits complete meta-optimization costs/repeat uncertainty and replay covers recorded branches. Its six datasets evaluate discovered solvers, not six independent controller-training runs. Distinct systems, not replications.
 - **Confidence / status:** Moderate; usable with finite scope. **Change criterion:** Repeated cross-domain transfer of the improver at fixed lifetime cost, with increasing improvement efficiency across cycles, would strengthen the acceleration case.
 
 ## C010
@@ -75,16 +75,16 @@ September 16, 2026. Confidence is an analytic judgment about the scoped claim, n
 
 ## C011
 
-- **Claim / type:** The corpus supports useful bounded learning loops; the practical case for self-evolution depends on retained benefit, transfer, regressions, and cost. Central analyst inference.
+- **Claim / type:** Self-evolving agents can turn experience into reusable improvements; their scope and value depend on selection, retention, reuse, and full cost. Specialization can be useful learning. Bounded transfer of improvement behavior has positive evidence; sustained economical compounding remains unestablished. Central analyst inference.
 - **Support:** C003–C010, with primary links and locators above. Positive matched controls and negative stress tests jointly explain the preferred thesis.
-- **Challenge / comparability:** Extra compute and task specialization may explain much of the value; stronger future meta-learning could change the picture. No pooled effect or estimate of which bottleneck dominates is defensible. Study families and shared benchmarks prevent treating every paper as independent confirmation.
-- **Confidence / status:** Moderate; usable as interpretation. **Change criterion:** Broad, replicated, economical improver transfer would strengthen the recursive view; disappearance of gains under strong controls would strengthen the specialization view.
+- **Challenge / comparability:** Extra computation and supplied static expertise may account for gains attributed to updating; specialization narrows transfer rather than disproving learning. Computation and retained experience can also complement each other. No pooled effect or estimate of which bottleneck dominates is defensible. Study families and shared benchmarks prevent treating every paper as independent confirmation.
+- **Confidence / status:** Moderate; usable as interpretation. **Change criterion:** Broad, replicated, economical improver transfer would strengthen the recursive view; disappearance of gains under strong controls would weaken the added-value case for updating.
 
 ## C012
 
-- **Claim / type:** Compare evolution against static expertise, reset state plus extra inference, and a fixed improver under a complete lifetime budget, using independent evaluation and retention checks. Analyst recommendation.
+- **Claim / type:** Compare evolution against static expertise, reset state plus extra inference, and a fixed improver under a complete lifetime budget. Match starting state/code for fixed-versus-editable improvers; separately test frozen reuse, resumed adaptation, and fixed learned-versus-original improvers on identical task agents. Analyst recommendation.
 - **Support:** C004–C010; especially FinEvo Table 5, harness critique Tables 1–3, and R-Zero Appendix D.
-- **Challenge / comparability:** Independent evaluators also have errors; controls are expensive, and highly personalized tasks may resist fixed splits. State carriers have different costs and capabilities. This recommendation is not an experimentally proven universal optimum.
+- **Challenge / comparability:** The four practical alternatives alone do not isolate four causal contributions; a paired reset control is needed for retained experience. Independent evaluators also have errors; controls are expensive, and highly personalized tasks may resist fixed splits. State carriers have different costs and capabilities. This recommendation is not an experimentally proven universal optimum.
 - **Confidence / status:** Moderate; usable as a proposed decision protocol. **Change criterion:** Application-specific constraints can change the control or held-out unit; report what causal distinction is then lost.
 
 ## Thesis section mapping
@@ -95,5 +95,6 @@ The thesis uses primary-source citations in its prose; this map preserves the in
 | --- | --- |
 | Learning that lasts | C001–C002, C011 |
 | What an agent can change | C001–C004, C008–C010 |
-| How much of the gain comes from learning? | C005–C009 |
+| When does retained experience earn its cost? | C005–C008, C011 |
+| Improving the search, or improving the ability to search? | C009, C011 |
 | What would make the case stronger? | C011–C012, grounded in C003–C010 |

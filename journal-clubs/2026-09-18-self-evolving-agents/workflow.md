@@ -93,3 +93,9 @@ The skill now explicitly requires recent-paper citation mining with cheap parall
 Final refinement checks passed: 151 unique source records, 48 notes, ten unchanged shortlist records, 559 authored relative links, five new note section layouts, and title/version/size/SHA-256/readability checks for three new PDFs. Skill validation and `git diff --check` passed. No rendered artifact was generated in this research-only update.
 
 September 16 originals filename cleanup: renamed nine source folders and 14 retained files to match the year-prefixed reading notes; updated references and acquisition records. Original bytes and source keys are preserved.
+
+## Thesis sharpening — September 16, 2026
+
+User requested sharpening after review. Preserved the expanded research coverage while revising the central argument: specialization can be useful learning; transfer and economic value are separate tests; bounded improver transfer has positive evidence without establishing sustained acceleration. Expanded the WikiSkill selection/retention explanation. Reopened Hyperagents v1 §§5.2–5.3 in the review and carried both distinct experiments into the thesis, C009, and source note. Updated C011–C012 and section mapping. The proposed experiment now matches starting code/state for fixed-versus-editable improvers and separates frozen reuse, resumed adaptation, and transfer of a fixed learned improver onto an identical task agent. Existing research notes also support narrower Dream-RSI, Escher-Loop, and harness token-cost wording.
+
+Used the existing September 16 research cutoff, coverage review, reading notes, and retained primary original; no freshness search or experiments. This is a targeted argument revision, not a new audit of every expanded citation. Existing slides are **stale for the revised framing, Hyperagents evidence, and experiment**; synchronize C009/C011/C012 and related narrative before presenting. Slide rebuilding is outside this analysis request.
