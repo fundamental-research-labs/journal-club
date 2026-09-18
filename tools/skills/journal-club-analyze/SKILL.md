@@ -126,9 +126,18 @@ Explain mechanisms through actors and actions: what the agent
 changes, how it chooses a change, and what happens next. Prefer familiar words and
 active verbs to noun clusters and compressed labels. For example, replace
 “positive persistence controls” with “agents did better when they kept what they
-had learned than when their memory was reset.” Introduce technical terms after
-explaining the idea, and retain them when they add precision. Use analogies only
-when they clarify a mechanism, and make their limits clear.
+had learned than when their memory was reset.” Use established research and industry
+terms for the concepts they name, with a brief explanation at first use when needed.
+Plain language should explain the term, not replace it with a plausible-sounding
+label. For agents, use traces for recorded runs, agent skills for reusable packages
+of instructions and resources, and harness for the software that orchestrates the
+agent; do not rename traces “execution records.” Preserve distinctions among traces,
+memory, skills, harnesses, and model weights rather than treating them as synonyms.
+Check usage against the reviewed primary sources, retain source-specific meanings,
+and use the same term consistently instead of varying labels for stylistic variety.
+When no established term fits, describe the mechanism directly; label any necessary
+new analytical category as your own. Use analogies only when they clarify a mechanism,
+and make their limits clear.
 
 Develop consequential examples long enough for the reader to follow the decisions:
 what happened, what the system retained or changed, why that choice could help,
@@ -259,7 +268,8 @@ perspective. Can they explain the central claim and how the main mechanisms work
 without the claim ledger or presentation outline? Would the essay still read
 naturally if shared on its own with someone unaware of the journal club? Revise
 event-specific framing and process commentary along with sentences that need a
-second reading, abstract subjects, unexplained jargon, abrupt transitions, and
+second reading, abstract subjects, unexplained jargon, invented substitutes for
+established terms, inconsistent naming, abrupt transitions, and
 paragraphs that merely enumerate sources. Then check the rewrite against the
 evidence: simpler language must preserve populations, comparators, units, causal
 limits, and the distinction between a reported result and your interpretation.

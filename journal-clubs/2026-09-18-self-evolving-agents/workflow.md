@@ -1,3 +1,9 @@
+## Analysis terminology revision — September 18, 2026
+
+Revised the full thesis to use established terminology where it names a specific mechanism: agent traces, agent skills, memory retrieval, skill selection, harness evolution, test-time compute, fine-tuning, and meta-learning. Definitions accompany first use where needed. ExpeL retains its source term “trajectories”; WikiSkill distinguishes traces, its knowledge base, and agent skills. Ordinary descriptions of professional procedures remain where no packaged agent skill is meant. Updated the claim and coverage section mappings.
+
+The analysis skill now requires established research/industry terms, source-specific meanings, consistent naming, and explanations that preserve those terms. The installed symlink points to the edited repository skill. This is a terminology revision using the existing September 16 research cutoff: reopened retained WikiSkill v1, ExpeL v3, harness-evaluation v2, and SEAL v2 text for mechanism checks. Primary-source URL coverage, numerical results, qualifications, and claim evidence status are preserved; no new discovery or experiments. Skill validation, citation-map consistency, section mappings, relative file links, and whitespace checks passed. Presentation files were not edited in this pass; their terminology can be aligned in the next presentation revision.
+
 ## Source conceptual figures — September 18, 2026
 
 User correction completed: original paper artwork replaces homemade conceptual diagrams on slides 6, 8 and 10; homemade domain-order strings removed from 14. Presentation skill now requires original conceptual figures when available, using crops/enlargement instead of redraws. Provenance, storyboard, review and extraction instructions updated. Checked full-size changed slides, all-slide layout/navigation and skill validity. Slide count and numerical evidence unchanged. Earlier analysis queue remains untouched.

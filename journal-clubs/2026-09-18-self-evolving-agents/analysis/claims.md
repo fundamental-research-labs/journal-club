@@ -175,11 +175,11 @@ The [coverage audit](../research/thesis-coverage.md) preserves all 64 reviewed e
 | Thesis section | Supporting claims |
 | --- | --- |
 | Turning completed work into future capability | C001, C011, C020 |
-| From a record of work to a reusable procedure | C003–C004, C012–C013 |
+| From traces to agent skills | C003–C004, C012–C013 |
 | When is learning worth the effort? | C005–C006, C011–C013, C018 |
-| Keeping useful knowledge available without applying it everywhere | C007, C011–C013, C016, C020 |
-| Learning from feedback that deserves to be retained | C008, C010, C015–C016, C019 |
-| Can experience improve the learning process itself? | C009, C012, C014, C017, C021 |
+| Memory retrieval, skill selection, and forgetting | C007, C011–C013, C016, C020 |
+| Feedback quality in self-training | C008, C010, C015–C016, C019 |
+| Can meta-learning improve the update process? | C009, C012, C014, C017, C021 |
 | What accumulated experience is worth | C003, C005, C007, C009, C011–C012, C019–C021 |
 
 WikiSkill's retained-wiki test, the recurrence/mixing experiment, frozen diagnostic copies, and improver attribution controls are analyst proposals. No new numerical result or experiment was introduced. The recurrence/relevance explanation is a conditional interpretation: FinEvo and AgentStream do not form a controlled comparison. The ledger retains additional protocol details, negative cases, and sources omitted from the essay; see the current coverage reconciliation for their specific roles.
