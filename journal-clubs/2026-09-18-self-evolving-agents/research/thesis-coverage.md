@@ -2,6 +2,10 @@
 
 **Prepared September 16, 2026; cutoff unchanged.** The question is whether experience produces reusable future-task value beyond strong static procedures and additional inference, and whether the update procedure itself becomes better. The thesis is a hypothesis to challenge; the search also used independent field vocabulary and earlier method lineages.
 
+## Sentence-specificity revision — September 18, 2026
+
+The [sentence audit](../analysis/sentence-audit.md) records 38 weak passages in 30 of the original 46 prose paragraphs. The revision removes empty signposts and repeated conclusions, and specifies comparisons behind vague recommendations. All 36 cited families retain their explanatory roles and source-specific limitations; the predecessor, baseline, and counterevidence dispositions below still apply. The wiki-entry removal comparison is proposed analysis, not a reported experiment. The September 16 research cutoff and C001–C019 remain unchanged.
+
 ## Section-motivation revision — September 16, 2026
 
 The essay now opens with the value of experience for future work, before introducing WikiSkill in the mechanism section. Each section establishes the question left by the preceding reasoning before developing its paper examples. The final section motivates the proposed controls through the competing explanations already encountered. All 36 cited source families, numerical results, and source-specific limitations remain; the prominent-citation roles and inclusion/omission decisions below still apply. The renamed opening is mapped in the claim ledger. This is an editorial revision using the existing research cutoff, with no new empirical claims or discovery.

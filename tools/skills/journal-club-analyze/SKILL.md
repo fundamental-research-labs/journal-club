@@ -116,6 +116,16 @@ and a choppy series of slogans. Explain why a result matters before adding the n
 paper or number. Make uncertainty concrete—what was not tested, what comparison is
 missing, or which other explanation fits—instead of relying on vague hedges.
 
+Make each sentence contribute a claim, mechanism, evidence, necessary connection,
+or consequence. A sentence that merely announces importance, complexity, or an
+upcoming example has not supplied the explanation. For example, replace “The
+comparison becomes more interesting when the harness is reused” with “Reusing a
+harness spreads its development cost across later tasks.” When recommending a
+check, name what is compared and what outcome would change the conclusion; “memory
+needs its own standards” leaves the reader to supply the analysis. Use only supported
+details, and distinguish proposed tests from reported experiments. A generalization
+can be meaningful without a number or citation in every sentence.
+
 Use connected paragraphs with informative topic sentences, concrete subjects, and
 explicit transitions. Define unfamiliar terms when first needed. Organize related
 work around conceptual relationships, assumptions, and disagreements; explain what
@@ -177,6 +187,17 @@ affecting the reasoning, check whether they are a catalog that needs synthesis o
 Do not force a linear dependency where a comparison genuinely requires parallel
 cases. Consolidate recurring limitations around the conclusion they constrain;
 keep source-specific qualifications beside the results whose meaning they change.
+
+Audit sentences in context, especially paragraph openings, transitions, and endings.
+If deleting one loses no information or necessary connection, remove it. If its
+point is useful but could fit an unrelated topic with noun substitutions, specify
+the actor, mechanism, comparison, condition, or consequence that makes it apply
+here. Inspect repeated conclusions: retain a recap when it enables the next inference,
+and otherwise cut it. Do not repair empty prose by adding jargon or unsupported
+detail, or remove transitions that carry a real logical relationship. When asked
+how widespread a prose issue is, review the entire essay and report an explicit
+counting unit with representative before/after examples; keep the audit outside
+the thesis and distinguish empty sentences from useful but underspecified ones.
 
 Read the thesis as continuous prose from the intended reader's
 perspective. Can they explain the central claim and how the main mechanisms work

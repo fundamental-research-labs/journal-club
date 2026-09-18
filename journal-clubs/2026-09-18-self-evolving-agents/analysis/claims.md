@@ -166,3 +166,7 @@ The [coverage audit](../research/thesis-coverage.md) preserves all 60 reviewed e
 | What would distinguish the achievements? | C011–C012 |
 
 The WikiSkill mechanism explanation is grounded in v1 §3 and Figure 2: immutable traces, a persistent wiki, proposed skills, and validation/rollback. The conclusion that retained interpretations need scrutiny is analyst inference, not a measured contamination result. The proposed final experiment remains a recommendation under C012. The citation-coverage revision restores predecessor/comparator explanations, adds the existing WikiSkill Table 1 competitor comparison and AgentStream Table 5 method contrast, and preserves the recorded empirical uncertainty. No new experiment was performed.
+
+## Sentence-specificity revision — September 18, 2026
+
+The [editorial audit](sentence-audit.md) and revised thesis preserve C001–C019 and the section mapping above. The wiki discussion now proposes comparing retained versus removed entries from rejected proposals, making the existing analyst inference testable without asserting a new finding. The final experiment retains independent evaluation, matched starting state, retention tests, and total resource accounting. Source URLs and numerical results are preserved; no claim status changed.

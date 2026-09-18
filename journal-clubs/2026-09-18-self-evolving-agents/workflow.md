@@ -2,6 +2,14 @@
 
 **Updated September 16, 2026. Stage: revised analysis complete; existing HTML presentation requires reconciliation.** The user requested presentation development, then specified HTML instead of PowerPoint and requested that preference in the presentation skill. Materials remain local. Subsequent research changes should be reconciled before presenting.
 
+## Analysis sentence audit — September 18, 2026
+
+Completed the requested prose audit and revised the analyze skill and thesis. The [audit](analysis/sentence-audit.md) identifies 38 passages in 30 of 46 original paragraphs across all six sections: 15 empty signposts, 14 redundant passages, and nine underspecified claims or recommendations. Each entry records the original text and repair. These counts describe affected passages and paragraphs, not the percentage of sentences devoid of meaning.
+
+The skill now requires a sentence-level contribution/deletion check and concrete comparisons behind recommendations. The thesis removes announcements of importance and repeated conclusions, and makes missing tests explicit. Reconciled the claim ledger and citation-coverage record; all 36 source URLs, numeric tokens, predecessor explanations, and strongest counterarguments remain. The installed skill symlink activates the repository edit. Skill validation passed; read the revised essay continuously and checked local links and whitespace.
+
+This editorial pass reuses the September 16 research cutoff. Reopened retained WikiSkill v1, Hyperagents v1, and harness-evaluation v2 text for affected mechanisms and comparison boundaries; unchanged empirical claims retain their prior review scope. No discovery or experiments were performed. Concurrent presentation edits are outside this pass; presentation owners should use the revised thesis for wording, with no new numerical results or claim-status changes to propagate.
+
 ## Section-motivation revision — September 16, 2026
 
 Improved the analyze skill and applied it to the thesis. The skill now distinguishes a motivating problem from a paper-first example and checks the section openings together for purpose and progression. The essay establishes why later work should benefit from experience, then develops retention, comparative value, durability, learning-method revision, and the experiments needed to distinguish them. Updated the opening's claim mapping and reconciled the existing citation-coverage audit. The installed skill symlink activates the repository edit.
