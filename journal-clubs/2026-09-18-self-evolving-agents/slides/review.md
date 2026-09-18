@@ -1,6 +1,20 @@
 # Presentation review
 
-## Current revision — September 18, 2026
+## Current revision — narrative rhythm, September 18, 2026
+
+[Current HTML](index.html): **31 slides, 22 main + 9 appendices**. This revision supersedes earlier slide numbering below.
+
+- Introduction 1–4 now establishes motivation and concepts, ending with the explicit question: “When does experience create a lasting advantage worth the cost?”
+- Results 5–18 have three motivated parts: useful procedures, durability across later tasks, and improving the improver. Each opens with a question, a reason to care, and a preview of the evidence. Notes connect each part’s finding to the next question.
+- Conclusion 19–22 summarizes findings, limits, and evaluation implications before discussion and a closing answer. The former opening synthesis now follows the evidence. Detailed proposed controls moved to appendix slides 23–24.
+- Updated the presentation skill’s default rhythm and narrative review criteria, storyboard roles, figure slide references, and session links. The installed skill is a symlink to the repository copy.
+- Preserved empirical values, figure assets, primary URLs, and C001–C019 coverage. Source excerpts remain unmodified. This is a presentation-only revision using the existing September 16 research cutoff; no freshness search or new empirical claim.
+
+Rendered all 31 slides in local Chromium at 1440 × 900, with a 1280 × 720 canvas. Visually reviewed the complete sequence and enlarged the new question, synthesis, appendix, and print-layout samples. No horizontal overflow or content crossing footer/caveat boundaries was detected. All images decode offline; all 31 slides have notes; exactly one slide is visible in each navigation state. No JavaScript errors. Arrow/Home navigation, slide menu, direct links, notes, overview selection, and continuous reading mode pass. Print CSS exposes all 31 slides; question, evidence, and conclusion print layouts were inspected. No PDF export or physical pagination check was requested or performed.
+
+All 81 rendered source anchors retain their prior targets; remote availability was not rechecked. Cross-browser and assistive-technology checks remain outside this review. In-app browser setup failed with `Cannot redefine property: process`; local Chromium supplied the review. Scratch renders/checks are in `/tmp/jc-rhythm/`, outside the repository. Skill validation and whitespace checks pass.
+
+## Earlier thesis reconciliation — September 18, 2026
 
 [Current HTML](index.html): **26 slides, 19 main + 7 appendices**, reconciled with the latest thesis and C001–C019. This section supersedes earlier stale-presentation notices below. Editable source remains content.json, theme.css and build.py; storyboard and figure provenance are current. Confirmed presenter metadata is unchanged.
 

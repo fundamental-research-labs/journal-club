@@ -1,6 +1,6 @@
 # Research, analysis, and presentation handoff
 
-**Updated September 18, 2026. Stage: presentation reconciled with the latest thesis; local HTML ready.** Research cutoff remains September 16, 2026. Earlier stale-deck notices below record historical handoffs and are superseded by this revision.
+**Updated September 18, 2026. Stage: presentation narrative revised; local HTML ready.** Research cutoff remains September 16, 2026. Earlier stale-deck notices below record historical handoffs and are superseded by this revision.
 
 ## Analysis sentence audit — September 18, 2026
 
@@ -200,3 +200,7 @@ intentional synthesis exceptions are in `slides/figures/provenance.md`. All 18
 slides visually reviewed; offline images, navigation, notes and printing checked.
 Updated the presentation skill and applied it to this deck. This closes the
 source-figure task; the separate expanded-thesis reconciliation remains pending.
+
+## Presentation narrative rhythm — September 18, 2026
+
+Completed the requested skill and deck revision. Introduction ends with the main question; each of three results parts opens with its own motivation; the conclusion synthesizes the findings. Moved detailed proposed controls to the appendix. Current deck: 22 main slides + 9 appendices. Updated storyboard, figure slide references, README, and review log. Empirical evidence and research cutoff unchanged. All 31 slides rendered and visually reviewed; navigation, offline assets, notes, print CSS, skill validation, and whitespace checks pass. See [review details](slides/review.md) for limitations. No remaining work item for this narrative revision.

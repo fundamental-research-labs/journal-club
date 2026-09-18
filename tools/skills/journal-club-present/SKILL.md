@@ -29,13 +29,34 @@ no separate analysis storyline is required. Write `slides/storyboard.md` before
 generating the deck. For each slide, record its
 purpose, takeaway title, visual plan, claim IDs, source locators, and speaker notes.
 Plan around the audience's background and the time available, reserving room for
-discussion. A useful arc is question → concepts → argument and evidence → strongest
-challenge → synthesis → open decisions. Adapt it rather than imposing a fixed
-slide count. Introduce technical concepts before relying on them. Develop
+discussion. Use the narrative rhythm below as the default, adapting it to the
+audience and user’s requested format without imposing a fixed slide count.
+Introduce technical concepts before relying on them. Develop
 evidence-linked discussion questions that invite a decision, prediction, or
 disagreement. Omit minute-by-minute breakdowns unless requested.
 
-Use titles that state a supported takeaway. Give each slide one main idea and use
+### Give the presentation a narrative rhythm
+
+Begin with an introduction that establishes the topic, why it matters, and the
+concepts needed to follow the evidence. End the introduction with an explicit main
+question that the rest of the presentation will answer.
+
+Organize the results into coherent parts around subquestions, rather than a sequence
+of paper reviews. Open each part with a mini introduction: explain the unresolved
+problem, why it matters now, and what the upcoming evidence will test. This may be
+a short slide or a brief setup integrated into the first evidence slide; a section
+label alone does not supply motivation. Present results and their limitations, then
+connect the part’s finding to the next question.
+
+Close with a conclusion section that answers the main question and summarizes what
+the results established, what remains uncertain, and the implications. Discussion
+questions can follow that synthesis; they do not replace it. Match the visual rhythm
+to these roles, giving introductions and transitions room to breathe between denser
+evidence slides. Mark the introduction, main question, results parts, mini intros,
+and conclusion in the storyboard so the sequence can be reviewed explicitly.
+
+Use question titles for motivating slides and supported takeaway titles for results.
+Give each slide one main idea and use
 mechanism diagrams, comparisons, timelines, plots, or concrete examples to explain
 it. Choose a coherent palette, type hierarchy, spacing, and alignment system. Use
 large, legible text, strong contrast, and visual emphasis that guides attention.
@@ -120,6 +141,10 @@ legibility, visual hierarchy, figure quality, and export consistency. Compare ex
 original page and check readability at actual presentation size, including headers,
 legends, error bars, and crop boundaries. Fix defects
 and re-render changed slides; recheck the entire deck after global layout changes.
+
+Review the narrative separately from layout: does the introduction end with the
+main question, does each results part explain why it is needed before showing its
+evidence, and does the conclusion answer that question using the findings?
 
 Audit factual claims and numbers against the claim ledger and sources. Check links,
 notes, attribution, numerical consistency, and whether the narrative fits the
