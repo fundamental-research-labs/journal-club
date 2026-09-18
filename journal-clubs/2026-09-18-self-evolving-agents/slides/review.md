@@ -1,5 +1,29 @@
 # Presentation review
 
+## Current revision — September 18, 2026
+
+[Current HTML](index.html): **26 slides, 19 main + 7 appendices**, reconciled with the latest thesis and C001–C019. This section supersedes earlier stale-presentation notices below. Editable source remains content.json, theme.css and build.py; storyboard and figure provenance are current. Confirmed presenter metadata is unchanged.
+
+### Argument and evidence
+
+- Developed WikiSkill’s rejected-skill/retained-wiki mechanism and distinguished +5.1 pp over EvoSkill from +17.5 pp over no skills. Whole-method comparisons do not isolate the wiki.
+- Added original Hyperagents Figure 3 test panels, after inspecting the complete retained v1 page and §§5.2–5.3. Preserved all held-out comparators and uncertainty. The omitted training panel is labeled. Positive improvement@50 transfer (0.630 vs 0.000; five runs) is separate from Figure 4’s nonsignificant 200-iteration endpoint (0.640 vs 0.610). Whole-implementation transfer, initial formatting failures, and run-level confidence intervals remain explicit.
+- Included C019’s bounded positive internalization counterexample alongside R-Zero’s decline. Added predecessor boundaries, replay-history limitations, evaluator integrity, and the SkillsBench one-shot-authoring qualification. These use the existing thesis, ledger and reviewed source notes; no new efficacy claims or pooled estimates.
+- Corrected the experiment: identical starting task/improvement code and memory for fixed/editable improvers; a separate paired reset; frozen reuse versus resumed adaptation; fixed learned/original improvers attached to identical task agents. Compounding requires repeated learning-efficiency gains.
+- All 19 claim IDs are mapped, all reference keys and six image paths resolve, and all 26 notes are present. Reviewed the 25 primary references and 81 rendered anchors against the local records. Remote link availability was not rechecked. Research cutoff remains **September 16**, visibly stated in the deck; no September 17–18 discovery is claimed.
+
+A concurrent sentence-level thesis edit was checked before delivery. Its substantive evidence and controls remain consistent; the more explicit retain/remove wiki test and missing repeated-efficiency result were propagated into notes. Those analysis and skill edits were left untouched.
+
+### Visual and interaction verification
+
+Opened standalone HTML through file:// in local headless Chromium at 1440 × 900, with a 1280 × 720 slide canvas. Inspected representative existing slides before redesign, then every revised slide individually, including all appendices. Checked hierarchy, wrapping, source captions, table labels, comparators, uncertainty and crop boundaries. Re-rendered and reinspected changed slides 7 and 17 after final copy adjustments. Original source images keep their aspect ratios and decode offline.
+
+All 26 navigation states show exactly one active slide; no main content crosses the caveat/footer boundary and no page JavaScript errors occurred. Verified keyboard navigation, slide menu, direct link to slide 12, notes open/close and matching text for every slide, overview selection, continuous reading mode, and fullscreen enter/exit. Print CSS exposes all 26 slides; inspected print-mode evidence and reference pages and verified restoration after printing from overview. No PDF was generated or delivered in this pass, so physical print/PDF pagination is not independently checked.
+
+The in-app browser bootstrap failed with `Cannot redefine property: process`; local Chromium supplied the review. Scratch scripts, screenshots and checks remain outside the repository in `/tmp/jc-presentation-revision/`. Cross-browser and assistive-technology testing were not performed. No training experiments or benchmarks were reproduced. The build remains Python standard-library only; the existing optional figure extraction uses PyMuPDF. No runtime dependency, external publication or sending was added.
+
+## Historical reviews
+
 Reviewed September 16, 2026. Deliverable: [standalone HTML deck](index.html), 18 slides (15 main + 3 appendices). Editable input: [content.json](content.json); generator: [build.py](build.py). The presentation implements the existing thesis and claims C001–C012; no new empirical conclusion was introduced.
 
 ## Original build: visual and interaction checks

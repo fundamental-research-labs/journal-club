@@ -1,6 +1,6 @@
 # Research, analysis, and presentation handoff
 
-**Updated September 16, 2026. Stage: revised analysis complete; existing HTML presentation requires reconciliation.** The user requested presentation development, then specified HTML instead of PowerPoint and requested that preference in the presentation skill. Materials remain local. Subsequent research changes should be reconciled before presenting.
+**Updated September 18, 2026. Stage: presentation reconciled with the latest thesis; local HTML ready.** Research cutoff remains September 16, 2026. Earlier stale-deck notices below record historical handoffs and are superseded by this revision.
 
 ## Analysis sentence audit — September 18, 2026
 
@@ -9,6 +9,20 @@ Completed the requested prose audit and revised the analyze skill and thesis. Th
 The skill now requires a sentence-level contribution/deletion check and concrete comparisons behind recommendations. The thesis removes announcements of importance and repeated conclusions, and makes missing tests explicit. Reconciled the claim ledger and citation-coverage record; all 36 source URLs, numeric tokens, predecessor explanations, and strongest counterarguments remain. The installed skill symlink activates the repository edit. Skill validation passed; read the revised essay continuously and checked local links and whitespace.
 
 This editorial pass reuses the September 16 research cutoff. Reopened retained WikiSkill v1, Hyperagents v1, and harness-evaluation v2 text for affected mechanisms and comparison boundaries; unchanged empirical claims retain their prior review scope. No discovery or experiments were performed. Concurrent presentation edits are outside this pass; presentation owners should use the revised thesis for wording, with no new numerical results or claim-status changes to propagate.
+
+## Presentation reconciliation — September 18, 2026
+
+Applied journal-club-present to the latest thesis, C001–C019, source notes, and retained Hyperagents original. The 19-slide talk plus seven appendices follows experience → useful procedure → comparative value → durability → learned improver → proposed tests. It restores the positive fixed-improver transfer evidence, separates it from continued evolution, distinguishes WikiSkill’s two baselines, includes the bounded positive internalization result, and makes the paired reset and identical-start improver controls explicit. All claims map through the [storyboard](slides/storyboard.md). The [review](slides/review.md) records full visual/interaction checks and limitations.
+
+| Queue ID | Affected claims/slides | Acceptance criterion | Status |
+| --- | --- | --- | --- |
+| P-THESIS-SYNC / presentation | C001–C019; entire deck | Latest argument and qualifications in slide narrative/notes | Complete |
+| P-HYPER-TRANSFER / presentation | C009; slides 12–13 | Original Figure 3 with positive transfer, Figure 4 endpoint separately; retain confounds and intervals | Complete |
+| P-CONTROLS / presentation | C012; slides 15–17 | Identical C/D starts, paired reset, frozen reuse vs resumed adaptation and isolated improver transfer | Complete |
+| P-VISUAL-QA / presentation | All 26 slides | Inspect every slide, offline artwork, notes, navigation, links and print CSS | Complete; local Chromium |
+| september-cutoff / research | September 17–18 developments | Freshness search if the research cutoff is advanced | Not performed in this presentation revision; September 16 cutoff visible |
+
+No new evidence gap requires reopening the thesis. Whole-implementation transfer, finite runs, missing lifetime-cost parity and source-specific uncertainty remain explicit. No benchmark reproduction, fresh literature discovery, PDF export, publication or sending was performed.
 
 ## Section-motivation revision — September 16, 2026
 

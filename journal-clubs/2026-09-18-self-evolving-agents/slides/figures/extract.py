@@ -15,6 +15,7 @@ import pymupdf
 ROOT = Path(__file__).resolve().parent
 ORIGINALS = ROOT.parents[1] / 'research' / 'originals'
 SPECS = [
+    ('hyperagents-figure-3', '2026-hyperagents', 'v1', '2603.19461v1', 10, [226, 65, 544, 169], 'Figure 3: middle and right held-out panels with comparators, axes and uncertainty; left training panel and caption omitted'),
     ('wikiskill-table-1', '2026-wikiskill', 'v1', '2608.27454v1', 8, [74, 83, 522, 235], 'Table 1: headers and complete Qwen-3.5-4B / 9B blocks; other model blocks and caption omitted'),
     ('seal-table-2', '2025-self-adapting-language-models', 'v2', '2506.10943v2', 8, [106, 70, 524, 156], 'Table 2: complete table; caption omitted'),
     ('finevo-table-5', '2026-finevo-bench', 'v1', '2608.06144v1', 6, [60, 278, 288, 368], 'Table 5: complete table; caption omitted'),
