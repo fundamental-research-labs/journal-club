@@ -75,16 +75,16 @@ September 16, 2026. Confidence is an analytic judgment about the scoped claim, n
 
 ## C011
 
-- **Claim / type:** Self-evolving agents can turn experience into reusable improvements; their scope and value depend on selection, retention, reuse, and full cost. Specialization can be useful learning. Bounded transfer of improvement behavior has positive evidence; sustained economical compounding remains unestablished. Central analyst inference.
+- **Claim / type:** Self-evolving agents can turn experience into reusable improvements. Their practical value plausibly grows with opportunities to reuse expertise missing from the starting agent, provided the system selects relevant knowledge and learns from reliable corrections. Selection, retention, and full cost determine the applicable scope. This is a conditional synthesis, not a causal comparison of FinEvo and AgentStream. Learned improvement behavior has bounded transfer evidence; sustained economical compounding is a separate, unestablished claim. Central analyst inference.
 - **Support:** C003–C010, with primary links and locators above. Positive matched controls and negative stress tests jointly explain the preferred thesis. The thesis-driven coverage pass adds C013–C019 and the original 56 source families, now supplemented by four bounded mechanism/foundation reviews; these are not independent replications. ReasoningBank and bounded internalization gains qualify a simple learning-versus-compute dichotomy.
-- **Challenge / comparability:** Extra computation and supplied static expertise may account for gains attributed to updating; specialization narrows transfer rather than disproving learning. Computation and retained experience can also complement each other. No pooled effect or estimate of which bottleneck dominates is defensible. Study families and shared benchmarks prevent treating every paper as independent confirmation.
-- **Confidence / status:** Moderate; usable as interpretation. **Change criterion:** Broad, replicated, economical improver transfer would strengthen the recursive view; disappearance of gains under strong controls would weaken the added-value case for updating.
+- **Challenge / comparability:** Extra computation and supplied static expertise may account for gains attributed to updating; specialization narrows transfer rather than disproving learning. Computation and retained experience can also complement each other. Benchmark construction, task difficulty, feedback access, and starting expertise could explain cross-study differences instead of task recurrence or memory selection. No pooled effect or estimate of which bottleneck dominates is defensible. Study families and shared benchmarks prevent treating every paper as independent confirmation.
+- **Confidence / status:** Moderate; usable as interpretation. **Change criterion:** Vary recurrence and task mixing within one protocol while holding the model, starting guidance, feedback, and total resource budget fixed. Failure of recurrence or selective reuse to improve the payoff would weaken that interpretation; disappearance of gains under strong static and reset controls would weaken the added-value case for updating. Improver transfer and acceleration require separate tests.
 
 ## C012
 
-- **Claim / type:** Compare evolution against static expertise, reset state plus extra inference, and a fixed improver under a complete lifetime budget. Match starting state/code for fixed-versus-editable improvers; separately test frozen reuse, resumed adaptation, and fixed learned-versus-original improvers on identical task agents. Analyst recommendation.
+- **Claim / type:** Compare evolution against static expertise, reset state plus extra inference, and a fixed improver under a complete lifetime budget. Match starting state/code for fixed-versus-editable improvers; separately test frozen reuse and resumed adaptation. A learned-versus-original improver transplant onto identical task agents tests portable improvement behavior. A coupled system needs a control preventing new improvements from feeding back into later improvement production while preserving its task/improver interface. State exactly which state or code is frozen, restore unused resources to the control, and distinguish this intervention from simply resetting useful task competence. Measure multiple cycles, resource use, and difficulty for acceleration claims. These are proposed designs with different attribution targets, not universal conditions for learning or compounding. Analyst recommendation.
 - **Support:** C004–C010; especially FinEvo Table 5, harness critique Tables 1–3, and R-Zero Appendix D.
-- **Challenge / comparability:** The four practical alternatives alone do not isolate four causal contributions; a paired reset control is needed for retained experience. Independent evaluators also have errors; controls are expensive, and highly personalized tasks may resist fixed splits. State carriers have different costs and capabilities. This recommendation is not an experimentally proven universal optimum.
+- **Challenge / comparability:** The four practical alternatives alone do not isolate four causal contributions; a paired reset control is needed for retained experience. Independent evaluators also have errors; controls are expensive, and highly personalized tasks may resist fixed splits. State carriers have different costs and capabilities. A transplant can disrupt coadapted components, and a feedback-blocking intervention can alter task competence or available information unless carefully designed. A null transplant result therefore need not refute improvement in a coupled system. Cross-domain transfer is not necessary for a narrow feedback loop. This recommendation is not an experimentally proven universal optimum.
 - **Confidence / status:** Moderate; usable as a proposed decision protocol. **Change criterion:** Application-specific constraints can change the control or held-out unit; report what causal distinction is then lost.
 
 ## C013
@@ -170,18 +170,25 @@ September 16, 2026. Confidence is an analytic judgment about the scoped claim, n
 
 ## Thesis section mapping
 
-The [coverage audit](../research/thesis-coverage.md) preserves all 64 reviewed evidence families and identifies the 40 cited in the current essay. C001–C019 remain stable, including supporting claims no longer illustrated individually in prose. Citation selection does not change a claim's status or turn related sources into independent confirmations.
+The [coverage audit](../research/thesis-coverage.md) preserves all 64 reviewed evidence families and identifies the 27 directly cited in the current essay. C001–C021 retain their IDs and evidence statuses. C011 now states the conditional synthesis and its alternatives explicitly; C012 separates proposed attribution tests. Removing a source from the essay does not remove its evidence from this ledger.
 
 | Thesis section | Supporting claims |
 | --- | --- |
-| Introduction: continual learning in an agent setting | C001, C011, C020–C021 |
-| How an experience becomes a working procedure | C001, C003–C004, C013–C014 |
-| What does learning add to a good starting agent? | C005–C006, C011–C013, C018 |
-| The next task can change the verdict | C004, C007–C008, C010, C013, C015–C016, C019 |
-| Can the agent learn a better way to learn? | C009, C011, C013–C014, C017, C021 |
-| What would distinguish the achievements? | C011–C012, C020–C021 |
+| Turning completed work into future capability | C001, C011, C020 |
+| From a record of work to a reusable procedure | C003–C004, C012–C013 |
+| When is learning worth the effort? | C005–C006, C011–C013, C018 |
+| Keeping useful knowledge available without applying it everywhere | C007, C011–C013, C016, C020 |
+| Learning from feedback that deserves to be retained | C008, C010, C015–C016, C019 |
+| Can experience improve the learning process itself? | C009, C012, C014, C017, C021 |
+| What accumulated experience is worth | C003, C005, C007, C009, C011–C012, C019–C021 |
 
-The WikiSkill mechanism explanation is grounded in v1 §3 and Figure 2: immutable traces, a persistent wiki, proposed skills, and validation/rollback. The conclusion that retained interpretations need scrutiny is analyst inference, not a measured contamination result. The proposed final experiment remains a recommendation under C012. The citation-coverage revision restores predecessor/comparator explanations, adds the existing WikiSkill Table 1 competitor comparison and AgentStream Table 5 method contrast, and preserves the recorded empirical uncertainty. No new experiment was performed.
+WikiSkill's retained-wiki test, the recurrence/mixing experiment, frozen diagnostic copies, and improver attribution controls are analyst proposals. No new numerical result or experiment was introduced. The recurrence/relevance explanation is a conditional interpretation: FinEvo and AgentStream do not form a controlled comparison. The ledger retains additional protocol details, negative cases, and sources omitted from the essay; see the current coverage reconciliation for their specific roles.
+
+## Architecture and synthesis revision — September 18, 2026
+
+Resolved the [architecture review](architecture-review.md) by organizing examples around the inferences they establish, separating relevance/retention from feedback quality, and concluding on future-task value. The positive internalization counterexample, WikiSkill regression, strong expert-skill and extra-attempt controls, and both Hyperagents transfer experiments remain. Reduced repetitive limitations while keeping qualifications that change attribution, meaning, or scope. C011 and C012 were clarified as above; all empirical source records and evidence statuses remain unchanged.
+
+The earlier revision records below describe their respective versions, including prior source counts and preservation checks.
 
 ## Sentence-specificity revision — September 18, 2026
 

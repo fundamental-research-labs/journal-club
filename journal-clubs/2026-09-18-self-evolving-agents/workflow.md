@@ -1,6 +1,39 @@
 # Research, analysis, and presentation handoff
 
-**Updated September 18, 2026. Stage: scholarly analysis revision complete; presentation reconciliation pending for the new foundations.** Frontier research cutoff remains September 16, 2026; foundation sources accessed September 18. Earlier readiness statements below describe prior revisions.
+**Updated September 18, 2026. Stage: analysis architecture and synthesis revision complete; presentation reconciliation pending.** Frontier research cutoff remains September 16, 2026; foundation sources accessed September 18. Earlier readiness statements below describe prior revisions.
+
+## Architecture and synthesis revision — September 18, 2026
+
+Updated the repository analysis skill (also active through the installed symlink) with specific guards against method catalogs and caveat-heavy prose: choose the section's inference before its sources, develop comparisons, explain what findings establish, retain limitations that change meaning, and check section endings for accumulated interpretation. Coverage reconciliation now explicitly permits justified removal from prose. Proposed controls must name the claim they isolate rather than become universal requirements.
+
+Rewrote the thesis from about 4,300 to 3,300 words, excluding URL targets. Seven sections develop future-task value through procedure formation, comparative investment, relevance/retention, feedback quality, and learned adaptation. The conclusion answers the opening question. The [architecture review](analysis/architecture-review.md#resolution--september-18-2026) records resolution of all six findings. C011 now states the conditional explanation, alternatives, and discriminating test; C012 separates portable-improver and coupled-feedback interventions. No empirical result or claim evidence status was changed.
+
+Reconciled all 13 removed direct citations: 27 families remain in the essay, while the evidence base remains 64 reviewed families. The coverage audit names their specific supporting roles and representative evidence. Rebuilt the prominent-citation Markdown against the essay without changing verified edges. Updated the claim mapping, README, and landscape. Preserved WikiSkill's regression, static-expertise and extra-attempt controls, AgentStream's mixed behavior, R-Zero's decline, the positive internalization counterexample, and both Hyperagents transfer experiments with material qualifications.
+
+Verification: continuous-prose and section-ending review; source-identity and numerical comparison against the prior essay; skill validation, citation-map consistency, relative-link/heading checks, and whitespace checks. Reused the September 16 research cutoff and the architecture review's retained WikiSkill/Hyperagents/Economics source checks; reopened retained SEAL v2 adaptation/forgetting passages. No new discovery, numerical efficacy claim, or experiment reproduction. Slides were not edited in this analysis revision and remain pending reconciliation with the changed argument.
+
+| ID / requesting stage | Owner | Acceptance criterion / status |
+| --- | --- | --- |
+| architecture-alignment / analysis | Analysis | Introduction and conclusion answer the lasting-value question; resolved. |
+| architecture-tests / analysis | Analysis | Portable attribution, coupled feedback, and repeated efficiency gains distinguished in thesis and C012; resolved as proposed tests. |
+| architecture-synthesis / analysis | Analysis | Findings 3–6 addressed and actual essay coverage reconciled; resolved. |
+| architecture-presentation / analysis | Presentation | Reconcile narrative and claims C011–C012 with revised thesis and foundations; pending, outside this analysis request. |
+
+The review record below describes the earlier state; its open recommendations are resolved by the revision above.
+
+## Thesis architecture review — September 18, 2026
+
+Reviewed the complete essay using the analysis skill. The [architecture review](analysis/architecture-review.md) records six findings, locations, their implications, and a proposed essay structure. Highest priorities: align the conclusion with the lasting-value question, and stop treating a portable-improver attribution experiment as a universal requirement for sustained self-improvement. The remaining findings concern catalog structure, distinct failure mechanisms, comparative synthesis, and the unit that learns.
+
+This is the requested review, not a thesis rewrite. Thesis, claims, and slides remain unchanged. Reopened retained WikiSkill v1, Hyperagents v1, and Economics v1 passages after consulting acquisition records; other evidence retains its existing review scope. No new discovery, freshness update, or experimental reproduction.
+
+| ID / requesting stage | Affected material | Question and significance | Owner / acceptance criterion / status |
+| --- | --- | --- | --- |
+| architecture-alignment / analysis | Thesis introduction and conclusion; C011–C012, C020–C021 | Does the ending answer the lasting-value question, with recursive acceleration treated separately? | Analysis; coherent central claim and conclusion; recommended revision, not applied |
+| architecture-tests / analysis | Thesis final proposed tests; C009, C012, C017 | Which tests isolate portable improvement methods, coupled feedback, and sustained efficiency gains? | Analysis; distinguish attribution, transfer scope, and acceleration; recommended revision, not applied |
+| architecture-synthesis / analysis | Mechanism, durability, and meta-learning sections; C001, C007–C010, C013–C021 | Do examples establish explicit comparisons, distinct failure mechanisms, and a conditional synthesis? | Analysis; resolve review findings 3–6 and reconcile prominent-citation coverage; recommended revision, not applied |
+
+Prior analysis readiness should be read with these open structural findings. Presentation revision remains outside this review's scope.
 
 ## Scholarly introduction and analysis skill — September 18, 2026
 

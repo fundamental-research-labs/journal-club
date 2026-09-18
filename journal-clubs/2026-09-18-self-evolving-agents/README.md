@@ -12,7 +12,7 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 - **[Open the HTML presentation](slides/index.html)** — 19 talk slides plus 7 appendices, citations, and speaker notes. Opens directly in a browser; no install or network required.
 
-- **[Central argument: what experience makes possible](analysis/thesis.md)** — a connected essay built around developed examples, grounded in continual/lifelong learning and meta-learning, drawing on 64 reviewed evidence families and citing 40 directly; the coverage audit preserves the broader evidence and counterarguments.
+- **[Central argument: what experience makes possible](analysis/thesis.md)** — a connected essay built around developed examples, grounded in continual/lifelong learning and meta-learning, drawing on 64 reviewed evidence families and citing 27 directly; the coverage audit preserves the broader evidence and counterarguments.
 - **[Thesis coverage audit](research/thesis-coverage.md)** — before/after counts, claims, omissions, source roles, and search limits.
 - [Claim ledger](analysis/claims.md) — evidence, confidence, and limits.
 - **[Ranked shortlist: ten priority resources](research/shortlist.md)** — why each belongs, what to read, key results, limitations, and strong alternatives.
@@ -25,7 +25,7 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 - **[Earlier recent-paper citation audit](research/citation-mining.md)** — seven seeds, parallel low-cost discovery, five newly read comparators, and retained top-ten decision.
 
-The September 18 scholarly revision adds foundational literature and connects it to retention, transfer, and adaptation tests. The current slides predate this analysis revision; their introduction and related notes still need reconciliation.
+The September 18 analysis rewrite organizes the thesis around when experience creates lasting value, with developed comparisons and explicit conditional synthesis. The [architecture review and resolution](analysis/architecture-review.md) records the changes. The current slides still require reconciliation with this revised argument and the scholarly foundations.
 
 ## Selected supporting resources
 

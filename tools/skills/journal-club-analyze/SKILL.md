@@ -74,6 +74,16 @@ the conclusion. A mechanism taxonomy can support the argument, but should not
 silently become its structure. Introduce another approach when it resolves a
 problem, exposes a tradeoff, or challenges what the reader has just learned.
 
+Choose the inference each section should earn before choosing its papers. A section
+should leave the reader with an answer, an explanation of a contrast, or a precise
+unresolved alternative—not just familiarity with more methods. Develop the anchors
+needed to earn that inference; integrate other work at the point where it changes
+the explanation, comparator, or novelty claim. A sequence of method descriptions
+followed by a synthesis sentence is still a catalog if the descriptions do not
+support a consequential comparison. Keep remaining coverage in the evidence records
+with specific omission reasons; do not turn citation reconciliation into a mandate
+to preserve every source in the essay.
+
 Write `analysis/thesis.md` with the clarity and explanatory care of excellent science
 writing. Assume a curious reader with the session's stated background, not a
 specialist in every subfield. Build an evidence-backed argument the reader can
@@ -127,6 +137,18 @@ examples explicitly. Avoid compressing every method into a name, a feature, and 
 caveat. An additional source earns space by changing the reasoning, not merely by
 belonging to the same category. Keep representative positive evidence and the
 strongest challenges even when they complicate the preferred argument.
+
+Give findings their explanatory payoff. After establishing what a result shows,
+explain how it changes the answer to the section's question. Qualify the inference
+at the level the evidence warrants, rather than repeatedly ending examples with
+the strongest claim they fail to prove. Keep a limitation beside a result when it
+changes the result's meaning, attribution, or applicability; consolidate shared
+limits where they constrain the synthesis, and leave other audit detail in notes.
+Do not delete decisive counterevidence or uncertainty to make the prose affirmative.
+When studies are not numerically comparable, a conditional interpretation can still
+be useful: identify the mechanism it proposes, plausible alternative explanations,
+and the comparison that would distinguish them. Label that interpretation instead
+of treating cross-study differences as a causal experiment.
 
 Give each paragraph a main job and each sentence a manageable amount of new
 information. Vary sentence length naturally; avoid both dense qualification chains
@@ -205,6 +227,15 @@ affecting the reasoning, check whether they are a catalog that needs synthesis o
 Do not force a linear dependency where a comparison genuinely requires parallel
 cases. Consolidate recurring limitations around the conclusion they constrain;
 keep source-specific qualifications beside the results whose meaning they change.
+
+Read the section endings together as well. Do they accumulate an explanation of
+the field, or mainly repeat that evidence is limited and more work is needed? If
+removing paper names leaves only a list of mechanisms and cautions, revise the
+reasoning and source selection before polishing transitions. Make the conclusion
+answer the opening question; a stronger speculative extension should not displace
+the supported achievement. For proposed tests, distinguish the question a control
+isolates from a universal requirement: portability, causal attribution, practical
+value, and long-run behavior can require different experiments.
 
 Check the introduction against the conclusion: can the reader identify the prior
 research problem, the current work's actual contribution, and which inherited tests

@@ -2,9 +2,13 @@
 
 **Cutoff: September 16, 2026.** This topic map supports a 45-minute, technically literate journal club. It organizes evidence and open questions rather than prescribing a final thesis. Start with the [ranked shortlist](shortlist.md); consult [source records](sources.md) and linked notes for exact versions and access depth. This revision supersedes earlier numerical/access qualifications where the new primary-source audit resolves them.
 
+## Current analysis structure — September 18, 2026
+
+The [revised thesis](../analysis/thesis.md) selects developed examples to explain when experience creates future-task value. It separates relevance/retention from feedback quality and treats learned improvement methods as a further achievement. Its conditional explanation—missing starting expertise plus recurring opportunities for relevant reuse—remains analyst synthesis, with competing explanations and discriminating tests in C011/C012. The [coverage audit](thesis-coverage.md) now records 27 directly cited families out of the unchanged 64 reviewed families, including explicit reasons for the 13 sources moved to supporting evidence. The detailed topic map below remains research breadth, not a required essay structure.
+
 ## Scholarly foundations — September 18 analysis revision
 
-The [thesis introduction](../analysis/thesis.md#introduction-continual-learning-in-an-agent-setting) now situates experience-driven agents within continual/lifelong learning and distinguishes meta-learning from improver-code editing. Four [bounded foundation reviews](thesis-coverage.md#scholarly-foundations-revision--september-18-2026) explain learned bias, parameter protection, episodic gradient constraints, transfer metrics and learned initialization. These concepts make the later questions more precise: distinguish failed forward transfer, loss of earlier ability under fixed conditions, and changes to the environment. Existing 2023–2026 empirical evidence and the frontier cutoff are unchanged.
+The [thesis introduction](../analysis/thesis.md#turning-completed-work-into-future-capability) now situates experience-driven agents within continual/lifelong learning and distinguishes meta-learning from improver-code editing. Four [bounded foundation reviews](thesis-coverage.md#scholarly-foundations-revision--september-18-2026) explain learned bias, parameter protection, episodic gradient constraints, transfer metrics and learned initialization. These concepts make the later questions more precise: distinguish failed forward transfer, loss of earlier ability under fixed conditions, and changes to the environment. Existing 2023–2026 empirical evidence and the frontier cutoff are unchanged.
 
 ## Thesis-driven coverage revision — September 16
 
