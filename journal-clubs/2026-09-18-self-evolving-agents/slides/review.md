@@ -1,3 +1,104 @@
+# Current revision — review round 1, September 18, 2026
+
+**Current deck: 35 slides, 24 main + 11 appendices.** [Open the presentation](index.html). This revision implements the presentation review below. Older entries describe historical versions; their counts and slide numbers are superseded.
+
+## Changes and review resolution
+
+| Finding | Resolution in the current deck |
+| --- | --- |
+| R1 · opening/conclusion mismatch | Slide 22 answers slide 5 with missing expertise, relevant reuse/retention, and development-plus-operating cost. It is labeled conditional synthesis, not a measured economic threshold. Discussion applies those conditions. Recursive acceleration is a further question. |
+| R2 · conceptual foundation | Slides 3–4 distinguish continual learning from meta-learning and storage mechanisms from learned functions, incorporating C020–C021. SEAL supplies a developed example of learning to adapt without code self-modification. |
+| R3 · evidence emphasis | Slide 9 interprets FinEvo's skill-only alternative and calculates explicitly partial token totals from the original table. Slide 14 uses the original complete AgentStream Table 5 to show method-by-stream differences. Aggregate counts remain on slide 26. |
+| R4 · visible definitions | Slides 8/13 distinguish rubric-derived versus self-generated feedback. FinEvo's interleaved streams are explicit. Slides 9/11/16/17 label score units; 14/26 explain configuration counts. Slide 21 defines improvement@50; slide 25 identifies its different endpoint metric. |
+| R5 · source readability | FinEvo and Hyperagents use labeled original panel crops with large external guidance. Hyperagents' endpoint slide identifies the blue/orange comparison without removing the green alternative. A clipped FinEvo panel edge found during visual QA was restored. |
+| R6 · uneven explanation | SEAL now has mechanism, adaptation evidence, and original retention heatmap on slides 15–17. Compressed R-Zero/Continual Internalization and Dream-RSI slides are removed from the selected talk; their source records and counterevidence remain in the research materials. No claim that all weight-update recipes forget is made. |
+| R7 · pacing/repetition | Removed the redundant first-section question slide and duplicate closing synthesis. The first results section's motivation is integrated with WikiSkill. The main talk has 24 slides instead of 25, with more time allocated to selected mechanisms; actual 30–35-minute timing still requires rehearsal. |
+| R8 · stale documentation | README, storyboard, current review, figure provenance and workflow now identify the 35-slide revision and its source mappings. Prior review records are preserved as history. |
+
+The forest-green/ivory design, presenter attribution, offline delivery, original artwork, citations and interactions are preserved. Editable sources remain `content.json`, `theme.css` and `build.py`. Four additional source excerpts are recorded in the extraction manifest; selective extraction is now available through `extract.py --only` without re-fetching unrelated assets. No new presentation framework or runtime dependency was introduced.
+
+## Verification
+
+- Rendered all 35 slides at a 1440 × 900 Chromium viewport and visually inspected every slide, including all appendices, at full presentation size. Re-rendered after corrections and reinspected the changed slides. Read the sequence separately for motivation, metric definitions, causal qualifications and conclusion alignment.
+- No browser JavaScript errors, missing images, multiple active slides, or content crossing the tested caveat/footer boundaries. Home/arrow navigation, slide picker, notes opening/closing, overview selection, all-slides mode and direct slide links passed. Assets and source keys resolve; all slides have notes.
+- Source excerpts were checked against their original pages/captions, particularly AgentStream Table 5, SEAL Figures 1/6 and Hyperagents Figure 1. FinEvo cost sums reproduce the displayed table. Unchanged source-result images preserve their original values, comparators and uncertainty. No experiments were reproduced.
+- All 24 cited/reference URLs were checked for availability: 23 returned HTTP 200 to a direct HEAD request. Shopify returned 403 to that request but its article was accessible and rechecked through the web tool; the canonical link is retained.
+- Print media exposes all 35 slides. The temporary print check has 35 pages at 960 × 540 PDF points. Poppler-rendered samples of the guided FinEvo panel, SEAL retention figure and conclusion were visually inspected. There is no PDF deliverable; scratch renders and checks are outside the repository in `/tmp/jc-revision-round1/`.
+
+## Remaining limits and concurrent work
+
+The in-app browser runtime again failed with `Cannot redefine property: process`; local headless Chromium supplied the checks. Projector/back-row readability, cross-browser behavior, assistive technology, and live timing were not tested. The empirical cutoff remains September 16; this is a presentation revision and targeted source reinspection, not a frontier research update.
+
+Concurrent thesis/claim/coverage changes were inspected and preserved. Their expanded feedback explanation remains compatible with the selected slides; FinEvo's interleaved protocol is explicit in this revision. Separate analysis-review recommendations remain owned by the analysis stage and are not marked resolved by a slide revision. Omitted examples remain accessible in the research corpus.
+
+---
+
+# Independent presentation review — September 18, 2026
+
+Review-only pass of the current **36-slide deck (25 main, 11 appendix)** using the journal-club-present skill. No deck content, source figures, or design was changed. These findings concern communication and alignment with the current thesis; earlier successful layout checks do not resolve them.
+
+The palette, title hierarchy, original evidence tables, attribution, and explicit limitations are useful foundations. The main remaining problems are the argument's destination, missing conceptual distinctions, and the amount of interpretation left to the presenter.
+
+## Priority findings
+
+### R1 · High: the conclusion answers a different question from the opening
+
+Slide 4 asks when experience creates a lasting advantage **worth the cost**. Slides 22 and 25 primarily classify useful procedures, better improvers, and unestablished compounding. They do not develop the current thesis's conditional answer: learning can be valuable when it supplies missing expertise that later tasks reuse, provided selection, feedback, retention, and costs cooperate. Cost is repeatedly a caveat or proposed future measurement rather than a developed part of the answer. The final main-talk section gives recursion considerable weight while the newer thesis treats it as a further possibility.
+
+**Revision criterion:** the closing should answer the opening directly, distinguish observed findings from the conditional synthesis, and use the earlier examples to explain the conditions. Keep the compounding qualification, but subordinate it to that answer. Use available cost evidence with its accounting limits; do not invent a break-even estimate.
+
+### R2 · High: the updated conceptual foundation is missing
+
+Slide 3 separates memory, harness, weights, and improvement method as four rows. This mixes *where state is stored* with *what is learned*: a learned improvement method can itself live in weights. SEAL is listed under weights and explained only in the appendix; the main meta-learning example is editable code. C020–C021 and the revised thesis's continual-learning/meta-learning distinctions are absent from the deck. The audience can consequently mistake code self-modification for the defining mechanism of learning to learn. Stability versus adaptation, forward versus backward transfer, and deployment learning versus offline optimization also need a brief visible introduction.
+
+**Revision criterion:** explain continual learning and meta-learning in ordinary language using established terms; distinguish the two axes rather than implying disjoint categories. Make clear that learning to adapt need not edit code. This needs a compact framework, not a literature-history detour.
+
+### R3 · High: the selected callouts underuse the evidence
+
+On slide 9, the 2.80-point fixed-skill/full-evolution comparison is correctly reported, but the original table also shows **skill-only 93.71 versus full evolution 89.47**, with lower recorded execution-plus-reflection token use for skill-only. The sentence “The source also shows skill-only scores and reflection cost” does not interpret that result. The discussion on slide 24 repeats the narrower comparison. This is not hidden data, but the visual emphasis can leave the audience with an incomplete account of the adaptive alternatives. Do not generalize this one-scaffold ordering or equate the token columns with full lifetime cost.
+
+On slide 14, averaging five methods hides the current thesis's more useful observation: methods respond differently to mixed tasks. The notes describe ACE's directional reversal and the contrasting retrieval-based methods, but the audience sees only three means and configuration counts. Those patterns motivate relevance selection without establishing a retrieval-only causal effect.
+
+**Revision criterion:** explicitly interpret the important competing rows on slide 9; bring a scoped method-level AgentStream comparison into view. Preserve the original source artwork and relevant controls.
+
+### R4 · Medium: essential definitions remain in notes
+
+Slide 19 never visibly defines **improvement@50** as the held-out gain over the starting agent of the best validation-selected candidate. Slide 20 then changes to an endpoint score. Without that definition, their similar-looking numbers invite an incorrect comparison. Slide 14 uses “45 cells” without visibly unpacking models × methods × order seeds. Slide 11 omits the visible definition of its score and the no-unit-test-feedback condition. Slides 13–14 do not prominently distinguish self-generated feedback from the rubric-derived feedback in FinEvo.
+
+**Revision criterion:** put the metric, baseline, feedback access, and experimental unit needed for each inference on the visible slide. Leave secondary methodological detail in notes.
+
+### R5 · Medium: original figures still need presentation-specific guidance
+
+Slide 8's landscape and file-workspace artwork shows what FinEvo tasks contain, but does not illustrate the retained/reset protocol being tested. Its small input-file details compete with that explanation. Slide 18's right-hand implementation traces are much smaller than the deck's normal body text. Slide 20 requires reading a small legend and matching the blue/orange comparison to the callout while a taller green third condition attracts attention. The figures are intact; intact is not the same as easy to read from a room.
+
+**Revision criterion:** retain original artwork, use labeled crops/enlargement where needed, and add concise guidance outside the figure. Explain FinEvo's control in visible text. Clarify the relevant comparison without erasing competing methods. Verify readability at the intended display size; projector/back-row conditions were not tested here.
+
+### R6 · Medium: explanatory depth is uneven
+
+WikiSkill and Hyperagents receive mechanism/result sequences, while slide 15 compresses two weight-learning systems into text and gives only the negative example a number. The positive internalization result has no visible magnitude. Its subtitle, “Different feedback and update choices lead to different trajectories,” also sounds more causal than this cross-study comparison warrants. Slide 21 introduces discovery trees, controller replay, EvoX, and mixed outcomes with no worked replay decision or source conceptual figure. The storyboard does not record an inspected conceptual figure or its absence for these examples.
+
+**Revision criterion:** develop the examples needed for the argument with an understandable mechanism and appropriately scoped evidence; move incidental systems to the appendix if necessary. Inspect source conceptual figures before choosing the visual. Describe the slide-15 contrast as observations from different experiments, not an identified cause.
+
+### R7 · Medium: pacing and repetition need a presentation pass
+
+Slides 4 and 5 are consecutive question-led pauses before the first concrete example. Slides 6–11 become three consecutive paper-specific concept/result pairs. Slides 22 and 25 largely repeat the same three-part synthesis. The talk has 25 main slides for the storyboard's assumed 30–35 minutes, including multiple unfamiliar protocols and dense figures. That is a pacing risk, not a timing failure demonstrated by rehearsal. Repeated two-column prose on 15, 16, and 21 contributes little visual explanation.
+
+**Revision criterion:** combine redundant setup/closing material, use the recovered time for difficult concepts, and make section transitions state what the evidence has established. A concrete early example of a retained lesson helping a later task would make the opening easier to follow. Rehearse before fixing the final length.
+
+### R8 · Low: the documentation has conflicting current-state claims
+
+README advertises 19 main slides plus 7 appendices; the actual deck has 25 plus 11. Review/history entries contain several different “current” counts. Figure provenance still maps its SkillsBench text exception to slide 27, although that material is now on 31. The pending thesis reconciliation is real and should remain explicit until implemented.
+
+**Revision criterion:** provide one accurate current summary and clearly label historical records; update slide mappings when revising the deck.
+
+## Verification and limits
+
+Re-rendered all 36 slides in local headless Chromium at a 1440 × 900 viewport; inspected the full sequence in contact sheets and enlarged the principal concept/evidence slides. Automated checks found no JavaScript errors, missing/undecoded slide images, multiple active slides, or content crossing the tested caveat/footer boundaries. Navigation, slide picker, notes opening, overview selection, all-slides mode, direct links, and print-media slide visibility passed. A temporary print PDF was generated by the existing QA script, but its pages were not visually reviewed in this pass and it is not a deliverable. Scratch output is in `/tmp/jc-review-20260918/`.
+
+Compared the deck with the current thesis, C001–C021 ledger, storyboard, provenance, and relevant source-reading notes. This is not an independent re-reading or replication of every paper; remote citation availability and research after the stated September 16 cutoff were not audited. The in-app browser initialization failed with `Cannot redefine property: process`; local Chromium supplied the rendering checks. Cross-browser, assistive-technology, projector readability, and live pacing checks remain unperformed.
+
+---
+
 # Source-figure correction — September 18, 2026
 
 Supersedes the earlier approval of homemade conceptual simplifications below. Replaced WikiSkill slide 6 with original Figure 2, FinEvo slide 8 with original Figure 1, and harness slide 10 with original Figure 2. Removed the invented domain-order diagram from slide 14. Preserved explanatory subtitles, source notes, all result figures/numbers, and the 36-slide sequence. The skill now permits a homemade paper-specific conceptual figure only when the paper has none; crowding or stylistic preference requires cropping/enlargement instead.

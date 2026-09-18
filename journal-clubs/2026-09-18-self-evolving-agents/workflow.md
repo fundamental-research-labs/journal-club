@@ -1,3 +1,18 @@
+## Presentation revision 1 — September 18, 2026
+
+Completed the requested round of presentation changes. **Current deliverable: [35-slide HTML deck](slides/index.html), 24 main + 11 appendices.** [Current review and limits](slides/review.md#current-revision--review-round-1-september-18-2026) and [storyboard](slides/storyboard.md) supersede older presentation counts and mappings below. This entry does not close the separate analysis-review recommendations.
+
+| Presentation queue item | Current resolution | Status |
+| --- | --- | --- |
+| presentation-answer | Slide 22 answers the lasting-value/cost question; 23–24 turn the conditional synthesis into tests and decisions. | Addressed in revision 1 |
+| presentation-foundations | Slides 3–4 incorporate C020–C021; SEAL 15–17 distinguishes learned adaptation from continual retention. | Addressed in revision 1 |
+| presentation-evidence | FinEvo 9 includes skill-only and qualified token accounting; AgentStream 14 uses original Table 5; configurations remain explicit in 26. | Addressed in revision 1 |
+| presentation-comprehension | Visible protocols/metrics, guided source crops, original retention evidence, tighter example selection, and no causal claim from the former cross-study training comparison. | Addressed for selected examples |
+
+Pacing and documentation recommendations R7–R8 are implemented; live rehearsal remains outstanding. Preserved the existing design, original results and caveats, citations, metadata, and interactions. New source excerpts have version/hash/crop provenance; no full restricted manuscript or temporary render was added to the repository. All 35 slides were rendered and visually inspected; layout, navigation, assets, notes, citation availability and representative print-layout checks are documented. Empirical cutoff stays September 16; no experimental replication or external publication.
+
+Concurrent analysis edits were read for compatibility and left intact. R-Zero/Continual Internalization and Dream-RSI remain in supporting research; the main talk develops SEAL instead of compressing these systems into short text treatments. FinEvo's task stream is explicitly interleaved so it is not falsely contrasted with AgentStream on mixing alone.
+
 ## R-Zero explanation follow-up — September 18, 2026
 
 Removed the Absolute Zero detour from the feedback section at the user's request. The opening example now follows R-Zero continuously from generated problems to answer voting, training, and later deterioration. All other thesis paragraphs remain unchanged. Reconciled Absolute Zero as supporting evidence in the coverage audit, updated current direct-citation counts from 27 to 26, and refreshed the citation map. No new claims or research; the earlier substantive review findings remain open.
@@ -13,6 +28,19 @@ Reopened retained Absolute Zero v3, R-Zero v4, and RHB v1 text; checked the offi
 Completed the requested review of the current thesis using the analysis skill. [Findings and verification scope](analysis/thesis-review.md) identify three targeted revisions: restore FinEvo's stronger skill-only alternative (C005), state that FinEvo also interleaves tasks before contrasting it with AgentStream (C007/C011), and give the practical-value argument a concrete, qualified cost comparison (C005/C011/C012). The central argument remains defensible; the earlier architecture findings remain resolved. Analysis is reviewed, with these recommendations open before the next handoff.
 
 Reopened retained harness-evaluation v2, Hyperagents v1, and R-Zero v4 passages, and the official FinEvo v1 HTML under its existing retention restriction. No discovery or freshness update; September 16 cutoff unchanged. Thesis, claim ledger, and slides remain unchanged. Next analysis revision should address the three findings and reconcile affected claims and coverage; presentation propagation follows that revision.
+
+## Presentation review — September 18, 2026
+
+Completed a review-only pass of the 36-slide presentation using the current thesis, C001–C021, storyboard, provenance, source notes, and new Chromium renders. Findings and verification limits are in [the current presentation review](slides/review.md#independent-presentation-review--september-18-2026). Deck files remain unchanged; readiness for presentation revision is established, not approval for delivery.
+
+| ID / requesting stage | Affected material | Question / owner | Acceptance criterion / status |
+| --- | --- | --- | --- |
+| presentation-answer / presentation | Slides 4, 22–25; C011–C012 | Does the conclusion answer when retained experience is worth its cost? / presentation | Conditional answer tied to evidence, with compounding secondary; open recommendation |
+| presentation-foundations / presentation | Slides 3, 17–18, 28; C020–C021 | Are continual learning and meta-learning distinguished from their storage/edit mechanisms? / presentation | Visible definitions and nonexclusive mechanism map; open recommendation |
+| presentation-evidence / presentation | Slides 9, 14, 24; C005, C007 | Are important adaptive alternatives and method differences interpreted? / presentation | Scoped FinEvo skill-only/cost comparison and AgentStream method contrast; open recommendation |
+| presentation-comprehension / presentation | Slides 8, 11, 13–15, 18–21; C005–C009, C019 | Can the audience explain each comparison from visible material? / presentation | Define metrics/feedback/units, guide source figures, qualify causal wording; open recommendation |
+
+R7–R8 in the review cover pacing and stale documentation. No new research or efficacy claims were introduced; the existing September 16 research cutoff remains in force.
 
 ## Analysis terminology revision — September 18, 2026
 
