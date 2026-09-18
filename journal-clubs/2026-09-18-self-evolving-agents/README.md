@@ -10,7 +10,7 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 ## Start here
 
-- **[Open the HTML presentation](slides/index.html)** — 24 talk slides plus 11 appendices, citations, and speaker notes. Opens directly in a browser; no install or network required.
+- **[Open the HTML presentation](slides/index.html)** — 25 talk slides plus 12 appendices, citations, and speaker notes. Opens directly in a browser; no install or network required.
 
 - **[Central argument: what experience makes possible](analysis/thesis.md)** — a connected essay built around developed examples, grounded in continual/lifelong learning and meta-learning, drawing on 64 reviewed evidence families and citing 26 directly; the coverage audit preserves the broader evidence and counterarguments.
 - **[Thesis coverage audit](research/thesis-coverage.md)** — before/after counts, claims, omissions, source roles, and search limits.
@@ -25,7 +25,7 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 - **[Earlier recent-paper citation audit](research/citation-mining.md)** — seven seeds, parallel low-cost discovery, five newly read comparators, and retained top-ten decision.
 
-The September 18 analysis rewrite organizes the thesis around when experience creates lasting value, with developed comparisons and explicit conditional synthesis. The [architecture review and resolution](analysis/architecture-review.md) records the changes. The current slides incorporate that conditional argument, the continual-learning/meta-learning foundations, and the first presentation-review revision.
+The September 18 analysis rewrite organizes the thesis around when experience creates lasting value, with developed comparisons and explicit conditional synthesis. The [architecture review and resolution](analysis/architecture-review.md) records the changes. The current slides incorporate that conditional argument, the continual-learning/meta-learning foundations, and the explanation-first presentation revision.
 
 ## Selected supporting resources
 
@@ -37,13 +37,17 @@ Strong alternatives include **Dream-RSI, EvoHarnessBench, Library Drift, NemoCla
 
 All reading-note filenames use `YYYY-short-title.md` in lowercase kebab-case, with the source publication year as the prefix. For SoL-Pi, `2026` identifies the reviewed repository snapshot year because first publication is unverified. Original-source folders use the same year-prefixed name as their reading notes, and retained filenames use `YYYY-short-title-artifact-version.ext`. Existing source keys are preserved; the source register maps them to the year-prefixed notes and originals. Canonical URLs, notes, and licensed originals are linked through the register. Original PDFs are unmodified; source-specific licenses and hashes are recorded. Temporary downloads, text extraction, and rendered inspection images remain outside this repository.
 
-Research used the journal-club-research workflow; primary-source review depths and unresolved qualifications remain in the source records. No training experiments were reproduced. The September 18 presentation revision now has **24 main slides and 11 appendices**. It develops useful expertise, relevance and retention, then learned adaptation, and answers the lasting-value/cost question before discussion. The empirical research cutoff remains September 16; foundation review and presentation verification occurred September 18.
+Research used the journal-club-research workflow; primary-source review depths and unresolved qualifications remain in the source records. No training experiments were reproduced. The September 18 presentation revision now has **25 main slides and 12 appendices**. It develops useful expertise, relevance and retention, then learned adaptation, and answers the lasting-value/cost question before discussion. The empirical research cutoff remains September 16; foundation review and presentation verification occurred September 18.
 
-[AgentStream's method comparison](slides/index.html#slide-14) now complements its framework. [SEAL's mechanism](slides/index.html#slide-15), [adaptation result](slides/index.html#slide-16), and [retention test](slides/index.html#slide-17) form a developed example in the main talk. FinEvo includes the skill-only alternative and explicitly partial token costs. Hyperagents' separate continued-evolution endpoint and AgentStream's aggregate counts are in the appendix. R-Zero/Continual Internalization and Dream-RSI remain in the supporting research materials rather than compressed standalone slides.
+[AgentStream's method comparison](slides/index.html#slide-15) now complements its framework. [SEAL's mechanism](slides/index.html#slide-16), [adaptation result](slides/index.html#slide-17), and [retention test](slides/index.html#slide-18) form a developed example in the main talk. FinEvo includes the skill-only alternative and explicitly partial token costs. Hyperagents' separate continued-evolution endpoint and AgentStream's aggregate counts are in the appendix. R-Zero/Continual Internalization and Dream-RSI remain in the supporting research materials rather than compressed standalone slides.
 
-All 35 slides were rendered and visually inspected; [the current review](slides/review.md) records the changes, checks, and remaining limits. The [storyboard](slides/storyboard.md) is the current sequence and concept-to-evidence map. Earlier review/workflow entries are historical and their slide numbers are superseded.
+All 37 slides were rendered and visually inspected; [the current review](slides/review.md) records the changes, checks, and remaining limits. The [storyboard](slides/storyboard.md) is the current sequence and concept-to-evidence map. Earlier review/workflow entries are historical and their slide numbers are superseded.
 
 [Initial research notes](research-notes.md) remain as historical context; the current shortlist, landscape, and source notes supersede their earlier reading-status and numerical qualifications.
+
+The explanation-first revision develops **FinEvo across slides 8–10**: an actual report mistake and saved check, three ways to prepare the agent, and the gain/cost comparison. The main talk also explains other methods and technical terms in plain language. [Current verification](slides/review.md#explanation-first-revision--september-18-2026) records the full-deck review.
+
+The AgentStream follow-up clarifies [slides 13–15](slides/index.html#slide-13): why changing workloads test retained lessons, what each task arrangement means, and how the same memory method can help or hurt. [Verification and limits](slides/review.md#agentstream-comprehension-follow-up--september-18-2026).
 
 ## Presentation use and editing
 
@@ -60,3 +64,5 @@ python3 journal-clubs/2026-09-18-self-evolving-agents/slides/build.py
 The presentation skill now defaults to HTML. PowerPoint and PDF are not deliverables for this session.
 
 Source artwork is preserved. Guided FinEvo and Hyperagents crops, AgentStream’s original method table, and SEAL’s retention heatmap have exact crop/version records in the current figure provenance.
+
+The SEAL comprehension follow-up makes its role in the durability section explicit: AgentStream tests whether saved guidance fits new work; SEAL tests whether learning new facts preserves earlier knowledge. Slides 16–18 now explain the weight update, the test without the passage in the prompt, and one concrete trajectory through the forgetting figure. See [verification](slides/review.md#seal-comprehension-follow-up--september-18-2026).

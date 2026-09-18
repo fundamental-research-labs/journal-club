@@ -1,3 +1,19 @@
+## AgentStream explanation follow-up — September 18, 2026
+
+Completed presentation queue item **agentstream-purpose**, slides 13–15 / C007/C013/C016. Question: why does this example belong, and what does its comparison mean? Acceptance criterion: visible slides motivate changing workloads, define retained state and the baseline, explain the three arrangements, and interpret a result without implying a causal retrieval experiment. Reused original Figure 1(b)/Table 5; rechecked v1 §§3–4 and §5.4. Storyboard, content, HTML, provenance, README and review updated. Focused visual and interaction checks pass; no change to slide count or broader analysis claims. [Verification and limits](slides/review.md#agentstream-comprehension-follow-up--september-18-2026).
+
+## Explanation-first presentation revision — September 18, 2026
+
+Completed the user's request to make the slides as understandable as the conversational explanation. **Current deck: 37 slides, 25 main + 12 appendices.** FinEvo now follows actual report error and saved check (8) → three choices (9) → score/cost evidence (10). The original benchmark overview remains on 37. Main-talk copy explains learning, memory, software, SEAL, and Hyperagents through actions; the conclusion connects useful corrections to future benefit and cost. Existing original figures, numerical evidence and scope qualifications remain.
+
+Inputs: latest thesis/claims, source notes, current deck, FinEvo v1 Appendix C/Tables 25–27/Figure 10 and original PDF pages 3/19–21. C005 provides the claim boundary: the observed edit is not an isolated causal result. A 7.04-point difference rounds to 7, and 615,600/159,200 tokens rounds to 3.9×. Storyboard, content, HTML, figure provenance, extraction command, README and review are current. Earlier slide numbers below are historical.
+
+Acceptance checks: main examples explain what changes before their first result; FinEvo alternatives are distinct conditions; benefit and partial cost are both explicit; slides and print layout are readable. All 37 slides were rendered and visually inspected, and navigation/assets/notes checks passed after overflow corrections. No new benchmark run, external publication, or live rehearsal. Existing analysis changes were preserved.
+
+## FinEvo presentation comprehension — September 18, 2026
+
+Presentation follow-up completed for slides 8–9 / C005. The user could not identify the point of the example. Acceptance criterion: visible slides explain the task, retained change, alternatives, and what the results add to the talk's question. Slide 8 now motivates learning versus supplied instructions; slide 9 defines the original table rows and emphasizes the 7.04-point skill-only advantage over expert instructions, with explicit partial token costs. Exact comparisons and caveats remain in notes. Inputs: current deck/thesis/claims, FinEvo v1 §§3–4.4 and Appendix C. Storyboard, source, generated HTML, provenance, README and review updated. Targeted visual/interaction verification passed; broader deck comprehension and rehearsal remain outside this follow-up. Concurrent analysis changes were preserved.
+
 ## Presentation revision 1 — September 18, 2026
 
 Completed the requested round of presentation changes. **Current deliverable: [35-slide HTML deck](slides/index.html), 24 main + 11 appendices.** [Current review and limits](slides/review.md#current-revision--review-round-1-september-18-2026) and [storyboard](slides/storyboard.md) supersede older presentation counts and mappings below. This entry does not close the separate analysis-review recommendations.
@@ -307,3 +323,7 @@ source-figure task; the separate expanded-thesis reconciliation remains pending.
 ## Presentation narrative rhythm — September 18, 2026
 
 Completed the requested skill and deck revision. Introduction ends with the main question; each of three results parts opens with its own motivation; the conclusion synthesizes the findings. Moved detailed proposed controls to the appendix. Current deck: 22 main slides + 9 appendices. Updated storyboard, figure slide references, README, and review log. Empirical evidence and research cutoff unchanged. All 31 slides rendered and visually reviewed; navigation, offline assets, notes, print CSS, skill validation, and whitespace checks pass. See [review details](slides/review.md) for limitations. No remaining work item for this narrative revision.
+
+## SEAL presentation comprehension — September 18, 2026
+
+Resolved the user’s question about SEAL’s role in the durability section. Section setup and slides 16–18 now separate learning new facts from retaining them through later updates, with plain-language mechanism and test descriptions and a concrete reading of Figure 6. Claims C004/C020 and source results are unchanged. Updated storyboard, notes, deck, README links and review log. Targeted source reinspection and visual/runtime checks passed; see `slides/review.md#seal-comprehension-follow-up--september-18-2026`. No outstanding item for this targeted revision; other concurrent presentation/analysis work is preserved.

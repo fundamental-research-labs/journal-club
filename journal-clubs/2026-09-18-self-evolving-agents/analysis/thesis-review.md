@@ -1,5 +1,19 @@
 # Thesis review — September 18, 2026
 
+## Reader follow-up — concrete science writing, September 18, 2026
+
+The first conclusion rewrite still required the reader to supply examples for abstractions such as “recurring needs,” “selective updating,” and “acquired expertise.” The current ending instead follows a documented mistake in a financial report through judge feedback and saved instructions, then asks what would establish that the instruction helped on the next report. It explains gross margin in place and keeps the distinction between an observed edit and an unmeasured later benefit. The proposed update schedule has moved out of the essay's conclusion; it remains a qualified hypothesis in C012. The preceding sections and their numerical comparisons are unchanged in this follow-up. Primary verification: FinEvo v1 Appendix C, Tables 25–27/Figure 10. No invented scene, reported single-edit efficacy, or stylistic imitation.
+
+## Resolution — conclusion and practical-value revision, September 18, 2026
+
+The three substantive findings below are addressed in the current thesis and C005/C007/C011/C012. FinEvo now includes skill-only evolution and partial token costs, distinguishes alternative-system scores from expert-initialized learning, and explicitly interleaves tasks. The cross-study interpretation separates recurrence from mixing. The practical-value discussion includes recurring expenses and the value of outcomes.
+
+The user's criticism of the ending exposed a further writing problem: its first paragraph recapped papers, its second listed controls, and its last restated conditions without developing a consequence. “What should an agent stop having to relearn?” now argues from recurring needs to selective updating, explains why acquired expertise may be worth preserving without constant revision, and identifies the possibility of learning how to adapt to unfamiliar work. Periodic reuse is labeled a design hypothesis with a specific comparison in C012; the evidence does not establish an optimal update schedule or economic return.
+
+Read the complete essay, then checked section openings and endings together. The other developed mechanism sections retain their arguments; the targeted revision changes the practical-value section, the memory section's final inference, and the conclusion. Reopened FinEvo v1's official HTML and retained harness-evaluation v2 §4.4; no new discovery, freshness update, or reproduction. Source selection remains 26 directly cited families. Historical findings and locations below are preserved to make the resolution reviewable.
+
+## Original review
+
 Review of the current 89-line `thesis.md`, after the architecture and terminology revisions. This is an argument review, not a rewrite. Locations below refer to that version. The earlier architecture review concerns an older essay; its resolved findings should not be treated as outstanding findings against this one.
 
 The central argument is defensible: experience can improve subsequent work, while practical payoff, retention, learned adaptation, and sustained acceleration require different evidence. The current essay distinguishes those claims, develops mechanisms, and qualifies cross-study inference. Three substantive revisions would improve its evidential balance and explanatory precision. None requires abandoning the central thesis.

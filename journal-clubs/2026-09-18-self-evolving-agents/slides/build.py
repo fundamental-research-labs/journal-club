@@ -33,8 +33,11 @@ for i,s in enumerate(data['slides'],1):
   elif kind=='cards':body+='<div class="ambitions">'+''.join(f'<article><span class="step-number">0{j+1}</span><h3>{e(c[0])}</h3><p>{e(c[1])}</p><strong>{e(c[2])}</strong></article>' for j,c in enumerate(s['cards']))+'</div>'
   elif kind=='source-evidence':body+=source_figure(s)+f'<div class="source-reading"><p class="metric">{e(s["callout"])}</p><div><p class="body">{e(s["body"])}</p><p class="detail">{e(s["detail"])}</p></div></div>'
   elif kind=='source-concept':body+=source_figure(s)
+  elif kind=='source-story':
+   body+=f'<div class="story-pair"><div><h3>{e(s["leftTitle"])}</h3><p>{paras(s["leftBody"])}</p></div><div><h3>{e(s["rightTitle"])}</h3><p>{paras(s["rightBody"])}</p></div></div>'+source_figure(s)
   elif kind=='source-guided':
-   body+='<div class="guided-layout">'+source_figure(s)+'<div class="figure-guide">'+''.join('<div><h3>'+e(t)+'</h3><p>'+e(p)+'</p></div>' for t,p in s['guide'])+'</div></div>'
+   glossary='<dl class="figure-glossary">'+''.join('<div><dt>'+e(t)+'</dt><dd>'+e(p)+'</dd></div>' for t,p in s['figureGlossary'])+'</dl>' if s.get('figureGlossary') else ''
+   body+='<div class="guided-layout'+(' with-glossary' if glossary else '')+'"><div>'+source_figure(s)+glossary+'</div><div class="figure-guide">'+''.join('<div><h3>'+e(t)+'</h3><p>'+e(p)+'</p></div>' for t,p in s['guide'])+'</div></div>'
   elif kind=='stream-explained':body+='<div class="table-wrap">'+table(s)+'</div>'+f'<p class="stream-summary"><strong>{e(s["callout"])}</strong> {e(s["body"])}</p><p class="adaptation-label">Stream definitions: §3.2 · Numbers calculated from Tables 2, 11–13</p>'
   elif kind=='table':body+='<div class="table-wrap">'+table(s)+'</div>'
   elif kind=='twocol':body+=f'<div class="columns"><div><h3>{e(s["leftTitle"])}</h3><p>{paras(s["leftBody"])}</p></div><div><h3>{e(s["rightTitle"])}</h3><p>{paras(s["rightBody"])}</p></div></div>'

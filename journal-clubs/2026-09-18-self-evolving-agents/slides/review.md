@@ -1,3 +1,61 @@
+# AgentStream comprehension follow-up — September 18, 2026
+
+**Current deck: 37 slides, 25 main + 12 appendices.** Targeted revision of slides 13–15 in response to the user's question about their purpose; surrounding in-progress work preserved.
+
+The section now asks whether lessons remain useful when the kind of work changes. Slide 13 uses a clearly illustrative coding-to-web-research transition. Slide 14 identifies AgentStream as an evaluation, explains the learning loop and no-retained-lessons control, and visibly defines all three stream conditions. Isolated still learns within each domain. Fixed model weights and the absence of ground-truth feedback are explicit. Original Figure 1(b) remains beside the explanation; its small symbols are supporting detail rather than required reading.
+
+Slide 15 retains complete original Table 5. It explains ACE's prompt guidance and its +2.28/−1.26 percentage-point reversal, alongside ReasoningBank's +0.78/+1.79 contrast. The baseline, aggregation, and final-column counts are defined. These are separate conditions, not learning checkpoints; mixing can help some methods. Selective retrieval is a possible explanation, not an identified cause. This supplies the link from recurring useful procedures to workload dependence, before SEAL tests loss of earlier knowledge.
+
+Rechecked AgentStream v1 §§3–4, Figure 1 caption and §5.4/Tables 5–6 through primary HTML. C007/C013/C016 unchanged; no new empirical discovery or reproduced experiment. Original image assets unchanged.
+
+Verification: rebuilt and rendered all 37 slides in Chromium at 1440 × 900; inspected the complete sequence in overview images and revised slides 13–15 at presentation size. Fixed a cramped result/caveat boundary and shortened the concept-figure caption. Final checks report no content/caveat crossings, missing images or JavaScript errors. Keyboard navigation, notes, overview, continuous reading, direct links and print visibility pass. In-app browser initialization failed (`Cannot redefine property: process`), so the existing local Chromium workflow was used. Scratch checks are in `/tmp/jc-agentstream-clarity/`. No global layout changes; broader comprehension, live timing and projector readability were not reassessed.
+
+---
+
+# Explanation-first revision — September 18, 2026
+
+**Current deck: 37 slides, 25 main + 12 appendices.** [Open the presentation](index.html). This supersedes the narrower FinEvo wording revision below.
+
+## What changed
+
+The prior revision still combined task setup, comparison definitions and evidence on two dense slides. The new sequence teaches those separately:
+
+1. **8 — A concrete mistake and saved check.** An actual source report gives gross margin as 40.02% instead of 41.00%. The original saved instruction is displayed from Figure 10. Visible wording distinguishes documenting the edit from proving its later benefit.
+2. **9 — The practical alternatives.** Define starting fresh, giving expert instructions and learning reusable instructions before showing scores. These are separate conditions, not successive training checkpoints.
+3. **10 — What learning adds.** Keep complete Table 5, define every condition, and emphasize 7.04 extra rubric points (title: 7) with about 3.9× the recorded tokens. Cost exclusions and absent run variability remain visible.
+
+The benchmark map/workspace is now supporting material on slide 37. Main-talk copy also replaces unexplained method labels with actions: what a wiki stores, what a harness controls, how SEAL writes training material, and what Hyperagents' meta-agent edits. The closing connects the report-correction example to future usefulness and the cost of learning. The final discussion asks for a concrete choice and falsifying evidence.
+
+## Comprehension and source checks
+
+Checked the updated concept-to-evidence mapping in the storyboard. Introductions precede outcomes; references to original table labels are defined in visible text or the preceding concept slide. Original conceptual/result artwork remains, including benchmark Figure 1 in the appendix. FinEvo's new illustration is an original instruction excerpt, not a redrawn or invented learning trace. Read Appendix C and inspected PDF pages 3 and 19–21; verified margin arithmetic, the 7.04-point difference, exact token sums, rounding and the 3.9× ratio. Reviewed the latest thesis/claims and existing source notes for other copy changes. This is presentation revision using the existing reviewed sources, not a fresh literature search or experimental reproduction.
+
+## Visual and functional verification
+
+- Rendered and visually inspected every one of the 37 slides, including appendices, in Chromium at 1440 × 900. Rechecked changed slides after shortening overflowing evidence explanations. Final geometry check reports no content/caveat overlap and no JavaScript errors.
+- All embedded images decode offline; 102 rendered citation links retain source targets. Checked source/claim identifiers and local files, the new Figure 10 crop against the original page, and the full result table.
+- Arrow/Home navigation, overview selection, notes open/close, direct links and continuous reading pass. Print visibility includes all slides; inspected representative concept/evidence/closing print renders. No PDF deliverable was requested.
+- Used the local Chromium fallback after the earlier in-app browser initialization failure. No framework or runtime dependency was added to the standalone deck.
+
+Live rehearsal, cross-browser and assistive-technology testing remain unperformed. The estimated 30–35 minutes plus discussion is provisional. Other than the new FinEvo source excerpt, this pass retains the prior artwork and bibliographic verification; it does not revalidate every remote URL.
+
+---
+
+# FinEvo comprehension follow-up — September 18, 2026
+
+**Current deck: 35 slides, 24 main + 11 appendices.** This targeted revision addresses the user's difficulty understanding the purpose of slides 8–9; the earlier review remains below as history.
+
+- Slide 8 now asks whether learning adds value beyond good starting instructions. It visibly defines the work, feedback, retained notes/procedures, fixed model weights, and the reset/learning/expert-instruction alternatives.
+- Slide 9 keeps the complete original Table 5 and explains its row names. The reading order is reset 71.58 → fixed expert instructions 86.67 → learned procedures 93.71. These are separate conditions, not sequential checkpoints. The meaningful comparison to supplied expertise is 7.04 points; the full-evolution score remains 89.47.
+- Recorded token totals are made readable as 616k for skill-only versus 159k for fixed expertise. Exact arithmetic, full-evolution costs, column definitions, and limitations remain in notes; judging/authoring exclusions and absent run intervals stay visible.
+- Preserved the original task-map panel, table, source links, slide count, and neighboring argument. Added only an optional glossary to the existing guided-figure layout.
+
+Rechecked FinEvo v1 §§3–4.1, §4.4/Table 5 and Appendix C through the primary HTML source. No new research discovery or benchmark reproduction. The claim remains C005; no new general claim about which memory architecture is best.
+
+Verification: rebuilt the offline deck; rendered all 35 slides in Chromium at 1440 × 900, checked the complete sequence in overview images, and inspected revised slides 8–9 plus the other guided-layout slides 17/20 at full presentation size. No detected content/caveat overlap, failed images, or JavaScript errors. Navigation, overview, notes, direct slide links, continuous reading, and print visibility pass. Inspected slide 8/9 print-media renders. The in-app browser failed at initialization (`Cannot redefine property: process`); local Chromium supplied the checks. Original artwork was not edited. Broader comprehension of the remaining examples and live rehearsal were not reassessed in this focused pass.
+
+---
+
 # Current revision — review round 1, September 18, 2026
 
 **Current deck: 35 slides, 24 main + 11 appendices.** [Open the presentation](index.html). This revision implements the presentation review below. Older entries describe historical versions; their counts and slide numbers are superseded.
@@ -275,3 +333,16 @@ uses the existing evidence claims and source versions. Broader reconciliation
 with the expanded thesis remains a separate pending task. Remote link availability
 was checked for FinEvo during acquisition; other links retain the prior source
 records. Cross-browser and assistive-technology checks were not performed.
+
+## SEAL comprehension follow-up — September 18, 2026
+
+User asked what the SEAL slides contribute to their section. The missing connection was between learning a new passage and retaining earlier learning. Revised the section introduction (13), AgentStream transition notes, and SEAL slides (16–18); preserved existing work elsewhere. Current deck has 37 slides (25 main, 12 appendices).
+
+- Slide 13 now names the two questions: whether saved guidance fits new work (AgentStream), and whether earlier knowledge survives later learning (SEAL).
+- Slide 16 explains the passage → generated text → weight update → answer test, defines the original figure’s symbols, and explains the reward for useful training text. The original Figure 1 stays full-width. SEAL is a model-adaptation example, not an autonomous-agent benchmark.
+- Slide 17 identifies the first numeric column, specifies that the passage is absent from the question-answering prompt, and explains the 47.0 versus 39.7 comparison. It preserves GPT-4.1 and both multi-passage conditions.
+- Slide 18 follows Figure 6’s first column: 0.33 before updates, 0.38 after the first update, and 0.19 after eight updates. Percentage conversion is explicit in notes. This separate experiment tests retention; it does not track the Table 2 aggregate or establish that all weight learning fails.
+
+Reopened the retained SEAL v2 PDF, method/overview, Table 2, Figure 6, and §5; also checked the primary arXiv HTML. No new research claim, figure reconstruction, or benchmark reproduction. Existing final-score uncertainty and retention-repeat limitations remain in notes.
+
+Rendered all 37 slides with local Chromium at 1440 × 900, inspected the full sequence as contact sheets, and inspected the changed visible slides at presentation size. Fixed a tight text-to-figure-key gap on slide 16 and re-rendered. Automated checks found no body/caveat overlap, image failures or JavaScript errors; navigation, notes, overview, reading view, deep links and print visibility passed. Existing source destinations were preserved; this pass did not recheck every remote URL. In-app browser setup failed with `Cannot redefine property: process`, so local headless Chromium supplied the checks. No PDF export requested or delivered. Scratch checks are in `/tmp/jc-seal-clarity/`. Cross-browser, projector and assistive-technology testing were not performed.

@@ -16,6 +16,7 @@ import pymupdf
 ROOT = Path(__file__).resolve().parent
 ORIGINALS = ROOT.parents[1] / 'research' / 'originals'
 SPECS = [
+    ('finevo-figure-10-check', '2026-finevo-bench', 'v1', '2608.06144v1', 21, [54, 54, 549, 103], 'Figure 10: title and calculation-validation row; remaining instruction rows and caption omitted'),
     ('finevo-figure-1a', '2026-finevo-bench', 'v1', '2608.06144v1', 3, [54, 53, 317, 227], 'Figure 1(a): complete landscape panel; task-workspace panel and caption omitted'),
     ('hyperagents-figure-1-loops', '2026-hyperagents', 'v1', '2603.19461v1', 4, [70, 175, 332, 387], 'Figure 1: left agent/archive and central loops for both methods; right implementation traces and caption omitted'),
     ('agentstream-table-5', '2026-agentstream', 'v1', '2608.00155v1', 11, [89, 108, 505, 187], 'Table 5: complete table, all methods and columns; caption omitted'),

@@ -1,7 +1,7 @@
 {
   "title": "Self-evolving agents",
   "audience": "Audience familiar with LLM basics",
-  "durationAssumption": "Approximately 30–35 minutes plus discussion; 24 main slides. Live timing remains to be rehearsed.",
+  "durationAssumption": "Approximately 30–35 minutes plus discussion; live rehearsal pending.",
   "researchCutoff": "2026-09-16",
   "sources": {
     "reflexion": {
@@ -49,7 +49,7 @@
     "finevo": {
       "name": "FinEvo-Bench",
       "url": "https://arxiv.org/html/2608.06144v1",
-      "locator": "§§4.1–4.3; Tables 3 and 5",
+      "locator": "§§3–4; Table 5; Appendix C / Tables 25–27 / Figure 10",
       "status": "Aug 6, 2026 preprint, v1",
       "key": "2026-finevo-bench"
     },
@@ -227,7 +227,7 @@
     },
     {
       "kind": "twocol",
-      "title": "What should survive a completed task?",
+      "title": "What should the agent do better next time?",
       "notes": "This is an illustrative cross-paper teaching example, not a reported FinEvo task or measured result. A trace records a run; an agent skill packages reusable instructions, scripts or resources. The example motivates relevance, transfer and maintenance before any numerical evidence. Retention alone is not improvement; self-directedness concerns which update decisions the agent controls.",
       "claims": [
         "C001",
@@ -237,17 +237,17 @@
       "purpose": "What should survive a completed task?",
       "visual": "Spacious question-led composition; conceptual framing, not empirical evidence.",
       "subtitle": "Illustrative example · an agent reconciles a financial report, then receives a new company’s files.",
-      "leftTitle": "Keep a reusable procedure",
+      "leftTitle": "Save the useful check",
       "leftBody": "Check units and reporting periods.\nReconcile totals before writing.\nRecord when those checks apply.",
-      "rightTitle": "Test it on later work",
+      "rightTitle": "See whether it helps again",
       "rightBody": "New company: does the procedure help?\nDifferent task: should it be retrieved?\nLater updates: does it still work?",
       "chapter": "INTRODUCTION",
       "role": "introduction",
-      "caveat": "Self-evolution here means experience changes retained state that shapes later behavior."
+      "caveat": "An agent learns from experience when a saved change improves what it does on later work."
     },
     {
       "kind": "twocol",
-      "title": "Learning over time and learning to adapt are different questions",
+      "title": "Learning new tasks also raises two different questions",
       "claims": [
         "C020",
         "C021"
@@ -263,15 +263,15 @@
       "notes": "Thrun §§1–2 motivates transfer from earlier tasks; GEM §§1–3 distinguishes forward and backward transfer and stability–plasticity. Here the complete agent can learn through external state even with fixed model weights. MAML is an incidental example of learned initialization, not a new empirical case: it optimizes starting parameters for performance after gradient adaptation. SEAL will provide the developed example of a learned update-data policy. Transfer before adaptation differs from faster adaptation, which needs learning curves. Neither persistence nor editing code proves durable learning.",
       "chapter": "INTRODUCTION",
       "role": "concepts",
-      "subtitle": "Two established ideas apply to the complete agent, including its external state.",
-      "leftTitle": "Continual learning",
-      "leftBody": "Learn from successive tasks.\nBalance adaptation with retention.\n\nForward transfer: help on new tasks.\nBackward transfer: change on old tasks.",
-      "rightTitle": "Meta-learning",
-      "rightBody": "Use experience to improve adaptation.\n\nLearn a starting point, update data,\nor a method for proposing changes.\nEditable code is one route.",
-      "caveat": "Deployment learning updates the running system; offline optimization may produce a fixed agent."
+      "subtitle": "The whole agent can learn through saved instructions, software changes, or model training.",
+      "leftTitle": "Can it keep learning?",
+      "leftBody": "Learn a new task without losing\nwhat worked on earlier tasks.\n\nThis is continual learning.",
+      "rightTitle": "Can it learn to learn better?",
+      "rightBody": "Use experience to improve how\nit learns the next task.\n\nThis is meta-learning.",
+      "caveat": "These questions can overlap. A better learning method still needs to preserve earlier abilities."
     },
     {
-      "title": "What is retained—and what does it help the system do?",
+      "title": "What can experience change?",
       "kind": "table",
       "claims": [
         "C001",
@@ -290,30 +290,30 @@
       "purpose": "What is retained—and what does it help the system do?",
       "visual": "Editable four-row comparison table, Codex Grid 14.",
       "notes": "This replaces the old four-category map. Rows describe state carriers; task execution versus improving adaptation is a separate axis. Harness means the prompts/software organizing model calls and tools. SEAL learns update-data generation in weights; Hyperagents makes improvement code editable. Both still have externally specified evaluation and selection. More editable components are not a capability ladder. Offline harness search, deployment learning, and task-local retries must be distinguished by the actual protocol.",
-      "subtitle": "Memory, code, and weights can each support task behavior or future adaptation.",
+      "subtitle": "A saved instruction can change the agent’s behavior even when the underlying model stays the same.",
       "headers": [
-        "Where the change lives",
-        "Examples of retained state",
-        "What it can support"
+        "What changes",
+        "Concrete example",
+        "How it helps later work"
       ],
       "rows": [
         [
-          "Memory / agent skills",
-          "Facts, lessons, instructions, scripts",
-          "Task execution; future proposals"
+          "Notes or reusable skills",
+          "Save a checklist for checking a report",
+          "Read and apply it on the next report"
         ],
         [
-          "Prompts / harness code",
-          "Instructions and tool orchestration",
-          "Task execution; update generation"
+          "Prompts or agent software",
+          "Change when to call a tool or check an answer",
+          "Follow a better procedure next time"
         ],
         [
           "Model weights",
-          "Learned representations or policies",
-          "Task answers; update-data generation"
+          "Train on examples produced from experience",
+          "Use behavior learned through training"
         ]
       ],
-      "caveat": "These mechanisms overlap. A learned improvement method can live in code or in weights.",
+      "caveat": "The agent’s “harness” is the software that organizes its model calls, tools, and task execution.",
       "chapter": "INTRODUCTION",
       "role": "concepts"
     },
@@ -336,7 +336,7 @@
     },
     {
       "kind": "source-concept",
-      "title": "Can a rejected skill still teach the next proposer?",
+      "title": "WikiSkill keeps lessons from rejected changes",
       "claims": [
         "C003",
         "C013"
@@ -347,8 +347,8 @@
       ],
       "purpose": "Develop the latest thesis’s central mechanism example.",
       "visual": "Original source conceptual figure, extracted without redrawing: Tang et al. · WikiSkill v1 · Figure 2, p. 4 · Complete diagram; caption omitted",
-      "notes": "WikiSkill §3/Figure 2: a maintenance agent consolidates traces in the wiki; a skill agent uses both the wiki and original traces to propose skills. The task agent receives skills directly, not the wiki. Validation can reject a skill while the accumulated wiki persists. SkillOpt already keeps rejected-edit feedback; separate organized knowledge is the distinction, not first use of failure. Our inference: the validation gate tests a procedure, not the truth of every retained interpretation. A rejected proposal can leave a mistaken lesson as well as a useful one. Proposed wiki test: retain versus remove an entry from a rejected proposal, then compare the quality of subsequent proposals. The source conceptual figure replaces the previous homemade diagram at the user’s request. No simplification of the artwork; explanation belongs in the subtitle and notes. Part 1 setup: a completed attempt is only a record. The question is whether organizing it yields reusable guidance. The next result compares complete methods; it does not isolate the causal value of keeping the rejected proposal’s wiki entry.",
-      "subtitle": "WikiSkill separates raw traces, a persistent wiki, and deployed skills; rejecting a skill does not erase the wiki.",
+      "notes": "Plain-language introduction: a trace is a record of what the agent tried. A wiki collects lessons from those records. A skill is a reusable set of instructions. Another agent proposes a new skill and validation tasks test it. Keep the better skill, but retain the accumulated wiki even when that proposal fails. Read the original figure from the task traces at the bottom to the wiki and proposed skills above. WikiSkill §3/Figure 2: a maintenance agent consolidates traces in the wiki; a skill agent uses both the wiki and original traces to propose skills. The task agent receives skills directly, not the wiki. Validation can reject a skill while the accumulated wiki persists. SkillOpt already keeps rejected-edit feedback; separate organized knowledge is the distinction, not first use of failure. Our inference: the validation gate tests a procedure, not the truth of every retained interpretation. A rejected proposal can leave a mistaken lesson as well as a useful one. Proposed wiki test: retain versus remove an entry from a rejected proposal, then compare the quality of subsequent proposals. The source conceptual figure replaces the previous homemade diagram at the user’s request. No simplification of the artwork; explanation belongs in the subtitle and notes. Part 1 setup: a completed attempt is only a record. The question is whether organizing it yields reusable guidance. The next result compares complete methods; it does not isolate the causal value of keeping the rejected proposal’s wiki entry.",
+      "subtitle": "Record task attempts → collect lessons in a wiki → propose and test reusable instructions. A rejected change does not erase the wiki.",
       "chapter": "RESULTS / USEFUL EXPERTISE",
       "role": "mini-introduction + concept",
       "figure": {
@@ -359,7 +359,7 @@
       }
     },
     {
-      "title": "Learned skills beat both no skills and a strong rival",
+      "title": "WikiSkill’s learned instructions help on unseen tasks",
       "kind": "source-evidence",
       "claims": [
         "C003",
@@ -372,10 +372,10 @@
       "visual": "Original source extraction; Tang et al. · WikiSkill v1 · Table 1, p. 8 · Qwen 4B / 9B excerpt. Interpretation below, separate from source artwork.",
       "notes": "WikiSkill separates traces, accumulated wiki knowledge, and deployed skills. When a candidate skill is rejected, knowledge from the attempt can still persist. Qwen-3.5-9B gains 17.5 percentage points in macro accuracy across five benchmarks with equal benchmark weighting and three evolution runs. Test sizes are 124, 85, 280, 172, and 134. Table 1 gives no numerical confidence intervals. Skills are directly injected, validation sets are small, and OfficeQA has reference-page assistance. Qwen-3.5-4B declines from 30.2 to 28.5 on OfficeQA. The result supports useful benchmark learning, not universal improvement. Transition: compare learning against a strong procedure supplied from the start. Visual: Tang et al. · WikiSkill v1 · Table 1, p. 8 · Qwen 4B / 9B excerpt. Extracted without redrawing or recoloring; caption omitted from image. Original Table 1 excerpt, including all methods for Qwen-3.5-4B and 9B. Qwen-3.5-9B average rises from 29.9 to 47.4; Qwen-3.5-4B OfficeQA falls from 30.2 to 28.5. Original Table 1 caption: scores average three full evolution runs; all methods start with an empty skill set and evolved skills are directly injected. Bold denotes the best or results not significantly different from it under the authors’ paired bootstrap test (1,000 resamples, p < .05); yellow highlighting is the authors’ own. The strongest competing method for Qwen-3.5-9B is EvoSkill at 42.3: 47.4 − 42.3 = 5.1 pp. Both comparisons are whole-method comparisons and do not isolate the wiki’s causal contribution. SkillOpt already retains failed-edit feedback.",
       "subtitle": "WikiSkill · Qwen-3.5-9B · mean accuracy across five benchmarks",
-      "callout": "+5.1 pp",
-      "body": "WikiSkill 47.4 vs EvoSkill 42.3; no skills 29.9.",
-      "detail": "The +17.5 pp gain over no skills answers a different question.",
-      "caveat": "Whole-method comparison, not a wiki-only test. Injected skills; small validation sets; numerical CIs absent.",
+      "callout": "47.4%",
+      "body": "Average accuracy: 29.9% without skills; 42.3% with EvoSkill; 47.4% with WikiSkill.",
+      "detail": "WikiSkill leads the strongest competing method here by 5.1 percentage points.",
+      "caveat": "This compares complete methods, not the wiki alone. Skills are supplied directly; a smaller model worsens on one benchmark.",
       "resultLocator": "Table 1",
       "figure": {
         "asset": "figures/wikiskill-table-1.png",
@@ -387,10 +387,10 @@
       "role": "result"
     },
     {
-      "kind": "source-guided",
-      "title": "FinEvo tests whether a procedure survives a new case",
-      "subtitle": "120 tasks share 20 recurring procedures; cases change while the professional process recurs.",
-      "notes": "FinEvo v1 Figure 1 and §§3–4.1. Figure 1 depicts task coverage and a stock-analysis example; the visible subtitle explains the persistence control used in the evaluation. 20 scenes × 6 cases = 120 tasks. Streams interleave scenes. Agents receive post-task problem/reason summaries, not the hidden rubric. The next slide adds fixed expert skills as a strong alternative to learning. Original artwork retained. The source conceptual figure replaces the previous homemade diagram at the user’s request. No simplification of the artwork; explanation belongs in the subtitle and notes. New crop retains Figure 1(a); the workspace panel is omitted explicitly. Guidance outside the source artwork explains §4.1. The original figure is a task map, not a diagram of the reset control. Same model does not mean equal total tokens: evolving agents also reflect. FinEvo also interleaves scenes: do not contrast its positive results with AgentStream as if mixing were unique to AgentStream. Their tasks, feedback and metrics differ.",
+      "kind": "source-story",
+      "title": "Can one mistake teach the agent a reusable check?",
+      "subtitle": "FinEvo example · the agent writes a financial report, receives feedback, and saves instructions for later reports.",
+      "notes": "FinEvo Appendix C follows a financial-statement-analysis report. Gross margin is the share of sales revenue left after subtracting the cost of those sales. The agent reported 40.02%; its revenue 115.05 and cost 67.88 imply (115.05 − 67.88)/115.05 = 41.00% after rounding. Tables 25–26 show the mistake and feedback. Table 27 and Figure 10 show the saved rule: recompute gross margin and verify the summary against detailed calculations. The original Figure 10 calculation-validation row is displayed, with other rows explicitly omitted. This is an actual reported edit, not an invented success story. No experiment isolates how many later errors this one instruction prevented. The paper tests a broader question with many tasks and alternative ways to retain experience, introduced next. Its Figure 1 benchmark overview and task workspace remain in appendix slide 37. Source inspected: v1 Appendix C.1–C.5, PDF pp.18–21; §§3–4.1. The agent learns in external instructions, not weight updates. Same starting model, paired task order and scoring do not imply equal token use.",
       "claims": [
         "C005"
       ],
@@ -399,47 +399,68 @@
       ],
       "chapter": "RESULTS / USEFUL EXPERTISE",
       "role": "concept",
-      "purpose": "Explain the core idea before its result.",
-      "visual": "Original cropped source artwork on the left; large reading guidance on the right.",
+      "purpose": "Use a real source example to explain what learning changes before introducing comparison conditions.",
+      "visual": "Two short narrative panels above an original Figure 10 calculation-check excerpt. This explains the observed update; it is not a new mechanism diagram.",
       "figure": {
-        "asset": "figures/finevo-figure-1a.png",
+        "asset": "figures/finevo-figure-10-check.png",
         "sourceRef": "finevo",
-        "caption": "Deng et al. · Figure 1(a), p. 3 · Landscape panel; task workspace omitted",
-        "alt": "Original FinEvo landscape: six financial domains, twenty recurring scenes, 120 tasks."
+        "caption": "Deng et al. · Figure 10, PDF p.21 · Saved instruction: calculation row; other rows omitted",
+        "alt": "Original saved skill instructs the agent to recompute gross margin from revenue and cost and check summary-table values against detailed calculations."
       },
-      "guide": [
-        [
-          "Same task stream",
-          "Same model, task order and rubric scoring."
-        ],
-        [
-          "Retain versus reset",
-          "Keep experience after each case, or clear it before the next."
-        ],
-        [
-          "Feedback",
-          "Post-task summaries of rubric deficiencies; hidden rubric not exposed."
-        ]
-      ],
-      "caveat": "Three shuffled streams interleave the same 120 tasks; procedures recur across different cases."
+      "caveat": "This documents a saved correction. Whether it prevents later mistakes needs a separate test.",
+      "leftTitle": "A mistake in one report",
+      "leftBody": "The report says gross margin is 40.02%.\nIts own revenue and cost imply 41.00%.\nThe judging model flags the error.",
+      "rightTitle": "A check for the next report",
+      "rightBody": "Recompute the margin from revenue and cost.\nCheck the summary against the calculations.\nSave these instructions; keep model weights fixed."
     },
     {
-      "title": "Expertise and update design both change the payoff",
-      "kind": "source-evidence",
+      "kind": "cards",
+      "title": "Why learn the check if an expert could supply it?",
+      "subtitle": "FinEvo compares different ways to prepare the same agent for recurring financial work.",
+      "cards": [
+        [
+          "Start fresh",
+          "Clear lessons between tasks. Each case starts without experience from earlier cases.",
+          "What can the agent do on its own?"
+        ],
+        [
+          "Give good instructions",
+          "Supply an expert procedure before the work begins. Keep it fixed throughout.",
+          "What does good preparation buy?"
+        ],
+        [
+          "Learn from feedback",
+          "After each case, revise reusable instructions for future cases.",
+          "What extra benefit does learning buy?"
+        ]
+      ],
+      "caveat": "120 tasks, three shuffled orders. These are separate experimental conditions, not stages of one training run.",
+      "refs": [
+        "finevo"
+      ],
+      "claims": [
+        "C005"
+      ],
+      "chapter": "RESULTS / USEFUL EXPERTISE",
+      "role": "comparison setup",
+      "purpose": "Make the three practical alternatives understandable before the original result table.",
+      "visual": "Three text columns defining the comparison conditions; no recreated empirical chart or replacement mechanism diagram.",
+      "notes": "The preceding report example makes a reusable instruction concrete. Now supply the crucial counterfactual: an expert could write a useful procedure beforehand. The next slide compares starting fresh, fixed expertise, and learned procedures. Fixed expert skills are derived from each scene’s reference workflow. The learning example highlighted next is skill-only evolution. FinEvo also tests memory-only and both memory plus skills, retained in the complete table. A skill packages reusable procedural instructions; memory here stores guidance in notes. Model weights remain fixed. The three alternatives are distinct conditions, not successive checkpoints and not learning added on top of expert initialization. The benchmark has 120 tasks (20 scenes × 6 cases) in three globally shuffled, interleaved orders. Source: v1 §§3–4.1, §4.4/Table 5. Equal tasks and model do not imply equal token cost."
+    },
+    {
+      "title": "Learning adds 7 points over expert instructions",
+      "kind": "source-guided",
       "claims": [
         "C005"
       ],
       "refs": [
         "finevo"
       ],
-      "purpose": "Expertise and update design both change the payoff",
-      "visual": "Original source extraction; Deng et al. · FinEvo-Bench v1 · Table 5, PDF p. 6 · Complete table. Interpretation below, separate from source artwork.",
-      "notes": "FinEvo tests recurring professional procedures with 120 financial tasks in 20 scenes and three shuffled task orders. Four scaffolds use the same Qwen3.7-Max backbone. Paired gains over reset range from 9.33 to 19.37 rubric points. The displayed Table 5 ablation is only the Claude Code scaffold: these labels are software frameworks, not vendor model identities. Reset is 71.58, fixed expert skill 86.67, unrestricted evolution 89.47. The 2.80-point difference is descriptive, not a tested causal advantage at matched cost. No across-run intervals are reported. Scoring and feedback share rubric design. Strong recurring-procedure evidence; novel procedures and full cost remain unresolved. Visual: Deng et al. · FinEvo-Bench v1 · Table 5, PDF p. 6 · Complete table. Extracted without redrawing or recoloring; caption omitted from image. Original FinEvo Table 5, all five conditions, score, compliance, execution and reflection costs. Reset 71.58, fixed expert skill 86.67, full evolution 89.47, memory only 90.42, skill only 93.71. Source table definitions: Score is the rubric score; Comp. is compliance issues per task; costs are 10^4 tokens per task. Table 5 is on PDF page 6 in the retrieved v1; earlier reading notes said page 7. The four-scaffold paired-reset experiment uses 120 tasks and three orders, with 9.33–19.37 rubric-point gains. This Table 5 comparison is one scaffold only. SkillsBench adds a curated-skill counterfactual, but its one-shot self-authoring diagnostic does not test iterative learning; see appendix. New arithmetic from the displayed table: skill-only 17.53 + 44.03 = 61.56; full evolution 16.31 + 60.19 = 76.50, in units of 10^4 tokens/task. Fixed expert skill has execution 15.92 and no reflection. Full evolution exceeds fixed skill by 2.80 rubric points; skill-only exceeds it by 7.04. The result argues for comparing concrete update designs and strong initial expertise; it is not a universal argument against learning. Human authoring and judging costs are not in these totals.",
-      "subtitle": "FinEvo · rubric score /100 · Claude Code scaffold · common Qwen3.7-Max model",
-      "callout": "93.71 vs 89.47",
-      "body": "Skill-only beats full evolution in this scaffold’s ablation.",
-      "detail": "Recorded tokens/task: 61.56 vs 76.50 ×10⁴ (execution + reflection). Fixed skill: 86.67 at 15.92 ×10⁴.",
-      "caveat": "One scaffold; no run intervals. Token totals exclude judging and expert authoring, not lifetime cost.",
+      "purpose": "Explain the three practical choices before interpreting the five original table rows; distinguish the gain from reset from the gain over expert instructions.",
+      "visual": "Original complete Table 5 on the left, plain-language row definitions below it, and three guided score comparisons on the right.",
+      "notes": "Main takeaway: learned procedures score 7.04 points above expert instructions, with about 3.9 times the recorded execution-plus-reflection tokens (615600 / 159200 = 3.8668). The title rounds 7.04 to 7. The values compare separate systems; there is no experiment here adding learning to an expert-initialized agent. Whether the score improvement is worth its cost depends on the workload and value of errors prevented. Read the first, second, and last rows first. Starting fresh scores 71.58. Expert instructions supplied in advance score 86.67. Learning reusable procedures from feedback scores 93.71. Thus learning helps on these recurring tasks, but the relevant advantage over supplied expertise is 7.04 points, not the 22.13-point advantage over reset. These are alternative conditions, not a sequence of training checkpoints: the skill-only condition does not start from the fixed-expert-skill baseline. Explain the remaining rows next: memory-only updates stored notes (90.42); skill-only updates packaged procedures (93.71); full evolution permits both stores (89.47). The names describe allowed persistent representations, not progressively stronger intelligence. Full evolution did not beat either restricted update setting in this comparison; do not infer that combining stores always harms performance. The complete original Table 5 is preserved. Score is task quality /100; Comp. is compliance issues per task, lower is better; Exec. counts task-execution tokens; Reflect. counts post-task feedback processing and persistent-state updates. Costs are in 10^4 tokens per task. Fixed expert skill: 15.92 × 10^4 = 159,200 tokens. Skill-only: (17.53 + 44.03) × 10^4 = 615,600 tokens. Full evolution: (16.31 + 60.19) × 10^4 = 765,000 tokens. Visible totals round to 159k and 616k; these exclude judging and expert authoring. No lifetime cost or break-even estimate follows. One software framework, Claude Code, uses Qwen3.7-Max in this experiment; this is not a Claude-versus-Qwen model comparison. The full benchmark has 120 tasks and three shuffled orders; this table reports averages, not just final-task scores. No across-run intervals are reported. Table 3 separately reports improvements over reset for all four frameworks; its range is 9.33–19.37 points. Our practical interpretation: compare learning to strong initial guidance and include its extra cost. Transition to slide 11: another use for that compute is more attempts at solving the task. Source: FinEvo v1 §4.4/Table 5, PDF p.6; definitions in §4.1. No causal conclusion about individual memories, novel procedure transfer, or general recursive improvement.",
+      "subtitle": "FinEvo · average score out of 100 · one Claude Code setup using Qwen3.7-Max",
+      "caveat": "Learning: 616k tokens/task; fixed instructions: 159k. Judging and authoring excluded; variation across runs not reported.",
       "resultLocator": "Table 5",
       "figure": {
         "asset": "figures/finevo-table-5.png",
@@ -448,12 +469,40 @@
         "sourceRef": "finevo"
       },
       "chapter": "RESULTS / USEFUL EXPERTISE",
-      "role": "result"
+      "role": "result",
+      "guide": [
+        [
+          "Start fresh · 71.58",
+          "No saved lessons carry into the next case."
+        ],
+        [
+          "Expert instructions · 86.67",
+          "A good procedure is supplied upfront."
+        ],
+        [
+          "Learn instructions · 93.71",
+          "Best score here, with about 3.9× the recorded tokens of fixed instructions."
+        ]
+      ],
+      "figureGlossary": [
+        [
+          "Memory only",
+          "Update stored notes."
+        ],
+        [
+          "Skill only",
+          "Update reusable procedure instructions."
+        ],
+        [
+          "Full evolution",
+          "Update both notes and procedures (89.47)."
+        ]
+      ]
     },
     {
       "kind": "source-concept",
-      "title": "Spend the next attempt on a solution—or the harness?",
-      "subtitle": "Read (a) versus (c): generate more solutions with fixed code, or use batch experience to revise shared code.",
+      "title": "Could the same effort buy better answers directly?",
+      "subtitle": "Compare (a) trying several solutions with (c) spending attempts on changes to the agent’s software.",
       "notes": "Harness critique v2 §3/Figure 2. Original Figure 2 shows the four mechanisms; guide attention to panels (a) and (c), while preserving the other panels and legend. Figure 1 is a results chart, not a mechanism overview. The displayed result next uses five rollouts without unit-test feedback; the separate train/validation/test experiment asks whether an evolved harness transfers. Equal rollouts do not match all compute costs. The shared harness is optimized across a batch (§3.4), unlike task-specific harness scaling (§3.5). Without tests, the final harness is used; parallel sampling uses model self-selection. The source conceptual figure replaces the previous homemade diagram at the user’s request. No simplification of the artwork; explanation belongs in the subtitle and notes. Transition from FinEvo: supplying expertise and improving the update recipe are not the only alternatives. Extra attempts can also buy task success.",
       "claims": [
         "C006"
@@ -473,7 +522,7 @@
       }
     },
     {
-      "title": "More attempts are a serious competing baseline",
+      "title": "In this test, trying more solutions beats revising the agent",
       "kind": "source-evidence",
       "claims": [
         "C006"
@@ -485,11 +534,11 @@
       "purpose": "Test reusable changes against extra inference.",
       "visual": "Original source extraction; Wang et al. · Harness evaluation v2 · Table 1, p. 6 · Complete table. Interpretation below, separate from source artwork.",
       "notes": "This is a counterexample from one tested harness-evolution implementation, not a universal negative result. Table 1 compares five rollouts on 89 Terminal-Bench 2.1 tasks, three models, two runs, without test feedback. Retain the printed averages 67.4 and 72.3 despite rounded-cell arithmetic. A separate train/validation/test partition of 45/10/34 yields 68.3 for evolved versus 67.7 for initial harness on the 34 held-out tasks. Do not combine those experimental populations. No numerical CIs in the tables. Equal rollouts are not equal dollars or tokens; a reused harness could repay development cost across future tasks. Transition: follow the system beyond development and watch for damage. Visual: Wang et al. · Harness evaluation v2 · Table 1, p. 6 · Complete table. Extracted without redrawing or recoloring; caption omitted from image. Original Table 1 showing per-model results and printed averages for direct sampling, parallel sampling, sequential refinement, harness evolution and harness scaling. Reported averages: parallel sampling 72.3, harness evolution 67.4. Source caption: unit tests unavailable, pass@1; bold is best and underline is second best. The displayed 67.4 is the printed average, without correcting the source’s rounded-cell arithmetic. ReasoningBank combines test-time search and retained lessons: computation and learning can complement each other. Report development cost separately from operating cost at explicit amounts of reuse. Equal attempts alone do not normalize dollars or tokens. Part takeaway: learned procedures can help, but expertise and extra attempts are serious alternatives. Next ask whether a gain survives continued use. Define pass@1 as success of the submitted answer, not the probability that any generated candidate passes. Five rollouts may be used inside a method; no unit tests are supplied for candidate selection here.",
-      "subtitle": "Terminal-Bench 2.1 · pass@1 success (%) · 89 tasks · 5 rollouts · no unit-test feedback",
+      "subtitle": "Terminal-Bench · 89 tasks · five task attempts per method · no unit-test feedback",
       "callout": "72.3 vs 67.4",
-      "body": "Parallel sampling beats tested evolution at five attempts.",
-      "detail": "Separate 34-task holdout: evolved 68.3 vs initial 67.7; future reuse could amortize development cost.",
-      "caveat": "Equal rollouts ≠ equal lifetime cost. One implementation; table CIs absent.",
+      "body": "Try several solutions: 72.3% success. Revise agent software: 67.4%.",
+      "detail": "On 34 new tasks: 68.3% with revised software versus 67.7% with the original.",
+      "caveat": "Five attempts each does not match all costs. This tests one implementation; uncertainty intervals are absent.",
       "resultLocator": "Tables 1 and 3",
       "figure": {
         "asset": "figures/harness-table-1.png",
@@ -502,32 +551,32 @@
     },
     {
       "kind": "section",
-      "title": "Will retained expertise fit the next task—and survive later learning?",
-      "notes": "Part 1 established useful local learning under demanding alternatives, without a full economic verdict. Part 2 distinguishes relevance failure from forgetting. Relevance means selecting experience that belongs in the current task. Forgetting means an update reduces performance on previously learned work under otherwise fixed conditions. Changed tools are a third failure mode, not automatically forgetting.",
+      "title": "Will earlier learning still help after more work?",
+      "notes": "The coding-to-web-research transition is an illustrative motivation, not a measured individual transfer result. Part 1 established useful local learning under demanding alternatives, without a full economic verdict. Part 2 distinguishes relevance failure from forgetting. Relevance means selecting experience that belongs in the current task. Forgetting means an update reduces performance on previously learned work under otherwise fixed conditions. Changed tools are a third failure mode, not automatically forgetting.",
       "claims": [
         "C001",
         "C011"
       ],
       "refs": [],
-      "purpose": "Do the gains survive the next tasks?",
+      "purpose": "Motivate the move from useful recurring lessons to changing workloads.",
       "visual": "Spacious question-led composition; conceptual framing, not empirical evidence.",
       "kicker": "RESULTS / 02",
-      "body": "Useful skills need two protections: select relevant experience now, and preserve earlier abilities as updates continue.",
-      "preview": "AgentStream: relevance across tasks  ·  SEAL: adaptation and retention  ·  Sidekick: feedback in practice",
+      "body": "Two things can go wrong: a saved lesson may not fit the next task, or learning something new may damage earlier knowledge.",
+      "preview": "AgentStream: does the lesson fit? SEAL: does earlier knowledge survive?",
       "chapter": "RESULTS / DURABILITY",
       "role": "mini-introduction"
     },
     {
-      "kind": "source-concept",
-      "title": "AgentStream tests learning across different task sequences",
-      "subtitle": "An evaluation framework with self-generated feedback; ground-truth labels are unavailable to the updating agent.",
+      "kind": "source-guided",
+      "title": "Does memory still help when the work changes?",
+      "subtitle": "AgentStream tests 300 tasks across six domains, including coding and web research. Model weights stay fixed.",
       "figure": {
         "asset": "figures/agentstream-figure-1b.png",
-        "caption": "Yan et al. · AgentStream v1 · Figure 1(b); independent-evaluation panel (a) omitted",
+        "caption": "AgentStream v1 · Fig. 1(b); baseline panel (a) omitted",
         "alt": "AgentStream framework: task trajectories and self-generated feedback update persistent context, memory, skills or harness; models, evolution methods and stream composition are varied.",
         "sourceRef": "stream"
       },
-      "notes": "AgentStream v1 §3.1/Figure 1. This is an evaluation framework, not a new learning algorithm. Read left to right along the tasks; then follow the feedback down into retained state and forward to the next task. State starts empty. Ground-truth labels are unavailable to the updating agent; it uses execution outcomes and self-reflection. The no-evolution comparison keeps state empty on every task. Three models and five methods are crossed with three stream arrangements. Figure 1(a), omitted here, shows the independent empty-state baseline. Next slide defines the three arrangements and preserves the original calculated results. Before the table: isolated means separate state per benchmark; sequential means shared state carried across benchmark blocks; interleaved means shared state across mixed tasks. Unlike FinEvo, no rubric-derived corrective summaries are supplied. Methods differ in more than retrieval.",
+      "notes": "AgentStream is an evaluation framework, not a new learning algorithm. Six benchmarks contribute 50 tasks each; the same 300 tasks recur under three ordering seeds. Three models and five update methods are tested. A domain here means one benchmark, not an inferred user topic. Read Figure 1(b) left to right: q is the next task; the robot acts; the bottom green row is retained state carried to the next task. What changes is external guidance (context, memories, skills or harness), not model weights. State starts empty. Isolated still learns across tasks within each benchmark; it is not the no-learning control. Sequential carries one history across complete benchmark blocks; interleaved carries it across shuffled domains. Within-domain task order is held fixed for comparison. The baseline keeps evolution state empty on every task. Updates see execution outcomes and self-reflection, without ground-truth labels; unlike FinEvo, no rubric-derived corrections are supplied. Figure 1(a), the baseline panel, is omitted but defined visibly. This sets up the next question: does a method that helps with separate histories also help with shared mixed-domain history? Source: v1 §§3–4, Figures 1–2.",
       "claims": [
         "C007"
       ],
@@ -536,11 +585,36 @@
       ],
       "chapter": "RESULTS / DURABILITY",
       "role": "concept",
-      "purpose": "Explain the core idea using the source conceptual figure.",
-      "visual": "Yan et al. · AgentStream v1 · Figure 1(b); independent-evaluation panel (a) omitted"
+      "purpose": "Define AgentStream as an evaluation, the retained-state loop, the reset baseline, and the three task arrangements before the result.",
+      "visual": "Original Figure 1(b), preserved; plain-language stream definitions beside it and loop/baseline definitions below.",
+      "guide": [
+        [
+          "Isolated · separate histories",
+          "Each domain learns from its own tasks. Lessons stay within that domain."
+        ],
+        [
+          "Sequential · shared history",
+          "Finish one domain, then start the next. Carry the saved lessons across."
+        ],
+        [
+          "Interleaved · shared history",
+          "Mix tasks from different domains. Keep learning into one shared history."
+        ]
+      ],
+      "figureGlossary": [
+        [
+          "Learning loop",
+          "Attempt a task → save notes or procedures → reuse them on later tasks."
+        ],
+        [
+          "Comparison",
+          "The same model, carrying no lessons between tasks."
+        ]
+      ],
+      "caveat": "Updates use execution results and self-reflection; correct-answer labels are withheld from the learning agent."
     },
     {
-      "title": "Mixed tasks change which memory methods help",
+      "title": "The same memory method can help or hurt",
       "kind": "source-evidence",
       "claims": [
         "C007",
@@ -550,35 +624,36 @@
       "refs": [
         "stream"
       ],
-      "purpose": "Mixed tasks change which memory methods help",
+      "purpose": "Use ACE’s sign reversal and ReasoningBank’s contrasting response to explain why workload-specific evaluation matters.",
       "visual": "Original Table 5, complete; external interpretation of contrasting method responses.",
-      "notes": "Inspected AgentStream v1 PDF p.11, complete Table 5, caption, §5.4 and Table 6. Table 5 averages over three models and three order seeds, nine shared-task configurations per method. Positive/negative figures are percentage-point gains over the same model’s no-evolution baseline; the source labels them gain (%). Last columns count which scenario wins in nine configurations; a tie explains totals below nine. ACE keeps a playbook integrated into context. A-Mem and ReasoningBank retrieve entries from external stores. Each method differs in multiple components, so this is not a retrieval-only ablation. Sequential carries state across domain blocks; interleaved shuffles tasks across domains; isolated has separate state for each benchmark. No confidence interval is in this table. The full aggregate-count calculation is retained in the appendix. Contrast with FinEvo is not causal: tasks, metrics, feedback, models and protocols differ. Takeaway: storing experience is insufficient; its relevance to the next task matters.",
-      "subtitle": "AgentStream · gain over no retained state · 3 models × 3 orders per method",
-      "callout": "−1.26 pp",
-      "body": "ACE: +2.28 pp in separate domains → −1.26 pp in mixed tasks.",
-      "detail": "ACE uses a playbook. A-Mem and ReasoningBank retrieve entries; their mean gains peak on mixed tasks.",
-      "caveat": "Methods differ in more than retrieval. This motivates relevance selection; it does not isolate its causal effect.",
+      "notes": "Read the ACE row first: +2.28 isolated, +2.26 sequential, −1.26 interleaved. These are separate experimental conditions, not three successive stages of learning. Negative means worse than the same model with no retained lessons. Then read ReasoningBank: +0.78, +0.46, +1.79. The talk needs this contrast so the audience does not conclude that mixing always hurts. ACE integrates an accumulated playbook into the prompt; ReasoningBank retrieves selected entries from an external store. Other methods and all three conditions remain in the original table. The visible takeaway is workload dependence, not proof that retrieval caused the difference. All methods differ in multiple components. Inspected AgentStream v1 PDF p.11, complete Table 5, caption, §5.4 and Table 6. Table 5 averages over three models and three order seeds, nine shared-task configurations per method. Positive/negative figures are percentage-point gains over the same model’s no-evolution baseline; the source labels them gain (%). Last columns count which scenario wins in nine configurations; a tie explains totals below nine. ACE keeps a playbook integrated into context. A-Mem and ReasoningBank retrieve entries from external stores. Each method differs in multiple components, so this is not a retrieval-only ablation. Sequential carries state across domain blocks; interleaved shuffles tasks across domains; isolated has separate state for each benchmark. No confidence interval is in this table. The full aggregate-count calculation is retained in the appendix. Contrast with FinEvo is not causal: tasks, metrics, feedback, models and protocols differ. Takeaway: storing experience is insufficient; its relevance to the next task matters. Practical implication (our interpretation): evaluate retained experience on the intended task mix; selective reuse is a candidate explanation to test, not an identified cause. AgentStream does not track one particular lesson causing one later error and does not directly establish forgetting. SEAL next tests earlier knowledge after subsequent updates. Transition to SEAL: AgentStream examined whether saved external guidance fits the workload. Now switch to learning through model weights and ask whether learning new information damages earlier knowledge. These are different failure modes, not matched methods in one benchmark.",
+      "subtitle": "Score change versus no retained lessons, in percentage points. Averages over three models and three task orders.",
+      "callout": "Help → harm",
+      "body": "ACE adds notes to the prompt: +2.28 separate; −1.26 mixed.",
+      "detail": "ReasoningBank retrieves selected notes: +0.78 → +1.79. Mixing can help too.",
+      "caveat": "Methods differ in more than retrieval: this does not isolate why they behave differently. No confidence intervals reported.",
       "resultLocator": "§5.4; Tables 5–6",
       "figure": {
         "asset": "figures/agentstream-table-5.png",
         "sourceRef": "stream",
-        "caption": "Yan et al. · AgentStream v1 · Table 5, p. 11 · Complete table; caption omitted",
+        "caption": "AgentStream v1 · Table 5, p. 11 · Last columns: wins out of 9 model/order combinations; ties possible",
         "alt": "Original Table 5 with all five methods and three stream conditions, plus counts comparing isolated and interleaved."
       },
       "chapter": "RESULTS / DURABILITY",
-      "role": "result"
+      "role": "result",
+      "compact": true
     },
     {
-      "kind": "source-concept",
-      "title": "SEAL learns which training data make an update useful",
-      "subtitle": "Given a passage: generate training text (SE), fine-tune model copies, then reward edits that improve answers.",
+      "kind": "source-evidence",
+      "title": "Can SEAL learn new facts without losing old ones?",
+      "subtitle": "SEAL (Self-Adapting LLMs) changes model weights. We will test new learning first, then retention.",
       "figure": {
         "asset": "figures/seal-figure-1.png",
         "caption": "Zweiger et al. · SEAL v2 · Figure 1, p. 2; caption omitted",
         "alt": "SEAL outer reinforcement-learning loop samples self-edits, optimizes model copies, tests downstream answers and rewards the self-edit generation policy.",
         "sourceRef": "seal"
       },
-      "notes": "SEAL v2 §3/Figure 1. Ctx is the supplied context; SE is a generated self-edit, specifying training content and optionally optimization directives. Inner loop: gradient updates adapt weights using that edit. Outer loop: downstream success rewards the policy that produced it. In the knowledge-incorporation example, a passage becomes synthetic training material; the result tests whether learning to generate that material helps question answering after adaptation. This differs from simply storing a passage in context. Figure 1 is the method overview; Table 2 follows. The learned update policy does not guarantee retention through later edits. Link back to meta-learning: a learned update-data policy is a way to learn to adapt without editing the update algorithm’s source code. Ctx is supplied context, SE is self-edit, theta denotes weights, and the check/cross marks downstream evaluation. In the example, external context is a passage and the output is training data. This leads to two tests: new passage answers, then earlier passage retention.",
+      "notes": "Why SEAL is in this section: AgentStream tested the usefulness of saved external guidance; SEAL lets us test whether gains stored in model weights survive later learning. This is a language-model adaptation study used to explain a component of self-evolving agents, not a full autonomous-agent benchmark. SEAL expands to Self-Adapting LLMs. In the knowledge-incorporation setting, a supplied passage becomes generated training text (called a self-edit); gradient-based finetuning on the passage and generated text changes the weights. Questions are answered without the passage in the prompt. Figure 1 shows candidate edits tried on separate model copies, followed by answer evaluation. Inner loop: learn the passage using that text. Outer loop: reward the generation of text that makes the inner learning effective. The model learns how to prepare its training data; the evaluator and update algorithm remain externally specified. The figure is general: self-edits can also include optimization directives in other settings. Ctx means context, LM language model, SE self-edit, theta model weights, and Ans answer. Read the diagram once left to right; do not require the audience to parse the loss expression. Next test one new passage (Table 2); then test earlier passages after successive new updates (Figure 6). These are separate experiments. Source: SEAL v2 §3, Figure 1, §4.2 and Appendix B.",
       "claims": [
         "C004"
       ],
@@ -587,11 +662,15 @@
       ],
       "chapter": "RESULTS / DURABILITY",
       "role": "concept",
-      "purpose": "Explain the core idea using the source conceptual figure.",
-      "visual": "Zweiger et al. · SEAL v2 · Figure 1, p. 2; caption omitted"
+      "purpose": "Set up the retention question and explain how SEAL learns before showing either result.",
+      "visual": "Original Figure 1 kept full-width; plain-language steps and figure key below it.",
+      "callout": "Learn to learn",
+      "body": "Write text about a passage → train a model copy → test answers.",
+      "detail": "Test without the passage. Reward text that leads to better answers, teaching the model to prepare its own training data.",
+      "caveat": "Figure key: Ctx = passage; LM = language model; SE = generated training text; θ = weights; ✓ / ✗ = answer feedback."
     },
     {
-      "title": "Learning to write update data improves adaptation",
+      "title": "SEAL improves answers about a newly learned passage",
       "kind": "source-evidence",
       "claims": [
         "C004"
@@ -599,14 +678,14 @@
       "refs": [
         "seal"
       ],
-      "purpose": "Learning to write update data improves adaptation",
+      "purpose": "Establish that SEAL learns new information successfully before asking whether later learning preserves it.",
       "visual": "Original source extraction; Zweiger et al. · SEAL v2 · Table 2, p. 8 · Complete table. Interpretation below, separate from source artwork.",
-      "notes": "SEAL has an outer loop that rewards self-generated edits when an inner weight update helps downstream performance. This example is single-passage SQuAD incorporation with Qwen2.5-7B, not the curated ARC experiment. The tested learned policy reaches 47.0 versus 39.7 for base-model synthetic data, a 7.3 percentage-point difference. A stronger external generator, GPT-4.1, reaches 46.3; SEAL does not generally dominate it and loses to it in the larger incorporation conditions. There are 974 questions clustered within 200 held-out passages. Final-score repeated-run uncertainty is not supplied. Figure 6 shows forgetting across sequential edits. Transition: an improvement still needs strong controls. Visual: Zweiger et al. · SEAL v2 · Table 2, p. 8 · Complete table. Extracted without redrawing or recoloring; caption omitted from image. Original SEAL Table 2, all five methods and three passage settings. Single-passage SEAL scores 47.0 versus 39.7 for untrained synthetic data and 46.3 for GPT-4.1 data. GPT-4.1 wins in both continued-pretraining settings. This is useful learned adaptation, not evidence of durable accumulation. The next slide shows the paper’s distinct sequential-edit test.",
-      "subtitle": "SEAL · single-passage QA accuracy (%) · 974 questions from 200 held-out passages",
-      "callout": "+7.3 pp",
-      "body": "Learned vs untrained synthetic-data policy: 47.0 vs 39.7.",
-      "detail": "GPT-4.1 data: 46.3 here; it wins in both larger pretraining settings.",
-      "caveat": "Questions share passages; final-score run uncertainty is absent. Next: test what later updates preserve.",
+      "notes": "Test 1 asks whether learning to generate training text improves new-passage answers. Use the first numeric column, not a comparison across columns. Each held-out passage is learned separately, and the model is tested without the passage in its prompt. The table aggregates 974 questions from 200 held-out SQuAD passages using Qwen2.5-7B. Both 39.7 and 47.0 train on the original passage plus generated text; the distinction is whether the generator was previously trained to produce effective self-edits. Their difference is 7.3 percentage points. Base model 32.7 means no adaptation; passage-only training yields 33.5. GPT-4.1-generated text yields 46.3 here and outperforms SEAL in both multi-passage columns. LoRA is an efficient weight-update method; full-FT means full finetuning. The other columns train on many passages together, not the sequential-retention test. Questions share passages and final-score repeated-run uncertainty is not supplied. All methods use tuned hyperparameters; these scores are not matched lifetime-cost estimates. Preserve the complete Table 2 and all comparators. Transition: now that we know a single update helps, does that gain survive learning other passages? Source: SEAL v2 §4.2, Table 2 p.8, Appendix B.",
+      "subtitle": "Test 1 · Learn each passage separately, then answer without it in the prompt · 200 passages, 974 questions",
+      "callout": "+7.3 points",
+      "body": "First numeric column: SEAL-written text 47.0%; original-model text 39.7%.",
+      "detail": "Both train on the passage plus generated text. GPT-4.1 text reaches 46.3% here and wins in the larger settings.",
+      "caveat": "This tests learning new information. It does not test keeping it through later updates; that is the next experiment.",
       "resultLocator": "Table 2; Appendix B",
       "figure": {
         "asset": "figures/seal-table-2.png",
@@ -619,7 +698,7 @@
     },
     {
       "kind": "source-guided",
-      "title": "A useful update can still damage earlier knowledge",
+      "title": "SEAL’s earlier gains shrink as it learns more passages",
       "claims": [
         "C004",
         "C020"
@@ -630,10 +709,10 @@
       ],
       "purpose": "Distinguish adaptation quality from continual retention using one developed method.",
       "visual": "Original cropped source artwork on the left; large reading guidance on the right.",
-      "notes": "Re-read SEAL v2 §5 pp.8–9 and Appendix B.6. The paper sequentially updates on new passages and revisits prior tasks. Read downward after a passage is first incorporated; many earlier-passage scores decline, but not every adjacent cell declines and no universal collapse is claimed. The original colormap, cell values and axes remain unchanged. §5 states retention is not explicitly optimized. Table in B.6 gives entrywise SEM, but the nearby text does not make the repeat denominator clear. This is a distinct evaluation from Table 2, not the same task average tracked across time. Other recipes can sustain bounded gains: C019 and the Continual Internalization reading note remain in supporting research. Removing its rushed slide does not imply all weight learning fails.",
+      "notes": "Re-read SEAL v2 §5 pp.8–9 and Appendix B.6. The paper sequentially updates on new passages and revisits prior tasks. Read downward after a passage is first incorporated; many earlier-passage scores decline, but not every adjacent cell declines and no universal collapse is claimed. The original colormap, cell values and axes remain unchanged. §5 states retention is not explicitly optimized. Table in B.6 gives entrywise SEM, but the nearby text does not make the repeat denominator clear. This is a distinct evaluation from Table 2, not the same task average tracked across time. Other recipes can sustain bounded gains: C019 and the Continual Internalization reading note remain in supporting research. Removing its rushed slide does not imply all weight learning fails. Concrete reading guide: Figure 6 column 0 has 0.33 at row 0, 0.38 at row 1, and 0.19 at row 8. Multiply the displayed fractions by 100 for the visible 33%, 38%, 19%. These are reported aggregate cell accuracies, not an individual question trajectory or a statistical significance claim. The top row precedes all edits; row 1 follows learning passage 0; row 8 follows all eight passage updates. Part synthesis: AgentStream concerns the relevance of external guidance; SEAL concerns retention through weight changes. Neither higher new-task accuracy nor saved state alone establishes lasting improvement. Bridge to Sidekick: training systems need to decide which corrections to learn from and what old experience to revisit.",
       "chapter": "RESULTS / DURABILITY",
       "role": "result",
-      "subtitle": "SEAL · QA accuracy (0–1): update on each new passage, then revisit previous passages.",
+      "subtitle": "Test 2 · Keep updating the same model on new passages, and re-test answers about earlier passages.",
       "figure": {
         "asset": "figures/seal-figure-6.png",
         "sourceRef": "seal",
@@ -642,22 +721,22 @@
       },
       "guide": [
         [
-          "Read down a column",
-          "Track one passage as later passages trigger new weight updates."
+          "Follow the first column",
+          "Passage 0: 33% before learning → 38% just after learning it → 19% after all eight updates."
         ],
         [
-          "Earlier answers degrade",
-          "Useful single-passage adaptation did not guarantee retention."
+          "What changed?",
+          "Later passages triggered more weight updates. Answers about the first passage became less accurate."
         ],
         [
-          "Test both outcomes",
-          "Measure new-task gains and earlier-task performance after updates."
+          "Why SEAL belongs here",
+          "Learning new facts helped. Keeping those gains through further learning needed a separate test."
         ]
       ],
-      "caveat": "This recipe was not optimized for retention. Appendix B.6 reports cell SEMs; the repeat denominator is unclear."
+      "caveat": "This SEAL recipe did not optimize retention. The result does not establish that all weight-update methods forget."
     },
     {
-      "title": "Production learning needs a source of reliable corrections",
+      "title": "Who tells a learning agent that it made a mistake?",
       "kind": "twocol",
       "claims": [
         "C010",
@@ -670,17 +749,17 @@
       "purpose": "Production learning needs a source of reliable corrections",
       "visual": "Flat sequence of changing components opposite the fixed external support.",
       "notes": "Shopify describes a production pipeline rather than releasing a controlled longitudinal evaluation. Product criteria become rubric judges. Harness search modifies prompts, tool descriptions and orchestration. Frontier models repair low-scoring trajectories; unresolved cases go to human annotators. Repaired trajectories feed SFT and GRPO; old and new trajectories are reused in daily full-parameter training. Serving compression learns gist tokens. Treat all as company-described architecture. The article supplies no component ablations or cycle-by-cycle held-out quality. A shared judge can propagate a blind spot across stages, but that possibility is not proof of reward hacking. We deliberately omit the estimated 96% cost saving because it does not measure the total causal value of continual learning. Shared judges may carry correlated blind spots across selection and assessment; this does not establish observed gaming at Shopify. Reward Hacking Benchmark distinguishes evaluator integrity from task correctness. An evaluator outside edit permissions is our design recommendation, not a sufficient guarantee. Part takeaway: retention and continued gains depend on the setting; production combines several loops without isolating their benefits. Can the method that produces changes itself improve? Keep report and recommendation distinct: the separate-evaluation sentence is our implication, not a claim that Shopify has released an independent longitudinal evaluation. Reliable correction is the common requirement across generated lessons and training data.",
-      "leftTitle": "Sidekick’s correction pipeline",
-      "leftBody": "Find low-scoring conversations.\nUse stronger models to propose repairs.\nReplay and check those repairs.\nTrain on accepted old and new examples.",
-      "rightTitle": "What supplies the correction?",
-      "rightBody": "Product rubrics and judge models\nHuman help for unresolved cases\n\nUse separate evaluation to check\nwhether learned changes help.",
-      "caveat": "Shopify Engineering · company-described architecture; no stage ablations or cycle-by-cycle efficacy.",
+      "leftTitle": "Shopify’s reported process",
+      "leftBody": "Find poorly rated conversations.\nUse stronger models to propose repairs.\nReplay and check the repairs.\nTrain on accepted examples, old and new.",
+      "rightTitle": "Where correction comes from",
+      "rightBody": "Written quality criteria and judging models.\nHuman help for unresolved cases.\n\nThen test whether the trained agent\nactually handles new conversations better.",
+      "caveat": "Company-described design; the article does not measure each stage’s contribution or successive learning gains.",
       "chapter": "RESULTS / DURABILITY",
       "role": "result"
     },
     {
       "kind": "section",
-      "title": "Can experience improve the adaptation process?",
+      "title": "Can the agent improve how it proposes its next change?",
       "notes": "Meta-learning is the broader question. SEAL supplied a learned update-data example; MAML is a learned-initialization example. This section develops editable improvement code as a further route, not a definition or prerequisite. Hyperagents offers bounded transfer evidence. The main claim remains future-task value; acceleration would require several cycles of better gains per resource.",
       "claims": [
         "C009",
@@ -694,15 +773,15 @@
       "purpose": "Can experience improve the adaptation process?",
       "visual": "Spacious question-led composition; conceptual framing, not empirical evidence.",
       "kicker": "RESULTS / 03",
-      "body": "SEAL learns what data to train on. Hyperagents explores another route: learning code that proposes future changes.",
-      "preview": "Test the developed system on a new domain; separate useful transfer from sustained acceleration.",
+      "body": "So far, experience has changed instructions and training data. It might also improve the method used to propose future changes.",
+      "preview": "Hyperagents makes that method editable, then tests whether a developed system can improve on new work.",
       "chapter": "RESULTS / IMPROVING THE IMPROVER",
       "role": "mini-introduction"
     },
     {
       "kind": "source-guided",
-      "title": "Hyperagents makes the proposal method editable",
-      "subtitle": "Both task-solving code and meta-agent code live in the implementation that can be changed.",
+      "title": "Hyperagents can edit the code that proposes improvements",
+      "subtitle": "The system contains a task-solving agent and a second agent that proposes changes to it.",
       "figure": {
         "asset": "figures/hyperagents-figure-1-loops.png",
         "sourceRef": "hyper",
@@ -724,22 +803,22 @@
       "visual": "Original cropped source artwork on the left; large reading guidance on the right.",
       "guide": [
         [
-          "DGM · upper loop",
-          "Improvement instructions come from a handcrafted mechanism."
+          "Task-solving code",
+          "The code that performs the work can change."
         ],
         [
-          "Hyperagents · lower loop",
-          "The meta-agent code that proposes edits can also change."
+          "Improvement code",
+          "The code that proposes edits can also change. This is the “meta-agent.”"
         ],
         [
-          "Still external",
-          "Archive selection and evaluation remain specified by the experiment."
+          "Test and keep candidates",
+          "The experiment still fixes how candidates are selected and evaluated."
         ]
       ],
-      "caveat": "Editing permission is a mechanism. Transfer experiments must establish what the learned implementation enables."
+      "caveat": "Being able to edit the improvement method does not establish that the new method is better."
     },
     {
-      "title": "A developed implementation can help learning in a new domain",
+      "title": "A developed system makes useful progress on a new task",
       "kind": "source-evidence",
       "claims": [
         "C009"
@@ -750,7 +829,7 @@
       "purpose": "A developed implementation can help learning in a new domain",
       "visual": "Original Figure 3 middle/right held-out panels, with all their comparators and uncertainty; training panel omitted.",
       "notes": "Hyperagents v1 §§5.1–5.2: select transferred implementations from paper review and robotics reward design, then hold their meta agents fixed for 50 candidate-generation iterations on math grading. Improvement@50 is the held-out score gain of the best validation-selected task agent over its starting agent. Five runs: median 0.630, 95% bootstrap interval 0.540–0.630; initial implementation 0.000 (0.000–0.130). Authors report p<.05; repository audit identifies one-sided tests and run-array bootstrap, not task-population uncertainty. The entire task/meta implementation transfers and initial task behavior has formatting failures. This supports useful transferable improvement behavior without isolating meta code from the rest of the implementation. Figure caption uses stronger language about generality; our title narrows it to the tested domain. Next ask whether that starting advantage remains under continued meta evolution. The on-slide definition separates a gain metric from an endpoint score. Separate continued-evolution experiment is now in the appendix: 0.640 vs 0.610 at 200 iterations, p>.05; it does not contradict the fixed-method result. It leaves added long-run advantage uncertain. No isolated portable improver or repeated efficiency gain is claimed.",
-      "caveat": "Whole implementation transfers; initial formatting failures confound meta-code attribution. Compounding is untested.",
+      "caveat": "The whole system transfers. This does not isolate its improvement code; the initial system also has formatting failures.",
       "resultLocator": "§5.2; Figure 3; Appendix D",
       "figure": {
         "asset": "figures/hyperagents-figure-3.png",
@@ -758,16 +837,16 @@
         "alt": "Hyperagents Figure 3: fixed-improver transfer comparisons across 50 iterations; transferred DGM-H gains while initial and DGM comparators remain near zero.",
         "caption": "Zhang et al. · Hyperagents v1 · Figure 3, p. 10 · Test panels; training panel omitted"
       },
-      "subtitle": "Hyperagents · paper review / robotics → mathematical grading · meta-agent fixed for 50 iterations",
+      "subtitle": "Hyperagents · transfer from paper review or robotics to grading math solutions; then allow 50 proposed changes",
       "callout": "0.630 vs 0.000",
-      "body": "Improvement@50 = held-out gain over the starting task agent.",
-      "detail": "Best validation-selected candidate. Medians over five runs; transferred 95% run-bootstrap CI: 0.540–0.630.",
+      "body": "Gain after 50 changes: 0.630 transferred versus 0.000 initial.",
+      "detail": "Fixed improvement method; five runs. Transferred 95% interval: 0.540–0.630.",
       "chapter": "RESULTS / IMPROVING THE IMPROVER",
       "role": "result"
     },
     {
       "kind": "cards",
-      "title": "Experience can pay when useful expertise is reused",
+      "title": "Learning is useful when a correction helps again",
       "claims": [
         "C004",
         "C005",
@@ -785,30 +864,30 @@
       "purpose": "Experience can pay when useful expertise is reused",
       "visual": "Three equal cards, without arrows or an implied progression.",
       "notes": "Answer the opening question: experience is a promising investment when it supplies expertise absent at the start and future work reuses it, provided relevant state is selected, reliable feedback corrects it, earlier abilities survive, and total costs are justified. This is our conditional synthesis, not a causal cross-benchmark finding. FinEvo’s token accounting and the harness comparison are partial evidence, not a full lifetime economic test. Reuse volume, task recurrence, starting expertise and feedback quality are variables to test. Hyperagents adds bounded transfer evidence without moving sustained compounding into the established column.",
-      "subtitle": "Conditional synthesis of the evidence · not a measured break-even rule",
+      "subtitle": "Our interpretation of the evidence: turn experience into checks that improve later work.",
       "cards": [
         [
-          "Add missing expertise",
-          "WikiSkill improves held-out tasks. FinEvo narrows the gain with expert skills.",
-          "Compare strong starting guidance"
+          "Add something useful",
+          "Compare learned instructions with good instructions supplied upfront.",
+          "FinEvo: 93.71 versus 86.67"
         ],
         [
-          "Use it where it fits",
-          "AgentStream exposes method-dependent gains. SEAL shows why retention needs its own test.",
-          "Select relevant state; revisit old tasks"
+          "Use it at the right time",
+          "Select relevant lessons and check that later learning preserves earlier abilities.",
+          "AgentStream and SEAL show why"
         ],
         [
-          "Repay the learning effort",
-          "Update design and extra attempts change the alternatives. Reuse can spread development cost.",
-          "Count development + operation"
+          "Justify the added work",
+          "Count learning and operating costs, then ask what the better outcomes are worth.",
+          "More use alone does not ensure savings"
         ]
       ],
-      "caveat": "Learned adaptation can expand this opportunity. Sustained economical compounding remains unestablished.",
+      "caveat": "A saved correction is a promising mechanism. Sustained improvements and economic value still need to be measured.",
       "chapter": "CONCLUSION",
       "role": "synthesis"
     },
     {
-      "title": "Test reuse, retention, and cost on the same task stream",
+      "title": "Test whether the correction changes what happens next time",
       "kind": "table",
       "claims": [
         "C011",
@@ -824,35 +903,35 @@
       "purpose": "Test reuse, retention, and cost on the same task stream",
       "visual": "Four-row decision table, Codex Grid 14.",
       "notes": "Hold out new task families and a later time period before optimizing the system. Revisit earlier tasks to measure retention, failures and regressions, not only the best checkpoint. Count search, weight updates, execution and evaluation: cheap deployment can hide expensive optimization. Use independent repeated runs and a separately designed evaluator. An evaluator can still be wrong; report calibration and the unit of uncertainty. To claim acceleration rather than improvement, repeated cycles would need increasingly efficient gains, not just a higher score. These are recommendations grounded in the observed limitations, not empirical guarantees. Report development cost and operating cost separately at stated reuse volumes. Sustained compounding needs several cycles of improved learning efficiency, adjusted for task difficulty and resources; a D-versus-C endpoint win alone is insufficient. Detailed control arms and frozen-versus-adaptive test lanes are in the appendix. These proposed tests operationalize the conditional conclusion rather than claiming every paper must satisfy every test. Hold model, feedback and budget fixed when varying recurrence/mixing. The earlier row called “does it repeat?” conflated replication with repeated learning-efficiency gains; replication is now in the caveat, and compounding is treated separately.",
-      "subtitle": "Proposed evaluation · commit to the test before optimizing the system",
+      "subtitle": "Proposed evaluation · compare agents on the same new work",
       "headers": [
         "Question",
-        "Measure",
-        "Limitation it can reveal"
+        "Comparison",
+        "What to measure"
       ],
       "rows": [
         [
-          "Does it add value?",
-          "Retain vs reset; expert skill; extra attempts",
-          "Which benefit requires experience?"
+          "Does experience help?",
+          "Saved lessons vs reset vs expert instructions",
+          "Quality on the same new tasks"
         ],
         [
-          "Where does it transfer?",
-          "Vary task recurrence and task mixing",
-          "When retained expertise is applicable"
+          "When does a lesson apply?",
+          "Related tasks vs different kinds of work",
+          "Benefit or harm from reusing it"
         ],
         [
-          "What does it preserve?",
-          "Revisit earlier tasks under fixed tools",
-          "Forgetfulness versus environment change"
+          "What survives later learning?",
+          "Revisit old tasks after new updates",
+          "Earlier skills retained or lost"
         ],
         [
-          "Does it repay the effort?",
-          "Development + operation at stated reuse",
-          "Benefit relative to lifetime resources"
+          "Is learning worth its cost?",
+          "Learning vs good instructions vs extra attempts",
+          "Better outcomes and all added costs"
         ]
       ],
-      "caveat": "Use independent runs and evaluation. Frozen reuse and resumed adaptation answer different questions.",
+      "caveat": "Use repeated runs and independent evaluation. Test both saved changes and the ability to keep learning.",
       "chapter": "CONCLUSION",
       "role": "implications"
     },
@@ -877,18 +956,18 @@
       "prompts": [
         [
           "01",
-          "Which FinEvo alternative would you deploy?",
-          "Fixed skill: 86.67; full evolution: 89.47; skill-only: 93.71. Include the recorded costs."
+          "Would the extra quality justify the extra work?",
+          "FinEvo: fixed instructions score 86.67; learned procedures 93.71, using about 3.9× the recorded tokens."
         ],
         [
           "02",
-          "What should trigger retrieval—or retirement?",
-          "AgentStream: method choice changes gains; SEAL: later updates can damage earlier answers."
+          "Which lesson should the agent use—or stop using?",
+          "A saved check may be irrelevant, outdated, or lost during later learning. These need different remedies."
         ],
         [
           "03",
-          "What would make the investment worthwhile?",
-          "Name the future tasks, reuse volume, and comparison that would change your decision."
+          "What would convince you a correction lasts?",
+          "Name a future task, a comparison, and a result that would change your decision."
         ]
       ],
       "caveat": "Choose a prediction, the evidence you would collect, and a result that would change your mind.",
@@ -1241,12 +1320,34 @@
       ],
       "chapter": "APPENDIX",
       "role": "appendix"
+    },
+    {
+      "kind": "source-concept",
+      "title": "Appendix · what work does FinEvo ask the agent to do?",
+      "subtitle": "120 tasks: 20 recurring kinds of financial work, six distinct cases each. The right panel shows a request and its input files.",
+      "figure": {
+        "asset": "figures/finevo-figure-1.png",
+        "sourceRef": "finevo",
+        "caption": "Deng et al. · Figure 1, PDF p.3 · Full benchmark overview and example workspace; caption omitted",
+        "alt": "Original FinEvo Figure 1: six financial domains and an example stock-analysis request with six supplied files."
+      },
+      "refs": [
+        "finevo"
+      ],
+      "claims": [
+        "C005"
+      ],
+      "chapter": "APPENDIX",
+      "role": "supporting concept",
+      "purpose": "Retain the original benchmark overview and show a concrete task workspace without interrupting the main report-error story.",
+      "visual": "Complete original Figure 1, both panels, inspected against the source PDF page.",
+      "notes": "Figure 1 is a task and workspace overview, not a persistence-protocol diagram. In the right panel, the agent receives a stock-analysis request and six input files and must write a structured report using the supplied information. This is a different example from the financial-statement error developed on slide 8. Financial-statement tasks, claims, and client communication are among the recurring scenes. Within a scene, different cases share procedures but need different calculations and conclusions. Source: FinEvo v1 Figure 1 and §§3–4.1. Original artwork preserved."
     }
   ],
   "presenter": {
     "author": "Robert Yang",
     "company": "Fundamental Research Labs"
   },
-  "revision": "2026-09-18 · review-driven revision 1",
-  "mainSlideCount": 24
+  "revision": "September 18, 2026 — explanation-first presentation revision",
+  "mainSlideCount": 25
 }

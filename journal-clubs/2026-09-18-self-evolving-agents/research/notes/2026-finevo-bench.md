@@ -45,7 +45,11 @@ Late within-scene ranks 4–6 have score gains 6.10–8.70 points higher than ra
 
 Table 5 (p.7), Claude Code carrier comparison: reset 71.58 score/0.55 issues; fixed expert skill 86.67/0.13; unrestricted evolution 89.47/0.11; memory only 90.42/0.09; skill only 93.71/0.05. Reflection tokens per task are 60.19×10^4 for unrestricted, 26.18×10^4 for memory, and 44.03×10^4 for skill. Table 6 reports rubric feedback beating a complete reference answer by +3.95 to +7.93 score points and −0.06 to −0.14 issues per task across scaffolds.
 
+September 18 targeted recheck of official v1 HTML §§4.1/4.4 and Table 5: expert/full/skill-only execution-plus-reflection totals are 15.92/76.50/61.56 ×10^4 tokens per task (159,200/765,000/615,600). The latter two sum execution and reflection columns. These exclude the judge; expert-skill preparation is not priced. Skill-only exceeds the expert condition by 7.04 rubric points and full evolution by 4.24. This compares alternative systems, not learning added to an expert-initialized agent. Lower token use than full evolution does not establish net economic value or the benefit of pausing updates. No restricted original retained.
+
 ### Coordinator verification
+
+September 18 narrative follow-up: reopened official v1 HTML Appendix C.1–C.5, especially Tables 25–27 and Figure 10. Task 04's report gives 40.02% for 2022 gross margin; its revenue 115.05 and cost 67.88 imply approximately 41.00%. The judge flags the discrepancy, and subsequent memory/skill edits require direct recalculation and agreement between summary-table figures and detailed calculations. These are documented edits to existing instructions. The appendix does not isolate this check's effect on later reports. The thesis's proposed comparison with and without the check is analyst analysis. No restricted original retained.
 
 Re-read primary §§3–4 and Tables 3–6 on September 16. Corrected the screening draft: **775 is the number of input files, not output deliverables** (§3.1). There are 120 task outputs per complete run. All four evaluated scaffolds use the same Qwen3.7-Max backbone; scaffold names do not identify their usual vendor models. Only the separate scorer uses Claude Opus 4.6.
 
