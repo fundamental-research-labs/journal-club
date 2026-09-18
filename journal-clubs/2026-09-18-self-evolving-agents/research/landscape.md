@@ -4,7 +4,7 @@
 
 ## Current analysis structure — September 18, 2026
 
-The [revised thesis](../analysis/thesis.md) selects developed examples to explain when experience creates future-task value. It separates relevance/retention from feedback quality and treats learned improvement methods as a further achievement. Its conditional explanation—missing starting expertise plus recurring opportunities for relevant reuse—remains analyst synthesis, with competing explanations and discriminating tests in C011/C012. The [coverage audit](thesis-coverage.md) now records 27 directly cited families out of the unchanged 64 reviewed families, including explicit reasons for the 13 sources moved to supporting evidence. The detailed topic map below remains research breadth, not a required essay structure.
+The [revised thesis](../analysis/thesis.md) selects developed examples to explain when experience creates future-task value. It separates relevance/retention from feedback quality and treats learned improvement methods as a further achievement. Its conditional explanation—missing starting expertise plus recurring opportunities for relevant reuse—remains analyst synthesis, with competing explanations and discriminating tests in C011/C012. The [coverage audit](thesis-coverage.md) now records 26 directly cited families out of the unchanged 64 reviewed families, including explicit reasons for the sources moved to supporting evidence. The detailed topic map below remains research breadth, not a required essay structure.
 
 ## Scholarly foundations — September 18 analysis revision
 

@@ -12,7 +12,7 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 - **[Open the HTML presentation](slides/index.html)** — 19 talk slides plus 7 appendices, citations, and speaker notes. Opens directly in a browser; no install or network required.
 
-- **[Central argument: what experience makes possible](analysis/thesis.md)** — a connected essay built around developed examples, grounded in continual/lifelong learning and meta-learning, drawing on 64 reviewed evidence families and citing 27 directly; the coverage audit preserves the broader evidence and counterarguments.
+- **[Central argument: what experience makes possible](analysis/thesis.md)** — a connected essay built around developed examples, grounded in continual/lifelong learning and meta-learning, drawing on 64 reviewed evidence families and citing 26 directly; the coverage audit preserves the broader evidence and counterarguments.
 - **[Thesis coverage audit](research/thesis-coverage.md)** — before/after counts, claims, omissions, source roles, and search limits.
 - [Claim ledger](analysis/claims.md) — evidence, confidence, and limits.
 - **[Ranked shortlist: ten priority resources](research/shortlist.md)** — why each belongs, what to read, key results, limitations, and strong alternatives.

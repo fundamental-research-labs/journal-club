@@ -1,3 +1,19 @@
+## R-Zero explanation follow-up — September 18, 2026
+
+Removed the Absolute Zero detour from the feedback section at the user's request. The opening example now follows R-Zero continuously from generated problems to answer voting, training, and later deterioration. All other thesis paragraphs remain unchanged. Reconciled Absolute Zero as supporting evidence in the coverage audit, updated current direct-citation counts from 27 to 26, and refreshed the citation map. No new claims or research; the earlier substantive review findings remain open.
+
+## Feedback-section clarity revision — September 18, 2026
+
+Completed the requested rewrite of “Feedback quality in self-training.” Replaced compressed method labels and abstract conclusions with explanations of who generates problems, checks answers, demonstrates successful actions, and trains the next model. Preserved R-Zero's decline and causal uncertainty, the positive three-round internalization result and uneven benchmark, Shopify's external assistance and missing controlled evidence, and the distinction between judge blind spots and evaluator tampering. The section is longer because it now supplies the mechanisms needed to understand its claims.
+
+Reopened retained Absolute Zero v3, R-Zero v4, and RHB v1 text; checked the official continual-internalization v1 HTML and Shopify article because no permitted originals are retained. Reused the September 16 cutoff. Updated C008's supporting locators and reconciled the unchanged source selection in the coverage audit. Read the rewrite with both neighboring sections and checked mechanisms, numbers, citations, and claim boundaries. No experiments or new discovery. Other thesis sections remain unchanged; the three substantive findings in `analysis/thesis-review.md` remain open. Slides require later prose alignment; this request changes analysis only.
+
+## Current thesis review — September 18, 2026
+
+Completed the requested review of the current thesis using the analysis skill. [Findings and verification scope](analysis/thesis-review.md) identify three targeted revisions: restore FinEvo's stronger skill-only alternative (C005), state that FinEvo also interleaves tasks before contrasting it with AgentStream (C007/C011), and give the practical-value argument a concrete, qualified cost comparison (C005/C011/C012). The central argument remains defensible; the earlier architecture findings remain resolved. Analysis is reviewed, with these recommendations open before the next handoff.
+
+Reopened retained harness-evaluation v2, Hyperagents v1, and R-Zero v4 passages, and the official FinEvo v1 HTML under its existing retention restriction. No discovery or freshness update; September 16 cutoff unchanged. Thesis, claim ledger, and slides remain unchanged. Next analysis revision should address the three findings and reconcile affected claims and coverage; presentation propagation follows that revision.
+
 ## Analysis terminology revision — September 18, 2026
 
 Revised the full thesis to use established terminology where it names a specific mechanism: agent traces, agent skills, memory retrieval, skill selection, harness evolution, test-time compute, fine-tuning, and meta-learning. Definitions accompany first use where needed. ExpeL retains its source term “trajectories”; WikiSkill distinguishes traces, its knowledge base, and agent skills. Ordinary descriptions of professional procedures remain where no packaged agent skill is meant. Updated the claim and coverage section mappings.

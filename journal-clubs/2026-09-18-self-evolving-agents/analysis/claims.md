@@ -55,7 +55,7 @@ September 16, 2026. Confidence is an analytic judgment about the scoped claim, n
 ## C008
 
 - **Claim / type:** Additional self-generated training can reverse an earlier gain; label degradation alone is not an established causal explanation. Reported finding / causal limitation.
-- **Support:** `2025-r-zero`, [v4 Appendix D Table 6, Appendix E](https://arxiv.org/abs/2508.05004v4): two-model math score 49.12 at step 45 falls to 46.52 at step 60; model-size-specific collapse occurs at different pseudo-label accuracies.
+- **Support:** `2025-r-zero`, [v4 §3.3, Table 5, Appendix D Table 6, Appendix E](https://arxiv.org/abs/2508.05004v4): two-model math score 49.12 at step 45 falls to 46.52 at step 60; the model-judged audit finds declining training-answer reliability, and model-size-specific collapse occurs at different pseudo-label accuracies. §§2.3–2.4 explain majority-vote training targets; their agreement is not independent verification.
 - **Challenge / comparability:** Missing training-run intervals and full compute ledger; judge-based label audits; curriculum difficulty and synthetic-data diversity also change. This is a bounded counterexample to monotonicity, not the typical collapse rate. Disputed main-table/prose aggregates are excluded.
 - **Confidence / status:** Moderate; usable for the observed decline, causal mechanism unresolved. **Change criterion:** Replicated fixed-label-quality and fixed-difficulty interventions could identify causes or show instability was run-specific.
 
@@ -170,7 +170,7 @@ September 16, 2026. Confidence is an analytic judgment about the scoped claim, n
 
 ## Thesis section mapping
 
-The [coverage audit](../research/thesis-coverage.md) preserves all 64 reviewed evidence families and identifies the 27 directly cited in the current essay. C001–C021 retain their IDs and evidence statuses. C011 now states the conditional synthesis and its alternatives explicitly; C012 separates proposed attribution tests. Removing a source from the essay does not remove its evidence from this ledger.
+The [coverage audit](../research/thesis-coverage.md) preserves all 64 reviewed evidence families and identifies the 26 directly cited in the current essay. C001–C021 retain their IDs and evidence statuses. C011 now states the conditional synthesis and its alternatives explicitly; C012 separates proposed attribution tests. Removing a source from the essay does not remove its evidence from this ledger.
 
 | Thesis section | Supporting claims |
 | --- | --- |
