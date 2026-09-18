@@ -2,6 +2,10 @@
 
 **Cutoff: September 16, 2026.** This topic map supports a 45-minute, technically literate journal club. It organizes evidence and open questions rather than prescribing a final thesis. Start with the [ranked shortlist](shortlist.md); consult [source records](sources.md) and linked notes for exact versions and access depth. This revision supersedes earlier numerical/access qualifications where the new primary-source audit resolves them.
 
+## Scholarly foundations — September 18 analysis revision
+
+The [thesis introduction](../analysis/thesis.md#introduction-continual-learning-in-an-agent-setting) now situates experience-driven agents within continual/lifelong learning and distinguishes meta-learning from improver-code editing. Four [bounded foundation reviews](thesis-coverage.md#scholarly-foundations-revision--september-18-2026) explain learned bias, parameter protection, episodic gradient constraints, transfer metrics and learned initialization. These concepts make the later questions more precise: distinguish failed forward transfer, loss of earlier ability under fixed conditions, and changes to the environment. Existing 2023–2026 empirical evidence and the frontier cutoff are unchanged.
+
 ## Thesis-driven coverage revision — September 16
 
 The [coverage audit](thesis-coverage.md) separates 153 discovery records, 56 reviewed families used in the thesis, and ten reading priorities. This pass restores earlier mechanisms and evaluates counterexamples instead of searching only for confirmation of the existing argument.

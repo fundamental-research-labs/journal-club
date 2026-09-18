@@ -12,18 +12,20 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 - **[Open the HTML presentation](slides/index.html)** — 19 talk slides plus 7 appendices, citations, and speaker notes. Opens directly in a browser; no install or network required.
 
-- **[Central argument: what experience makes possible](analysis/thesis.md)** — a connected essay built around developed examples, drawing on 60 reviewed evidence families and citing 36 directly; the coverage audit preserves the broader evidence and counterarguments.
+- **[Central argument: what experience makes possible](analysis/thesis.md)** — a connected essay built around developed examples, grounded in continual/lifelong learning and meta-learning, drawing on 64 reviewed evidence families and citing 40 directly; the coverage audit preserves the broader evidence and counterarguments.
 - **[Thesis coverage audit](research/thesis-coverage.md)** — before/after counts, claims, omissions, source roles, and search limits.
 - [Claim ledger](analysis/claims.md) — evidence, confidence, and limits.
 - **[Ranked shortlist: ten priority resources](research/shortlist.md)** — why each belongs, what to read, key results, limitations, and strong alternatives.
 - **[Research landscape](research/landscape.md)** — mechanisms, competing evidence, and discussion questions organized around the topic.
-- **[Source register](research/sources.md)** — 154 candidate/resource records with selection decisions, exact review depths, versions, and acquisition status; 59 substantive reading-note files.
+- **[Source register](research/sources.md)** — 158 candidate/resource records with selection decisions, exact review depths, versions, and acquisition status; 63 substantive reading-note files.
 - [Reading routes](reading-list.md) and [practitioner resources](practitioner-sources.md) — ways to navigate the corpus by interest.
 - [Search and audit log](research/search-log.md), [originals guide](research/originals/README.md), and [research handoff](workflow.md) — provenance, checks, and remaining limits.
 
 - **[Per-paper prominent citations](research/prominent-citations.md)** — 55 papers, 207 verified citation contexts, recurring-reference counts, and links from every reviewed paper note.
 
 - **[Earlier recent-paper citation audit](research/citation-mining.md)** — seven seeds, parallel low-cost discovery, five newly read comparators, and retained top-ten decision.
+
+The September 18 scholarly revision adds foundational literature and connects it to retention, transfer, and adaptation tests. The current slides predate this analysis revision; their introduction and related notes still need reconciliation.
 
 ## Selected supporting resources
 
@@ -35,7 +37,7 @@ Strong alternatives include **Dream-RSI, EvoHarnessBench, Library Drift, NemoCla
 
 All reading-note filenames use `YYYY-short-title.md` in lowercase kebab-case, with the source publication year as the prefix. For SoL-Pi, `2026` identifies the reviewed repository snapshot year because first publication is unverified. Original-source folders use the same year-prefixed name as their reading notes, and retained filenames use `YYYY-short-title-artifact-version.ext`. Existing source keys are preserved; the source register maps them to the year-prefixed notes and originals. Canonical URLs, notes, and licensed originals are linked through the register. Original PDFs are unmodified; source-specific licenses and hashes are recorded. Temporary downloads, text extraction, and rendered inspection images remain outside this repository.
 
-Research used the journal-club-research skill's discovery → screening → coordinator-verification workflow. Primary methods/results, relevant appendices, first-party repositories, and original practitioner articles were inspected to the depths recorded. Selected tables were visually checked; AgentStream's published aggregates were reconstructed. No training experiments were reproduced. The journal-club-analyze pass is complete: thesis and claim ledger are ready with explicit qualifications. The HTML presentation in `slides/` now follows the latest thesis and maps C001–C019 into slides and notes. The September 18 revision develops WikiSkill’s retained-knowledge mechanism, distinguishes both Hyperagents transfer experiments, includes the bounded positive internalization counterexample, and corrects the proposed controls. The presentation now follows introduction → main question → three motivated results parts → conclusion, with 22 main slides and 9 appendices. All 31 slides were visually inspected; [review scope and limitations](slides/review.md) are recorded. The research cutoff remains September 16, 2026.
+Research used the journal-club-research skill's discovery → screening → coordinator-verification workflow. Primary methods/results, relevant appendices, first-party repositories, and original practitioner articles were inspected to the depths recorded. Selected tables were visually checked; AgentStream's published aggregates were reconstructed. No training experiments were reproduced. The journal-club-analyze pass is complete: thesis and claim ledger are ready with explicit qualifications. Before the scholarly-foundations revision, the HTML presentation in `slides/` followed the thesis and maps C001–C019 into slides and notes. The September 18 revision develops WikiSkill’s retained-knowledge mechanism, distinguishes both Hyperagents transfer experiments, includes the bounded positive internalization counterexample, and corrects the proposed controls. The presentation now follows introduction → main question → three motivated results parts → conclusion, with 22 main slides and 9 appendices. All 31 slides were visually inspected; [review scope and limitations](slides/review.md) are recorded. The research cutoff remains September 16, 2026.
 
 [Initial research notes](research-notes.md) remain as historical context; the current shortlist, landscape, and source notes supersede their earlier reading-status and numerical qualifications.
 

@@ -30,6 +30,14 @@ scope; do not create an authoritative thesis from titles or abstracts alone.
 
 ## Build and challenge interpretations
 
+Identify the established research problems behind the topic's current terminology.
+Search beyond the recent field's own citation network when it omits a consequential
+parent or neighboring literature. Read the relevant originals and distinguish
+documented intellectual inheritance from your own conceptual comparison. A new
+name, representation, or application does not by itself establish a new learning
+problem. Use this context to assess novelty, assumptions, and appropriate tests;
+do not add a historical survey unrelated to the argument.
+
 Read the [prominent-citation coverage check](../journal-club-research/references/prominent-citations.md)
 and the session's per-source lists and aggregate. Before choosing anchors, review
 recurring substantive citations, each anchor's direct predecessors and decisive
@@ -93,6 +101,16 @@ generic importance claims and mechanical recaps; the connection should advance t
 argument. For example, after explaining how an agent retains a procedure, motivate
 the next section by asking whether learning it adds value beyond supplying good
 instructions beforehand, then introduce the comparison that tests this.
+
+Include a scholarly introduction that connects the motivating problem to established
+literature before developing recent anchor examples. Explain the inherited concepts
+and unresolved questions, what changes in the present setting, and where the analogy
+breaks. Cite foundational primary work where it does explanatory work, rather than
+adding names to an opening paragraph. For example, an essay about agents learning
+from accumulated experience should examine continual/lifelong learning and relevant
+meta-learning: distinguish the learning setting from the update mechanism and the
+unit that learns. Let those connections shape later comparisons and evaluation
+criteria. Scholarly grounding should retain the essay's accessible, connected prose.
 
 Explain mechanisms through actors and actions: what the agent
 changes, how it chooses a change, and what happens next. Prefer familiar words and
@@ -187,6 +205,12 @@ affecting the reasoning, check whether they are a catalog that needs synthesis o
 Do not force a linear dependency where a comparison genuinely requires parallel
 cases. Consolidate recurring limitations around the conclusion they constrain;
 keep source-specific qualifications beside the results whose meaning they change.
+
+Check the introduction against the conclusion: can the reader identify the prior
+research problem, the current work's actual contribution, and which inherited tests
+still apply? Repair missing foundations even if all recent anchors and their direct
+baselines are already covered. Record the added reading and any remaining scope
+limits in the supporting evidence records.
 
 Audit sentences in context, especially paragraph openings, transitions, and endings.
 If deleting one loses no information or necessary connection, remove it. If its

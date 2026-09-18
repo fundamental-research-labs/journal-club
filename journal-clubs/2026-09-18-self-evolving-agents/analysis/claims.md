@@ -152,21 +152,41 @@ September 16, 2026. Confidence is an analytic judgment about the scoped claim, n
 - **Confidence / status:** Moderate; usable for bounded multi-cycle behavior.
 - **Change criterion:** Longer independent task streams, retention checks, repeated training and equal lifetime budgets could change durability/generalization conclusions.
 
+## C020
+
+- **Claim / type:** Much self-evolving-agent work can be analyzed as continual learning at the level of the complete agent. Retained external state and weight updates implement different mechanisms; neither persistence nor frozen weights alone proves durable improvement. Historical framing / analyst synthesis.
+- **Support:** `1995-lifelong-learning-case-study`, §§1–2; `2017-elastic-weight-consolidation`, §§1–2; `2017-gradient-episodic-memory`, §§2–3; ExpeL §3 and SEAL §§3/5. Primary links and reading depths in the [register](../research/sources.md#1995-lifelong-learning-case-study).
+- **Challenge / comparability:** Protocols differ in task labels, feedback, old-data access and what is updated. Offline design search and task-local retries alone are not demonstrations of continual learning. External-memory interference is not necessarily parameter overwriting. This is a conceptual comparison, not a claim that the agent papers all descend directly from these sources.
+- **Confidence / status:** High for the distinctions; usable as a scoped interpretive framework.
+- **Change criterion:** Restrict the mapping where no retained state or sequential learning setting exists. Test earlier abilities under fixed tools before attributing a regression to forgetting.
+
+## C021
+
+- **Claim / type:** Learning to adapt does not require editing improvement code; meta-learning and continual retention are distinct evaluation questions. Mechanism comparison / analyst synthesis.
+- **Support:** `2017-model-agnostic-meta-learning`, §2/Algorithm 1 (learned initialization); SEAL §§2–3 (learned update-data generation) and §5 (retention limitation); Hyperagents §3 (editable improvement code). [MAML primary](https://proceedings.mlr.press/v70/finn17a/finn17a.pdf).
+- **Challenge / comparability:** These are different mechanisms and protocols, not matched tests. Fast adaptation on held-out tasks does not establish sequential retention or sustained compounding.
+- **Confidence / status:** High for mechanism distinctions; usable. No new quantitative performance claim.
+- **Change criterion:** Claims about repeated improvement efficiency need controlled multi-cycle tests; editable code alone is insufficient.
+
 ## Thesis section mapping
 
-The [coverage audit](../research/thesis-coverage.md) preserves all 60 reviewed evidence families and identifies the 36 cited in the current essay. C001–C019 remain stable, including supporting claims no longer illustrated individually in prose. Citation selection does not change a claim's status or turn related sources into independent confirmations.
+The [coverage audit](../research/thesis-coverage.md) preserves all 64 reviewed evidence families and identifies the 40 cited in the current essay. C001–C019 remain stable, including supporting claims no longer illustrated individually in prose. Citation selection does not change a claim's status or turn related sources into independent confirmations.
 
 | Thesis section | Supporting claims |
 | --- | --- |
-| Why should the next task be easier? | C001, C003, C011 |
+| Introduction: continual learning in an agent setting | C001, C011, C020–C021 |
 | How an experience becomes a working procedure | C001, C003–C004, C013–C014 |
 | What does learning add to a good starting agent? | C005–C006, C011–C013, C018 |
 | The next task can change the verdict | C004, C007–C008, C010, C013, C015–C016, C019 |
-| Can the agent learn a better way to learn? | C009, C011, C013–C014, C017 |
-| What would distinguish the achievements? | C011–C012 |
+| Can the agent learn a better way to learn? | C009, C011, C013–C014, C017, C021 |
+| What would distinguish the achievements? | C011–C012, C020–C021 |
 
 The WikiSkill mechanism explanation is grounded in v1 §3 and Figure 2: immutable traces, a persistent wiki, proposed skills, and validation/rollback. The conclusion that retained interpretations need scrutiny is analyst inference, not a measured contamination result. The proposed final experiment remains a recommendation under C012. The citation-coverage revision restores predecessor/comparator explanations, adds the existing WikiSkill Table 1 competitor comparison and AgentStream Table 5 method contrast, and preserves the recorded empirical uncertainty. No new experiment was performed.
 
 ## Sentence-specificity revision — September 18, 2026
 
 The [editorial audit](sentence-audit.md) and revised thesis preserve C001–C019 and the section mapping above. The wiki discussion now proposes comparing retained versus removed entries from rejected proposals, making the existing analyst inference testable without asserting a new finding. The final experiment retains independent evaluation, matched starting state, retention tests, and total resource accounting. Source URLs and numerical results are preserved; no claim status changed.
+
+## Scholarly-foundations revision — September 18, 2026
+
+C020–C021 ground the introduction and subsequent reasoning. C012 now includes a proposed continual-learning performance matrix, frozen diagnostic copies, an initial pretrained baseline and separate tool-change tests; these are recommendations, not reported experiments. C001–C019 retain their empirical numbers and statuses. New foundation sources received bounded conceptual review; the earlier numerical audits remain in force.

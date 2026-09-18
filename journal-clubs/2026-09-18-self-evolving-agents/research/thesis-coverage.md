@@ -2,6 +2,23 @@
 
 **Prepared September 16, 2026; cutoff unchanged.** The question is whether experience produces reusable future-task value beyond strong static procedures and additional inference, and whether the update procedure itself becomes better. The thesis is a hypothesis to challenge; the search also used independent field vocabulary and earlier method lineages.
 
+## Scholarly foundations revision — September 18, 2026
+
+The earlier direct-predecessor audit missed the parent literature: recent agent papers and their immediate baselines did not adequately explain continual learning. The revised introduction develops that relationship, then carries it into the retention, meta-learning and proposed-evaluation sections. The conclusion treats continual-learning value as an achievement in its own right; sustained compounding remains a separate, stronger question.
+
+Current totals are **158 registered records, 64 reviewed families, 63 substantive note files and 40 families cited in the essay**. The prior 36 remain. Four bounded primary-source foundation readings were added; the ten reading priorities and September 16 frontier cutoff are unchanged. These additions are historical/conceptual support, not four new empirical confirmations.
+
+| Foundation | Explanatory role and review boundary |
+| --- | --- |
+| [Thrun (1995)](notes/1995-lifelong-learning-case-study.md) | Introduction: earlier tasks teach useful assumptions for later tasks; its full old-data access prevents presenting all lifelong learning as one restricted-memory protocol. §§1–2 read; no numerical result claim. |
+| [EWC (2017)](notes/2017-elastic-weight-consolidation.md) | Introduction: parameter interference and importance-weighted protection. Author v2 §§1–2 read; distinguish that version from the PNAS publication. |
+| [GEM (2017)](notes/2017-gradient-episodic-memory.md) | Introduction and conclusion: stored-example gradient constraints, forward/backward transfer and performance matrices. §§1–3/Algorithm 1 and §4.1 read. Frozen diagnostic copies and pretrained baselines are our proposed adaptations. |
+| [MAML (2017)](notes/2017-model-agnostic-meta-learning.md) | Introduction and meta-learning section: learned initialization versus learned update data or editable improvement code. §§1–4 selected conceptual/method sections read; no performance comparison imported. |
+
+The mapping to agents is analyst synthesis, not an assertion that every anchor explicitly cites these four sources. Reopened retained SEAL v2 §§2–3/5: the authors explicitly connect self-edit generation to meta-learning and sequential edits to catastrophic forgetting. Existing predecessor/baseline dispositions below remain applicable.
+
+The 55-paper/207-edge citation-network audit is unchanged and does not include a new exhaustive citation audit of these foundations. GEM §3 directly contrasts EWC; MAML §4 distinguishes learned update rules from its own initialization objective. Other historical leads in those bibliographies remain unreviewed in this pass. The scope is enough to ground the essay's concepts, not a comprehensive survey of continual learning (e.g., architectural isolation, generative replay, task-free learning or continual reinforcement learning). No claim that the selected mechanisms exhaust that field is made. No originals were retained without established redistribution permission.
+
 ## Sentence-specificity revision — September 18, 2026
 
 The [sentence audit](../analysis/sentence-audit.md) records 38 weak passages in 30 of the original 46 prose paragraphs. The revision removes empty signposts and repeated conclusions, and specifies comparisons behind vague recommendations. All 36 cited families retain their explanatory roles and source-specific limitations; the predecessor, baseline, and counterevidence dispositions below still apply. The wiki-entry removal comparison is proposed analysis, not a reported experiment. The September 16 research cutoff and C001–C019 remain unchanged.

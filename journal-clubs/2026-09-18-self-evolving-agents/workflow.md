@@ -1,6 +1,16 @@
 # Research, analysis, and presentation handoff
 
-**Updated September 18, 2026. Stage: presentation narrative revised; local HTML ready.** Research cutoff remains September 16, 2026. Earlier stale-deck notices below record historical handoffs and are superseded by this revision.
+**Updated September 18, 2026. Stage: scholarly analysis revision complete; presentation reconciliation pending for the new foundations.** Frontier research cutoff remains September 16, 2026; foundation sources accessed September 18. Earlier readiness statements below describe prior revisions.
+
+## Scholarly introduction and analysis skill — September 18, 2026
+
+Revised the analyze skill to identify parent literatures beyond recent citation networks, write a scholarly introduction with substantive conceptual relationships, and carry inherited questions into the analysis. The installed skill symlink points to the edited repository file.
+
+Revised the thesis introduction around lifelong/continual learning and meta-learning; updated the SEAL interpretation, stream-regression distinctions, and proposed evaluation. Added C020–C021, four scoped reading notes and source/acquisition records, and reconciled the coverage audit. Counts: 158 records, 64 reviewed families, 63 note files, 40 directly cited families. Existing empirical results and claim statuses are preserved.
+
+Validation: skill validator passed using `uv run --with pyyaml`; 274 relative file links resolved; all 36 prior essay source URLs and existing body numerical tokens were preserved. Confirmed 158 unique source keys, 64 reviewed families and 63 notes; whitespace checks passed. Read the revised introduction and section transitions against the conclusion and source-specific caveats.
+
+Targeted primary-source access fills the requested historical gap; this is not a September 17–18 frontier update. No experiments reproduced and no slide/document/PDF artifacts generated. The slides have not incorporated the new introduction, conceptual distinctions or C020–C021; that presentation handoff remains pending outside this analysis request.
 
 ## Analysis sentence audit — September 18, 2026
 

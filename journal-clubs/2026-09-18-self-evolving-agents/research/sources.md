@@ -1,15 +1,15 @@
 # Source register
 
-**Research cutoff and access date: September 16, 2026.** The [ranked ten](shortlist.md) are the reading priorities; the [landscape](landscape.md) organizes the topic. This register preserves 154 candidate/resource records, including companions, excluded leads, and metadata-only watchlist items. It is not a claim that all records were fully read. There are 59 substantive note files, with exact reading depth recorded individually.
+**Research cutoff: September 16, 2026; targeted foundation access: September 18, 2026.** The [ranked ten](shortlist.md) are the reading priorities; the [landscape](landscape.md) organizes the topic. This register preserves 158 candidate/resource records, including companions, excluded leads, and metadata-only watchlist items. It is not a claim that all records were fully read. There are 63 substantive note files, with exact reading depth recorded individually.
 
 The structured [sources.json](sources.json) contains the same records with complete author lists, metadata histories where checked, screening provenance, rubric reasons, and acquisition records. Primary metadata was checked against current arXiv records for 85 modern-ID sources, plus STOP separately; one requested arXiv metadata response failed. Version **read** and latest **available** metadata are separate: a newly observed version is not silently treated as read.
 
-The [thesis-driven coverage audit](thesis-coverage.md) maps the 60 reviewed evidence families and distinguishes the 36 directly cited in the essay. The ten reading priorities do not cap the evidence base. The [prominent-citation map](prominent-citations.md) exposes per-paper predecessors and baselines; unreviewed cited leads remain distinct from this evidence base.
+The [thesis-driven coverage audit](thesis-coverage.md) maps the 64 reviewed evidence families and distinguishes the 40 directly cited in the essay. The ten reading priorities do not cap the evidence base. The [prominent-citation map](prominent-citations.md) exposes per-paper predecessors and baselines; unreviewed cited leads remain distinct from this evidence base.
 
 ## Status and scope
 
 - **Shortlist (10):** selected for the topic-wide reading set, with primary substantive notes.
-- **Reviewed reserve (50):** substantive reading, useful alternatives or challenge companions.
+- **Reviewed reserve (54):** substantive reading, useful alternatives or challenge companions.
 - **Screened reserve (20):** screened sufficiently to retain as a lead; depth varies and a standalone note may be absent.
 - **Watchlist (61):** incomplete/abstract/metadata-level support; not evidence for an empirical claim.
 - **Companion (3):** related project or institutional communication; not independent replication.
@@ -1429,3 +1429,39 @@ These newly discovered older works supplement the existing ten. Five received su
 - **Dates / version:** first 2025-04-10; revision 2025-04-10; read v1. **Access:** 2026-09-16; selected primary methods §§2.1–2.3, evaluation setup and §§4.5–5 limitations read; citation contexts checked.
 - **Selection:** reviewed-reserve. ACE explicitly credits Dynamic Cheatsheet as architectural inspiration and tests it as an online baseline. **Notes:** [reading record](notes/2025-dynamic-cheatsheet.md).
 - **Originals:** saved. License/permission: CC BY 4.0. [Original PDF](originals/2025-dynamic-cheatsheet/2025-dynamic-cheatsheet-paper-v1.pdf).
+
+## Foundational literature added September 18, 2026
+
+Targeted conceptual repair; the September 16 frontier cutoff is unchanged. These four sources received selected full-text sections review, not new numerical result audits.
+
+<a id="1995-lifelong-learning-case-study"></a>
+
+### [Lifelong Learning: A Case Study](https://www.ri.cmu.edu/pub_files/pub1/thrun_sebastian_1995_1/thrun_sebastian_1995_1.pdf)
+
+- **Key / type:** `1995-lifelong-learning-case-study`; technical report, CMU-CS-95-208. **Version:** November 1995 technical report.
+- **Access:** September 18, 2026; §§1–2, printed pp. 1–5: problem assumptions and base/meta-level distinction. **Selection:** reviewed reserve. Introduction: prior tasks supply learned bias; historical protocols do not uniformly restrict old-data access.
+- **Notes:** [reading record](notes/1995-lifelong-learning-case-study.md). Original not retained; permission not established.
+
+<a id="2017-elastic-weight-consolidation"></a>
+
+### [Overcoming catastrophic forgetting in neural networks](https://arxiv.org/abs/1612.00796v2)
+
+- **Key / type:** `2017-elastic-weight-consolidation`; peer-reviewed PNAS article; author preprint read. **Version:** arXiv v2, 2017-01-25.
+- **Access:** September 18, 2026; §§1–2, equation 3 and setup in §2.1. **Selection:** reviewed reserve. Introduction: parameter interference and importance-weighted protection of earlier learning.
+- **Notes:** [reading record](notes/2017-elastic-weight-consolidation.md). Original not retained; permission not established.
+
+<a id="2017-gradient-episodic-memory"></a>
+
+### [Gradient Episodic Memory for Continual Learning](https://papers.neurips.cc/paper/2017/file/f87522788a2be2d171666752f97ddebb-Paper.pdf)
+
+- **Key / type:** `2017-gradient-episodic-memory`; peer-reviewed NIPS 2017 proceedings paper. **Version:** NIPS 2017 proceedings.
+- **Access:** September 18, 2026; §§1–3, equations 2–8, Algorithm 1 and §4.1 experimental setting. **Selection:** reviewed reserve. Introduction and proposed tests: forward/backward transfer, performance matrix, episodic gradient constraints.
+- **Notes:** [reading record](notes/2017-gradient-episodic-memory.md). Original not retained; permission not established.
+
+<a id="2017-model-agnostic-meta-learning"></a>
+
+### [Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks](https://proceedings.mlr.press/v70/finn17a.html)
+
+- **Key / type:** `2017-model-agnostic-meta-learning`; peer-reviewed ICML 2017 proceedings paper, PMLR 70:1126–1135. **Version:** ICML 2017 proceedings.
+- **Access:** September 18, 2026; §§1–2, Algorithm 1, §3 setting definitions and §4 distinction from learned update rules. **Selection:** reviewed reserve. Introduction and meta-learning section: learning an initialization differs from editing an improver.
+- **Notes:** [reading record](notes/2017-model-agnostic-meta-learning.md). Original not retained; permission not established.
