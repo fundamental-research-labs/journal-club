@@ -1,3 +1,13 @@
+## Source conceptual figures — September 18, 2026
+
+User correction completed: original paper artwork replaces homemade conceptual diagrams on slides 6, 8 and 10; homemade domain-order strings removed from 14. Presentation skill now requires original conceptual figures when available, using crops/enlargement instead of redraws. Provenance, storyboard, review and extraction instructions updated. Checked full-size changed slides, all-slide layout/navigation and skill validity. Slide count and numerical evidence unchanged. Earlier analysis queue remains untouched.
+
+## Presentation concept revision — September 18, 2026
+
+Completed the requested skill and deck correction: visible core ideas precede numerical evidence, with original conceptual figures for AgentStream, Hyperagents and SEAL; protocol explanations for FinEvo and harness evaluation; and visible update recipes for R-Zero and continual internalization. AgentStream is now slides 13–14 (previously result-only slide 11). The deck has 25 main slides and 11 appendices. Storyboard and provenance record the concept-to-evidence mapping and figure choices.
+
+Acceptance check: a viewer can identify each substantive example's role and mechanism from the visible slide sequence before interpreting its result. Retained quantitative claims and all six result visuals/caveats are unchanged. All 36 slides rendered and visually reviewed; automated boundaries, assets, navigation, notes and print-page checks passed. See `slides/review.md` for scope and browser fallback. Presentation skill validation passed. Existing analysis review work and the scholarly-foundations reconciliation remain separate; this change neither resolves nor overwrites that queue.
+
 # Research, analysis, and presentation handoff
 
 **Updated September 18, 2026. Stage: analysis architecture and synthesis revision complete; presentation reconciliation pending.** Frontier research cutoff remains September 16, 2026; foundation sources accessed September 18. Earlier readiness statements below describe prior revisions.

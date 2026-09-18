@@ -6,8 +6,8 @@ description: Create a visually appealing journal club presentation from an evide
 # Journal Club Present
 
 Turn the analysis into a clear visual argument that an audience can understand,
-question, and remember. Preserve the thesis's limits while making its implications
-concrete.
+question, and remember. Communicating the ideas is the primary purpose; numerical
+evidence establishes what those ideas achieve and where they fail.
 
 Read [the shared workflow](../journal-club-research/references/workflow.md), the
 session README, thesis, claim ledger, and unresolved qualifications. Check source notes for the
@@ -28,6 +28,8 @@ Develop the presentation narrative from the thesis and claims in this stage;
 no separate analysis storyline is required. Write `slides/storyboard.md` before
 generating the deck. For each slide, record its
 purpose, takeaway title, visual plan, claim IDs, source locators, and speaker notes.
+For each substantive paper example, also record where its core idea is explained
+and which conceptual source figure was inspected.
 Plan around the audience's background and the time available, reserving room for
 discussion. Use the narrative rhythm below as the default, adapting it to the
 audience and user’s requested format without imposing a fixed slide count.
@@ -99,6 +101,33 @@ Include speaker notes with the explanation, caveats, and transitions needed to
 present the argument. Put readable citations near empirical claims and fuller
 references and result locators in notes or the appendix.
 
+### Explain the idea before asking the audience to interpret results
+
+For a paper used as a substantive example, explain what it is (method, benchmark,
+evaluation, or theory), the problem it addresses, and its distinguishing idea before
+or alongside its first result. Show how its inputs, key operations, feedback, and
+outputs connect. For learning systems, make clear what changes and what persists;
+for benchmarks, explain the task/protocol and what the comparison tests. A name,
+headline score, or generic “learn → improve” loop does not supply this explanation.
+
+Inspect the paper's conceptual overview—often Figure 1, but sometimes another
+figure or algorithm—and its caption and method text. When the paper has a
+conceptual figure, use the original artwork. Do not replace it with homemade
+text boxes and arrows, even to simplify it or match the deck's style. Make dense
+figures readable with high-resolution extraction, labeled panel crops, enlargement,
+or multiple slides; explain the key steps in concise accompanying text and notes.
+Create a conceptual figure yourself only when the paper has no conceptual figure;
+record that absence, ground the diagram in the method text, and label it as an
+illustration. Cross-paper synthesis diagrams remain appropriate for explaining
+the presentation's own comparisons. Figure numbers are not a quality criterion,
+and incidental references do not each need a new slide.
+
+Put the essential explanation on the visible slide, not only in speaker notes.
+Use a separate concept slide when combining mechanism and results would make
+either unreadable. Preserve the quantitative comparison, meaningful baselines,
+uncertainty, and limitations on the following evidence slide. Keep these pairs
+within the topic's argument rather than turning the talk into serial paper reviews.
+
 ### Use the source's evidence visuals first
 
 For a result from one source, default to its original figure or table, not a new
@@ -115,7 +144,7 @@ outside the original; identify any overlays as added annotations. Label crops an
 omitted panels/rows, and link the complete source. Keep source-caption qualifications
 in notes even when the caption itself will not fit.
 
-Redraw when it serves a concrete purpose: cross-source synthesis, a new calculation,
+For empirical results, redraw when it serves a concrete purpose: cross-source synthesis, a new calculation,
 an unavailable/unusable source visual after inspection, or a specific reuse
 restriction. Record that reason per visual; aesthetic consistency alone is not a
 reason. Label the result “Adapted from…” or “Calculated from…” and retain verified
@@ -128,7 +157,7 @@ information where known in `slides/figures/provenance.md`. Unknown permission is
 not a claimed license; follow the user's authorized scope and any concrete source
 restrictions without inventing a separate approval workflow. Preserve original
 assets separately from editable slide annotations; embed assets for offline use.
-For revisions, audit existing result visuals and replace unjustified redraws rather
+For revisions, audit existing conceptual and result visuals and replace unjustified redraws rather
 than merely relabeling them. Record intentional exceptions.
 
 ## Review and iterate
@@ -141,6 +170,12 @@ legibility, visual hierarchy, figure quality, and export consistency. Compare ex
 original page and check readability at actual presentation size, including headers,
 legends, error bars, and crop boundaries. Fix defects
 and re-render changed slides; recheck the entire deck after global layout changes.
+
+Review comprehension separately from numerical accuracy: at each substantive
+paper's first result, could someone unfamiliar with it explain what it does, how
+its core idea works, and what the number tests using the visible slides so far?
+Audit this across the deck, including substantive appendix examples. Repair missing
+mechanisms as well as missing results; record the concept-to-evidence mapping.
 
 Review the narrative separately from layout: does the introduction end with the
 main question, does each results part explain why it is needed before showing its

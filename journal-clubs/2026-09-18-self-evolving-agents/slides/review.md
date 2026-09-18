@@ -1,3 +1,39 @@
+# Source-figure correction — September 18, 2026
+
+Supersedes the earlier approval of homemade conceptual simplifications below. Replaced WikiSkill slide 6 with original Figure 2, FinEvo slide 8 with original Figure 1, and harness slide 10 with original Figure 2. Removed the invented domain-order diagram from slide 14. Preserved explanatory subtitles, source notes, all result figures/numbers, and the 36-slide sequence. The skill now permits a homemade paper-specific conceptual figure only when the paper has none; crowding or stylistic preference requires cropping/enlargement instead.
+
+Inspected the three original pages/captions, extracted at 3×, and compared full-size browser renders of slides 6, 8, 10 and 14. All panels, labels and legends fit; no clipping or overlap observed. Regenerated all 36 slide renders and repeated navigation, notes, direct-link, embedded-image, content-boundary and print-page checks: no errors/overlaps, 36 print pages. Skill validator and whitespace checks passed. Uses the previously documented local Chromium fallback; no new browser-surface availability claimed.
+
+---
+
+# Current review — conceptual explanations, September 18, 2026
+
+This revision addresses the result-heavy presentation and updates the presentation skill. The installed skill is a symlink to the repository copy. The deck now has 25 main slides and 11 appendices; suggested duration is 30–35 minutes plus discussion. AgentStream's former slide 11 becomes a conceptual source-figure slide (13) followed by the retained results and explicit stream definitions (14).
+
+## Content and comprehension
+
+- Added visible concept explanations for FinEvo (8), harness evaluation (10), AgentStream (13–14), Hyperagents (18), and SEAL (28); added the R-Zero and continual-internalization mechanisms to 15 and made SkillsBench's comparison explicit on 31.
+- Inspected AgentStream Figures 1–2 and §3, retained Hyperagents §3/Figure 1, SEAL §3/Figure 1, FinEvo Figure 1/§§3–4.1, and harness Figure 2/§3. The harness diagram explicitly uses batch experience and a shared harness, preserving its distinction from task-specific scaling.
+- AgentStream is identified as an evaluation framework; isolated streams still retain experience within a benchmark. No-label updating, empty-state baseline and the method/model factors are explained in notes. The 300 tasks are shared across the existing configuration counts.
+- The storyboard records each substantive example's visible core explanation and corresponding evidence. Original figures and conceptual adaptations have provenance, crop descriptions, source locators, and reasons for simplification.
+- Compared all six original source-evidence slides against the pre-revision content: numerical callouts, interpretations, caveats and figure metadata are unchanged. AgentStream's three gains and nine positive/negative/tie counts are also unchanged. No new experimental results claimed.
+
+## Verification performed
+
+Rendered all 36 slides at a 1440×900 browser viewport in local Chromium. Reviewed the full sequence in contact sheets and enlarged the changed conceptual/source slides to inspect labels, crop boundaries, text hierarchy and attribution. No clipping or overlaps observed. Automated content-versus-caveat/footer boundary checks returned no overlaps. All embedded images loaded; no browser JavaScript errors.
+
+Verified Home, arrow navigation, slide picker, notes and Escape, overview and slide selection, all-slides mode, and direct slide 13 links. All 55 footer citation anchors are present; source-reference keys and figure paths resolve. External availability was checked for the newly acquired AgentStream page/artwork; this pass did not re-fetch every citation URL.
+
+Checked print media: 36 pages, each 960×540 PDF points (16:9). Visually inspected representative concept pages 13, 18 and 28 from the temporary print render. No PDF is a deliverable; renders and QA files stay outside the repository in `/tmp/jc-concepts/`.
+
+Regenerated the nine source excerpts using the documented extraction command. Print inspection caught an AgentStream crop offset caused by source-image DPI metadata; changed the extractor to derive pixel-to-page scaling from the actual page size, regenerated the image, rebuilt the offline HTML, repeated layout/navigation checks, and visually rechecked the corrected print page. The complete Figure 1(b), including its top labels and border, is now preserved. Skill validation passed with `uv run --with pyyaml .../quick_validate.py tools/skills/journal-club-present`. Whitespace check passed after storyboard cleanup.
+
+## Limits
+
+The in-app browser runtime failed during initialization (`Cannot redefine property: process`); local headless Chromium supplied the browser/render checks. Cross-browser and assistive-technology checks were not performed. Hyperagents' small right-hand implementation traces remain secondary; the visible subtitle and larger central loops convey the core idea. Research cutoff remains September 16, 2026. The earlier expanded-thesis/scholarly-foundations reconciliation remains pending outside this focused presentation correction; no research or experimental replication is implied.
+
+---
+
 # Presentation review
 
 ## Current revision — narrative rhythm, September 18, 2026
