@@ -1,5 +1,9 @@
 # Thesis review — September 18, 2026
 
+## Current correction — conclusion scope, September 18, 2026
+
+The reader rejected the previous example-led rewrite: it made the conclusion a FinEvo case study and reduced the broader question to an arithmetic check. Removed that detour and its proposed ablation from the conclusion. The new ending explains what changes when the complete agent learns through use, why developers still need to test and correct its lessons, and how learning a task differs from improving the way it learns. The prior numerical and task-mixing corrections remain. Earlier entries below document superseded drafts; they are not claims that those drafts satisfied the reader.
+
 ## Reader follow-up — concrete science writing, September 18, 2026
 
 The first conclusion rewrite still required the reader to supply examples for abstractions such as “recurring needs,” “selective updating,” and “acquired expertise.” The current ending instead follows a documented mistake in a financial report through judge feedback and saved instructions, then asks what would establish that the instruction helped on the next report. It explains gross margin in place and keeps the distinction between an observed edit and an unmeasured later benefit. The proposed update schedule has moved out of the essay's conclusion; it remains a qualified hypothesis in C012. The preceding sections and their numerical comparisons are unchanged in this follow-up. Primary verification: FinEvo v1 Appendix C, Tables 25–27/Figure 10. No invented scene, reported single-edit efficacy, or stylistic imitation.

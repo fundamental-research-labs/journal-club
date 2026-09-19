@@ -27,6 +27,8 @@ Central question: **How can agents turn experience into lasting improvements—a
 
 The September 18 analysis rewrite organizes the thesis around when experience creates lasting value, with developed comparisons and explicit conditional synthesis. The [architecture review and resolution](analysis/architecture-review.md) records the changes. The current slides incorporate that conditional argument, the continual-learning/meta-learning foundations, and the explanation-first presentation revision.
 
+The latest analysis revision removes the FinEvo anecdote from the conclusion and returns to what agents can learn from work, how developers can test those lessons, and what remains uncertain about learning how to improve. FinEvo’s skill-only and cost comparisons remain in the evidence section. [Review and corrections](analysis/thesis-review.md) records the reader feedback and scope changes.
+
 ## Selected supporting resources
 
 The ranked ten are **WikiSkill; Rethinking the Evaluation of Harness Evolution for Agents; GEPA; SEAL; Hyperagents; AgentStream; R-Zero; HarnessDev; FinEvo-Bench; and Shopify's Sidekick continual-learning account**. They cover retained knowledge, prompt/harness evolution, weight adaptation, self-generated curricula, meta-improvement, longitudinal evaluation, and production practice. Papers are supporting examples for the field's questions, not ten separate talk sections.

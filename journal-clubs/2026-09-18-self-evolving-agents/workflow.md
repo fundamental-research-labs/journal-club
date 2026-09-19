@@ -1,3 +1,9 @@
+## Conclusion scope correction — September 18, 2026
+
+Removed the rejected FinEvo-centered conclusion. The replacement develops the field-level argument through concrete actions—learning a procedure, testing a lesson, setting aside unsuitable advice, and correcting an error—without adding another case study. Preserved the earlier evidence and cost corrections. Updated claim mapping, coverage reconciliation, review, and README; appendix details remain supporting evidence. Existing source versions and empirical cutoff are unchanged. Checked the ending against the introduction, citation coverage, links, and whitespace. This editorial revision is committed at the user’s request; no slide changes or new research.
+
+The concurrent presentation commit `f25c762` included the prior analysis files during the interrupted commit attempt. This correction does not rewrite that commit.
+
 ## AgentStream explanation follow-up — September 18, 2026
 
 Completed presentation queue item **agentstream-purpose**, slides 13–15 / C007/C013/C016. Question: why does this example belong, and what does its comparison mean? Acceptance criterion: visible slides motivate changing workloads, define retained state and the baseline, explain the three arrangements, and interpret a result without implying a causal retrieval experiment. Reused original Figure 1(b)/Table 5; rechecked v1 §§3–4 and §5.4. Storyboard, content, HTML, provenance, README and review updated. Focused visual and interaction checks pass; no change to slide count or broader analysis claims. [Verification and limits](slides/review.md#agentstream-comprehension-follow-up--september-18-2026).
@@ -10,9 +16,30 @@ Inputs: latest thesis/claims, source notes, current deck, FinEvo v1 Appendix C/T
 
 Acceptance checks: main examples explain what changes before their first result; FinEvo alternatives are distinct conditions; benefit and partial cost are both explicit; slides and print layout are readable. All 37 slides were rendered and visually inspected, and navigation/assets/notes checks passed after overflow corrections. No new benchmark run, external publication, or live rehearsal. Existing analysis changes were preserved.
 
+## Concrete conclusion rewrite — September 18, 2026
+
+Completed the requested follow-up on abstract prose. The ending now follows FinEvo's documented gross-margin error, judge feedback, and saved calculation check before explaining future use and cost. Reopened official v1 Appendix C.1–C.5, Tables 25–27/Figure 10 because retention is restricted. The individual check's later benefit is explicitly unmeasured; the proposed comparison is recorded in C012. Removed the selective-update schedule from the essay's closing argument, retaining it as a supporting hypothesis. Updated C005/C012, the source note, coverage reconciliation, review, and README. Other thesis sections are unchanged in this follow-up.
+
+Reused the existing research cutoff and source selection. Read the ending with its preceding section and the essay's opening; checked factual sequence, arithmetic, claim boundaries, relative links, citation-map consistency, and whitespace. No discovery, experiment, visual artifact, or slide edit. Analysis is ready for review; the presentation conclusion still needs alignment if requested. Earlier revision entries below are historical.
+
 ## FinEvo presentation comprehension — September 18, 2026
 
 Presentation follow-up completed for slides 8–9 / C005. The user could not identify the point of the example. Acceptance criterion: visible slides explain the task, retained change, alternatives, and what the results add to the talk's question. Slide 8 now motivates learning versus supplied instructions; slide 9 defines the original table rows and emphasizes the 7.04-point skill-only advantage over expert instructions, with explicit partial token costs. Exact comparisons and caveats remain in notes. Inputs: current deck/thesis/claims, FinEvo v1 §§3–4.4 and Appendix C. Storyboard, source, generated HTML, provenance, README and review updated. Targeted visual/interaction verification passed; broader deck comprehension and rehearsal remain outside this follow-up. Concurrent analysis changes were preserved.
+
+## Analysis conclusion and practical-value revision — September 18, 2026
+
+**Current analysis stage: requested revision complete.** Replaced the dry closing recap with a developed argument about recurring needs, selective updating, and preserving acquired expertise. Reworked the practical-value section and the memory section's closing inference to support it. Resolved the three substantive recommendations in [the thesis review](analysis/thesis-review.md): strongest FinEvo adaptive alternative, interleaving in both benchmarks, and concrete partial cost accounting. Updated C005/C007/C011/C012, section mapping, source note, coverage audit, and README. The hypothesis of intensive learning followed by frozen reuse is explicitly proposed, not a reported result.
+
+Inputs: full thesis, README, existing reviews, landscape, source register/acquisition manifest, prominent-citation aggregate, coverage audit, claims, and relevant notes. Reopened retained harness-evaluation v2 §4.4 and official FinEvo v1 §§4.1–4.4/Table 5; no restricted original retained. Reused the September 16 empirical cutoff, with no discovery or experimental reproduction. Source selection remains unchanged: 26 directly cited families from 64 reviewed families.
+
+Read all section openings and endings together and the revised passages in the complete argument; checked the new numerical conversions and differences, claim boundaries, citation coverage, relative links, and whitespace. No visual artifact was generated. Presentation's existing FinEvo skill/cost corrections remain useful, but its conclusion is **not synchronized with this new analysis argument and selective-update hypothesis**; slide editing is outside the requested analysis scope.
+
+| Item | Resolution / status |
+| --- | --- |
+| Analysis review findings 1–3 | Addressed in thesis and ledger; historical review preserved with resolution. |
+| Dry conclusion | Replaced paper recap and control checklist with workload-dependent value and a qualified consequence for when to update. |
+| Selective-update schedule | Open research hypothesis; C012 specifies the comparison and what would weaken it. Does not block the qualified analysis. |
+| Presentation propagation | Pending only for the revised closing argument; no deck change in this pass. |
 
 ## Presentation revision 1 — September 18, 2026
 
